@@ -325,45 +325,45 @@ ul#nav li.current a { color: #F06000; }
    border-radius: 3px 0 0 3px;
 }
 
-.Python {
+.python {
   	width: 80%;
-  	-moz-animation: Python 2s ease;
-  	-webkit-animation: Python 2s ease;
+  	-moz-animation: python 2s ease;
+  	-webkit-animation: python 2s ease;
 }
-.C++ {
+.cpp {
   	width: 75%;
-  	-moz-animation: C++ 2s ease;
-  	-webkit-animation: C++ 2s ease;
+  	-moz-animation: cpp 2s ease;
+  	-webkit-animation: cpp 2s ease;
 }
-.Java {
+.java {
   	width: 70%;
-  	-moz-animation: Java 2s ease;
-  	-webkit-animation: Java 2s ease;
+  	-moz-animation: java 2s ease;
+  	-webkit-animation: java 2s ease;
 }
-.Scala {
+.scala {
   	width: 65%;
-  	-moz-animation: Scala 2s ease;
-  	-webkit-animation: Scala 2s ease;
+  	-moz-animation: scala 2s ease;
+  	-webkit-animation: scala 2s ease;
 }
-.R {
+.r {
   	width: 80%;
-  	-moz-animation: R 2s ease;
-  	-webkit-animation: R 2s ease;
+  	-moz-animation: r 2s ease;
+  	-webkit-animation: r 2s ease;
 }
-.MySQL {
+.mysql {
   	width: 75%;
-  	-moz-animation: MySQL 2s ease;
-  	-webkit-animation: MySQL 2s ease;
+  	-moz-animation: mysql 2s ease;
+  	-webkit-animation: mysql 2s ease;
 }
-.Spark {
+.spark {
   	width: 70%;
-  	-moz-animation: MySQL 2s ease;
-  	-webkit-animation: MySQL 2s ease;
+  	-moz-animation: spark 2s ease;
+  	-webkit-animation: spark 2s ease;
 }
-.Hadoop {
+.hadoop {
   	width: 50%;
-  	-moz-animation: Hadoop 2s ease;
-  	-webkit-animation: Hadoop 2s ease;
+  	-moz-animation: hadoop 2s ease;
+  	-webkit-animation: hadoop 2s ease;
 }
 .javascript {
   	width: 55%;
@@ -371,13 +371,13 @@ ul#nav li.current a { color: #F06000; }
   	-webkit-animation: javascript 2s ease;
 }
 
-@-moz-keyframes photoshop {
+@-moz-keyframes python {
   0%   { width: 0px;  }
-  100% { width: 60%;  }
+  100% { width: 80%;  }
 }
-@-moz-keyframes illustrator {
+@-moz-keyframes cpp {
   0%   { width: 0px;  }
-  100% { width: 55%;  }
+  100% { width: 75%;  }
 }
 @-moz-keyframes wordpress {
   0%   { width: 0px;  }
