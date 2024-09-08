@@ -7,9 +7,9 @@ const GetInTouch = () => {
   const socialLinks = [
     { icon: FaLinkedin, url: 'https://www.linkedin.com/in/arnabbir/', label: 'LinkedIn' },
     { icon: FaGithub, url: 'https://github.com/ArnabBir', label: 'GitHub' },
-    { icon: FaInstagram, url: 'https://www.instagram.com/arnabbir/', label: 'Instagram' },
-    { icon: FaTwitter, url: 'https://twitter.com/arnabbir', label: 'Twitter' },
-    { icon: FaFacebook, url: 'https://www.facebook.com/arnabbir', label: 'Facebook' },
+    { icon: FaInstagram, url: 'https://www.instagram.com/arnabbir', label: 'Instagram' },
+    { icon: FaTwitter, url: 'https://x.com/arnabbir', label: 'Twitter' },
+    { icon: FaFacebook, url: 'https://www.facebook.com/arnab.bir.3', label: 'Facebook' },
     { icon: FaEnvelope, url: 'mailto:arnabbir@gmail.com', label: 'Email' },
   ];
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const TypewriterEffect = ({ text, speed = 100, loop = false, onComplete }) => {
+const TypewriterEffect = ({ text, speed = 100, loop = false, onComplete, pause = 5000 }) => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
@@ -20,7 +20,7 @@ const TypewriterEffect = ({ text, speed = 100, loop = false, onComplete }) => {
         setDisplayText('');
         setCurrentIndex(0);
         setIsTyping(true);
-      }, 2000); // 2-second pause before repeating
+      }, pause); // 5-second pause before repeating
     } else {
       setIsTyping(false); // Typing done, stop cursor
       if (onComplete) onComplete();

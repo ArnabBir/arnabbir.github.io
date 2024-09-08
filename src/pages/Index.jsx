@@ -9,6 +9,7 @@ import GetInTouch from '../components/GetInTouch';
 import Navigation from '../components/Navigation';
 import OpenSourceProjects from '../components/OpenSourceProjects';
 import TypewriterEffect from '../components/TypewriterEffect';
+import AcademicSection from '@/components/AcademicSection';
 
 const Index = () => {
   const [showName, setShowName] = useState(false);
@@ -68,6 +69,7 @@ const Index = () => {
         <AboutMe />
         <ExperienceSection />
         <BlogSection />
+        <AcademicSection />
         <OpenSourceProjects />
         <GetInTouch />
       </main>

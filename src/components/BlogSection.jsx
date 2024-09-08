@@ -2,18 +2,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import TypewriterEffect from './TypewriterEffect';
 
+
 const BlogSection = () => {
   const blogs = [
     {
       title: <TypewriterEffect text="Demystifying TStore: The Backbone of Billions of Transactions at PhonePe | Chapter 2" speed={30} loop={true} />,
       url: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe-chapter-2/",
-      source: "PhonePe Tech Blog",
+      source: <TypewriterEffect text="In this chapter we will dive deep into TStore’s architecture, explaining its datastores, message queues, disaster recovery strategy, and security measures."speed={10} loop={true} />,
       thumbnail: "/images/tstore2.png"
     },
     {
       title: <TypewriterEffect text="Demystifying TStore: The Backbone of Billions of Transactions at PhonePe | Chapter 1" speed={30} loop={true} />,
-      url: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe/",
-      source: "PhonePe Tech Blog",
+      url: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe/", 
+      source:  <TypewriterEffect text="Demystifying TStore: The Backbone of Billions of Transactions at PhonePe! Imagine thousands of transactions every second, involving complex data exchanges—debits, credits, settlements, offers, notifications, services, refunds, and more. To deliver a seamless, real-time payment experience and instant access to transaction history, PhonePe relies on the Transaction Store (TStore)." speed={10} loop={true} />,
       thumbnail: "/images/tstore1.png"
     }
   ];
