@@ -8,13 +8,13 @@ const BlogSection = () => {
       title: <TypewriterEffect text="Demystifying TStore: The Backbone of Billions of Transactions at PhonePe | Chapter 2" speed={30} loop={true} />,
       url: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe-chapter-2/",
       source: "PhonePe Tech Blog",
-      thumbnail: "/tstore2.png"
+      thumbnail: "/images/tstore2.png"
     },
     {
       title: <TypewriterEffect text="Demystifying TStore: The Backbone of Billions of Transactions at PhonePe | Chapter 1" speed={30} loop={true} />,
       url: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe/",
       source: "PhonePe Tech Blog",
-      thumbnail: "/tstore1.png"
+      thumbnail: "/images/tstore1.png"
     }
   ];
 

@@ -9,21 +9,21 @@ const ExperienceSection = () => {
       position: 'Software Engineer',
       duration: 'May 2023 - Present',
       description: 'Engineered TStore (Transaction Store), the high-performance post payment persistence platform at PhonePe, scaling 300M+ transactions daily with 99.99% availability serving 570+ million users, guaranteeing latency sensitive Transaction APIs (SLO p99 < 100ms, p50 < 5ms, 200K RPS).',
-      logo: '/phonepe-logo.jpeg'
+      logo: '/images/phonepe-logo.jpeg'
     },
     {
       company: 'Google',
       position: 'Software Engineer',
       duration: 'September 2021 - May 2023',
       description: 'Engineered Google Cloud Directory Sync, the leading sync tool used by 20K+ Workspace, GCP, Android and Chrome enterprise customers. Designed, implemented and launched Identity Sync Analytics Pipeline to analyse the customer usage of Cloud Identity Platform.',
-      logo: '/google-logo.jpeg'
+      logo: '/images/google-logo.jpeg'
     },
     {
       company: 'Flipkart',
       position: 'Software Development Engineer II',
       duration: 'February 2021 - September 2021',
       description: 'Tech lead of the platform team responsible for charting key platform consolidation, new use case adoptions, scalability, KTLO etc. Designed and built Atlas SLA Governance for NPS impact of network changes on EKart LO metrics such as SLA/Breach/Precision and NPS.',
-      logo: '/flipkart-logo.png'
+      logo: '/images/flipkart-logo.png'
     }
   ];
 
