@@ -39,21 +39,23 @@ const GetInTouch = () => {
             </a>
           ))}
         </div>
-        <a
-          href="https://topmate.io/arnab_bir"
+        <a href="https://topmate.io/arnab_bir"
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full bg-red-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300"
-        >
+          className="block w-full bg-red-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300">
           Book a Session on Topmate
         </a>
-        <a
-          href="https://preplaced.in/profile/arnab-bir"
+        <a href="https://preplaced.in/profile/arnab-bir"
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full bg-blue-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mt-4"
-        >
+          className="block w-full bg-blue-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mt-4">
           Book a Session on Preplaced
+        </a>
+        <a href="https://www.codementor.io/@arnabbir"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full bg-sky-900 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mt-4">
+          Book a Session on Codementor
         </a>
       </div>
     </motion.section>

@@ -67,8 +67,8 @@ const Index = () => {
         </section>
 
         <AboutMe />
-        <ExperienceSection />
         <BlogSection />
+        <ExperienceSection />
         <AcademicSection />
         <OpenSourceProjects />
         <GetInTouch />

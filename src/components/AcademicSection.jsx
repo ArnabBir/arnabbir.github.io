@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import TypewriterEffect from './TypewriterEffect';
 
 const AcademicSection = () => {
-  const experiences = [
+  const academics = [
     {
       company: 'Indian Institute of Technology Kharagpur',
       position: <TypewriterEffect text="Integrated Bachelor's and Master's of Science in Mathematics and Computing" speed={100} loop={true} /> ,
@@ -15,7 +15,7 @@ const AcademicSection = () => {
 
   return (
     <motion.section
-      id="experience"
+      id="academics"
       className="mb-16"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -24,7 +24,7 @@ const AcademicSection = () => {
       <h2 className="text-3xl font-bold mb-8">
         <TypewriterEffect text="Academics" speed={100} loop={true} />
       </h2>
-      {experiences.map((exp, index) => (
+      {academics.map((exp, index) => (
         <motion.div
           key={index}
           className="mb-8 bg-white rounded-lg shadow-md p-6"
