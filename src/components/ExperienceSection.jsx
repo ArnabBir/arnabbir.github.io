@@ -1,8 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import TypewriterEffect from './TypewriterEffect';
 
 const ExperienceSection = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const experiences = [
     {
       company: 'PhonePe',
@@ -24,39 +25,64 @@ const ExperienceSection = () => {
       duration: 'February 2021 - September 2021',
       description: 'Tech lead of the platform team responsible for charting key platform consolidation, new use case adoptions, scalability, KTLO etc. Designed and built Atlas SLA Governance for NPS impact of network changes on EKart LO metrics such as SLA/Breach/Precision and NPS.',
       logo: '/images/flipkart-logo.png'
-    }
+    },
+    {
+      company: 'Flipkart',
+      position: 'Software Development Engineer I',
+      duration: 'July 2019 - January 2021',
+      description: 'Worked on various projects in the Supply Chain Engineering team, focusing on optimizing delivery processes and improving customer experience.',
+      logo: '/images/flipkart-logo.png'
+    },
+    // Add more experiences here if needed
   ];
+
+  const toggleExpand = () => setIsExpanded(!isExpanded);
+
+  const displayedExperiences = isExpanded ? experiences : experiences.slice(0, 3);
 
   return (
     <motion.section
       id="experience"
-      className="mb-16"
+      className="mb-12"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 className="text-3xl font-bold mb-8">
-        <TypewriterEffect text="Professional Experience" speed={100} loop={true}  pause={30000} />
+      <h2 className="text-2xl font-bold mb-6">
+        <TypewriterEffect text="Professional Experience" speed={100} loop={true} pause={30000} hideCursorOnComplete={true} />
       </h2>
-      {experiences.map((exp, index) => (
-        <motion.div
-          key={index}
-          className="mb-8 bg-white rounded-lg shadow-md p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
-        >
-          <div className="flex items-center mb-4">
-            <img src={exp.logo} alt={`${exp.company} logo`} className="w-16 h-16 mr-4 object-contain" />
-            <div>
-              <h3 className="text-2xl font-semibold">{exp.company}</h3>
-              <p className="text-xl text-gray-600">{exp.position}</p>
-              <p className="text-gray-500">{exp.duration}</p>
+      <AnimatePresence>
+        {displayedExperiences.map((exp, index) => (
+          <motion.div
+            key={index}
+            className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <div className="flex items-center mb-3">
+              <img src={exp.logo} alt={`${exp.company} logo`} className="w-12 h-12 mr-3 object-contain rounded-full shadow-sm" />
+              <div>
+                <h3 className="text-lg font-semibold">{exp.company}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{exp.position}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{exp.duration}</p>
+              </div>
             </div>
-          </div>
-          <p className="text-gray-700">{exp.description}</p>
-        </motion.div>
-      ))}
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
+              <TypewriterEffect text={exp.description} speed={10} loop={true} hideCursorOnComplete={true} />
+            </p>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+      <div className="mt-6 text-center">
+        <button
+          onClick={toggleExpand}
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-300 text-sm font-semibold"
+        >
+          {isExpanded ? "Collapse" : "Explore More"}
+        </button>
+      </div>
     </motion.section>
   );
 };

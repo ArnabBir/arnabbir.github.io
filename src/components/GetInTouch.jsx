@@ -21,42 +21,56 @@ const GetInTouch = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 className="text-3xl font-bold mb-8 text-center">
+      <h2 className="text-2xl font-bold mb-8 text-center">
         <TypewriterEffect text="Connect with Me" speed={100} loop={true} />
       </h2>
-      <div className="bg-black rounded-lg shadow-lg p-8">
+      <div className="bg-black dark:bg-gray-800 rounded-lg shadow-2xl p-8">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           {socialLinks.map((link, index) => (
-            <a
+            <motion.a
               key={index}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center bg-white text-gray-800 p-4 rounded-lg hover:bg-green-600 transition-colors duration-300"
+              className="flex flex-col items-center justify-center bg-white text-gray-800 dark:bg-gray-700 dark:text-white p-4 rounded-lg hover:bg-green-600 hover:text-white dark:hover:bg-green-600 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <link.icon className="text-4xl mb-2" />
               <span>{link.label}</span>
-            </a>
+            </motion.a>
           ))}
         </div>
-        <a href="https://topmate.io/arnab_bir"
+        <motion.a 
+          href="https://topmate.io/arnab_bir"
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full bg-red-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300">
+          className="block w-full bg-red-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mb-4"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           Book a Session on Topmate
-        </a>
-        <a href="https://preplaced.in/profile/arnab-bir"
+        </motion.a>
+        <motion.a 
+          href="https://preplaced.in/profile/arnab-bir"
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full bg-blue-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mt-4">
+          className="block w-full bg-blue-500 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mb-4"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           Book a Session on Preplaced
-        </a>
-        <a href="https://www.codementor.io/@arnabbir"
+        </motion.a>
+        <motion.a 
+          href="https://www.codementor.io/@arnabbir"
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full bg-sky-900 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300 mt-4">
+          className="block w-full bg-sky-900 text-white text-center py-3 rounded-lg hover:bg-green-600 transition-colors duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
           Book a Session on Codementor
-        </a>
+        </motion.a>
       </div>
     </motion.section>
   );

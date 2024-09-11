@@ -10,20 +10,20 @@ const Navigation = () => {
     { title: 'Experience', to: 'experience' },
     { title: 'Academics', to: 'academics' },
     { title: 'Projects', to: 'projects' },
+    { title: 'Certifications', to: 'certifications' },
     { title: 'Contact', to: 'contact' },
   ];
 
   return (
-    <nav className="flex justify-between items-center">
-      <Link to="/" className="text-3xl font-bold text-gray-800">Arnab Bir</Link>
-      <ul className="flex space-x-6">
+    <nav className="flex justify-start items-center">
+      <ul className="flex space-x-4">
         {navItems.map((item) => (
           <li key={item.to}>
             <ScrollLink
               to={item.to}
               smooth={true}
               duration={500}
-              className="text-gray-600 hover:text-gray-800 cursor-pointer transition-colors duration-300"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 cursor-pointer transition-colors duration-300"
             >
               {item.title}
             </ScrollLink>

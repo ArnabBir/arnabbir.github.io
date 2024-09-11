@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-const TypewriterEffect = ({ text, speed = 100, loop = false, onComplete, pause = 5000 }) => {
+const TypewriterEffect = ({ text, speed = 100, loop = false, onComplete, pause = 5000, hideCursorOnComplete = false }) => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
+  const [showCursor, setShowCursor] = useState(true);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     let typingTimeout;
@@ -14,28 +16,38 @@ const TypewriterEffect = ({ text, speed = 100, loop = false, onComplete, pause =
         setDisplayText((prevText) => prevText + text[currentIndex]);
         setCurrentIndex((prevIndex) => prevIndex + 1);
       }, speed);
-    } else if (loop) {
-      // When typing is complete, add a small pause before restarting
-      pauseTimeout = setTimeout(() => {
-        setDisplayText('');
-        setCurrentIndex(0);
-        setIsTyping(true);
-      }, pause); // 5-second pause before repeating
     } else {
-      setIsTyping(false); // Typing done, stop cursor
+      setIsTyping(false);
+      if (hideCursorOnComplete) {
+        setShowCursor(false);
+      }
       if (onComplete) onComplete();
+      if (loop) {
+        pauseTimeout = setTimeout(() => {
+          setDisplayText('');
+          setCurrentIndex(0);
+          setIsTyping(true);
+          setShowCursor(true);
+        }, pause);
+      }
     }
 
     return () => {
       clearTimeout(typingTimeout);
       clearTimeout(pauseTimeout);
     };
-  }, [currentIndex, text, speed, loop, onComplete]);
+  }, [currentIndex, text, speed, loop, onComplete, pause, hideCursorOnComplete]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.style.minHeight = `${containerRef.current.scrollHeight}px`;
+    }
+  }, [displayText]);
 
   return (
-    <span>
+    <span ref={containerRef} className="inline-block">
       {displayText}
-      {isTyping && <span className="animate-pulse">|</span>} {/* Blinking cursor while typing */}
+      {showCursor && <span className="animate-pulse">|</span>}
     </span>
   );
 };

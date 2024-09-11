@@ -6,26 +6,22 @@ const SocialLinks = () => {
   const links = [
     { icon: FaGithub, url: 'https://github.com/ArnabBir', label: 'GitHub' },
     { icon: FaLinkedin, url: 'https://www.linkedin.com/in/arnabbir/', label: 'LinkedIn' },
-    // { icon: FaInstagram, url: 'https://www.instagram.com/arnabbir/', label: 'Instagram' },
     { icon: FaTwitter, url: 'https://twitter.com/arnabbir', label: 'Twitter' },
-    // { icon: FaFacebook, url: 'https://www.facebook.com/arnab.bir.3', label: 'Facebook' },
     { icon: FaEnvelope, url: 'mailto:arnabbir@gmail.com', label: 'Email' },
     { icon: SiLeetcode, url: 'https://leetcode.com/u/ArnabBir/', label: 'LeetCode' },
     { icon: SiCodechef, url: 'https://www.codechef.com/users/arnabbir', label: 'CodeChef' },
-    // { icon: SiCodeforces, url: 'https://codeforces.com/profile/ArnabBir', label: 'Codeforces' },
     { icon: FaHackerrank, url: 'https://www.hackerrank.com/ArnabBir', label: 'HackerRank' }
-    // { icon: FaStackOverflow, url: 'https://stackoverflow.com/users/3905079/arnab-bir', label: 'Stack Overflow' }
   ];
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-4 justify-end mt-2">
       {links.map((link, index) => (
         <a
           key={index}
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-gray-600 hover:text-gray-800 transition-colors duration-300"
+          className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-300"
           title={link.label}
         >
           <link.icon className="w-6 h-6" />
