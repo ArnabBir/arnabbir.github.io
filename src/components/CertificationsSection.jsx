@@ -15,7 +15,7 @@ const CertificationsSection = () => {
       title: "APIs Explorer: Cloud Storage",
       issuer: "Google Cloud",
       date: "Apr 12, 2022",
-      image: "/apis-explorer-cloud-storage.png"
+      image: "/images/apis-explorer-cloud-storage.png"
     },
     {
       title: "Java Programming: Solving Problems with Software",
