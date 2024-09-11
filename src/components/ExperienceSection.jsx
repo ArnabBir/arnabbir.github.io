@@ -36,7 +36,7 @@ const ExperienceSection = () => {
       transition={{ duration: 0.5 }}
     >
       <h2 className="text-3xl font-bold mb-8">
-        <TypewriterEffect text="Professional Experience" speed={100} loop={true} />
+        <TypewriterEffect text="Professional Experience" speed={100} loop={true}  pause={30000} />
       </h2>
       {experiences.map((exp, index) => (
         <motion.div

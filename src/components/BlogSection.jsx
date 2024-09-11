@@ -28,7 +28,7 @@ const BlogSection = () => {
       transition={{ duration: 0.5 }}
     >
       <h2 className="text-3xl font-bold mb-8">
-        <TypewriterEffect text="Engineering Blogs" speed={100} loop={true} />
+        <TypewriterEffect text="Engineering Blogs" speed={100} loop={true}  pause={30000} />
       </h2>
       <div className="grid grid-cols-1 gap-8">
         {blogs.map((blog, index) => (

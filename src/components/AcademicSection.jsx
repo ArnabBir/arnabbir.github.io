@@ -22,7 +22,7 @@ const AcademicSection = () => {
       transition={{ duration: 0.5 }}
     >
       <h2 className="text-3xl font-bold mb-8">
-        <TypewriterEffect text="Academics" speed={100} loop={true} />
+        <TypewriterEffect text="Academics" speed={100} loop={true}  pause={30000} />
       </h2>
       {academics.map((exp, index) => (
         <motion.div
