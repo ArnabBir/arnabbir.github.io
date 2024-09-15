@@ -7,11 +7,10 @@ import FireCalculator from '../components/portfoliohub/FireCalculator';
 import IncomeExpenseChart from '../components/portfoliohub/IncomeExpenseChart';
 import NetWorthChart from '../components/portfoliohub/NetWorthChart';
 import FinancialDataForm from '../components/portfoliohub/FinancialDataForm';
-// import ThemeToggle from '../components/portfoliohub/ThemeToggle';
 import { exportToExcel, importFromExcel } from '../utils/excelUtils';
+import { downloadReport } from '../utils/reportGenerator';
 import TypewriterEffect from '../components/TypewriterEffect';
 import Navigation from '../components/Navigation';
-
 
 const Portfoliohub = () => {
   const [financialData, setFinancialData] = useState(null);
@@ -44,21 +43,28 @@ const Portfoliohub = () => {
     }
   };
 
+  const handleDownloadReport = () => {
+    if (financialData) {
+      downloadReport(financialData);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 bg-background text-foreground min-h-screen">
-        <div className="container mx-auto px-4 py-3 flex justify-center items-center">
+      <div className="container mx-auto px-4 py-3 flex justify-center items-center">
         <div className="flex justify-leftalign items-center">
-            <img 
-              src={"/images/logo.png"} 
-              alt="Logo" 
-              className="w-12 h-12 mr-4" 
-            />
+          <img 
+            src={"/images/logo.png"} 
+            alt="Logo" 
+            className="w-12 h-12 mr-4" 
+          />
         </div>
         <Navigation />
-        </div>
+      </div>
       <div className="flex justify-center items-center mb-6">
-        <h1 className="text-4xl font-bold text-primary"> <TypewriterEffect text="PortfolioHub - Track, Grow, Retire Early" speed={1000} loop={false} /> </h1>
-        {/* <ThemeToggle /> */}
+        <h1 className="text-4xl font-bold text-primary">
+          <TypewriterEffect text="PortfolioHub - Track, Grow, Retire Early" speed={1000} loop={false} />
+        </h1>
       </div>
       
       <FinancialDataForm onSubmit={handleDataSubmit} initialData={financialData} />
@@ -67,16 +73,27 @@ const Portfoliohub = () => {
         <div className="mt-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <PortfolioSummary data={financialData} />
-            <AssetLiabilityChart data={financialData} />
-            <PortfolioDistribution data={financialData} />
+            <div id="asset-liability-chart">
+              <AssetLiabilityChart data={financialData} />
+            </div>
+            <div id="portfolio-distribution">
+              <PortfolioDistribution data={financialData} />
+            </div>
             <FireCalculator data={financialData} />
-            <IncomeExpenseChart data={financialData} />
+            <div id="income-expense-chart">
+              <IncomeExpenseChart data={financialData} />
+            </div>
           </div>
-          <NetWorthChart data={financialData} />
+          <div id="net-worth-chart">
+            <NetWorthChart data={financialData} />
+          </div>
           
           <div className="flex justify-between items-center mt-8">
             <Button onClick={handleExportToExcel} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Export to Excel
+            </Button>
+            <Button onClick={handleDownloadReport} className="bg-green-500 text-white hover:bg-green-600">
+              Download Report (PDF)
             </Button>
             <div>
               <input

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatIndianCurrency } from '../../utils/currencyFormatter';
 
 const PortfolioDistribution = ({ data = {} }) => {
   const { assets = {} } = data;
@@ -18,13 +19,27 @@ const PortfolioDistribution = ({ data = {} }) => {
   };
 
   const chartData = calculateTotal(assets);
+  const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#A4DE6C', '#D0ED57'];
 
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-2 border rounded shadow">
+          <p className="font-bold">{data.name}</p>
+          <p>{formatIndianCurrency(data.value)} ({((data.value / totalValue) * 100).toFixed(2)}%)</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-purple-50 to-pink-100 shadow-lg">
       <CardHeader>
-        <CardTitle>Portfolio Distribution</CardTitle>
+        <CardTitle className="text-2xl font-bold text-purple-800">Portfolio Distribution</CardTitle>
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
@@ -43,7 +58,7 @@ const PortfolioDistribution = ({ data = {} }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <Tooltip content={<CustomTooltip />} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>

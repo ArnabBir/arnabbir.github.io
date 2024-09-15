@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatIndianCurrency } from '../../utils/currencyFormatter';
 
 const NetWorthChart = ({ data = {} }) => {
   const { assets = {}, liabilities = {} } = data;
@@ -16,9 +17,9 @@ const NetWorthChart = ({ data = {} }) => {
   });
 
   return (
-    <Card className="bg-card text-card-foreground">
+    <Card className="bg-gradient-to-br from-green-50 to-emerald-100 shadow-lg">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Net Worth Projection (50 Years)</CardTitle>
+        <CardTitle className="text-2xl font-bold text-emerald-800">Net Worth Projection (50 Years)</CardTitle>
       </CardHeader>
       <CardContent>
         {currentNetWorth > 0 ? (
@@ -26,8 +27,8 @@ const NetWorthChart = ({ data = {} }) => {
             <LineChart data={projectionData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#666" />
               <XAxis dataKey="year" stroke="#888" />
-              <YAxis stroke="#888" />
-              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <YAxis stroke="#888" tickFormatter={(value) => formatIndianCurrency(value)} />
+              <Tooltip formatter={(value) => formatIndianCurrency(value)} />
               <Legend />
               <Line type="monotone" dataKey="netWorth" stroke="#4f46e5" strokeWidth={2} dot={false} />
             </LineChart>

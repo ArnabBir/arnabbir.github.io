@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatIndianCurrency } from '../../utils/currencyFormatter';
 
 const IncomeExpenseChart = ({ data }) => {
   const calculateTotal = (obj) => {
@@ -26,9 +27,9 @@ const IncomeExpenseChart = ({ data }) => {
   ];
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 shadow-lg">
       <CardHeader>
-        <CardTitle>Income vs Expenses</CardTitle>
+        <CardTitle className="text-2xl font-bold text-indigo-800">Income vs Expenses</CardTitle>
       </CardHeader>
       <CardContent>
         {totalIncome > 0 || totalExpenses > 0 ? (
@@ -36,8 +37,8 @@ const IncomeExpenseChart = ({ data }) => {
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="category" />
-              <YAxis />
-              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <YAxis tickFormatter={(value) => formatIndianCurrency(value)} />
+              <Tooltip formatter={(value) => formatIndianCurrency(value)} />
               <Legend />
               <Bar dataKey="Income" fill="#8884d8" />
               <Bar dataKey="Expenses" fill="#82ca9d" />

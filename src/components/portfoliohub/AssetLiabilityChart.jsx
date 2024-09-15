@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatIndianCurrency } from '../../utils/currencyFormatter';
 
 const AssetLiabilityChart = ({ data = {} }) => {
   const calculateTotal = (obj) => {
@@ -22,12 +23,25 @@ const AssetLiabilityChart = ({ data = {} }) => {
     { name: 'Liabilities', value: totalLiabilities },
   ];
 
-  const COLORS = ['#0088FE', '#FF8042'];
+  const COLORS = ['#4CAF50', '#FF5722'];
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-2 border rounded shadow">
+          <p className="font-bold">{data.name}</p>
+          <p>{formatIndianCurrency(data.value)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-yellow-50 to-amber-100 shadow-lg">
       <CardHeader>
-        <CardTitle>Assets vs Liabilities</CardTitle>
+        <CardTitle className="text-2xl font-bold text-amber-800">Assets vs Liabilities</CardTitle>
       </CardHeader>
       <CardContent>
         {totalAssets > 0 || totalLiabilities > 0 ? (
@@ -46,7 +60,7 @@ const AssetLiabilityChart = ({ data = {} }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+              <Tooltip content={<CustomTooltip />} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>

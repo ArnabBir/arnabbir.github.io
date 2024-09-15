@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatIndianCurrency } from '../../utils/currencyFormatter';
 
 const PortfolioSummary = ({ data = {} }) => {
   const { assets = {}, liabilities = {}, income = {}, expenses = {} } = data;
@@ -31,15 +32,15 @@ const PortfolioSummary = ({ data = {} }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-medium text-indigo-600">Total Assets</p>
-            <p className="text-2xl font-bold text-indigo-900">₹{totalAssets.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-indigo-900">{formatIndianCurrency(totalAssets)}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-indigo-600">Total Liabilities</p>
-            <p className="text-2xl font-bold text-indigo-900">₹{totalLiabilities.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-indigo-900">{formatIndianCurrency(totalLiabilities)}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-indigo-600">Net Worth</p>
-            <p className="text-2xl font-bold text-indigo-900">₹{netWorth.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-indigo-900">{formatIndianCurrency(netWorth)}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-indigo-600">Savings Rate</p>
