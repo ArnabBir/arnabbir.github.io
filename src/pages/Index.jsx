@@ -12,6 +12,7 @@ import TypewriterEffect from '../components/TypewriterEffect';
 import AcademicSection from '@/components/AcademicSection';
 import CertificationsSection from '@/components/CertificationsSection';
 import TechnicalSkills from '@/components/TechnicalSkills';
+import Projects from '@/components/Projects';
 import { useTheme } from 'next-themes';
 
 const Index = () => {
@@ -88,6 +89,7 @@ const Index = () => {
         <ExperienceSection />
         <AcademicSection />
         <OpenSourceProjects />
+        <Projects />
         <CertificationsSection />
         <TechnicalSkills />
         <GetInTouch />
