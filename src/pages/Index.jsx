@@ -36,13 +36,16 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-100 via-gray-200 to-gray-300 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-gray-800 dark:text-gray-200">
       <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Navigation />
+          
           <div className="flex items-center">
             <img 
               src={theme === 'dark' ? "/images/logo-dark.png" : "/images/logo.png"} 
               alt="Logo" 
               className="w-12 h-12 mr-4" 
             />
+          </div>
+          <Navigation />
+          <div className="flex items-center">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 transition-colors duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600"

@@ -10,6 +10,7 @@ import FinancialDataForm from '../components/portfoliohub/FinancialDataForm';
 // import ThemeToggle from '../components/portfoliohub/ThemeToggle';
 import { exportToExcel, importFromExcel } from '../utils/excelUtils';
 import TypewriterEffect from '../components/TypewriterEffect';
+import Navigation from '../components/Navigation';
 
 
 const Portfoliohub = () => {
@@ -45,8 +46,18 @@ const Portfoliohub = () => {
 
   return (
     <div className="container mx-auto p-4 bg-background text-foreground min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold text-primary"> <TypewriterEffect text="PortfolioHub - Track, Grow, Retire Early" speed={100} loop={false} /> </h1>
+        <div className="container mx-auto px-4 py-3 flex justify-center items-center">
+        <div className="flex justify-leftalign items-center">
+            <img 
+              src={"/images/logo.png"} 
+              alt="Logo" 
+              className="w-12 h-12 mr-4" 
+            />
+        </div>
+        <Navigation />
+        </div>
+      <div className="flex justify-center items-center mb-6">
+        <h1 className="text-4xl font-bold text-primary"> <TypewriterEffect text="PortfolioHub - Track, Grow, Retire Early" speed={1000} loop={false} /> </h1>
         {/* <ThemeToggle /> */}
       </div>
       

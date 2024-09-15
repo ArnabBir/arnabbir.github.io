@@ -23,8 +23,7 @@ const Navigation = () => {
               to={item.to}
               smooth={true}
               duration={500}
-              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 cursor-pointer transition-colors duration-300"
-            >
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 cursor-pointer transition-colors duration-300">
               {item.title}
             </ScrollLink>
           </li>

@@ -7,6 +7,11 @@ const Projects = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const projects = [
     {
+      title: "Prortfolio Hub",
+      description: "Track, Grow and Retire Early.",
+      link: "/portfoliohub"
+    },
+    {
       title: "Hello World",
       description: "A simple Hello World project with a typewriter effect.",
       link: "/hello-world"
@@ -20,11 +25,6 @@ const Projects = () => {
       title: "Good Night",
       description: "A soothing good night message with a starry background.",
       link: "/good-night"
-    },
-    {
-      title: "Welcome Spring",
-      description: "A colorful project celebrating the arrival of spring.",
-      link: "/welcome-spring"
     },
     {
       title: "Motivational Quotes",
