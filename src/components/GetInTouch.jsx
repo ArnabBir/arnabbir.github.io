@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaLinkedin, FaGithub, FaInstagram, FaTwitter, FaFacebook, FaEnvelope } from 'react-icons/fa';
+import { SiSubstack } from 'react-icons/si';
 import TypewriterEffect from './TypewriterEffect';
 
 const GetInTouch = () => {
@@ -11,6 +12,7 @@ const GetInTouch = () => {
     { icon: FaTwitter, url: 'https://x.com/arnabbir', label: 'Twitter' },
     { icon: FaFacebook, url: 'https://www.facebook.com/arnab.bir.3', label: 'Facebook' },
     { icon: FaEnvelope, url: 'mailto:arnabbir@gmail.com', label: 'Email' },
+    { icon: SiSubstack, url: 'https://substack.com/@arnabbir', label: 'Substack' },
   ];
 
   return (

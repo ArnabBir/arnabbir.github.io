@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redirecting…</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      // GitHub Pages will serve this file for unknown paths.
+      // We redirect to /?r=<encoded-path> and restore it in index.html.
+      (function () {
+        var redirect = window.location.pathname + window.location.search + window.location.hash;
+        window.location.replace("/?r=" + encodeURIComponent(redirect));
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>This site requires JavaScript.</noscript>
+  </body>
+</html>

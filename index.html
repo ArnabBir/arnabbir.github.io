@@ -1,17 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arnab Bir</title>
-    <meta name="description" content="GPT Engineer Generated Project" />
-    <meta name="author" content="GPT Engineer" />
+
+    <!--
+      GitHub Pages SPA routing helper.
+      If a deep link hits /404.html, we redirect to /?r=<encoded-path> and then
+      restore the original path here before the app boots.
+    -->
+    <script>
+      (function () {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const r = params.get("r");
+          if (r) {
+            const decoded = decodeURIComponent(r);
+            window.history.replaceState(null, "", decoded);
+          }
+        } catch (_) {
+          // no-op
+        }
+      })();
+    </script>
+
+    <title>Arnab Bir | Software Engineer</title>
+    <meta
+      name="description"
+      content="Arnab Bir — software engineer building reliable systems at scale. Projects, experience, writing, and contact."
+    />
+    <meta name="author" content="Arnab Bir" />
+
+    <meta name="theme-color" content="#0b0f19" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Arnab Bir | Software Engineer" />
+    <meta
+      property="og:description"
+      content="Experience, projects, and writing — built with a fast, accessible, modern UI."
+    />
     <meta property="og:image" content="/og-image.svg" />
-    <link rel="icon" type="image/png" href="/public/images/logo.png" /> <!-- New line -->
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Icons -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/images/logo.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
+
   <body>
+    <a
+      href="#content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[999] focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-foreground focus:shadow"
+    >
+      Skip to content
+    </a>
+
     <div id="root"></div>
-    <script src="/.gpt_engineer/index.js" type="module"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

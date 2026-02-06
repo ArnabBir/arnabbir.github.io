@@ -1,0 +1,51 @@
+export default [
+  {
+    title: "Introduction to Google Workspace Administration",
+    issuer: "Google Cloud",
+    date: "Sep 25, 2022",
+    image: "/images/google-workspace-admin.png",
+    href: "/images/google-workspace-admin.png",
+  },
+  {
+    title: "APIs Explorer: Cloud Storage",
+    issuer: "Google Cloud",
+    date: "Apr 12, 2022",
+    image: "/images/apis-explorer-cloud-storage.png",
+    href: "/images/apis-explorer-cloud-storage.png",
+  },
+  {
+    title: "Java Programming: Solving Problems with Software",
+    issuer: "Duke University",
+    date: "Apr 30, 2022",
+    image: "/images/java-programming-duke.png",
+    href: "/images/java-programming-duke.png",
+  },
+  {
+    title: "Google Cloud Fundamentals: Core Infrastructure",
+    issuer: "Google Cloud",
+    date: "Mar 19, 2022",
+    image: "/images/google-cloud-fundamentals.png",
+    href: "/images/google-cloud-fundamentals.png",
+  },
+  {
+    title: "Securing and Integrating Components of your Application",
+    issuer: "Google Cloud",
+    date: "Feb 12, 2023",
+    image: "/images/securing-integrating-components.png",
+    href: "/images/securing-integrating-components.png",
+  },
+  {
+    title: "Cloud Functions: Qwik Start - Console",
+    issuer: "Google Cloud",
+    date: "Jun 9, 2022",
+    image: "/images/cloud-functions-qwik-start.png",
+    href: "/images/cloud-functions-qwik-start.png",
+  },
+  {
+    title: "Getting Started With Application Development",
+    issuer: "Google Cloud",
+    date: "Nov 5, 2022",
+    image: "/images/getting-started-app-dev.png",
+    href: "/images/getting-started-app-dev.png",
+  },
+];
