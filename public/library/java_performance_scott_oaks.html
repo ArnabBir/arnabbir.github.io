@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java Performance (Scott Oaks) — Concept Atlas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      letter-spacing: -0.025em;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .concept-spine {
+      position: relative;
+      height: 180px;
+      border-radius: 12px;
+      padding: 16px 10px;
+      color: white;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .concept-spine.active {
+      transform: translateY(-6px);
+      box-shadow: 0 18px 30px rgba(15, 23, 42, 0.25);
+    }
+    .concept-title {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      text-align: center;
+    }
+    .concept-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .code-block {
+      background-color: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      overflow-x: auto;
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #0b1120;
+      color: #e2e8f0;
+    }
+    body.dark-mode header {
+      background-color: #0f172a;
+      border-color: #1f2937;
+    }
+    body.dark-mode .bg-white {
+      background-color: #111827 !important;
+      border-color: #1f2937 !important;
+      color: #e2e8f0 !important;
+    }
+    body.dark-mode .bg-slate-50 {
+      background-color: #111827 !important;
+    }
+    body.dark-mode .text-slate-600 {
+      color: #cbd5e1 !important;
+    }
+    body.dark-mode .text-slate-500 {
+      color: #94a3b8 !important;
+    }
+    body.dark-mode .border-slate-200 {
+      border-color: #1f2937 !important;
+    }
+    body.dark-mode .concept-spine {
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+    }
+    body.dark-mode .code-block {
+      background-color: #0b1120;
+      color: #e2e8f0;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    body.dark-mode ::-webkit-scrollbar-track {
+      background: #111827;
+    }
+    body.dark-mode ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+  </style>
+  <script>
+    // Theme sync
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'THEME_CHANGE') {
+        const theme = event.data.theme;
+        if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      }
+    });
+
+    window.addEventListener('load', function() {
+      try {
+        if (window.parent && window.parent !== window) {
+          const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+          if (parentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+      initAtlas();
+    });
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-indigo-200 shadow-lg">JP</div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-900">
+          Java Performance (Scott Oaks) <span class="text-slate-400 font-normal hidden sm:inline">| Concept Atlas</span>
+        </h1>
+      </div>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="#overview" class="text-slate-500 hover:text-indigo-600 transition-colors">Overview</a>
+        <a href="#rack" class="text-slate-500 hover:text-indigo-600 transition-colors">Concept Rack</a>
+        <a href="#lab" class="text-slate-500 hover:text-indigo-600 transition-colors">Performance Lab</a>
+        <a href="#toolkit" class="text-slate-500 hover:text-indigo-600 transition-colors">Toolkit</a>
+        <a href="#study-plan" class="text-slate-500 hover:text-indigo-600 transition-colors">Study Plan</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-20">
+    <section id="overview" class="text-center max-w-4xl mx-auto space-y-6 pt-8">
+      <h2 class="text-5xl font-extrabold text-slate-900 tracking-tight">Java Performance — Concept Atlas</h2>
+      <p class="text-xl text-slate-600 leading-relaxed">
+        A concept-by-concept learning map inspired by <strong>Java Performance (Scott Oaks)</strong>, rewritten as
+        original explanations, checklists, and interactive diagnostics. This is a study platform, not a reproduction
+        of copyrighted text.
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide">Measurement First</span>
+        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide">GC & JIT</span>
+        <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wide">Latency & Throughput</span>
+      </div>
+    </section>
+
+    <!-- Concept Rack -->
+    <section id="rack" class="space-y-8">
+      <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 font-bold">Rack</div>
+        <div>
+          <h3 class="text-2xl font-bold text-slate-900">Concept Rack — Every Topic, One Shelf</h3>
+          <p class="text-sm text-slate-600 mt-1">Choose a spine to open deep explanations with signals, pitfalls, and actions.</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-5 gap-8">
+        <div class="lg:col-span-2 space-y-4">
+          <div class="flex items-center gap-3">
+            <input id="conceptSearch" type="text" placeholder="Search concepts (GC, JIT, profiling, latency)" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40" />
+            <span id="conceptCount" class="text-xs text-slate-500 whitespace-nowrap">0 concepts</span>
+          </div>
+          <div id="conceptRack" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+          <div class="text-xs text-slate-500">Tip: use search to filter the rack. Concepts are grouped by intent.</div>
+        </div>
+        <div class="lg:col-span-3">
+          <div id="conceptDetail" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div class="text-sm text-slate-500">Select a concept to see the full breakdown.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Performance Lab -->
+    <section id="lab" class="space-y-8">
+      <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 font-bold">Lab</div>
+        <h3 class="text-2xl font-bold text-slate-900">Performance Lab — Tradeoffs Explorer</h3>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 card-hover">
+          <h4 class="font-bold text-lg mb-4">Latency vs Throughput</h4>
+          <p class="text-sm text-slate-600 mb-6">Tune the system to see how latency and throughput trade off in real-world services.</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Latency Budget (ms)</label>
+              <input id="latencySlider" type="range" min="10" max="300" value="120" class="w-full mt-2" />
+              <div class="text-sm text-slate-600 mt-1">Target p99: <span id="latencyValue" class="font-semibold">120ms</span></div>
+            </div>
+            <div>
+              <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Throughput Goal (req/s)</label>
+              <input id="throughputSlider" type="range" min="100" max="5000" value="1200" class="w-full mt-2" />
+              <div class="text-sm text-slate-600 mt-1">Target RPS: <span id="throughputValue" class="font-semibold">1200</span></div>
+            </div>
+            <div>
+              <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Allocation Rate (MB/s)</label>
+              <input id="allocSlider" type="range" min="50" max="1500" value="400" class="w-full mt-2" />
+              <div class="text-sm text-slate-600 mt-1">Alloc rate: <span id="allocValue" class="font-semibold">400 MB/s</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-xl">
+          <h4 class="font-bold text-lg mb-4 text-indigo-100">Advisor Output</h4>
+          <div id="labOutput" class="space-y-4 text-sm text-indigo-100">
+            <p>Adjust the sliders to see recommended tuning focus.</p>
+          </div>
+          <div class="mt-6 text-xs text-indigo-300">
+            This is a teaching heuristic, not a replacement for measurement.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toolkit -->
+    <section id="toolkit" class="space-y-8">
+      <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 font-bold">Tools</div>
+        <h3 class="text-2xl font-bold text-slate-900">Performance Toolkit</h3>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+          <h4 class="font-bold text-lg mb-2 text-indigo-600">JFR + JMC</h4>
+          <p class="text-sm text-slate-600 mb-4">Low-overhead profiling for CPU, allocation, locks, and IO. Use for holistic flame graphs.</p>
+          <div class="code-block text-xs">jcmd &lt;pid&gt; JFR.start duration=120s filename=profile.jfr</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+          <h4 class="font-bold text-lg mb-2 text-emerald-600">GC Logs</h4>
+          <p class="text-sm text-slate-600 mb-4">Understand pause times, allocation rates, and promotion failures to guide tuning.</p>
+          <div class="code-block text-xs">-Xlog:gc*:stdout:time,level,tags</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+          <h4 class="font-bold text-lg mb-2 text-orange-600">async-profiler</h4>
+          <p class="text-sm text-slate-600 mb-4">Native sampling profiler for low-overhead CPU and allocation profiling.</p>
+          <div class="code-block text-xs">./profiler.sh -d 30 -f out.html &lt;pid&gt;</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Study Plan -->
+    <section id="study-plan" class="bg-white border border-slate-200 rounded-2xl p-8">
+      <h3 class="text-2xl font-bold text-slate-900 mb-6">30-Day Study Plan (Concept-by-Concept)</h3>
+      <div class="grid md:grid-cols-4 gap-4 text-sm text-slate-600">
+        <div class="p-4 bg-slate-50 rounded-xl">
+          <div class="font-semibold text-slate-900">Week 1 — Measurement</div>
+          <p class="mt-2">Baselines, latency distributions, warmup, and variance. Build your measurement playbook.</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl">
+          <div class="font-semibold text-slate-900">Week 2 — JVM & GC</div>
+          <p class="mt-2">Heap layout, GC algorithms, GC logs, tuning workflow and leak detection.</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl">
+          <div class="font-semibold text-slate-900">Week 3 — JIT & Concurrency</div>
+          <p class="mt-2">Inlining, escape analysis, lock contention, thread pools, and memory model.</p>
+        </div>
+        <div class="p-4 bg-slate-50 rounded-xl">
+          <div class="font-semibold text-slate-900">Week 4 — Tools & Systems</div>
+          <p class="mt-2">Profilers, IO, OS interactions, cache locality, and performance review templates.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const conceptData = [
+      { id: "measure", title: "Measurement First", category: "Measurement", level: "Foundation",
+        summary: "Every tuning change must be anchored to a repeatable measurement. Establish baselines, then change one variable at a time.",
+        signals: ["p95/p99 latency", "throughput", "allocation rate", "CPU utilization"],
+        actions: ["Define SLOs", "Collect baseline metrics", "Use controlled tests"],
+        pitfalls: ["Optimizing with no baseline", "Comparing results from different load profiles"],
+        code: "Use a fixed load generator and record p95, p99, CPU, and GC stats before changing any flags." },
+      { id: "warmup", title: "Warmup & Steady State", category: "Measurement", level: "Foundation",
+        summary: "Java performance changes after JIT compilation. Always separate warmup from steady-state measurements.",
+        signals: ["Throughput increasing over time", "CPU usage stabilizing"],
+        actions: ["Discard warmup iterations", "Measure after steady state"],
+        pitfalls: ["Benchmarking cold-start behavior as steady state"] },
+      { id: "statistics", title: "Variance & Outliers", category: "Measurement", level: "Foundation",
+        summary: "Averages hide tail latency. Measure distributions and watch outliers.",
+        signals: ["p99 spikes", "wide variance"],
+        actions: ["Use percentiles", "Capture histograms"],
+        pitfalls: ["Using averages only"] },
+      { id: "latency", title: "Latency vs Throughput", category: "Tradeoffs", level: "Core",
+        summary: "Higher throughput often increases latency. Choose a target latency budget and tune accordingly.",
+        signals: ["Queue depth growth", "Saturation in CPU/IO"],
+        actions: ["Tune thread pools", "Set backpressure"],
+        pitfalls: ["Chasing throughput at the cost of tail latency"] },
+      { id: "heap", title: "Heap Layout", category: "JVM", level: "Core",
+        summary: "Heap is divided into young and old generations. Understanding object lifetimes is key to GC tuning.",
+        signals: ["Promotion failures", "Young GC frequency"],
+        actions: ["Reduce allocation rate", "Tune young gen size"],
+        pitfalls: ["Assuming bigger heap always helps"] },
+      { id: "gc-algorithms", title: "GC Algorithms", category: "GC", level: "Core",
+        summary: "Choose GC based on latency budget and heap size. G1 is general-purpose; ZGC for low pauses at scale.",
+        signals: ["Pause times", "Concurrent cycle overhead"],
+        actions: ["Pick GC for workload", "Measure pause impact"],
+        pitfalls: ["Switching GC without evidence"] },
+      { id: "gc-logs", title: "GC Log Analysis", category: "GC", level: "Core",
+        summary: "GC logs show pause distribution, allocation rate, and promotion failures — essential for tuning.",
+        signals: ["Long pause spikes", "Rising allocation"],
+        actions: ["Enable GC logs", "Plot pause percentiles"],
+        pitfalls: ["Ignoring GC logs until outages"] },
+      { id: "jit", title: "JIT Compilation", category: "JIT", level: "Core",
+        summary: "Hot methods are compiled to native code. Tiered compilation balances startup and peak performance.",
+        signals: ["Compilation time", "Code cache pressure"],
+        actions: ["Use tiered compilation defaults", "Avoid megamorphic calls"],
+        pitfalls: ["Assuming bytecode is always optimal"] },
+      { id: "inlining", title: "Inlining & Escape Analysis", category: "JIT", level: "Advanced",
+        summary: "Inlining eliminates call overhead and enables escape analysis, reducing allocations.",
+        signals: ["Hot methods not inlining", "Allocation hot spots"],
+        actions: ["Keep methods small", "Avoid megamorphic dispatch"],
+        pitfalls: ["Over-abstracting hot code paths"] },
+      { id: "contention", title: "Lock Contention", category: "Concurrency", level: "Advanced",
+        summary: "Contention reduces throughput and increases latency. Use lock-free or fine-grained locks.",
+        signals: ["Blocked threads", "High context switches"],
+        actions: ["Use concurrent collections", "Reduce shared state"],
+        pitfalls: ["Locking on public objects"] },
+      { id: "threadpools", title: "Thread Pool Tuning", category: "Concurrency", level: "Core",
+        summary: "Choose pool size based on CPU vs IO tasks. Too many threads add scheduling overhead.",
+        signals: ["Queue growth", "Thread thrashing"],
+        actions: ["Fixed pools for CPU", "Cached pools for IO"],
+        pitfalls: ["Unbounded queues masking overload"] },
+      { id: "memory-leak", title: "Memory Leak Detection", category: "Memory", level: "Core",
+        summary: "Leaks are retained references, not just allocation. Track object dominators and retention paths.",
+        signals: ["Old gen growth", "Full GC frequency"],
+        actions: ["Heap dumps", "Leak suspects analysis"],
+        pitfalls: ["Assuming GC will fix leaks"] },
+      { id: "classloading", title: "Classloading & Metaspace", category: "JVM", level: "Advanced",
+        summary: "Class metadata lives in metaspace. Classloader leaks can exhaust it.",
+        signals: ["Metaspace growth", "Classloader count rising"],
+        actions: ["Use classloader limits", "Monitor metaspace"],
+        pitfalls: ["Dynamic classloading without cleanup"] },
+      { id: "io", title: "I/O & System Calls", category: "Systems", level: "Core",
+        summary: "Slow IO often dominates latency. Buffering and batching reduce system call overhead.",
+        signals: ["High IO wait", "Slow disk reads"],
+        actions: ["Use NIO", "Batch writes"],
+        pitfalls: ["Blocking IO on CPU-bound pools"] },
+      { id: "cache", title: "CPU Cache Locality", category: "Systems", level: "Advanced",
+        summary: "Data locality affects performance. Structure data to reduce cache misses.",
+        signals: ["High cache miss rate", "CPU stalled cycles"],
+        actions: ["Use arrays over linked lists", "Group hot fields"],
+        pitfalls: ["Pointer-heavy structures"] },
+      { id: "profiling", title: "Profiling Workflow", category: "Tooling", level: "Core",
+        summary: "Profile before tuning. Use JFR or async-profiler to locate hot methods and allocation hotspots.",
+        signals: ["Top-of-stack hotspots", "Allocation flame graphs"],
+        actions: ["Profile in prod-like env", "Capture allocation profiles"],
+        pitfalls: ["Optimizing without profiling"] },
+      { id: "observability", title: "Performance Observability", category: "Tooling", level: "Core",
+        summary: "Build dashboards around latency percentiles, GC time, allocation rates, and error budgets.",
+        signals: ["SLO burn rate", "Latency tails"],
+        actions: ["Define SLOs", "Alert on p99 and GC spikes"],
+        pitfalls: ["Focusing only on CPU utilization"] },
+      { id: "references", title: "Reference Types", category: "Memory", level: "Core",
+        summary: "Strong, soft, weak, and phantom references control GC eligibility and caching behavior.",
+        signals: ["Cache eviction behavior", "GC clearing references"],
+        actions: ["Use SoftReference for memory-sensitive caches"],
+        pitfalls: ["Assuming weak refs provide deterministic cleanup"] },
+      { id: "tuning", title: "Tuning Workflow", category: "Practice", level: "Core",
+        summary: "Measure → Hypothesize → Change → Measure. Document each change to avoid regressions.",
+        signals: ["Before/after deltas", "Regression risk"],
+        actions: ["Tune one variable at a time", "Rollback quickly"],
+        pitfalls: ["Multiple simultaneous flag changes"] }
+    ];
+
+    let activeConcept = conceptData[0]?.id;
+    let filteredConcepts = conceptData.slice();
+
+    function renderRack(list) {
+      const rack = document.getElementById("conceptRack");
+      const count = document.getElementById("conceptCount");
+      rack.innerHTML = "";
+      list.forEach((c, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "concept-spine" + (c.id === activeConcept ? " active" : "");
+        btn.style.background = [
+          "linear-gradient(180deg, #4f46e5 0%, #2563eb 100%)",
+          "linear-gradient(180deg, #f97316 0%, #ea580c 100%)",
+          "linear-gradient(180deg, #10b981 0%, #059669 100%)",
+          "linear-gradient(180deg, #ec4899 0%, #db2777 100%)",
+          "linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%)"
+        ][idx % 5];
+        btn.innerHTML = `<span class="concept-title">${c.title}</span>`;
+        btn.addEventListener("click", () => selectConcept(c.id));
+        rack.appendChild(btn);
+      });
+      if (count) count.textContent = `${list.length} concepts`;
+    }
+
+    function renderDetail(concept) {
+      const detail = document.getElementById("conceptDetail");
+      if (!detail) return;
+      const chips = `
+        <span class="concept-chip bg-indigo-100 text-indigo-700">${concept.category}</span>
+        <span class="concept-chip bg-slate-100 text-slate-600">${concept.level}</span>
+      `;
+      const list = (arr, color) => arr.map(v => `<li class="flex items-start gap-2"><span class="text-${color}-500 mt-1">•</span><span>${v}</span></li>`).join("");
+      detail.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex flex-wrap gap-2">${chips}</div>
+          <h4 class="text-2xl font-bold text-slate-900">${concept.title}</h4>
+          <p class="text-slate-600 leading-relaxed">${concept.summary}</p>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Signals</div>
+              <ul class="mt-3 space-y-2 text-sm text-slate-600">${list(concept.signals, "indigo")}</ul>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Actions</div>
+              <ul class="mt-3 space-y-2 text-sm text-slate-600">${list(concept.actions, "emerald")}</ul>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Pitfalls</div>
+              <ul class="mt-3 space-y-2 text-sm text-slate-600">${list(concept.pitfalls, "rose")}</ul>
+            </div>
+          </div>
+          ${concept.code ? `<pre class="code-block">${concept.code}</pre>` : ""}
+        </div>
+      `;
+    }
+
+    function selectConcept(id) {
+      activeConcept = id;
+      const concept = conceptData.find(c => c.id === id);
+      renderRack(filteredConcepts);
+      renderDetail(concept);
+    }
+
+    function initAtlas() {
+      const search = document.getElementById("conceptSearch");
+      if (search) {
+        search.addEventListener("input", () => {
+          const q = search.value.toLowerCase().trim();
+          filteredConcepts = conceptData.filter(c =>
+            c.title.toLowerCase().includes(q) ||
+            c.category.toLowerCase().includes(q) ||
+            c.summary.toLowerCase().includes(q)
+          );
+          if (!filteredConcepts.length) {
+            document.getElementById("conceptDetail").innerHTML = "<div class='text-sm text-slate-500'>No concepts match your search.</div>";
+          } else {
+            if (!filteredConcepts.some(c => c.id === activeConcept)) {
+              activeConcept = filteredConcepts[0].id;
+            }
+            renderDetail(filteredConcepts.find(c => c.id === activeConcept));
+          }
+          renderRack(filteredConcepts);
+        });
+      }
+      renderRack(filteredConcepts);
+      renderDetail(conceptData.find(c => c.id === activeConcept));
+
+      // Lab interaction
+      const latency = document.getElementById("latencySlider");
+      const throughput = document.getElementById("throughputSlider");
+      const alloc = document.getElementById("allocSlider");
+
+      function updateLab() {
+        const l = parseInt(latency.value, 10);
+        const t = parseInt(throughput.value, 10);
+        const a = parseInt(alloc.value, 10);
+        document.getElementById("latencyValue").textContent = `${l}ms`;
+        document.getElementById("throughputValue").textContent = t;
+        document.getElementById("allocValue").textContent = `${a} MB/s`;
+
+        let focus = [];
+        if (l < 80) focus.push("Low-latency GC (G1/ZGC), reduce allocation rate.");
+        if (t > 3000) focus.push("Thread pool tuning, reduce lock contention.");
+        if (a > 700) focus.push("Optimize allocation hot paths, enable escape analysis.");
+        if (focus.length === 0) focus.push("Balanced profile: focus on steady-state observability.");
+
+        document.getElementById("labOutput").innerHTML = focus.map(f => `<div class="bg-indigo-500/20 border border-indigo-400/30 rounded-lg p-3">${f}</div>`).join("");
+      }
+
+      [latency, throughput, alloc].forEach(el => el.addEventListener("input", updateLab));
+      updateLab();
+    }
+  </script>
+</body>
+</html>

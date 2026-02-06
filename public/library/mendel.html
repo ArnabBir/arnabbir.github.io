@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Mendel: Deep Dive Technical Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MathJax for rendering equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Cool neutral */
+            color: #0f172a;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            letter-spacing: -0.025em;
+        }
+
+        /* Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; 
+            }
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Documentation Tabs */
+        .doc-tab {
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .doc-tab:hover {
+            background-color: #f1f5f9;
+            border-left-color: #94a3b8;
+        }
+        .doc-tab.active {
+            background-color: #e0e7ff;
+            border-left-color: #4f46e5;
+            color: #3730a3;
+            font-weight: 600;
+        }
+
+        /* Code Blocks */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode header {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode .bg-slate-50 {
+            background-color: #1e293b !important;
+        }
+
+        body.dark-mode .text-slate-900 {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .text-slate-600 {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-mode .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-mode .text-slate-400 {
+            color: #64748b !important;
+        }
+
+        body.dark-mode .border-slate-200 {
+            border-color: #334155 !important;
+        }
+
+        body.dark-mode .bg-slate-100 {
+            background-color: #334155 !important;
+        }
+
+        body.dark-mode .bg-indigo-100 {
+            background-color: #312e81 !important;
+        }
+
+        body.dark-mode .text-indigo-700 {
+            color: #a5b4fc !important;
+        }
+
+        body.dark-mode .bg-emerald-100 {
+            background-color: #064e3b !important;
+        }
+
+        body.dark-mode .text-emerald-700 {
+            color: #6ee7b7 !important;
+        }
+
+        body.dark-mode .bg-amber-100 {
+            background-color: #78350f !important;
+        }
+
+        body.dark-mode .text-amber-700 {
+            color: #fcd34d !important;
+        }
+
+        body.dark-mode .bg-indigo-50 {
+            background-color: #312e81 !important;
+        }
+
+        body.dark-mode .text-indigo-600 {
+            color: #818cf8 !important;
+        }
+
+        body.dark-mode .doc-tab:hover {
+            background-color: #334155;
+            border-left-color: #64748b;
+        }
+
+        body.dark-mode .doc-tab.active {
+            background-color: #312e81;
+            border-left-color: #818cf8;
+            color: #c7d2fe;
+        }
+
+        body.dark-mode .bg-slate-900 {
+            background-color: #0f172a !important;
+        }
+
+        body.dark-mode .bg-slate-800 {
+            background-color: #1e293b !important;
+        }
+
+        body.dark-mode .border-slate-700 {
+            border-color: #475569 !important;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: #475569; 
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+    </style>
+    <!-- Chosen Palette: Slate/Indigo (Technical, Clean, Enterprise) -->
+    <script>
+        // Listen for theme changes from parent window
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                const theme = event.data.theme;
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+
+        // Check initial theme on load
+        window.addEventListener('load', function() {
+            // Try to detect theme from parent
+            try {
+                if (window.parent && window.parent !== window) {
+                    const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                    if (parentTheme === 'dark') {
+                        document.body.classList.add('dark-mode');
+                    }
+                }
+            } catch (e) {
+                // Cross-origin or other error, ignore
+            }
+        });
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-indigo-200 shadow-lg">M</div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900">Google Mendel <span class="text-slate-400 font-normal hidden sm:inline">| Overlapping Infrastructure</span></h1>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-sm font-medium">
+                <a href="#playground" class="text-slate-500 hover:text-indigo-600 transition-colors">Simulation & Hashing</a>
+                <a href="#docs" class="text-slate-500 hover:text-indigo-600 transition-colors">Technical Architecture</a>
+                <a href="#lifecycle" class="text-slate-500 hover:text-indigo-600 transition-colors">Data Pipeline</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-20">
+
+        <!-- Intro Section -->
+        <section class="text-center max-w-4xl mx-auto space-y-6 pt-8">
+            <h2 class="text-5xl font-extrabold text-slate-900 tracking-tight">Overlapping Experiment Infrastructure</h2>
+            <p class="text-xl text-slate-600 leading-relaxed">
+                Technical exploration of the architecture enabling <strong>10,000+ simultaneous experiments</strong> via orthogonal layering, cookie-based diversion, and real-time parameter injection.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3">
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide">Multi-Layer Orthogonality</span>
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide">Mod-1000 Hashing</span>
+                <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wide">Jackknife Estimation</span>
+            </div>
+        </section>
+
+        <!-- MODULE 1: The Playground (Traffic + Hashing Combined) -->
+        <section id="playground" class="space-y-8">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+                <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 font-bold">01</div>
+                <h3 class="text-2xl font-bold text-slate-900">Traffic Allocation & Hashing Logic</h3>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Left: Traffic Model Comparison -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-bold text-lg">Traffic Topology</h4>
+                        <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+                            <button id="btn-partitioned" class="px-3 py-1.5 rounded bg-white shadow text-indigo-600 transition-all" onclick="switchModel('partitioned')">Partitioned (Legacy)</button>
+                            <button id="btn-overlapping" class="px-3 py-1.5 rounded text-slate-500 hover:text-slate-900 transition-all" onclick="switchModel('overlapping')">Overlapping Layers</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-grow flex flex-col justify-center">
+                        <div class="chart-container">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                        <p id="chart-caption" class="text-center text-sm text-slate-500 mt-4">Legacy: Single-dimension traffic splitting.</p>
+                    </div>
+
+                    <div id="traffic-desc" class="mt-6 p-4 bg-slate-50 rounded-xl text-sm text-slate-600 border border-slate-100">
+                        <strong>Partitioned:</strong> Traffic is a finite resource. Allocating 10% to Experiment A removes it from the pool for Experiment B. <br><br>
+                        <strong>Overlapping:</strong> Traffic is projected into multiple orthogonal dimensions (layers). The same user exists in Layer 1, Layer 2, and Layer 3 simultaneously, effectively multiplying traffic capacity by the number of layers.
+                    </div>
+                </div>
+
+                <!-- Right: Live Hashing Simulator -->
+                <div class="bg-indigo-900 rounded-2xl shadow-xl text-white p-6 flex flex-col">
+                    <h4 class="font-bold text-lg mb-4 text-indigo-100">Deterministic Hashing Engine</h4>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold uppercase text-indigo-300 tracking-wider">User ID (or Cookie)</label>
+                                <input type="text" id="userIdInput" value="u_982736" class="mt-1 bg-indigo-800 border border-indigo-700 text-white text-sm rounded-lg block w-full p-2.5 font-mono focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase text-indigo-300 tracking-wider">Layer Salt (Seed)</label>
+                                <input type="text" id="saltInput" value="v1" class="mt-1 bg-indigo-800 border border-indigo-700 text-white text-sm rounded-lg block w-full p-2.5 font-mono focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+                            </div>
+                        </div>
+                        <button onclick="runSimulation()" class="w-full px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-lg text-sm font-bold transition-colors">Compute Assignment Hash</button>
+                        
+                        <div class="bg-indigo-950/50 rounded-lg p-3 font-mono text-xs text-indigo-200 border border-indigo-800">
+                            // Implementation<br>
+                            key = userId + "_" + layerId + "_" + salt;<br>
+                            hash = MurmurHash3_32(key);<br>
+                            bucket = abs(hash) % 1000; // 0-999 (0.1% granularity)
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Layer 1 -->
+                        <div class="bg-white/10 p-3 rounded-lg border border-indigo-700/50 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs text-indigo-300 uppercase font-bold">Layer 1: UI Core</div>
+                                <div class="flex gap-2 text-xs text-indigo-400 font-mono mt-1">
+                                    <span>Salt: <span id="l1-salt-disp">ui_core</span></span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div id="l1-val" class="font-mono text-lg font-bold">--</div>
+                                <div id="l1-res" class="text-xs px-2 py-1 rounded bg-indigo-800 text-indigo-200">Waiting</div>
+                            </div>
+                        </div>
+                        <!-- Layer 2 -->
+                        <div class="bg-white/10 p-3 rounded-lg border border-indigo-700/50 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs text-indigo-300 uppercase font-bold">Layer 2: Ranking</div>
+                                <div class="flex gap-2 text-xs text-indigo-400 font-mono mt-1">
+                                    <span>Salt: <span id="l2-salt-disp">rank_alg</span></span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div id="l2-val" class="font-mono text-lg font-bold">--</div>
+                                <div id="l2-res" class="text-xs px-2 py-1 rounded bg-indigo-800 text-indigo-200">Waiting</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2: Technical Documentation -->
+        <section id="docs" class="scroll-mt-24">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4 mb-8">
+                <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 font-bold">02</div>
+                <h3 class="text-2xl font-bold text-slate-900">Technical Deep Dive</h3>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+                <!-- Sidebar -->
+                <div class="w-full md:w-64 bg-slate-50 border-r border-slate-200 flex-shrink-0">
+                    <div class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Fundamentals</div>
+                    <ul class="space-y-1">
+                        <li class="doc-tab active px-4 py-3 text-sm" onclick="switchTab('concept-ortho', this)">Orthogonality Proof</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('concept-domain', this)">Domains & Diversion</li>
+                    </ul>
+                    
+                    <div class="p-4 mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Logic & Constraints</div>
+                    <ul class="space-y-1">
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('arch-cond', this)">Conditioning (DNF)</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('arch-params', this)">Parameter Hierarchy</li>
+                    </ul>
+
+                    <div class="p-4 mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Analysis</div>
+                    <ul class="space-y-1">
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('analysis-metrics', this)">Metrics & A/A Testing</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('ext-api', this)">Config Schema</li>
+                    </ul>
+
+                    <div class="p-4 mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Resources</div>
+                    <ul class="space-y-1">
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('ref-links', this)">References</li>
+                    </ul>
+                </div>
+
+                <!-- Content Area -->
+                <div class="flex-grow p-8 overflow-y-auto">
+                    
+                    <!-- Content: Orthogonality -->
+                    <div id="concept-ortho" class="doc-content">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Mathematical Orthogonality</h4>
+                        <p class="text-slate-600 mb-6">
+                            The system relies on the statistical independence of hash functions seeded differently. 
+                            If Layer A uses salt \( S_A \) and Layer B uses salt \( S_B \), we require that the probability of assignment in Layer B is independent of the assignment in Layer A.
+                        </p>
+                        
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg mb-6">
+                            <p class="font-mono text-sm text-slate-800">
+                                \[ P(\text{Bucket}_B = j \mid \text{Bucket}_A = i) \approx P(\text{Bucket}_B = j) \]
+                            </p>
+                        </div>
+
+                        <p class="text-slate-600 mb-4">
+                            This implies that any bias or effect from an experiment in Layer A is uniformly distributed across the control and treatment groups of Layer B.
+                        </p>
+
+                        <h5 class="font-bold text-lg text-slate-800 mb-2">Re-Salting for Bias Mitigation</h5>
+                        <p class="text-sm text-slate-600">
+                            Occasionally, "hash collisions" occur where a specific group of users hash into "Treatment" for two correlated experiments by pure chance. 
+                            Mendel allows operators to update the <strong>Salt</strong> (Seed) of a layer. This effectively re-shuffles the entire population without changing experiment parameters, breaking any accidental correlation.
+                        </p>
+                    </div>
+
+                    <!-- Content: Domains -->
+                    <div id="concept-domain" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Domains & Diversion Units</h4>
+                        <p class="text-slate-600 mb-6">
+                            Before traffic reaches Layers, it passes through <strong>Domains</strong>. A Domain defines the "Diversion Unit" (the ID used for hashing) and the scope of traffic.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="p-4 border border-indigo-100 bg-indigo-50/50 rounded-lg">
+                                <h5 class="font-bold text-indigo-900 mb-1">User ID Domain</h5>
+                                <p class="text-xs text-indigo-800">
+                                    Uses signed-in `google_account_id`. Guarantees consistency across devices (Desktop, Mobile, App). Essential for long-term retention studies.
+                                </p>
+                            </div>
+                            <div class="p-4 border border-slate-200 bg-slate-50 rounded-lg">
+                                <h5 class="font-bold text-slate-800 mb-1">Cookie / Request Domain</h5>
+                                <p class="text-xs text-slate-600">
+                                    Uses `cookie_id` or `session_id`. Used for logged-out users or short-term UI tests (e.g., button color). No cross-device consistency.
+                                </p>
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold text-lg text-slate-800 mb-2">Traffic Fraction</h5>
+                        <p class="text-sm text-slate-600">
+                            Domains can also enforce global holdouts. For example, the "Launch Domain" might only receive 90% of global traffic, reserving 10% as a permanent "holdout" to measure long-term impact of all features combined.
+                        </p>
+                    </div>
+
+                    <!-- Content: Conditioning -->
+                    <div id="arch-cond" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Conditioning Engine (Constraint Solving)</h4>
+                        <p class="text-slate-600 mb-6">
+                            Mendel does not just randomly assign everyone. It supports a flexible constraint system based on Disjunctive Normal Form (DNF).
+                        </p>
+                        
+                        <div class="p-5 bg-slate-900 rounded-lg text-indigo-300 font-mono text-xs mb-6 overflow-x-auto">
+                            // Example Condition Logic<br>
+                            (Country IN ['US', 'CA'] AND Lang == 'en') <br>
+                            OR <br>
+                            (Country == 'JP' AND Browser == 'Chrome' AND Version >= 54)
+                        </div>
+
+                        <p class="text-sm text-slate-600 mb-4">
+                            <strong>Pre-filtering vs. Post-filtering:</strong><br>
+                            Mendel optimizations often perform these checks <em>before</em> hashing to save "slots" in the experiment layers. If a user doesn't meet the condition, they simply don't enter the layer calculation, saving compute cycles.
+                        </p>
+                    </div>
+
+                    <!-- Content: Parameters -->
+                    <div id="arch-params" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Parameter Hierarchy & Injection</h4>
+                        <p class="text-slate-600 mb-6">
+                            The goal of Mendel is to decouple code deployment from configuration. Application code should never contain `if (experiment)`.
+                        </p>
+
+                        <h5 class="font-bold text-lg text-slate-800 mb-3">Resolution Order</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-3 mb-6">
+                            <li><strong>1. Hardcoded Defaults:</strong> Values defined in the binary (e.g., `Timeout = 500ms`).</li>
+                            <li><strong>2. Field Trial Config (Mendel):</strong> If the user hashes into an experiment, the experiment's config overrides the default (e.g., `Timeout = 800ms`).</li>
+                            <li><strong>3. Personal Overrides:</strong> Developer tools allow manual overrides for testing (e.g., forcing a specific parameter via URL query param).</li>
+                        </ul>
+
+                        <div class="bg-amber-50 p-4 rounded-lg text-sm text-amber-800 border border-amber-100">
+                            <strong>Latency Impact:</strong> The evaluation happens in microseconds within the process memory. There is no network call to a "Decision Server" for every request; config snapshots are pushed to servers asynchronously.
+                        </div>
+                    </div>
+
+                    <!-- Content: Metrics -->
+                    <div id="analysis-metrics" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Metrics Pipeline & Estimation</h4>
+                        <p class="text-slate-600 mb-6">
+                            The analysis pipeline joins <strong>Experiment Assignment Logs</strong> with <strong>Event Logs</strong> (clicks, latency, revenue).
+                        </p>
+
+                        <h5 class="font-bold text-lg text-slate-800 mb-2">A/A Testing</h5>
+                        <p class="text-sm text-slate-600 mb-4">
+                            Before trusting a layer, Mendel runs A/A tests (comparing Control against Control) to ensure the system has no inherent bias. If the p-value distribution of A/A tests is not uniform, the layer is considered "biased" and re-salted.
+                        </p>
+
+                        <h5 class="font-bold text-lg text-slate-800 mb-2">Jackknife Variance Estimation</h5>
+                        <p class="text-sm text-slate-600">
+                            For ratio metrics (like Clicks / Views), simple standard error formulas fail. Mendel uses <strong>Jackknife resampling</strong> (or Bootstrap) to estimate the variance of percent-change metrics, ensuring that a "+1% Revenue" result is statistically significant and not just noise.
+                        </p>
+                    </div>
+
+                    <!-- Content: API Schema -->
+                    <div id="ext-api" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Config API Schema</h4>
+                        <p class="text-slate-600 mb-6">Experiments are defined as JSON objects pushed to the configuration management system.</p>
+                        
+                        <pre class="bg-slate-900 text-slate-300 p-4 rounded-lg text-xs overflow-x-auto"><code>{
+  "experiment_id": "exp_2024_dark_mode",
+  "layer_id": "ui_core_v2",
+  "owner": "ux-team",
+  "diversion_unit": "cookie_id",
+  "lifecycle_stage": "active",
+  "conditions": {
+    "op": "AND",
+    "args": [
+        {"var": "device_os", "op": "EQ", "val": "android"},
+        {"var": "app_version", "op": "GTE", "val": "12.4.0"}
+    ]
+  },
+  "traffic_allocation": [
+    { "bucket_range": [0, 10], "treatment": "control" },
+    { "bucket_range": [11, 20], "treatment": "dark_blue" },
+    { "bucket_range": [21, 30], "treatment": "pitch_black" }
+  ]
+}</code></pre>
+                    </div>
+
+                    <!-- Content: References -->
+                    <div id="ref-links" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">References & Resources</h4>
+                        <p class="text-slate-600 mb-6">Primary sources and industry standards.</p>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg">
+                                <h5 class="font-bold text-indigo-900 mb-2">Original Research</h5>
+                                <p class="text-sm text-indigo-800 mb-3">
+                                    <strong>"Overlapping Experiment Infrastructure: More, Better, Faster Experimentation"</strong><br>
+                                    Diane Tang et al., Google (KDD 2010).
+                                </p>
+                                <a href="https://research.google/pubs/pub36500/" target="_blank" class="text-xs font-bold text-white bg-indigo-600 px-3 py-1.5 rounded hover:bg-indigo-700 transition-colors">Read Paper &rarr;</a>
+                            </div>
+
+                            <div class="space-y-3">
+                                <h5 class="font-bold text-slate-800">Related Concepts</h5>
+                                <ul class="list-disc list-inside text-sm text-slate-600">
+                                    <li><strong>PlanOut (Facebook):</strong> Language for online experiments.</li>
+                                    <li><strong>MurmurHash3:</strong> Non-cryptographic hash function optimized for speed and distribution.</li>
+                                    <li><strong>Causal Inference:</strong> The statistical field underpinning A/B testing analysis.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: Lifecycle -->
+        <section id="lifecycle" class="bg-slate-900 text-white rounded-2xl p-8 lg:p-12 mb-12">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="p-2 bg-indigo-500 rounded-lg text-white font-bold">03</div>
+                <h3 class="text-2xl font-bold">The Data Pipeline</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 hover:border-indigo-500 transition-colors cursor-pointer group" onclick="highlightStep(this, 1)">
+                    <div class="text-indigo-400 font-bold text-xs uppercase mb-1">Step 1</div>
+                    <div class="font-bold text-lg">Config Push</div>
+                    <div class="h-1 w-full bg-slate-700 mt-3 rounded-full overflow-hidden">
+                        <div class="h-full w-0 bg-indigo-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 hover:border-indigo-500 transition-colors cursor-pointer group" onclick="highlightStep(this, 2)">
+                    <div class="text-indigo-400 font-bold text-xs uppercase mb-1">Step 2</div>
+                    <div class="font-bold text-lg">Assignment</div>
+                    <div class="h-1 w-full bg-slate-700 mt-3 rounded-full overflow-hidden">
+                        <div class="h-full w-0 bg-indigo-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 hover:border-indigo-500 transition-colors cursor-pointer group" onclick="highlightStep(this, 3)">
+                    <div class="text-indigo-400 font-bold text-xs uppercase mb-1">Step 3</div>
+                    <div class="font-bold text-lg">Logging</div>
+                    <div class="h-1 w-full bg-slate-700 mt-3 rounded-full overflow-hidden">
+                        <div class="h-full w-0 bg-indigo-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 hover:border-indigo-500 transition-colors cursor-pointer group" onclick="highlightStep(this, 4)">
+                    <div class="text-indigo-400 font-bold text-xs uppercase mb-1">Step 4</div>
+                    <div class="font-bold text-lg">Join</div>
+                    <div class="h-1 w-full bg-slate-700 mt-3 rounded-full overflow-hidden">
+                        <div class="h-full w-0 bg-indigo-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 hover:border-indigo-500 transition-colors cursor-pointer group" onclick="highlightStep(this, 5)">
+                    <div class="text-indigo-400 font-bold text-xs uppercase mb-1">Step 5</div>
+                    <div class="font-bold text-lg">Significance</div>
+                    <div class="h-1 w-full bg-slate-700 mt-3 rounded-full overflow-hidden">
+                        <div class="h-full w-0 bg-indigo-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lifecycle-detail" class="mt-8 p-6 bg-slate-800/50 rounded-xl border border-slate-700 text-slate-300">
+                Click a stage above to see the operational details of the analysis pipeline.
+            </div>
+        </section>
+
+        <footer class="text-center text-slate-400 py-8 border-t border-slate-200">
+            <p class="text-sm">Based on Google's "Overlapping Experiment Infrastructure" Whitepaper.</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- State ---
+        const state = {
+            chart: null,
+            trafficModel: 'partitioned'
+        };
+
+        // --- Chart Logic ---
+        function initChart() {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            state.chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Exp A', 'Exp B', 'Exp C', 'Holdout'],
+                    datasets: [{
+                        data: [10, 10, 10, 70],
+                        backgroundColor: ['#4f46e5', '#ea580c', '#059669', '#cbd5e1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true } }
+                    },
+                    layout: { padding: 20 }
+                }
+            });
+        }
+
+        function switchModel(model) {
+            const btnP = document.getElementById('btn-partitioned');
+            const btnO = document.getElementById('btn-overlapping');
+            const desc = document.getElementById('traffic-desc');
+            const caption = document.getElementById('chart-caption');
+
+            if (model === 'partitioned') {
+                btnP.className = "px-3 py-1.5 rounded bg-white shadow text-indigo-600 transition-all font-semibold";
+                btnO.className = "px-3 py-1.5 rounded text-slate-500 hover:text-slate-900 transition-all";
+                desc.innerHTML = `<strong>Partitioned:</strong> Traffic is a finite resource. Allocating 10% to Experiment A removes it from the pool for Experiment B. Only one experiment per user.`;
+                caption.innerText = "Legacy: Single-dimension traffic splitting.";
+                
+                state.chart.data.labels = ['Exp A', 'Exp B', 'Exp C', 'Holdout'];
+                state.chart.data.datasets[0].data = [10, 10, 10, 70];
+                state.chart.data.datasets[0].backgroundColor = ['#4f46e5', '#ea580c', '#059669', '#cbd5e1'];
+                state.chart.update();
+            } else {
+                btnO.className = "px-3 py-1.5 rounded bg-white shadow text-indigo-600 transition-all font-semibold";
+                btnP.className = "px-3 py-1.5 rounded text-slate-500 hover:text-slate-900 transition-all";
+                desc.innerHTML = `<strong>Overlapping:</strong> Traffic is projected into multiple orthogonal dimensions (layers). The same user exists in Layer 1, Layer 2, and Layer 3 simultaneously, effectively multiplying traffic capacity by the number of layers.`;
+                caption.innerText = "Mendel: Multi-dimensional Layer Stack.";
+
+                state.chart.data.labels = ['Layer 1 (UI)', 'Layer 2 (Rank)', 'Layer 3 (Ads)', 'Layer 4 (Backend)'];
+                state.chart.data.datasets[0].data = [25, 25, 25, 25];
+                state.chart.data.datasets[0].backgroundColor = ['#4f46e5', '#ea580c', '#059669', '#8b5cf6'];
+                state.chart.update();
+            }
+        }
+
+        // --- Hashing Simulation ---
+        function runSimulation() {
+            const uid = document.getElementById('userIdInput').value || 'guest';
+            const userSalt = document.getElementById('saltInput').value || 'v1';
+            
+            // Simulation of MurmurHash3-like behavior
+            const hash = (str) => {
+                let h = 0xdeadbeef;
+                for(let i=0; i<str.length; i++) 
+                    h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
+                return ((h ^ h >>> 16) >>> 0) % 1000;
+            };
+
+            // Layer Salts combined with Input Salt (Simulating Salt Rotation)
+            const l1Salt = 'ui_core' + userSalt;
+            const l2Salt = 'rank_alg' + userSalt;
+
+            const l1 = hash(uid + '_' + l1Salt);
+            const l2 = hash(uid + '_' + l2Salt);
+
+            document.getElementById('l1-salt-disp').innerText = l1Salt;
+            document.getElementById('l2-salt-disp').innerText = l2Salt;
+
+            updateLayer('l1', l1, 500, 'Blue Button', 'Control (Grey)');
+            // Layer 2 has smaller threshold (10% traffic)
+            updateLayer('l2', l2, 100, 'New Ranking', 'Standard Rank');
+        }
+
+        function updateLayer(id, val, threshold, treat, control) {
+            document.getElementById(`${id}-val`).innerText = val;
+            const res = document.getElementById(`${id}-res`);
+            if(val < threshold) {
+                res.innerText = treat;
+                res.className = "text-xs px-2 py-1 rounded bg-indigo-500 text-white font-bold";
+            } else {
+                res.innerText = control;
+                res.className = "text-xs px-2 py-1 rounded bg-slate-600 text-slate-300";
+            }
+        }
+
+        // --- Documentation Tabs ---
+        function switchTab(contentId, tabElement) {
+            // Hide all contents
+            document.querySelectorAll('.doc-content').forEach(el => el.classList.add('hidden'));
+            // Show selected
+            document.getElementById(contentId).classList.remove('hidden');
+            
+            // Reset tabs
+            document.querySelectorAll('.doc-tab').forEach(el => el.classList.remove('active'));
+            // Active tab
+            tabElement.classList.add('active');
+        }
+
+        // --- Lifecycle ---
+        const lcDetails = {
+            1: "<strong>Config Push:</strong> Configuration is not code. It is pushed to a distributed configuration service. Application servers watch this config and update their internal state in near real-time (seconds/minutes) without a binary restart.",
+            2: "<strong>Assignment (Runtime):</strong> When a request arrives, the server retrieves the relevant config. It performs the hash <code>Hash(User + Layer + Salt)</code>. If the user falls into a bucket, the parameters are injected into the Request Context.",
+            3: "<strong>Logging:</strong> The server logs an 'Experiment Exposure' event containing `ExperimentID` and `TreatmentID`. This is separate from metric logs (like clicks). Crucially, we only log exposures if the user *actually* triggered the code path (Counterfactual Logging).",
+            4: "<strong>Join (Offline):</strong> MapReduce jobs run nightly (or hourly) to join the Exposure Logs with the Event Logs. They group data by Experiment ID and Bucket.",
+            5: "<strong>Significance & Validation:</strong> The analysis engine computes the mean and variance (via Jackknife). It checks for Sample Ratio Mismatch (SRM) to ensure the Control/Treatment split is exactly 50/50 (or as configured). If SRM fails, the results are discarded."
+        };
+
+        function highlightStep(el, step) {
+            document.getElementById('lifecycle-detail').innerHTML = lcDetails[step];
+        }
+
+        // Init
+        window.onload = function() {
+            initChart();
+            runSimulation();
+        }
+
+    </script>
+</body>
+</html>

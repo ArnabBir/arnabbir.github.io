@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { navItems } from "./nav-items";
 import { ThemeProvider } from 'next-themes';
+import LibraryHome from "./pages/LibraryHome";
+import LibraryRack from "./pages/LibraryRack";
+import LibraryItem from "./pages/LibraryItem";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +20,9 @@ const App = () => (
             {navItems.map(({ to, page }) => (
               <Route key={to} path={to} element={page} />
             ))}
+            <Route path="/library" element={<LibraryHome />} />
+            <Route path="/library/rack/:rackId" element={<LibraryRack />} />
+            <Route path="/library/:id" element={<LibraryItem />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Reference Guide: Core Concepts & Best Practices</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            letter-spacing: -0.025em;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .doc-tab {
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .doc-tab:hover {
+            background-color: #f1f5f9;
+            border-left-color: #94a3b8;
+        }
+        .doc-tab.active {
+            background-color: #e0e7ff;
+            border-left-color: #4f46e5;
+            color: #3730a3;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.75;
+        }
+
+        .code-block .keyword { color: #c792ea; }
+        .code-block .string { color: #c3e88d; }
+        .code-block .comment { color: #546e7a; font-style: italic; }
+        .code-block .type { color: #82aaff; }
+        .code-block .number { color: #f78c6c; }
+
+        /* Bookshelf UI */
+        .bookshelf-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+            gap: 12px;
+            align-items: end;
+            padding: 24px 16px 40px;
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+        }
+        .bookshelf-grid::after {
+            content: "";
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 10px;
+            height: 8px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #cbd5e1, #94a3b8, #cbd5e1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        .book-spine {
+            position: relative;
+            height: 180px;
+            border-radius: 10px 10px 6px 6px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 6px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+        .book-spine::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .book-spine.active {
+            transform: translateY(-8px);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.25);
+        }
+        .book-title {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .book-subtitle {
+            position: absolute;
+            bottom: 10px;
+            left: 8px;
+            right: 8px;
+            font-size: 10px;
+            text-align: center;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .chapter-toggle {
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s ease;
+        }
+        .chapter-toggle:hover {
+            background-color: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode header {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode .bg-slate-50 {
+            background-color: #1e293b !important;
+        }
+
+        body.dark-mode .text-slate-900 {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .text-slate-600 {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-mode .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-mode .text-slate-400 {
+            color: #64748b !important;
+        }
+
+        body.dark-mode .border-slate-200 {
+            border-color: #334155 !important;
+        }
+
+        body.dark-mode .bg-slate-100 {
+            background-color: #334155 !important;
+        }
+
+        body.dark-mode .bg-orange-100 {
+            background-color: #7c2d12 !important;
+        }
+
+        body.dark-mode .text-orange-700 {
+            color: #fdba74 !important;
+        }
+
+        body.dark-mode .bg-blue-100 {
+            background-color: #1e3a8a !important;
+        }
+
+        body.dark-mode .text-blue-700 {
+            color: #93c5fd !important;
+        }
+
+        body.dark-mode .bg-green-100 {
+            background-color: #14532d !important;
+        }
+
+        body.dark-mode .text-green-700 {
+            color: #86efac !important;
+        }
+
+        body.dark-mode .doc-tab:hover {
+            background-color: #334155;
+            border-left-color: #64748b;
+        }
+
+        body.dark-mode .doc-tab.active {
+            background-color: #312e81;
+            border-left-color: #818cf8;
+            color: #c7d2fe;
+        }
+
+        body.dark-mode .code-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .bookshelf-grid {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+            border-color: #1f2937;
+        }
+        body.dark-mode .bookshelf-grid::after {
+            background: linear-gradient(90deg, #1f2937, #334155, #1f2937);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        body.dark-mode .book-spine {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+        }
+        body.dark-mode .chapter-toggle:hover {
+            background-color: #334155;
+        }
+
+        body.dark-mode .bg-green-50 {
+            background-color: #14532d !important;
+            border-color: #166534 !important;
+        }
+
+        body.dark-mode .bg-blue-50 {
+            background-color: #1e3a8a !important;
+            border-color: #1e40af !important;
+        }
+
+        body.dark-mode .bg-yellow-50 {
+            background-color: #78350f !important;
+            border-color: #92400e !important;
+        }
+
+        body.dark-mode .bg-purple-50 {
+            background-color: #581c87 !important;
+            border-color: #6b21a8 !important;
+        }
+
+        body.dark-mode .text-green-900 {
+            color: #bbf7d0 !important;
+        }
+
+        body.dark-mode .text-blue-900 {
+            color: #bfdbfe !important;
+        }
+
+        body.dark-mode .text-yellow-900 {
+            color: #fef08a !important;
+        }
+
+        body.dark-mode .text-purple-900 {
+            color: #e9d5ff !important;
+        }
+
+        body.dark-mode .text-green-800 {
+            color: #86efac !important;
+        }
+
+        body.dark-mode .text-blue-800 {
+            color: #93c5fd !important;
+        }
+
+        body.dark-mode .text-yellow-800 {
+            color: #fde047 !important;
+        }
+
+        body.dark-mode .text-purple-800 {
+            color: #c084fc !important;
+        }
+
+        body.dark-mode table thead {
+            background-color: #334155 !important;
+        }
+
+        body.dark-mode table tbody tr {
+            border-color: #475569 !important;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: #475569; 
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+    </style>
+    <script>
+        // Listen for theme changes from parent window
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                const theme = event.data.theme;
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+
+        // Check initial theme on load
+        window.addEventListener('load', function() {
+            try {
+                if (window.parent && window.parent !== window) {
+                    const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                    if (parentTheme === 'dark') {
+                        document.body.classList.add('dark-mode');
+                    }
+                }
+            } catch (e) {
+                // Cross-origin or other error, ignore
+            }
+            initBookshelf();
+        });
+
+        function switchTab(contentId, tabElement) {
+            document.querySelectorAll('.doc-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(contentId).classList.remove('hidden');
+            
+            document.querySelectorAll('.doc-tab').forEach(el => el.classList.remove('active'));
+            tabElement.classList.add('active');
+        }
+
+        const bookshelfData = [
+            {
+                id: "core",
+                title: "Core Java Foundations",
+                subtitle: "Types, control flow, strings",
+                level: "Foundations",
+                readTime: "18 min",
+                color: "linear-gradient(180deg, #f97316 0%, #ea580c 100%)",
+                tags: ["types", "control flow", "strings", "methods", "immutability"],
+                summary: "Build a crisp mental model of Java’s type system, execution flow, and immutable data. This book makes the fundamentals concrete so later topics (collections, concurrency, GC) feel intuitive rather than magical.",
+                concepts: [
+                    "Primitive vs reference types",
+                    "Control flow and scoping rules",
+                    "String immutability and pooling",
+                    "Method overloading & varargs",
+                    "Autoboxing and performance"
+                ],
+                takeaways: [
+                    "Prefer primitives unless you need nullability or generics.",
+                    "Use StringBuilder in loops to avoid quadratic concatenations.",
+                    "Know where variables live (stack vs heap) to reason about performance."
+                ],
+                pitfalls: [
+                    "Using == for String equality (use equals).",
+                    "Accidental boxing in hot loops.",
+                    "Shadowing variables across nested scopes."
+                ],
+                chapters: [
+                    {
+                        title: "Type System & Memory Basics",
+                        paragraphs: [
+                            "Java has two broad categories of types: primitives (int, long, boolean, etc.) and references (objects, arrays, strings). Primitives live in stack frames or inline in objects, while references point to heap objects.",
+                            "Autoboxing makes primitives appear as objects, but it can allocate and introduce subtle bugs. Understand boxing and equality to avoid performance and correctness traps."
+                        ],
+                        bullets: [
+                            "Primitives are value types; references point to heap objects.",
+                            "Wrapper classes enable generics but can introduce boxing overhead."
+                        ],
+                        code: `Integer a = 128;
+Integer b = 128;
+System.out.println(a == b);   // false (different objects)
+System.out.println(a.equals(b)); // true
+
+int x = 5;
+Integer boxed = x; // autoboxing`
+                    },
+                    {
+                        title: "Control Flow, Scope & Switch",
+                        paragraphs: [
+                            "Java’s control flow is predictable but nuanced: switch expressions, enhanced for loops, and block scope all affect readability and correctness.",
+                            "Prefer early returns and small methods. Keep scopes tight to avoid shadowing and accidental misuse."
+                        ],
+                        bullets: [
+                            "Switch expressions (Java 14+) return values safely.",
+                            "Use labeled breaks sparingly; keep loops simple."
+                        ],
+                        code: `String role = "ADMIN";
+String permission = switch (role) {
+    case "ADMIN" -> "FULL";
+    case "USER" -> "LIMITED";
+    default -> "NONE";
+};`
+                    },
+                    {
+                        title: "Strings, Immutability & Builders",
+                        paragraphs: [
+                            "Strings are immutable. This enables safe sharing and string pooling but makes repeated concatenation expensive.",
+                            "Use StringBuilder for looped concatenation and prefer equalsIgnoreCase or equals for comparisons."
+                        ],
+                        bullets: [
+                            "String pool reduces memory but doesn’t remove immutability cost.",
+                            "StringBuilder is not thread-safe; use StringBuffer if needed."
+                        ],
+                        code: `StringBuilder sb = new StringBuilder();
+for (int i = 0; i < 3; i++) {
+    sb.append(i).append("-");
+}
+String result = sb.toString();`
+                    }
+                ],
+                quiz: {
+                    question: "Why does String concatenation inside a loop often degrade performance?",
+                    answer: "Each concatenation creates a new String object. Use StringBuilder to reuse a mutable buffer and avoid repeated allocations."
+                }
+            },
+            {
+                id: "oop",
+                title: "OOP & Design Principles",
+                subtitle: "Modeling, SOLID, interfaces",
+                level: "Design",
+                readTime: "22 min",
+                color: "linear-gradient(180deg, #0ea5e9 0%, #6366f1 100%)",
+                tags: ["oop", "solid", "interfaces", "composition", "design"],
+                summary: "Object-oriented design is about modeling behavior and protecting invariants. This book teaches you how to build composable, testable classes and avoid brittle inheritance chains.",
+                concepts: [
+                    "Encapsulation and invariants",
+                    "Inheritance vs composition",
+                    "Polymorphism and interfaces",
+                    "SOLID principles",
+                    "Design for change"
+                ],
+                takeaways: [
+                    "Prefer composition for flexibility and testability.",
+                    "Expose behavior, not state.",
+                    "Interfaces express contracts; implementations can change."
+                ],
+                pitfalls: [
+                    "Leaking internal state through getters.",
+                    "Deep inheritance hierarchies.",
+                    "Overusing abstract classes for reuse."
+                ],
+                chapters: [
+                    {
+                        title: "Encapsulation & Invariants",
+                        paragraphs: [
+                            "Encapsulation keeps data and behavior together and prevents invalid states. Your class should enforce invariants at the boundary, not rely on callers to be correct.",
+                            "Use private fields and validate inputs in constructors and setters. Favor immutability when possible."
+                        ],
+                        bullets: [
+                            "Prefer final fields for objects that should not change.",
+                            "Keep setters narrow: validate, normalize, and reject invalid inputs."
+                        ],
+                        code: `public final class Money {
+    private final long cents;
+    public Money(long cents) {
+        if (cents < 0) throw new IllegalArgumentException();
+        this.cents = cents;
+    }
+    public Money add(Money other) { return new Money(this.cents + other.cents); }
+}`
+                    },
+                    {
+                        title: "Inheritance vs Composition",
+                        paragraphs: [
+                            "Inheritance reuses behavior but couples you to parent class internals. Composition favors building from smaller, stable pieces and is easier to test.",
+                            "When you feel the need to override many methods, it’s a sign composition may be a better fit."
+                        ],
+                        bullets: [
+                            "Use inheritance for true \"is-a\" relationships.",
+                            "Use composition for \"has-a\" or \"uses\" relationships."
+                        ],
+                        code: `class Engine { void start() {} }
+class Car {
+    private final Engine engine;
+    Car(Engine engine) { this.engine = engine; }
+    void drive() { engine.start(); }
+}`
+                    },
+                    {
+                        title: "Interfaces & Polymorphism",
+                        paragraphs: [
+                            "Interfaces let you code to abstractions. They make testing easier and allow multiple implementations without changing callers.",
+                            "Polymorphism lets you swap implementations at runtime — a core technique for extensibility."
+                        ],
+                        bullets: [
+                            "Expose interfaces at boundaries (constructor args, return types).",
+                            "Avoid leaking concrete classes in public APIs."
+                        ],
+                        code: `interface Cache { String get(String key); }
+class RedisCache implements Cache { /* ... */ }
+class MemCache implements Cache { /* ... */ }
+
+Cache cache = new RedisCache();`
+                    }
+                ],
+                quiz: {
+                    question: "When should you prefer composition over inheritance?",
+                    answer: "When you need flexibility, want to avoid fragile base classes, or are not modeling a strict \"is-a\" relationship."
+                }
+            },
+            {
+                id: "memory",
+                title: "JVM Memory & Garbage Collection",
+                subtitle: "Heap, stack, GC tuning",
+                level: "Systems",
+                readTime: "24 min",
+                color: "linear-gradient(180deg, #16a34a 0%, #10b981 100%)",
+                tags: ["jvm", "gc", "memory", "references", "performance"],
+                summary: "Understand how the JVM allocates memory, how garbage collectors work, and how to interpret GC logs. This book helps you diagnose memory leaks and improve latency.",
+                concepts: [
+                    "Heap, stack, metaspace",
+                    "Young/old generation",
+                    "G1/ZGC/Parallel GC",
+                    "Reference types",
+                    "GC tuning & observability"
+                ],
+                takeaways: [
+                    "GC is about trade-offs between throughput and latency.",
+                    "Measure before tuning; logs reveal allocation hotspots.",
+                    "Reference types influence memory retention."
+                ],
+                pitfalls: [
+                    "Treating GC flags as magic without measurement.",
+                    "Holding strong references in caches indefinitely.",
+                    "Ignoring allocation rates and object lifetimes."
+                ],
+                chapters: [
+                    {
+                        title: "JVM Memory Regions",
+                        paragraphs: [
+                            "The stack holds method frames and local primitives; the heap stores objects. Metaspace stores class metadata, and direct buffers live outside the heap.",
+                            "A healthy JVM keeps young generation objects short-lived and promotes long-lived objects to old generation."
+                        ],
+                        bullets: [
+                            "Stack overflows come from deep recursion or huge frames.",
+                            "Memory leaks are often retained references, not raw allocation."
+                        ],
+                        code: `-Xms2g -Xmx2g
+-XX:MaxMetaspaceSize=256m
+-XX:+UseG1GC`
+                    },
+                    {
+                        title: "GC Strategies in Practice",
+                        paragraphs: [
+                            "G1 balances throughput and latency for most services. ZGC and Shenandoah aim for low pauses at scale.",
+                            "Tune only after observing allocation rates, pause times, and promotion failures."
+                        ],
+                        bullets: [
+                            "Use GC logs to identify allocation spikes.",
+                            "Avoid premature tuning; fix allocation hot spots first."
+                        ],
+                        code: `-Xlog:gc*:stdout:time,level,tags
+-XX:MaxGCPauseMillis=200`
+                    },
+                    {
+                        title: "Reference Types & Cleanup",
+                        paragraphs: [
+                            "Soft, weak, and phantom references give you control over memory-sensitive caches and cleanup workflows.",
+                            "Use ReferenceQueue for deterministic cleanup rather than finalize()."
+                        ],
+                        bullets: [
+                            "SoftReference for cache-like structures.",
+                            "PhantomReference for post-GC cleanup."
+                        ],
+                        code: `ReferenceQueue<Object> q = new ReferenceQueue<>();
+PhantomReference<Object> ref =
+    new PhantomReference<>(new Object(), q);`
+                    }
+                ],
+                quiz: {
+                    question: "Why is G1 a good default for most server workloads?",
+                    answer: "It balances throughput and pause-time predictability without requiring heavy tuning, handling mixed lifetimes well."
+                }
+            },
+            {
+                id: "collections",
+                title: "Collections & Generics",
+                subtitle: "Data structures, complexity",
+                level: "Core Libraries",
+                readTime: "20 min",
+                color: "linear-gradient(180deg, #8b5cf6 0%, #ec4899 100%)",
+                tags: ["collections", "generics", "complexity", "data structures"],
+                summary: "Master the Collections Framework and know which data structure to use for performance, readability, and correctness. Learn how generics keep your code safe without runtime casts.",
+                concepts: [
+                    "List/Set/Map selection",
+                    "Iteration patterns",
+                    "Complexity trade-offs",
+                    "Generics & wildcards"
+                ],
+                takeaways: [
+                    "Pick data structures based on access patterns, not habit.",
+                    "Prefer interfaces in APIs (List, Map) over implementations.",
+                    "Use wildcards to model producer/consumer patterns."
+                ],
+                pitfalls: [
+                    "Using LinkedList for random access.",
+                    "Mutating a collection while iterating.",
+                    "Raw types that lose type safety."
+                ],
+                chapters: [
+                    {
+                        title: "Choosing the Right Collection",
+                        paragraphs: [
+                            "ArrayList is best for indexed access; LinkedList shines for frequent insertions at ends. HashSet for uniqueness, TreeSet for sorted sets, HashMap for key lookups.",
+                            "When you need predictable iteration order, use LinkedHashMap/LinkedHashSet."
+                        ],
+                        bullets: [
+                            "HashMap: O(1) average lookups, O(n) worst-case.",
+                            "TreeMap: O(log n) with sorted keys."
+                        ],
+                        code: `List<String> list = new ArrayList<>();
+Set<String> set = new HashSet<>();
+Map<String, Integer> map = new HashMap<>();`
+                    },
+                    {
+                        title: "Iteration & Performance",
+                        paragraphs: [
+                            "Most collections are fail-fast: modifying them during iteration throws ConcurrentModificationException.",
+                            "Use Iterator.remove() or concurrent collections for safe modifications."
+                        ],
+                        bullets: [
+                            "Prefer for-each loops for readability.",
+                            "Use streams for transformations, not for heavy mutation."
+                        ]
+                    },
+                    {
+                        title: "Generics & Wildcards",
+                        paragraphs: [
+                            "Generics are invariant: List<Integer> is not a subtype of List<Number>. Use wildcards to express flexibility.",
+                            "Use ? extends T for producers and ? super T for consumers (PECS)."
+                        ],
+                        bullets: [
+                            "List<? extends Number> can read numbers but cannot add new ones.",
+                            "List<? super Integer> can accept Integer values safely."
+                        ],
+                        code: `void printNumbers(List<? extends Number> nums) { /* ... */ }
+void addIntegers(List<? super Integer> nums) { nums.add(1); }`
+                    }
+                ],
+                quiz: {
+                    question: "When should you use List<? extends T> vs List<? super T>?",
+                    answer: "Use ? extends T when you only need to read (producer). Use ? super T when you need to add (consumer)."
+                }
+            },
+            {
+                id: "streams",
+                title: "Streams & Functional Style",
+                subtitle: "Pipelines, collectors, parallelism",
+                level: "Modern Java",
+                readTime: "19 min",
+                color: "linear-gradient(180deg, #0f766e 0%, #14b8a6 100%)",
+                tags: ["streams", "lambda", "functional", "collectors"],
+                summary: "Streams let you express transformations as pipelines. Learn to compose operations cleanly, use collectors effectively, and avoid performance pitfalls.",
+                concepts: [
+                    "Lazy evaluation",
+                    "Intermediate vs terminal ops",
+                    "Collectors and grouping",
+                    "Parallel streams"
+                ],
+                takeaways: [
+                    "Streams are great for transformations, not side effects.",
+                    "Collectors can replace manual loops cleanly.",
+                    "Parallel streams help only when work is heavy and data is large."
+                ],
+                pitfalls: [
+                    "Using parallel streams with shared mutable state.",
+                    "Overusing peek for debugging.",
+                    "Unbounded streams without termination."
+                ],
+                chapters: [
+                    {
+                        title: "Stream Pipeline Model",
+                        paragraphs: [
+                            "Streams build pipelines of operations. Intermediate operations are lazy; terminal operations trigger execution.",
+                            "Keep pipelines readable: small, focused steps beat a monolithic chain."
+                        ],
+                        bullets: [
+                            "map/filter are intermediate; collect/forEach are terminal.",
+                            "Lazy ops allow short-circuiting (findFirst, anyMatch)."
+                        ],
+                        code: `List<String> names = users.stream()
+    .filter(u -> u.isActive())
+    .map(User::getName)
+    .sorted()
+    .toList();`
+                    },
+                    {
+                        title: "Collectors & Grouping",
+                        paragraphs: [
+                            "Collectors let you express aggregation and grouping without explicit loops.",
+                            "Use groupingBy with downstream collectors for nested aggregation."
+                        ],
+                        bullets: [
+                            "Collectors.toMap handles custom merge logic.",
+                            "groupingBy + counting = frequency map."
+                        ],
+                        code: `Map<String, Long> byTeam = users.stream()
+    .collect(Collectors.groupingBy(
+        User::getTeam,
+        Collectors.counting()
+    ));`
+                    },
+                    {
+                        title: "Parallel Streams",
+                        paragraphs: [
+                            "Parallel streams split work across cores, but overhead can outweigh benefits for small tasks.",
+                            "Avoid stateful lambdas and shared mutable structures."
+                        ],
+                        bullets: [
+                            "Best for CPU-heavy tasks on large datasets.",
+                            "Beware of ordering and thread-safety."
+                        ]
+                    }
+                ],
+                quiz: {
+                    question: "Why can parallel streams be slower for small datasets?",
+                    answer: "Thread coordination and partitioning overhead outweigh the benefit unless the workload is heavy."
+                }
+            },
+            {
+                id: "concurrency",
+                title: "Concurrency & JMM",
+                subtitle: "Threads, executors, atomics",
+                level: "Advanced",
+                readTime: "24 min",
+                color: "linear-gradient(180deg, #1d4ed8 0%, #0ea5e9 100%)",
+                tags: ["concurrency", "jmm", "threads", "executors"],
+                summary: "Java concurrency is powerful but subtle. Learn the primitives, the Java Memory Model, and how to build safe, scalable multi-threaded systems.",
+                concepts: [
+                    "Synchronization & locks",
+                    "Executors & futures",
+                    "Atomic variables",
+                    "Happens-before rules"
+                ],
+                takeaways: [
+                    "Use higher-level constructs (Executors, CompletableFuture) first.",
+                    "Volatile provides visibility but not atomicity.",
+                    "Avoid sharing mutable state across threads."
+                ],
+                pitfalls: [
+                    "Using synchronized incorrectly (locking on public objects).",
+                    "Assuming atomicity without synchronization.",
+                    "Blocking IO in CPU-bound thread pools."
+                ],
+                chapters: [
+                    {
+                        title: "Threading & Synchronization",
+                        paragraphs: [
+                            "The synchronized keyword enforces mutual exclusion and visibility. Use it to protect shared state.",
+                            "Locks, semaphores, and conditions give more control than synchronized."
+                        ],
+                        bullets: [
+                            "Always lock on private final objects.",
+                            "Prefer java.util.concurrent constructs over low-level wait/notify."
+                        ],
+                        code: `private final Object lock = new Object();
+public void increment() {
+    synchronized (lock) {
+        count++;
+    }
+}`
+                    },
+                    {
+                        title: "Executors & Futures",
+                        paragraphs: [
+                            "Executors decouple task submission from execution. They manage thread pools and queueing.",
+                            "CompletableFuture lets you compose async workflows without blocking."
+                        ],
+                        bullets: [
+                            "Use fixed pools for CPU-bound tasks.",
+                            "Use cached pools cautiously for IO-heavy tasks."
+                        ],
+                        code: `ExecutorService pool = Executors.newFixedThreadPool(4);
+CompletableFuture.supplyAsync(() -> compute(), pool)
+    .thenApply(result -> transform(result))
+    .thenAccept(System.out::println);`
+                    },
+                    {
+                        title: "JMM & Atomics",
+                        paragraphs: [
+                            "The Java Memory Model defines when writes become visible to other threads. Happens-before relationships ensure ordering.",
+                            "Atomic classes provide lock-free thread-safe operations."
+                        ],
+                        bullets: [
+                            "volatile guarantees visibility, not atomicity.",
+                            "AtomicInteger is great for counters under contention."
+                        ],
+                        code: `AtomicInteger counter = new AtomicInteger(0);
+counter.incrementAndGet();
+int value = counter.get();`
+                    }
+                ],
+                quiz: {
+                    question: "What does volatile guarantee in Java?",
+                    answer: "Visibility of writes across threads (and ordering), but not atomic compound operations."
+                }
+            },
+            {
+                id: "exceptions",
+                title: "Exceptions & Reliability",
+                subtitle: "Errors, recoverability, design",
+                level: "Robustness",
+                readTime: "16 min",
+                color: "linear-gradient(180deg, #f59e0b 0%, #f97316 100%)",
+                tags: ["exceptions", "reliability", "errors"],
+                summary: "Design exceptions that guide recovery. Use checked exceptions sparingly, structure error handling, and prevent cascading failures.",
+                concepts: [
+                    "Checked vs unchecked",
+                    "Try-with-resources",
+                    "Error boundaries",
+                    "Resilience patterns"
+                ],
+                takeaways: [
+                    "Use checked exceptions for recoverable errors only.",
+                    "Always close resources reliably.",
+                    "Wrap external failures with context."
+                ],
+                pitfalls: [
+                    "Catching Exception and swallowing it.",
+                    "Throwing generic RuntimeException everywhere.",
+                    "Using exceptions for control flow."
+                ],
+                chapters: [
+                    {
+                        title: "Checked vs Unchecked",
+                        paragraphs: [
+                            "Checked exceptions force callers to handle or declare. Use them for recoverable, expected problems (e.g., file not found).",
+                            "Unchecked exceptions indicate programming errors or unrecoverable conditions."
+                        ],
+                        bullets: [
+                            "RuntimeException should not be used to model expected outcomes.",
+                            "Be explicit about error boundaries."
+                        ]
+                    },
+                    {
+                        title: "Try-with-resources",
+                        paragraphs: [
+                            "Try-with-resources guarantees resource closure even if exceptions occur. It reduces boilerplate and avoids leaks.",
+                            "Any class implementing AutoCloseable works with this pattern."
+                        ],
+                        bullets: [
+                            "Prefer try-with-resources over finally blocks.",
+                            "Order of closing is reverse of creation."
+                        ],
+                        code: `try (BufferedReader br = Files.newBufferedReader(path)) {
+    return br.readLine();
+}`
+                    },
+                    {
+                        title: "Resilience Patterns",
+                        paragraphs: [
+                            "Protect your services with timeouts, retries (with backoff), and circuit breakers.",
+                            "Fail fast with clear error messages and include context for debugging."
+                        ],
+                        bullets: [
+                            "Retries without backoff can amplify outages.",
+                            "Use bulkheads to isolate failures."
+                        ]
+                    }
+                ],
+                quiz: {
+                    question: "When should you use checked exceptions?",
+                    answer: "When callers can reasonably recover (e.g., missing file, network transient). Otherwise prefer unchecked."
+                }
+            },
+            {
+                id: "io",
+                title: "I/O, NIO & Networking",
+                subtitle: "Streams, channels, HTTP",
+                level: "Systems",
+                readTime: "17 min",
+                color: "linear-gradient(180deg, #334155 0%, #64748b 100%)",
+                tags: ["io", "nio", "networking", "files"],
+                summary: "Java I/O is broad. Learn when to use classic streams, when to switch to NIO, and how to build efficient networking clients.",
+                concepts: [
+                    "Byte vs char streams",
+                    "NIO buffers and channels",
+                    "Path/Files API",
+                    "HTTP client"
+                ],
+                takeaways: [
+                    "Use buffered streams for performance.",
+                    "NIO provides scalable non-blocking IO.",
+                    "HTTP client in Java 11 is production-ready."
+                ],
+                pitfalls: [
+                    "Forgetting to close streams.",
+                    "Mixing character encodings incorrectly.",
+                    "Blocking calls inside async pipelines."
+                ],
+                chapters: [
+                    {
+                        title: "Streams vs Readers/Writers",
+                        paragraphs: [
+                            "Streams operate on bytes; readers/writers operate on characters with encodings.",
+                            "Always specify encodings explicitly to avoid platform-dependent bugs."
+                        ],
+                        bullets: [
+                            "InputStream/OutputStream for binary data.",
+                            "Reader/Writer for text with charset."
+                        ]
+                    },
+                    {
+                        title: "NIO Channels & Buffers",
+                        paragraphs: [
+                            "NIO uses channels to move data and buffers to hold it. This enables non-blocking IO and selectors.",
+                            "Use FileChannel for large file transfers and memory-mapped files."
+                        ],
+                        bullets: [
+                            "Flip buffers before reading from them.",
+                            "Use ByteBuffer.allocateDirect for large IO workloads."
+                        ],
+                        code: `try (FileChannel fc = FileChannel.open(path, StandardOpenOption.READ)) {
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    while (fc.read(buf) > 0) {
+        buf.flip();
+        buf.clear();
+    }
+}`
+                    },
+                    {
+                        title: "HTTP Client & Networking",
+                        paragraphs: [
+                            "Java 11 introduced a modern HTTP client with async support, HTTP/2, and built-in timeouts.",
+                            "Keep connections pooled and set timeouts explicitly."
+                        ],
+                        bullets: [
+                            "Use HttpClient.newHttpClient() for defaults.",
+                            "Prefer async for high-throughput services."
+                        ],
+                        code: `HttpClient client = HttpClient.newHttpClient();
+HttpRequest req = HttpRequest.newBuilder(uri).GET().build();
+HttpResponse<String> res = client.send(req, BodyHandlers.ofString());`
+                    }
+                ],
+                quiz: {
+                    question: "When should you use NIO over classic IO?",
+                    answer: "When you need scalable non-blocking IO or are handling many concurrent connections."
+                }
+            }
+        ];
+
+        let bookshelfFiltered = bookshelfData.slice();
+        let activeBookId = bookshelfData.length ? bookshelfData[0].id : null;
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function renderBookshelf(books) {
+            const grid = document.getElementById("bookshelf-grid");
+            const count = document.getElementById("bookCount");
+            if (!grid) return;
+
+            grid.innerHTML = "";
+            books.forEach((book) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "book-spine" + (book.id === activeBookId ? " active" : "");
+                btn.style.background = book.color;
+                btn.setAttribute("data-book-id", book.id);
+                btn.innerHTML = `
+                    <span class="book-title">${book.title}</span>
+                    <span class="book-subtitle">${book.level}</span>
+                `;
+                btn.addEventListener("click", () => selectBook(book.id));
+                grid.appendChild(btn);
+            });
+
+            if (count) {
+                count.textContent = `${books.length} books`;
+            }
+        }
+
+        function renderBookDetail(book) {
+            const detail = document.getElementById("book-detail");
+            if (!detail) return;
+
+            const conceptTags = book.concepts
+                .map((c) => `<span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">${c}</span>`)
+                .join("");
+
+            const takeaways = book.takeaways
+                .map((t) => `<li class="flex items-start gap-2"><span class="text-orange-500 mt-1">•</span><span>${t}</span></li>`)
+                .join("");
+
+            const pitfalls = book.pitfalls
+                .map((t) => `<li class="flex items-start gap-2"><span class="text-red-500 mt-1">•</span><span>${t}</span></li>`)
+                .join("");
+
+            const chapters = book.chapters
+                .map((ch, idx) => {
+                    const chapterId = `chapter-${book.id}-${idx}`;
+                    const paragraphs = ch.paragraphs.map(p => `<p class="text-sm text-slate-600 leading-relaxed">${p}</p>`).join("");
+                    const bullets = ch.bullets ? `<ul class="mt-3 space-y-2 text-sm text-slate-600">${ch.bullets.map(b => `<li class="flex items-start gap-2"><span class="text-orange-500 mt-1">•</span><span>${b}</span></li>`).join("")}</ul>` : "";
+                    const code = ch.code ? `<pre class="code-block text-xs mt-4"><code>${escapeHtml(ch.code)}</code></pre>` : "";
+                    return `
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <button class="chapter-toggle px-4 py-3 flex items-center justify-between bg-slate-50" data-target="${chapterId}">
+                                <span class="font-semibold text-slate-900">${ch.title}</span>
+                                <span class="text-slate-500 text-sm" data-icon>+</span>
+                            </button>
+                            <div id="${chapterId}" class="chapter-content hidden px-4 py-4 bg-white space-y-3">
+                                ${paragraphs}
+                                ${bullets}
+                                ${code}
+                            </div>
+                        </div>
+                    `;
+                })
+                .join("");
+
+            const quiz = book.quiz
+                ? `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Concept Check</div>
+                        <div class="mt-2 text-sm text-slate-700">${book.quiz.question}</div>
+                        <button class="reveal-answer mt-3 px-3 py-1.5 bg-orange-600 text-white rounded-lg text-xs font-semibold">Reveal answer</button>
+                        <div class="answer mt-3 text-sm text-slate-600 hidden">${book.quiz.answer}</div>
+                    </div>
+                `
+                : "";
+
+            detail.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div>
+                            <h4 class="text-2xl font-bold text-slate-900">${book.title}</h4>
+                            <p class="text-sm text-slate-600 mt-1">${book.subtitle}</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">${book.level}</span>
+                            <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">${book.readTime}</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-600 leading-relaxed">${book.summary}</p>
+                    <div class="flex flex-wrap gap-2">${conceptTags}</div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                            <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Key Takeaways</div>
+                            <ul class="mt-3 space-y-2 text-sm text-slate-600">${takeaways}</ul>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                            <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Common Pitfalls</div>
+                            <ul class="mt-3 space-y-2 text-sm text-slate-600">${pitfalls}</ul>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="text-sm font-semibold text-slate-900">Chapters</div>
+                        ${chapters}
+                    </div>
+                    ${quiz}
+                </div>
+            `;
+
+            document.querySelectorAll(".chapter-toggle").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetId = btn.getAttribute("data-target");
+                    const panel = document.getElementById(targetId);
+                    const icon = btn.querySelector("[data-icon]");
+                    if (!panel) return;
+                    if (panel.classList.contains("hidden")) {
+                        panel.classList.remove("hidden");
+                        if (icon) icon.textContent = "−";
+                    } else {
+                        panel.classList.add("hidden");
+                        if (icon) icon.textContent = "+";
+                    }
+                });
+            });
+
+            document.querySelectorAll(".reveal-answer").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const answer = btn.nextElementSibling;
+                    if (!answer) return;
+                    const isHidden = answer.classList.contains("hidden");
+                    answer.classList.toggle("hidden");
+                    btn.textContent = isHidden ? "Hide answer" : "Reveal answer";
+                });
+            });
+        }
+
+        function selectBook(id) {
+            activeBookId = id;
+            const book = bookshelfData.find((b) => b.id === id);
+            if (!book) return;
+            renderBookshelf(bookshelfFiltered);
+            renderBookDetail(book);
+        }
+
+        function initBookshelf() {
+            const searchInput = document.getElementById("bookSearch");
+            if (searchInput) {
+                searchInput.addEventListener("input", () => {
+                    const q = searchInput.value.toLowerCase().trim();
+                    bookshelfFiltered = bookshelfData.filter((book) => {
+                        return (
+                            book.title.toLowerCase().includes(q) ||
+                            book.subtitle.toLowerCase().includes(q) ||
+                            book.tags.some((t) => t.toLowerCase().includes(q))
+                        );
+                    });
+
+                    if (!bookshelfFiltered.length) {
+                        const detail = document.getElementById("book-detail");
+                        if (detail) {
+                            detail.innerHTML = "<div class='text-sm text-slate-500'>No books match your search. Try a different keyword.</div>";
+                        }
+                        renderBookshelf(bookshelfFiltered);
+                        return;
+                    }
+
+                    if (!bookshelfFiltered.some((b) => b.id === activeBookId)) {
+                        activeBookId = bookshelfFiltered[0].id;
+                    }
+                    renderBookshelf(bookshelfFiltered);
+                    renderBookDetail(bookshelfFiltered.find((b) => b.id === activeBookId));
+                });
+            }
+
+            renderBookshelf(bookshelfFiltered);
+            if (activeBookId) {
+                renderBookDetail(bookshelfData.find((b) => b.id === activeBookId));
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Navigation / Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white font-bold shadow-orange-200 shadow-lg">J</div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900">Java Reference Guide <span class="text-slate-400 font-normal hidden sm:inline">| Core Concepts & Best Practices</span></h1>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-sm font-medium">
+                <a href="#bookshelf" class="text-slate-500 hover:text-orange-600 transition-colors">Bookshelf</a>
+                <a href="#basics" class="text-slate-500 hover:text-orange-600 transition-colors">Basics</a>
+                <a href="#oop" class="text-slate-500 hover:text-orange-600 transition-colors">OOP Concepts</a>
+                <a href="#collections" class="text-slate-500 hover:text-orange-600 transition-colors">Collections</a>
+                <a href="#references" class="text-slate-500 hover:text-orange-600 transition-colors">References</a>
+                <a href="#concurrency" class="text-slate-500 hover:text-orange-600 transition-colors">Concurrency</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-20">
+
+        <!-- Intro Section -->
+        <section class="text-center max-w-4xl mx-auto space-y-6 pt-8">
+            <h2 class="text-5xl font-extrabold text-slate-900 tracking-tight">Java Programming Reference</h2>
+            <p class="text-xl text-slate-600 leading-relaxed">
+                Comprehensive guide to <strong>Java fundamentals</strong>, object-oriented programming, collections framework, concurrency, and best practices for building robust applications.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3">
+                <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase tracking-wide">Object-Oriented</span>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wide">Platform Independent</span>
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wide">Multi-threaded</span>
+            </div>
+        </section>
+
+        <!-- BOOKSHELF: Java Concepts -->
+        <section id="bookshelf" class="space-y-8">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600 font-bold">Shelf</div>
+                <div>
+                    <h3 class="text-2xl font-bold text-slate-900">Java Concepts Bookshelf</h3>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Pick a book to open a deep-dive chapter set with examples, pitfalls, and best practices. The shelf updates as you explore.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex-1">
+                            <input id="bookSearch" type="text" placeholder="Search topics (e.g., GC, Streams, JVM)" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40" />
+                        </div>
+                        <span id="bookCount" class="text-xs text-slate-500 whitespace-nowrap">0 books</span>
+                    </div>
+                    <div class="bookshelf-grid" id="bookshelf-grid"></div>
+                    <div class="text-xs text-slate-500">
+                        Tip: click a spine to open a deep dive. Use search to filter the shelf.
+                    </div>
+                </div>
+                <div class="lg:col-span-3">
+                    <div id="book-detail" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <div class="text-sm text-slate-500">Select a book from the shelf to see the detailed breakdown.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 1: Java Basics -->
+        <section id="basics" class="space-y-8">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600 font-bold">01</div>
+                <h3 class="text-2xl font-bold text-slate-900">Core Language Fundamentals</h3>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Left: Data Types & Variables -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+                    <h4 class="font-bold text-lg mb-4">Primitive Data Types</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">byte</span>
+                            <span class="text-xs text-slate-500">8-bit (-128 to 127)</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">short</span>
+                            <span class="text-xs text-slate-500">16-bit (-32,768 to 32,767)</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">int</span>
+                            <span class="text-xs text-slate-500">32-bit (-2³¹ to 2³¹-1)</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">long</span>
+                            <span class="text-xs text-slate-500">64-bit (-2⁶³ to 2⁶³-1)</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">float</span>
+                            <span class="text-xs text-slate-500">32-bit IEEE 754</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">double</span>
+                            <span class="text-xs text-slate-500">64-bit IEEE 754</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">char</span>
+                            <span class="text-xs text-slate-500">16-bit Unicode</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                            <span class="font-mono text-sm">boolean</span>
+                            <span class="text-xs text-slate-500">true or false</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Code Example -->
+                <div class="bg-orange-900 rounded-2xl shadow-xl text-white p-6">
+                    <h4 class="font-bold text-lg mb-4 text-orange-100">Variable Declaration</h4>
+                    <div class="code-block bg-orange-950/50 text-orange-100">
+                        <pre><code><span class="comment">// Primitive types</span>
+<span class="keyword">int</span> <span class="type">age</span> = <span class="number">25</span>;
+<span class="keyword">double</span> <span class="type">price</span> = <span class="number">99.99</span>;
+<span class="keyword">boolean</span> <span class="type">isActive</span> = <span class="keyword">true</span>;
+<span class="keyword">char</span> <span class="type">grade</span> = <span class="string">'A'</span>;
+
+<span class="comment">// Reference types (Objects)</span>
+<span class="type">String</span> <span class="type">name</span> = <span class="string">"Java"</span>;
+<span class="type">Integer</span> <span class="type">count</span> = <span class="keyword">new</span> <span class="type">Integer</span>(<span class="number">10</span>);
+
+<span class="comment">// Final (immutable) variables</span>
+<span class="keyword">final</span> <span class="keyword">int</span> <span class="type">MAX_SIZE</span> = <span class="number">100</span>;
+<span class="keyword">final</span> <span class="type">String</span> <span class="type">API_KEY</span> = <span class="string">"secret"</span>;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2: OOP Concepts -->
+        <section id="oop" class="scroll-mt-24">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4 mb-8">
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600 font-bold">02</div>
+                <h3 class="text-2xl font-bold text-slate-900">Object-Oriented Programming</h3>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+                <!-- Sidebar -->
+                <div class="w-full md:w-64 bg-slate-50 border-r border-slate-200 flex-shrink-0">
+                    <div class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Core Concepts</div>
+                    <ul class="space-y-1">
+                        <li class="doc-tab active px-4 py-3 text-sm" onclick="switchTab('oop-classes', this)">Classes & Objects</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-inheritance', this)">Inheritance</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-polymorphism', this)">Polymorphism</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-encapsulation', this)">Encapsulation</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-abstraction', this)">Abstraction</li>
+                    </ul>
+
+                    <div class="p-4 mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Advanced</div>
+                    <ul class="space-y-1">
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-interfaces', this)">Interfaces</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-generics', this)">Generics</li>
+                        <li class="doc-tab px-4 py-3 text-sm" onclick="switchTab('oop-exceptions', this)">Exception Handling</li>
+                    </ul>
+                </div>
+
+                <!-- Content Area -->
+                <div class="flex-grow p-8 overflow-y-auto">
+                    
+                    <!-- Classes & Objects -->
+                    <div id="oop-classes" class="doc-content">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Classes & Objects</h4>
+                        <p class="text-slate-600 mb-6">
+                            A <strong>class</strong> is a blueprint for creating objects. An <strong>object</strong> is an instance of a class.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="keyword">public class</span> <span class="type">Person</span> {
+    <span class="comment">// Fields (attributes)</span>
+    <span class="keyword">private</span> <span class="type">String</span> <span class="type">name</span>;
+    <span class="keyword">private</span> <span class="keyword">int</span> <span class="type">age</span>;
+    
+    <span class="comment">// Constructor</span>
+    <span class="keyword">public</span> <span class="type">Person</span>(<span class="type">String</span> <span class="type">name</span>, <span class="keyword">int</span> <span class="type">age</span>) {
+        <span class="keyword">this</span>.<span class="type">name</span> = <span class="type">name</span>;
+        <span class="keyword">this</span>.<span class="type">age</span> = <span class="type">age</span>;
+    }
+    
+    <span class="comment">// Methods</span>
+    <span class="keyword">public</span> <span class="type">String</span> <span class="type">getName</span>() {
+        <span class="keyword">return</span> <span class="type">name</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">setName</span>(<span class="type">String</span> <span class="type">name</span>) {
+        <span class="keyword">this</span>.<span class="type">name</span> = <span class="type">name</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">displayInfo</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Name: " + name + ", Age: " + age</span>);
+    }
+}
+
+<span class="comment">// Creating objects</span>
+<span class="type">Person</span> <span class="type">person1</span> = <span class="keyword">new</span> <span class="type">Person</span>(<span class="string">"Alice"</span>, <span class="number">30</span>);
+<span class="type">Person</span> <span class="type">person2</span> = <span class="keyword">new</span> <span class="type">Person</span>(<span class="string">"Bob"</span>, <span class="number">25</span>);</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Inheritance -->
+                    <div id="oop-inheritance" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Inheritance</h4>
+                        <p class="text-slate-600 mb-6">
+                            Inheritance allows a class to inherit properties and methods from another class using the <code class="bg-slate-100 px-1 rounded">extends</code> keyword.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="comment">// Parent class (Superclass)</span>
+<span class="keyword">public class</span> <span class="type">Animal</span> {
+    <span class="keyword">protected</span> <span class="type">String</span> <span class="type">name</span>;
+    
+    <span class="keyword">public</span> <span class="type">Animal</span>(<span class="type">String</span> <span class="type">name</span>) {
+        <span class="keyword">this</span>.<span class="type">name</span> = <span class="type">name</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">eat</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="type">name</span> + <span class="string">" is eating."</span>);
+    }
+}
+
+<span class="comment">// Child class (Subclass)</span>
+<span class="keyword">public class</span> <span class="type">Dog</span> <span class="keyword">extends</span> <span class="type">Animal</span> {
+    <span class="keyword">public</span> <span class="type">Dog</span>(<span class="type">String</span> <span class="type">name</span>) {
+        <span class="keyword">super</span>(<span class="type">name</span>); <span class="comment">// Call parent constructor</span>
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">bark</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="type">name</span> + <span class="string">" is barking!"</span>);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Polymorphism -->
+                    <div id="oop-polymorphism" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Polymorphism</h4>
+                        <p class="text-slate-600 mb-6">
+                            Polymorphism allows objects of different types to be treated as objects of a common super type. It enables one interface to be used for a general class of actions.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="comment">// Method Overriding (Runtime Polymorphism)</span>
+<span class="keyword">public class</span> <span class="type">Shape</span> {
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">draw</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Drawing a shape"</span>);
+    }
+}
+
+<span class="keyword">public class</span> <span class="type">Circle</span> <span class="keyword">extends</span> <span class="type">Shape</span> {
+    <span class="keyword">@Override</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">draw</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Drawing a circle"</span>);
+    }
+}
+
+<span class="comment">// Using polymorphism</span>
+<span class="type">Shape</span> <span class="type">shape</span> = <span class="keyword">new</span> <span class="type">Circle</span>();
+<span class="type">shape</span>.<span class="type">draw</span>(); <span class="comment">// Output: "Drawing a circle"</span></code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Encapsulation -->
+                    <div id="oop-encapsulation" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Encapsulation</h4>
+                        <p class="text-slate-600 mb-6">
+                            Encapsulation is the bundling of data and methods that operate on that data within a single unit (class), hiding internal implementation details.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="keyword">public class</span> <span class="type">BankAccount</span> {
+    <span class="comment">// Private fields - data hiding</span>
+    <span class="keyword">private</span> <span class="keyword">double</span> <span class="type">balance</span>;
+    <span class="keyword">private</span> <span class="type">String</span> <span class="type">accountNumber</span>;
+    
+    <span class="comment">// Public methods - controlled access</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">deposit</span>(<span class="keyword">double</span> <span class="type">amount</span>) {
+        <span class="keyword">if</span> (<span class="type">amount</span> > <span class="number">0</span>) {
+            <span class="type">balance</span> += <span class="type">amount</span>;
+        }
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">boolean</span> <span class="type">withdraw</span>(<span class="keyword">double</span> <span class="type">amount</span>) {
+        <span class="keyword">if</span> (<span class="type">amount</span> > <span class="number">0</span> && <span class="type">amount</span> <= <span class="type">balance</span>) {
+            <span class="type">balance</span> -= <span class="type">amount</span>;
+            <span class="keyword">return</span> <span class="keyword">true</span>;
+        }
+        <span class="keyword">return</span> <span class="keyword">false</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">double</span> <span class="type">getBalance</span>() {
+        <span class="keyword">return</span> <span class="type">balance</span>;
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Abstraction -->
+                    <div id="oop-abstraction" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Abstraction</h4>
+                        <p class="text-slate-600 mb-6">
+                            Abstraction hides complex implementation details and shows only essential features. Achieved through abstract classes and interfaces.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="comment">// Abstract class</span>
+<span class="keyword">public abstract class</span> <span class="type">Vehicle</span> {
+    <span class="keyword">protected</span> <span class="type">String</span> <span class="type">brand</span>;
+    
+    <span class="comment">// Concrete method</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">start</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="type">brand</span> + <span class="string">" is starting..."</span>);
+    }
+    
+    <span class="comment">// Abstract method - must be implemented by subclasses</span>
+    <span class="keyword">public abstract</span> <span class="keyword">void</span> <span class="type">drive</span>();
+}
+
+<span class="keyword">public class</span> <span class="type">Car</span> <span class="keyword">extends</span> <span class="type">Vehicle</span> {
+    <span class="keyword">public</span> <span class="type">Car</span>(<span class="type">String</span> <span class="type">brand</span>) {
+        <span class="keyword">this</span>.<span class="type">brand</span> = <span class="type">brand</span>;
+    }
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">drive</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="type">brand</span> + <span class="string">" car is driving on the road."</span>);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Interfaces -->
+                    <div id="oop-interfaces" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Interfaces</h4>
+                        <p class="text-slate-600 mb-6">
+                            Interfaces define a contract that implementing classes must follow. They contain method signatures without implementations (before Java 8).
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="comment">// Interface definition</span>
+<span class="keyword">public interface</span> <span class="type">Drawable</span> {
+    <span class="keyword">void</span> <span class="type">draw</span>(); <span class="comment">// Implicitly public and abstract</span>
+    <span class="keyword">void</span> <span class="type">resize</span>(<span class="keyword">int</span> <span class="type">width</span>, <span class="keyword">int</span> <span class="type">height</span>);
+    
+    <span class="comment">// Default method (Java 8+)</span>
+    <span class="keyword">default</span> <span class="keyword">void</span> <span class="type">printInfo</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"This is a drawable object."</span>);
+    }
+}
+
+<span class="comment">// Implementing interface</span>
+<span class="keyword">public class</span> <span class="type">Rectangle</span> <span class="keyword">implements</span> <span class="type">Drawable</span> {
+    <span class="keyword">@Override</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">draw</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Drawing a rectangle"</span>);
+    }
+    
+    <span class="keyword">@Override</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">resize</span>(<span class="keyword">int</span> <span class="type">width</span>, <span class="keyword">int</span> <span class="type">height</span>) {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Resizing to: " + width + "x" + height</span>);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Generics -->
+                    <div id="oop-generics" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Generics</h4>
+                        <p class="text-slate-600 mb-6">
+                            Generics enable types (classes and interfaces) to be parameters when defining classes, interfaces, and methods. They provide type safety and eliminate the need for casting.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="comment">// Generic class</span>
+<span class="keyword">public class</span> <span class="type">Box</span>&lt;<span class="type">T</span>&gt; {
+    <span class="keyword">private</span> <span class="type">T</span> <span class="type">content</span>;
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">setContent</span>(<span class="type">T</span> <span class="type">content</span>) {
+        <span class="keyword">this</span>.<span class="type">content</span> = <span class="type">content</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="type">T</span> <span class="type">getContent</span>() {
+        <span class="keyword">return</span> <span class="type">content</span>;
+    }
+}
+
+<span class="comment">// Usage</span>
+<span class="type">Box</span>&lt;<span class="type">String</span>&gt; <span class="type">stringBox</span> = <span class="keyword">new</span> <span class="type">Box</span>&lt;&gt;();
+<span class="type">stringBox</span>.<span class="type">setContent</span>(<span class="string">"Hello"</span>);
+
+<span class="type">Box</span>&lt;<span class="type">Integer</span>&gt; <span class="type">intBox</span> = <span class="keyword">new</span> <span class="type">Box</span>&lt;&gt;();
+<span class="type">intBox</span>.<span class="type">setContent</span>(<span class="number">42</span>);</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Exception Handling -->
+                    <div id="oop-exceptions" class="doc-content hidden">
+                        <h4 class="text-2xl font-bold text-slate-900 mb-4">Exception Handling</h4>
+                        <p class="text-slate-600 mb-6">
+                            Java's exception handling mechanism allows programs to handle runtime errors gracefully using try-catch blocks, finally blocks, and throw/throws keywords.
+                        </p>
+                        
+                        <div class="code-block mb-6">
+                            <pre><code><span class="comment">// Try-Catch-Finally</span>
+<span class="keyword">try</span> {
+    <span class="type">int</span> <span class="type">result</span> = <span class="number">10</span> / <span class="number">0</span>; <span class="comment">// ArithmeticException</span>
+} <span class="keyword">catch</span> (<span class="type">ArithmeticException</span> <span class="type">e</span>) {
+    <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Cannot divide by zero: " + e.getMessage()</span>);
+} <span class="keyword">catch</span> (<span class="type">Exception</span> <span class="type">e</span>) {
+    <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"General error: " + e.getMessage()</span>);
+} <span class="keyword">finally</span> {
+    <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"This always executes"</span>);
+}
+
+<span class="comment">// Throwing exceptions</span>
+<span class="keyword">public</span> <span class="keyword">void</span> <span class="type">validateAge</span>(<span class="keyword">int</span> <span class="type">age</span>) <span class="keyword">throws</span> <span class="type">IllegalArgumentException</span> {
+    <span class="keyword">if</span> (<span class="type">age</span> < <span class="number">0</span>) {
+        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Age cannot be negative"</span>);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: Collections -->
+        <section id="collections" class="space-y-8">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600 font-bold">03</div>
+                <h3 class="text-2xl font-bold text-slate-900">Collections Framework</h3>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+                    <h4 class="font-bold text-lg mb-3 text-blue-600">List</h4>
+                    <p class="text-sm text-slate-600 mb-4">Ordered collection, allows duplicates</p>
+                    <div class="code-block text-xs">
+                        <pre><code><span class="type">List</span>&lt;<span class="type">String</span>&gt; <span class="type">list</span> = <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+<span class="type">list</span>.<span class="type">add</span>(<span class="string">"Java"</span>);
+<span class="type">list</span>.<span class="type">add</span>(<span class="string">"Python"</span>);</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+                    <h4 class="font-bold text-lg mb-3 text-green-600">Set</h4>
+                    <p class="text-sm text-slate-600 mb-4">No duplicates, unordered</p>
+                    <div class="code-block text-xs">
+                        <pre><code><span class="type">Set</span>&lt;<span class="type">String</span>&gt; <span class="type">set</span> = <span class="keyword">new</span> <span class="type">HashSet</span>&lt;&gt;();
+<span class="type">set</span>.<span class="type">add</span>(<span class="string">"Java"</span>);
+<span class="type">set</span>.<span class="type">add</span>(<span class="string">"Java"</span>); <span class="comment">// Ignored</span></code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 card-hover">
+                    <h4 class="font-bold text-lg mb-3 text-purple-600">Map</h4>
+                    <p class="text-sm text-slate-600 mb-4">Key-value pairs, no duplicate keys</p>
+                    <div class="code-block text-xs">
+                        <pre><code><span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">Integer</span>&gt; <span class="type">map</span> = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();
+<span class="type">map</span>.<span class="type">put</span>(<span class="string">"age"</span>, <span class="number">25</span>);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 4: Java Reference Types -->
+        <section id="references" class="space-y-8">
+            <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600 font-bold">04</div>
+                <h3 class="text-2xl font-bold text-slate-900">Java Reference Types</h3>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-200">
+                    <p class="text-slate-600">
+                        Java provides <strong>4 types of references</strong> that control how objects interact with the garbage collector. Understanding these is crucial for memory management and building efficient applications.
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-6 p-6">
+                    <!-- Strong Reference -->
+                    <div class="bg-green-50 border-2 border-green-200 rounded-xl p-6 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold">1</div>
+                            <h4 class="text-xl font-bold text-green-900">Strong Reference</h4>
+                        </div>
+                        <p class="text-sm text-green-800 mb-4">
+                            <strong>Default reference type.</strong> Objects with strong references are not eligible for garbage collection as long as the reference exists.
+                        </p>
+                        <div class="code-block bg-green-900 text-green-100 text-xs mb-4">
+                            <pre><code><span class="comment">// Strong reference - default behavior</span>
+<span class="type">String</span> <span class="type">str</span> = <span class="keyword">new</span> <span class="type">String</span>(<span class="string">"Hello"</span>);
+<span class="comment">// Object won't be GC'd while 'str' exists</span>
+
+<span class="type">str</span> = <span class="keyword">null</span>; <span class="comment">// Now eligible for GC</span></code></pre>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg text-xs text-green-900">
+                            <strong>Use Case:</strong> Normal object references. Prevents GC until reference is removed.
+                        </div>
+                    </div>
+
+                    <!-- Soft Reference -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">2</div>
+                            <h4 class="text-xl font-bold text-blue-900">Soft Reference</h4>
+                        </div>
+                        <p class="text-sm text-blue-800 mb-4">
+                            <strong>Memory-sensitive caching.</strong> GC clears soft references only when memory is low. Useful for cache implementations.
+                        </p>
+                        <div class="code-block bg-blue-900 text-blue-100 text-xs mb-4">
+                            <pre><code><span class="keyword">import</span> <span class="type">java.lang.ref.SoftReference</span>;
+
+<span class="type">String</span> <span class="type">data</span> = <span class="keyword">new</span> <span class="type">String</span>(<span class="string">"Large Data"</span>);
+<span class="type">SoftReference</span>&lt;<span class="type">String</span>&gt; <span class="type">softRef</span> = 
+    <span class="keyword">new</span> <span class="type">SoftReference</span>&lt;&gt;(<span class="type">data</span>);
+
+<span class="type">data</span> = <span class="keyword">null</span>; <span class="comment">// Remove strong reference</span>
+
+<span class="comment">// Access object</span>
+<span class="type">String</span> <span class="type">retrieved</span> = <span class="type">softRef</span>.<span class="type">get</span>();
+<span class="comment">// Returns null if GC cleared it</span></code></pre>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg text-xs text-blue-900">
+                            <strong>Use Case:</strong> Caching large objects. GC clears when memory pressure is high.
+                        </div>
+                    </div>
+
+                    <!-- Weak Reference -->
+                    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center text-white font-bold">3</div>
+                            <h4 class="text-xl font-bold text-yellow-900">Weak Reference</h4>
+                        </div>
+                        <p class="text-sm text-yellow-800 mb-4">
+                            <strong>Weak associations.</strong> GC clears weak references as soon as no strong references exist. Useful for metadata and listeners.
+                        </p>
+                        <div class="code-block bg-yellow-900 text-yellow-100 text-xs mb-4">
+                            <pre><code><span class="keyword">import</span> <span class="type">java.lang.ref.WeakReference</span>;
+<span class="keyword">import</span> <span class="type">java.util.WeakHashMap</span>;
+
+<span class="comment">// WeakReference example</span>
+<span class="type">Object</span> <span class="type">obj</span> = <span class="keyword">new</span> <span class="type">Object</span>();
+<span class="type">WeakReference</span>&lt;<span class="type">Object</span>&gt; <span class="type">weakRef</span> = 
+    <span class="keyword">new</span> <span class="type">WeakReference</span>&lt;&gt;(<span class="type">obj</span>);
+
+<span class="type">obj</span> = <span class="keyword">null</span>; <span class="comment">// Remove strong reference</span>
+<span class="type">System</span>.<span class="type">gc</span>(); <span class="comment">// Suggest GC</span>
+<span class="comment">// weakRef.get() likely returns null now</span>
+
+<span class="comment">// WeakHashMap - automatically removes entries</span>
+<span class="type">WeakHashMap</span>&lt;<span class="type">String</span>, <span class="type">Object</span>&gt; <span class="type">cache</span> = 
+    <span class="keyword">new</span> <span class="type">WeakHashMap</span>&lt;&gt;();</code></pre>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-lg text-xs text-yellow-900">
+                            <strong>Use Case:</strong> Metadata, listeners, preventing memory leaks. GC clears immediately when no strong refs.
+                        </div>
+                    </div>
+
+                    <!-- Phantom Reference -->
+                    <div class="bg-purple-50 border-2 border-purple-200 rounded-xl p-6 card-hover">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold">4</div>
+                            <h4 class="text-xl font-bold text-purple-900">Phantom Reference</h4>
+                        </div>
+                        <p class="text-sm text-purple-800 mb-4">
+                            <strong>Cleanup actions.</strong> GC clears phantom references after finalization. Used for post-mortem cleanup operations.
+                        </p>
+                        <div class="code-block bg-purple-900 text-purple-100 text-xs mb-4">
+                            <pre><code><span class="keyword">import</span> <span class="type">java.lang.ref.PhantomReference</span>;
+<span class="keyword">import</span> <span class="type">java.lang.ref.ReferenceQueue</span>;
+
+<span class="type">ReferenceQueue</span>&lt;<span class="type">Object</span>&gt; <span class="type">queue</span> = 
+    <span class="keyword">new</span> <span class="type">ReferenceQueue</span>&lt;&gt;();
+
+<span class="type">Object</span> <span class="type">obj</span> = <span class="keyword">new</span> <span class="type">Object</span>();
+<span class="type">PhantomReference</span>&lt;<span class="type">Object</span>&gt; <span class="type">phantomRef</span> = 
+    <span class="keyword">new</span> <span class="type">PhantomReference</span>&lt;&gt;(<span class="type">obj</span>, <span class="type">queue</span>);
+
+<span class="type">obj</span> = <span class="keyword">null</span>;
+<span class="type">System</span>.<span class="type">gc</span>();
+
+<span class="comment">// Check if object was GC'd</span>
+<span class="type">PhantomReference</span>&lt;?&gt; <span class="type">ref</span> = 
+    (<span class="type">PhantomReference</span>&lt;?&gt;) <span class="type">queue</span>.<span class="type">poll</span>();
+<span class="keyword">if</span> (<span class="type">ref</span> != <span class="keyword">null</span>) {
+    <span class="comment">// Object was GC'd, perform cleanup</span>
+    <span class="type">ref</span>.<span class="type">clear</span>();
+}</code></pre>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg text-xs text-purple-900">
+                            <strong>Use Case:</strong> Cleanup actions after finalization. More reliable than finalize() method.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="p-6 border-t border-slate-200">
+                    <h4 class="font-bold text-lg mb-4">Reference Types Comparison</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Type</th>
+                                    <th class="px-4 py-2 text-left">GC Behavior</th>
+                                    <th class="px-4 py-2 text-left">get() Returns</th>
+                                    <th class="px-4 py-2 text-left">Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                                <tr>
+                                    <td class="px-4 py-2 font-mono font-semibold">Strong</td>
+                                    <td class="px-4 py-2">Never GC'd while reference exists</td>
+                                    <td class="px-4 py-2">Object reference</td>
+                                    <td class="px-4 py-2">Normal object references</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono font-semibold">Soft</td>
+                                    <td class="px-4 py-2">GC'd when memory is low</td>
+                                    <td class="px-4 py-2">Object or null</td>
+                                    <td class="px-4 py-2">Memory-sensitive caches</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono font-semibold">Weak</td>
+                                    <td class="px-4 py-2">GC'd when no strong refs</td>
+                                    <td class="px-4 py-2">Object or null</td>
+                                    <td class="px-4 py-2">Metadata, listeners</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-mono font-semibold">Phantom</td>
+                                    <td class="px-4 py-2">GC'd after finalization</td>
+                                    <td class="px-4 py-2">Always null</td>
+                                    <td class="px-4 py-2">Cleanup operations</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Practical Example -->
+                <div class="p-6 border-t border-slate-200 bg-slate-50">
+                    <h4 class="font-bold text-lg mb-4">Practical Example: Cache Implementation</h4>
+                    <div class="code-block">
+                        <pre><code><span class="keyword">import</span> <span class="type">java.lang.ref.SoftReference</span>;
+<span class="keyword">import</span> <span class="type">java.util.concurrent.ConcurrentHashMap</span>;
+
+<span class="keyword">public class</span> <span class="type">ImageCache</span> {
+    <span class="keyword">private</span> <span class="type">ConcurrentHashMap</span>&lt;<span class="type">String</span>, <span class="type">SoftReference</span>&lt;<span class="type">byte</span>[]&gt;&gt; <span class="type">cache</span> = 
+        <span class="keyword">new</span> <span class="type">ConcurrentHashMap</span>&lt;&gt;();
+    
+    <span class="keyword">public</span> <span class="type">byte</span>[] <span class="type">get</span>(<span class="type">String</span> <span class="type">key</span>) {
+        <span class="type">SoftReference</span>&lt;<span class="type">byte</span>[]&gt; <span class="type">ref</span> = <span class="type">cache</span>.<span class="type">get</span>(<span class="type">key</span>);
+        <span class="keyword">if</span> (<span class="type">ref</span> != <span class="keyword">null</span>) {
+            <span class="type">byte</span>[] <span class="type">image</span> = <span class="type">ref</span>.<span class="type">get</span>();
+            <span class="keyword">if</span> (<span class="type">image</span> == <span class="keyword">null</span>) {
+                <span class="comment">// GC cleared it, remove from cache</span>
+                <span class="type">cache</span>.<span class="type">remove</span>(<span class="type">key</span>);
+            }
+            <span class="keyword">return</span> <span class="type">image</span>;
+        }
+        <span class="keyword">return</span> <span class="keyword">null</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">put</span>(<span class="type">String</span> <span class="type">key</span>, <span class="type">byte</span>[] <span class="type">image</span>) {
+        <span class="type">cache</span>.<span class="type">put</span>(<span class="type">key</span>, <span class="keyword">new</span> <span class="type">SoftReference</span>&lt;&gt;(<span class="type">image</span>));
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 5: Concurrency -->
+        <section id="concurrency" class="bg-slate-900 text-white rounded-2xl p-8 lg:p-12">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="p-2 bg-orange-500 rounded-lg text-white font-bold">05</div>
+                <h3 class="text-2xl font-bold">Concurrency & Multithreading</h3>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                    <h4 class="font-bold text-lg mb-3">Thread Creation</h4>
+                    <div class="code-block bg-slate-950/50 text-slate-300 text-xs">
+                        <pre><code><span class="comment">// Extending Thread</span>
+<span class="keyword">class</span> <span class="type">MyThread</span> <span class="keyword">extends</span> <span class="type">Thread</span> {
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">run</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Thread running"</span>);
+    }
+}
+
+<span class="comment">// Implementing Runnable</span>
+<span class="keyword">class</span> <span class="type">MyRunnable</span> <span class="keyword">implements</span> <span class="type">Runnable</span> {
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="type">run</span>() {
+        <span class="type">System</span>.<span class="type">out</span>.<span class="type">println</span>(<span class="string">"Runnable running"</span>);
+    }
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                    <h4 class="font-bold text-lg mb-3">Synchronization</h4>
+                    <div class="code-block bg-slate-950/50 text-slate-300 text-xs">
+                        <pre><code><span class="keyword">public class</span> <span class="type">Counter</span> {
+    <span class="keyword">private</span> <span class="keyword">int</span> <span class="type">count</span> = <span class="number">0</span>;
+    
+    <span class="keyword">public synchronized</span> <span class="keyword">void</span> <span class="type">increment</span>() {
+        <span class="type">count</span>++;
+    }
+    
+    <span class="keyword">public synchronized</span> <span class="keyword">int</span> <span class="type">getCount</span>() {
+        <span class="keyword">return</span> <span class="type">count</span>;
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-slate-400 py-8 border-t border-slate-200">
+            <p class="text-sm">Java Reference Guide - Core Concepts & Best Practices</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

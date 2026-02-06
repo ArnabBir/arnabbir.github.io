@@ -103,6 +103,22 @@ export const SkillGroupSchema = z.object({
   items: z.array(z.string()),
 });
 
+export const LibraryItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  category: z.string(),
+  tags: z.array(z.string()).default([]),
+  thumbnail: z.string().optional(),
+  contentPath: z.string(),
+  date: z.string().optional(),
+  featured: z.boolean().default(false),
+  highlights: z.array(z.string()).default([]),
+  chapters: z.array(z.string()).default([]),
+  difficulty: z.enum(["Beginner", "Intermediate", "Advanced"]).optional(),
+  readingTime: z.string().optional(),
+});
+
 export const ContentSchema = z.object({
   site: SiteSchema,
   experience: z.array(ExperienceSchema),
@@ -111,4 +127,5 @@ export const ContentSchema = z.object({
   education: z.array(EducationSchema),
   certifications: z.array(CertificationSchema),
   skills: z.array(SkillGroupSchema),
+  library: z.array(LibraryItemSchema).default([]),
 });

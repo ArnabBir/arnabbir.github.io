@@ -7,6 +7,7 @@ import writing from "./writing";
 import education from "./education";
 import certifications from "./certifications";
 import skills from "./skills";
+import library from "./library";
 
 const parsed = ContentSchema.parse({
   site,
@@ -16,6 +17,7 @@ const parsed = ContentSchema.parse({
   education,
   certifications,
   skills,
+  library,
 });
 
 export const content = parsed;
@@ -28,4 +30,5 @@ export const {
   education: educationContent,
   certifications: certificationsContent,
   skills: skillsContent,
+  library: libraryContent,
 } = parsed;
