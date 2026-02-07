@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orator - Technical Design Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            850: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        brand: {
+                            blue: '#3b82f6',
+                            purple: '#8b5cf6',
+                            green: '#10b981',
+                            amber: '#f59e0b',
+                            darkBlue: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        /* Diagram Connectors */
+        .diagram-arrow {
+            position: relative;
+        }
+        .diagram-arrow::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: #cbd5e1; /* Light mode connector */
+            z-index: 0;
+        }
+        .dark .diagram-arrow::after {
+            background-color: #475569; /* Dark mode connector */
+        }
+        
+        .code-block {
+            background-color: #0f172a; /* Always dark for code */
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .keyword { color: #c084fc; }
+        .string { color: #86efac; }
+        .func { color: #60a5fa; }
+        .comment { color: #64748b; font-style: italic; }
+
+        .arch-box {
+            transition: all 0.2s ease;
+        }
+        .arch-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .dark .arch-box:hover {
+             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Flowchart specifics */
+        .flow-node {
+            position: relative;
+        }
+        .flow-line-vertical {
+            position: absolute;
+            left: 50%;
+            bottom: -24px;
+            width: 2px;
+            height: 24px;
+            background-color: #cbd5e1;
+            transform: translateX(-50%);
+        }
+        .dark .flow-line-vertical {
+            background-color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-300 font-sans h-screen flex flex-col md:flex-row overflow-hidden selection:bg-brand-blue selection:text-white transition-colors duration-300">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 z-20 shadow-sm dark:shadow-none">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-start">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="bg-brand-blue p-2 rounded-lg shadow-lg shadow-brand-blue/20">
+                        <i data-lucide="mic" class="text-white w-5 h-5"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Orator</h1>
+                </div>
+                <p class="text-xs text-slate-500 font-mono mt-2">Architecture & Design Doc</p>
+            </div>
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+                <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1" id="nav-container">
+            <a href="#overview" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white font-medium bg-slate-100 dark:bg-slate-800">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
+            </a>
+            <a href="#architecture" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="box" class="w-4 h-4"></i> Architecture
+            </a>
+            <a href="#runtime" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="cpu" class="w-4 h-4"></i> Runtime Contexts
+            </a>
+             <a href="#messages" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="message-square" class="w-4 h-4"></i> Message Protocol
+            </a>
+            <a href="#data-model" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="database" class="w-4 h-4"></i> Data Model
+            </a>
+            <a href="#pipeline" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="play-circle" class="w-4 h-4"></i> Playback Pipeline
+            </a>
+            <a href="#click-seek" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i> Click-to-Seek
+            </a>
+            <a href="#extraction" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Content Extraction
+            </a>
+            <a href="#performance" class="nav-link flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i data-lucide="zap" class="w-4 h-4"></i> Performance
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500">
+            Built by <a href="#" class="text-brand-blue hover:underline">Arnab Bir</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto scroll-smooth relative" id="main-content">
+        
+        <!-- Hero -->
+        <div id="overview" class="bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 border-b border-slate-200 dark:border-slate-800 p-8 md:p-12">
+            <div class="max-w-5xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 text-brand-blue text-xs font-mono mb-4 border border-brand-blue/20">
+                    Manifest V3
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">Orator Web Narrator</h1>
+                <p class="text-xl text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed mb-8">
+                    A local-first, privacy-focused Chrome Extension that narrates web pages using natural system voices. Features intelligent extraction, click-to-seek, and sentence-level highlighting.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="https://chromewebstore.google.com/detail/orator-%E2%80%94-web-narrator/becblgoenaekioaddgjgenjldaniadao?authuser=0&hl=en" target="_blank" class="flex items-center gap-2 bg-brand-blue hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-brand-blue/20">
+                        <i data-lucide="chrome" class="w-5 h-5"></i> Chrome Web Store
+                    </a>
+                    <div class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-transparent">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-brand-green"></i> No Tracking
+                    </div>
+                    <div class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-transparent">
+                        <i data-lucide="cpu" class="w-5 h-5 text-brand-purple"></i> Local Processing
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-5xl mx-auto p-8 md:p-12 space-y-20">
+            
+            <!-- Architecture Section -->
+            <section id="architecture" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                    <i data-lucide="box" class="text-brand-purple"></i> System Architecture
+                </h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-8">
+                    Orator is a multi-context extension. The core narration engine lives inside the <strong>Content Script</strong> for interactivity, with a fallback <strong>Offscreen Document</strong> for restricted pages.
+                </p>
+
+                <!-- Visual Diagram -->
+                <div class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 relative overflow-hidden">
+                    <div class="absolute top-4 right-4 text-xs font-mono text-slate-500 dark:text-slate-600">MV3 Architecture</div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 relative">
+                        
+                        <!-- Left Column (UI) -->
+                        <div class="md:col-span-3 space-y-4 flex flex-col justify-center">
+                            <div class="arch-box bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-4 relative shadow-sm">
+                                <div class="text-brand-blue font-mono text-xs mb-1">popup.html</div>
+                                <div class="font-bold text-slate-900 dark:text-white">Popup UI</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-2">Toolbar, Voice Picker, Speed Control</div>
+                                <!-- Connector -->
+                                <div class="hidden md:block absolute top-1/2 -right-6 w-6 h-0.5 bg-slate-300 dark:bg-slate-600"></div>
+                            </div>
+                            
+                            <div class="arch-box bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-4 shadow-sm">
+                                <div class="text-brand-blue font-mono text-xs mb-1">options.html</div>
+                                <div class="font-bold text-slate-900 dark:text-white">Options UI</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-2">Persistent Settings</div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Column (Background) -->
+                        <div class="md:col-span-4 flex flex-col justify-center relative">
+                            <div class="arch-box bg-white dark:bg-slate-850 border border-brand-purple/50 shadow-[0_4px_20px_-2px_rgba(139,92,246,0.1)] rounded-lg p-5 z-10 relative">
+                                <div class="text-brand-purple font-mono text-xs mb-1">background.js</div>
+                                <div class="font-bold text-slate-900 dark:text-white mb-2">Service Worker</div>
+                                <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-1 font-mono">
+                                    <li>• Context Menus</li>
+                                    <li>• Hotkeys (Command)</li>
+                                    <li>• Injection Manager</li>
+                                    <li>• Offscreen Lifecycle</li>
+                                </ul>
+                                <!-- Connector Right -->
+                                <div class="hidden md:block absolute top-1/4 -right-6 w-6 h-0.5 bg-slate-300 dark:bg-slate-600"></div>
+                                <!-- Connector Bottom -->
+                                <div class="hidden md:block absolute -bottom-6 left-1/2 w-0.5 h-6 bg-slate-300 dark:bg-slate-600"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Engine) -->
+                        <div class="md:col-span-5 space-y-6">
+                            <!-- Content Script -->
+                            <div class="arch-box bg-white dark:bg-slate-850 border border-brand-green/50 shadow-[0_4px_20px_-2px_rgba(16,185,129,0.1)] rounded-lg p-5">
+                                <div class="text-brand-green font-mono text-xs mb-1">contentScript.js</div>
+                                <div class="font-bold text-slate-900 dark:text-white mb-2">Narration Engine</div>
+                                <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                                    <div class="bg-slate-100 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">Extraction</div>
+                                    <div class="bg-slate-100 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">TTS Queue</div>
+                                    <div class="bg-slate-100 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">Highlighting</div>
+                                    <div class="bg-slate-100 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">Floating UI</div>
+                                </div>
+                            </div>
+
+                            <!-- Offscreen -->
+                            <div class="arch-box bg-white dark:bg-slate-850 border border-brand-amber/50 rounded-lg p-5 mt-8 md:mt-0 md:ml-8 shadow-sm">
+                                <div class="text-brand-amber font-mono text-xs mb-1">offscreen.html</div>
+                                <div class="font-bold text-slate-900 dark:text-white">Fallback Engine</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                                    Used for restricted pages (PDFs, chrome://) where content scripts fail.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Runtime Contexts -->
+            <section id="runtime" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Runtime Contexts</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-slate-900/50 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h3 class="text-brand-green font-bold mb-2">Content Script</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">The core "Orator engine". Runs directly in the web page.</p>
+                        <ul class="text-sm text-slate-700 dark:text-slate-300 space-y-2">
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-green mt-0.5"></i> Extracts readable text (DOM heuristics)</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-green mt-0.5"></i> Segments text into sentences</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-green mt-0.5"></i> Manages <code>speechSynthesis</code></li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-green mt-0.5"></i> Renders Shadow DOM UI</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900/50 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h3 class="text-brand-purple font-bold mb-2">Background Worker</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">The event coordinator.</p>
+                        <ul class="text-sm text-slate-700 dark:text-slate-300 space-y-2">
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-purple mt-0.5"></i> Creates Context Menus</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-purple mt-0.5"></i> Handles global keyboard shortcuts</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-purple mt-0.5"></i> Ensures Content Script injection</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-purple mt-0.5"></i> Spawns Offscreen fallback</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900/50 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h3 class="text-brand-amber font-bold mb-2">Offscreen Document</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Fallback TTS engine.</p>
+                        <ul class="text-sm text-slate-700 dark:text-slate-300 space-y-2">
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-amber mt-0.5"></i> Speaks selected text only</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-amber mt-0.5"></i> Used for PDF Viewer extension pages</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-amber mt-0.5"></i> Self-closes after idle timeout</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900/50 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <h3 class="text-brand-blue font-bold mb-2">Popup UI</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">User Controls.</p>
+                        <ul class="text-sm text-slate-700 dark:text-slate-300 space-y-2">
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-blue mt-0.5"></i> Play/Pause/Stop/Skip</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-blue mt-0.5"></i> Adjustable Speed/Pitch</li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-brand-blue mt-0.5"></i> Searchable Voice Picker</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Message Protocol Section (NEW) -->
+            <section id="messages" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Message Protocol</h2>
+                <div class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 mb-6">
+                    <p class="text-slate-600 dark:text-slate-400 mb-8 max-w-3xl">
+                        The Popup and Background worker cannot directly call functions in the page. They communicate via <code>chrome.tabs.sendMessage</code>. The background worker acts as the "injector," ensuring the content script is alive before passing commands.
+                    </p>
+                    
+                    <!-- Protocol Diagram -->
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs">
+                        
+                        <!-- Step 1 -->
+                        <div class="flex-1 w-full p-4 bg-white dark:bg-slate-800 border border-brand-blue/30 rounded-lg text-center relative shadow-sm">
+                            <div class="font-bold text-brand-blue mb-2">User Action</div>
+                            <div class="text-slate-500 dark:text-slate-400">Click Play (Popup)</div>
+                            <div class="hidden md:block absolute top-1/2 -right-6 w-8 h-0.5 bg-slate-300 dark:bg-slate-600 diagram-arrow"></div>
+                            <div class="md:hidden mx-auto my-2 w-0.5 h-6 bg-slate-300 dark:bg-slate-600"></div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex-1 w-full p-4 bg-white dark:bg-slate-800 border border-brand-purple/30 rounded-lg text-center relative shadow-sm">
+                            <div class="font-bold text-brand-purple mb-2">Background</div>
+                            <div class="text-slate-500 dark:text-slate-400">ensureInjected(tabId)</div>
+                            <div class="hidden md:block absolute top-1/2 -right-6 w-8 h-0.5 bg-slate-300 dark:bg-slate-600 diagram-arrow"></div>
+                            <div class="md:hidden mx-auto my-2 w-0.5 h-6 bg-slate-300 dark:bg-slate-600"></div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex-1 w-full p-4 bg-white dark:bg-slate-800 border border-brand-green/30 rounded-lg text-center shadow-sm">
+                            <div class="font-bold text-brand-green mb-2">Content Script</div>
+                            <div class="text-slate-500 dark:text-slate-400">onMessage: { type: 'PLAY' }</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                            <tr>
+                                <th class="px-6 py-3 border-b border-slate-200 dark:border-slate-800">Type</th>
+                                <th class="px-6 py-3 border-b border-slate-200 dark:border-slate-800">Payload</th>
+                                <th class="px-6 py-3 border-b border-slate-200 dark:border-slate-800">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-950">
+                            <tr>
+                                <td class="px-6 py-3 font-mono text-brand-blue">PLAY / TOGGLE_PLAY</td>
+                                <td class="px-6 py-3 font-mono text-slate-500 dark:text-slate-500">None</td>
+                                <td class="px-6 py-3 text-slate-700 dark:text-slate-300">Extract content (if needed) & start speaking.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-3 font-mono text-brand-blue">PLAY_SELECTION</td>
+                                <td class="px-6 py-3 font-mono text-slate-500 dark:text-slate-500">{ text: string }</td>
+                                <td class="px-6 py-3 text-slate-700 dark:text-slate-300">Bypasses extraction; speaks payload text.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-3 font-mono text-brand-blue">SET_RATE / PITCH</td>
+                                <td class="px-6 py-3 font-mono text-slate-500 dark:text-slate-500">{ value: number }</td>
+                                <td class="px-6 py-3 text-slate-700 dark:text-slate-300">Updates engine state immediately.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-3 font-mono text-brand-blue">GET_STATE</td>
+                                <td class="px-6 py-3 font-mono text-slate-500 dark:text-slate-500">None</td>
+                                <td class="px-6 py-3 text-slate-700 dark:text-slate-300">Returns `{ status, currentIndex, voiceURI }` to sync Popup UI.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Data Model -->
+            <section id="data-model" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Data & State Model</h2>
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-200">Persisted Storage</h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Using <code>chrome.storage.sync</code> for cross-device consistency.</p>
+                        <div class="code-block">
+<span class="keyword">const</span> STORAGE_DEFAULTS = {
+    <span class="string">clickSeekMode</span>: <span class="string">"click"</span>,  <span class="comment">// off | alt | click</span>
+    <span class="string">highlightMode</span>: <span class="string">"sentence"</span>, <span class="comment">// off | sentence | word</span>
+    <span class="string">autoScroll</span>: <span class="keyword">true</span>,
+    <span class="string">pitch</span>: <span class="func">1.0</span>,
+    <span class="string">volume</span>: <span class="func">1.0</span>,
+    <span class="string">rate</span>: <span class="func">1.0</span>,
+    <span class="string">voiceURI</span>: <span class="string">""</span>
+};</div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-200">Runtime State (InMemory)</h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Maintained in <code>contentScript.js</code>.</p>
+                        <div class="code-block">
+<span class="keyword">const</span> state = {
+    status: <span class="string">'idle'</span>, <span class="comment">// building | playing | paused</span>
+    blocks: [], <span class="comment">// Readable block elements</span>
+    sentences: [], <span class="comment">// Segmented text + DOM ranges</span>
+    currentIndex: <span class="func">0</span>,
+    speakToken: <span class="func">123</span> <span class="comment">// Monotonic ID for async safety</span>
+};</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pipeline -->
+            <section id="pipeline" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Playback Pipeline</h2>
+                <div class="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 space-y-8 pl-8 py-2">
+                    
+                    <div class="relative">
+                        <span class="absolute -left-[41px] top-1 h-6 w-6 rounded-full bg-brand-blue border-4 border-slate-50 dark:border-slate-950"></span>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">1. Trigger & Build</h3>
+                        <p class="text-slate-600 dark:text-slate-400 mt-2">User clicks Play. The extraction engine scans the DOM using <span class="font-mono text-xs bg-slate-200 dark:bg-slate-800 px-1 rounded">TreeWalker</span>. It identifies "Main Content" containers (article, main) and filters noise (nav, ads).</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[41px] top-1 h-6 w-6 rounded-full bg-brand-purple border-4 border-slate-50 dark:border-slate-950"></span>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">2. Segmentation</h3>
+                        <p class="text-slate-600 dark:text-slate-400 mt-2">Text is split using <span class="font-mono text-xs bg-slate-200 dark:bg-slate-800 px-1 rounded">Intl.Segmenter</span> (granularity: 'sentence') with regex fallbacks. Each segment is mapped back to DOM Ranges for highlighting.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[41px] top-1 h-6 w-6 rounded-full bg-brand-green border-4 border-slate-50 dark:border-slate-950"></span>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">3. Synthesis</h3>
+                        <p class="text-slate-600 dark:text-slate-400 mt-2"><code>speakFrom(index)</code> creates a <code>SpeechSynthesisUtterance</code>. It attaches event listeners (start, boundary, end) and checks the unique <code>speakToken</code> to prevent "zombie" callbacks.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute -left-[41px] top-1 h-6 w-6 rounded-full bg-brand-amber border-4 border-slate-50 dark:border-slate-950"></span>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">4. Visual Feedback</h3>
+                        <p class="text-slate-600 dark:text-slate-400 mt-2">
+                            <strong>Highlight:</strong> CSS Custom Highlight API (preferred) or Fallback Overlay.<br>
+                            <strong>Auto-scroll:</strong> Smoothly brings the active sentence into viewport.<br>
+                            <strong>Word Highlight:</strong> Uses boundary events to map spoken char index to raw text.
+                        </p>
+                    </div>
+
+                </div>
+            </section>
+
+             <!-- Click to Seek Logic (NEW) -->
+             <section id="click-seek" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Click-to-Seek Logic</h2>
+                <div class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8">
+                    <p class="text-slate-600 dark:text-slate-400 mb-8">
+                        Mapping a user's mouse click to a specific sentence index is geometrically complex. Orator uses the <code>caretPositionFromPoint</code> API to hit-test the DOM text node.
+                    </p>
+
+                    <!-- Logic Flow Diagram -->
+                    <div class="flex flex-col items-center space-y-8 relative">
+                        
+                        <!-- Node 1 -->
+                        <div class="flow-node bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-6 py-3 rounded-lg shadow-sm w-80 text-center">
+                            <div class="font-bold text-slate-900 dark:text-white">User Click (x, y)</div>
+                            <div class="flow-line-vertical"></div>
+                        </div>
+
+                        <!-- Node 2 -->
+                        <div class="flow-node bg-white dark:bg-slate-800 border border-brand-blue/50 px-6 py-3 rounded-lg shadow-sm w-80 text-center">
+                            <div class="font-mono text-xs sm:text-sm text-brand-blue break-all">document.caretPositionFromPoint</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Returns { Node, Offset }</div>
+                            <div class="flow-line-vertical"></div>
+                        </div>
+
+                        <!-- Node 3 -->
+                        <div class="flow-node bg-white dark:bg-slate-800 border border-brand-purple/50 px-6 py-3 rounded-lg shadow-sm w-80 text-center">
+                            <div class="text-slate-900 dark:text-white font-bold">Find Parent Block</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Which &lt;p&gt; or &lt;li&gt; contains this node?</div>
+                            <div class="flow-line-vertical"></div>
+                        </div>
+
+                        <!-- Node 4 -->
+                        <div class="flow-node bg-white dark:bg-slate-800 border border-brand-green/50 px-6 py-3 rounded-lg shadow-sm w-80 text-center">
+                            <div class="text-slate-900 dark:text-white font-bold">Range Inclusion Test</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 text-left px-2">
+                                For each sentence in block:<br>
+                                <code class="text-slate-700 dark:text-slate-300">range.isPointInRange(node, offset)</code>
+                            </div>
+                            <div class="flow-line-vertical"></div>
+                        </div>
+
+                        <!-- Node 5 -->
+                        <div class="bg-brand-green/10 border border-brand-green text-brand-green px-6 py-3 rounded-lg w-80 text-center font-bold">
+                            speakFrom(foundIndex)
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Extraction -->
+            <section id="extraction" class="scroll-mt-10">
+                <div class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Content Extraction Logic</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">Orator does not use a "Reader Mode" library. It uses DOM heuristics.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex gap-4 p-4 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                            <div class="text-brand-blue font-bold font-mono">01</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Container Scoring</h4>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Scores `article`, `main`, `role='main'` based on text length and paragraph count.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 p-4 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                            <div class="text-brand-blue font-bold font-mono">02</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Block Collection</h4>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Collects <code>p, li, h1-h6, blockquote, pre</code>. Filters out nav, footer, aria-hidden, and scripts.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 p-4 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                            <div class="text-brand-blue font-bold font-mono">03</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Text Normalization</h4>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Creates two versions of text: <strong>Raw</strong> (for DOM mapping) and <strong>Speak</strong> (normalized whitespace for TTS). A map array links the two for accurate word highlighting.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance (NEW) -->
+             <section id="performance" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Performance Considerations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-lg p-6 bg-white dark:bg-slate-900 shadow-sm">
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-2 text-lg">Lazy Building</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Orator does <strong>zero work</strong> on page load. The expensive <code>TreeWalker</code> and <code>Intl.Segmenter</code> logic only triggers when the user explicitly clicks "Play". If the user pauses and resumes, the model is reused from memory.
+                        </p>
+                    </div>
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-lg p-6 bg-white dark:bg-slate-900 shadow-sm">
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-2 text-lg">Event Yielding</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            During extraction on large pages, the main thread could freeze. Orator processes blocks in chunks (e.g., 80 blocks at a time) and yields to the event loop using <code>setTimeout(..., 0)</code> to keep the UI responsive.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PDF Support -->
+            <section id="pdf-support" class="scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">PDF Strategy</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-lg p-6 bg-white dark:bg-slate-900 shadow-sm">
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-2">Detection</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">Detects Chrome's internal PDF viewer, `.pdf` extensions, or PDF.js specific DOM structures (`.textLayer`).</p>
+                    </div>
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-lg p-6 bg-white dark:bg-slate-900 shadow-sm">
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-2">Streaming Extraction</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">To avoid freezing on large PDFs, extraction is progressive. The first ~3 paragraphs are processed immediately, while the rest streams in the background.</p>
+                    </div>
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-lg p-6 md:col-span-2 bg-white dark:bg-slate-900 shadow-sm">
+                        <h3 class="font-bold text-slate-900 dark:text-white mb-2">The "Selection" Fallback</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            If the PDF structure is inaccessible (Shadow DOM or restricted origin), Orator falls back to checking the user's selection. 
+                            <span class="block mt-2 text-brand-amber text-xs border-l-2 border-brand-amber pl-2">
+                                UX Tip: If no text is found, Orator prompts: "Press Ctrl+A, then Play".
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security -->
+            <section id="security" class="scroll-mt-10 mb-20">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Privacy & Permissions</h2>
+                <div class="bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-200 dark:bg-slate-850 text-slate-700 dark:text-slate-200">
+                            <tr>
+                                <th class="px-6 py-4 font-mono">Permission</th>
+                                <th class="px-6 py-4">Rationale</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-300 dark:divide-slate-800 bg-white dark:bg-transparent">
+                            <tr>
+                                <td class="px-6 py-4 font-mono text-brand-purple">activeTab</td>
+                                <td class="px-6 py-4 text-slate-600 dark:text-slate-400">Access only the tab the user explicitly invokes Orator on.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-mono text-brand-purple">scripting</td>
+                                <td class="px-6 py-4 text-slate-600 dark:text-slate-400">To inject the narrator engine, highlights, and UI.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-mono text-brand-purple">storage</td>
+                                <td class="px-6 py-4 text-slate-600 dark:text-slate-400">Save user preferences (voice, speed) locally.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-mono text-brand-purple">offscreen</td>
+                                <td class="px-6 py-4 text-slate-600 dark:text-slate-400">Run TTS API for restricted pages where content scripts are blocked.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="p-6 bg-slate-200 dark:bg-slate-850 border-t border-slate-300 dark:border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="lock" class="text-brand-green w-5 h-5"></i>
+                            <span class="font-bold text-slate-900 dark:text-white">Privacy First Design</span>
+                        </div>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                            Orator processes all content locally on the device using built-in browser capabilities. No text is sent to external servers. No AI/LLM endpoints are queried.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // Icons
+        lucide.createIcons();
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check local storage or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+
+        // Sync theme with parent site (when embedded in iframe)
+        window.addEventListener('message', (event) => {
+            const data = event.data || {};
+            if (data.type !== 'THEME_CHANGE') return;
+            if (data.theme === 'dark') {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+        });
+
+        // Smooth Scroll & Active State Logic
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section, #overview');
+        const navContainer = document.getElementById('nav-container');
+
+        // Scroll Spy
+        const mainContent = document.getElementById('main-content');
+        
+        const updateActiveNav = () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (mainContent.scrollTop >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                // Remove active classes
+                link.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-900', 'dark:text-white', 'font-medium');
+                // Add inactive text color
+                link.classList.add('text-slate-600', 'dark:text-slate-400');
+                
+                if (link.getAttribute('href').includes(current)) {
+                    // Add active classes
+                    link.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-900', 'dark:text-white', 'font-medium');
+                    // Remove inactive text color
+                    link.classList.remove('text-slate-600', 'dark:text-slate-400');
+                }
+            });
+        };
+
+        mainContent.addEventListener('scroll', updateActiveNav);
+
+        // Add Click handlers to prevent default anchor jump and use smooth scroll
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+                // Manually trigger update to ensure immediate feedback
+                setTimeout(updateActiveNav, 100); 
+            });
+        });
+    </script>
+</body>
+</html>

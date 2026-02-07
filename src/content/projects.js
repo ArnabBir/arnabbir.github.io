@@ -36,6 +36,34 @@ export default [
     kind: "lab",
   },
   {
+    name: "Orator — Web Narrator",
+    description:
+      "A privacy-first browser extension that narrates web pages with natural voices, click-to-seek, sentence highlighting, and speed control. Available on Chrome and Firefox.",
+    image: "/images/orator-screenshot.png",
+    tags: ["Chrome Extension", "Firefox Add-on", "Accessibility", "TTS"],
+    highlights: [
+      "Click any sentence to start narration from that exact point.",
+      "Multiple system voices with searchable picker and speed control.",
+      "Runs entirely on-device — no servers, no AI, no tracking.",
+    ],
+    links: [
+      {
+        label: "Chrome Web Store",
+        href: "https://chromewebstore.google.com/detail/orator-%E2%80%94-web-narrator/becblgoenaekioaddgjgenjldaniadao",
+      },
+      {
+        label: "Firefox Add-ons",
+        href: "https://addons.mozilla.org/en-US/firefox/addon/orator-web-narrator/",
+      },
+      {
+        label: "How it works",
+        href: "/projects/orator",
+      },
+    ],
+    featured: true,
+    kind: "featured",
+  },
+  {
     name: "HUIM-ACO",
     description: "High Utility Itemset Mining using Ant Colony Optimization.",
     tags: ["Algorithms", "Research"],
