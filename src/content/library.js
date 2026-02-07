@@ -51,7 +51,10 @@ export default [
         title: "MapReduce: Simplified Data Processing",
         contentPath: "/library/map_reduce.html",
       },
-      { title: "Bigtable: A Distributed Storage System" },
+      {
+        title: "Bigtable: A Distributed Storage System",
+        contentPath: "/library/bigtable.html",
+      },
       { title: "The Chubby Lock Service" },
       { title: "Spanner: Globally Distributed Database" },
       { title: "Borg: The Cluster Management System" },

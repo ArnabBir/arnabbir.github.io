@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import { Menu, Search } from "lucide-react";
 import { useTheme } from "next-themes";
 import Container from "@/components/layout/Container";
@@ -26,7 +27,7 @@ const SECTIONS = [
   { id: "contact", label: "Contact" },
 ];
 
-function NavLinks({ onNavigate, itemWrapper: ItemWrapper }) {
+function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor }) {
   return (
     <nav className="flex flex-col gap-1 md:flex-row md:gap-6">
       {SECTIONS.map((s) => (
@@ -34,7 +35,7 @@ function NavLinks({ onNavigate, itemWrapper: ItemWrapper }) {
           {ItemWrapper ? (
             <ItemWrapper>
               <a
-                href={`#${s.id}`}
+                href={hrefFor ? hrefFor(s.id) : `#${s.id}`}
                 onClick={onNavigate}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
@@ -43,7 +44,7 @@ function NavLinks({ onNavigate, itemWrapper: ItemWrapper }) {
             </ItemWrapper>
           ) : (
             <a
-              href={`#${s.id}`}
+              href={hrefFor ? hrefFor(s.id) : `#${s.id}`}
               onClick={onNavigate}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -58,7 +59,10 @@ function NavLinks({ onNavigate, itemWrapper: ItemWrapper }) {
 
 export default function SiteHeader({ onOpenCommand }) {
   const { theme } = useTheme();
+  const location = useLocation();
   const logoSrc = theme === "dark" ? "/images/logo-dark.png" : "/images/logo.png";
+  const isHome = location.pathname === "/";
+  const hrefFor = (id) => (isHome ? `#${id}` : `/#${id}`);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur">
@@ -75,7 +79,7 @@ export default function SiteHeader({ onOpenCommand }) {
         </div>
 
         <div className="hidden md:flex items-center gap-6">
-          <NavLinks />
+          <NavLinks hrefFor={hrefFor} />
         </div>
 
         <div className="flex items-center gap-1">
@@ -102,7 +106,7 @@ export default function SiteHeader({ onOpenCommand }) {
                   <SheetTitle>Navigate</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6">
-                  <NavLinks onNavigate={() => {}} itemWrapper={SheetClose} />
+                  <NavLinks onNavigate={() => {}} itemWrapper={SheetClose} hrefFor={hrefFor} />
                 </div>
                 <div className="mt-8 text-sm text-muted-foreground">
                   Tip: press <span className="font-semibold">Ctrl/⌘ K</span> for search.

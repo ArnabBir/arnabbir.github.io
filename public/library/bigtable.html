@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bigtable Internals | Arnab Bir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        // Theme initialization
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#161b22',
+                            900: '#0d1117',
+                            950: '#010409',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+        /* Syntax Highlighting */
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .com { color: #8b949e; font-style: italic; }
+        .type { color: #79c0ff; }
+        
+        /* Custom Animations */
+        @keyframes flow-dash {
+            to { stroke-dashoffset: 0; }
+        }
+        .animate-flow {
+            stroke-dasharray: 10;
+            stroke-dashoffset: 20;
+            animation: flow-dash 1s linear infinite;
+        }
+
+        .node-active { @apply ring-2 ring-indigo-500 shadow-indigo-500/20 scale-105; }
+        .component-box { @apply bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg p-3 text-center shadow-sm relative transition-all duration-300; }
+        .cache-hit { @apply ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/20; }
+        .cache-miss { @apply ring-2 ring-rose-500 bg-rose-50 dark:bg-rose-900/20; }
+        .bloom-skip { @apply opacity-50 grayscale; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors duration-300 antialiased font-sans selection:bg-indigo-500/30">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fas fa-database text-white text-xs"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">Arnab<span class="text-indigo-600 dark:text-indigo-400">Bir</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-400">
+                <a href="#location" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Hierarchy</a>
+                <a href="#datamodel" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Data Model</a>
+                <a href="#serving" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Read Path & Caches</a>
+                <a href="#refinements" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Refinements</a>
+            </div>
+
+            <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400">
+                <i class="fas fa-sun block dark:hidden"></i>
+                <i class="fas fa-moon hidden dark:block"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="pt-32 pb-20 px-6 text-center">
+        <div class="max-w-5xl mx-auto">
+            <div class="inline-block px-3 py-1 mb-4 text-xs font-bold tracking-wider text-indigo-700 dark:text-indigo-400 uppercase bg-indigo-100 dark:bg-indigo-900/30 rounded-full border border-indigo-200 dark:border-indigo-800">
+                Distributed Systems Series
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-500 dark:from-indigo-400 dark:to-cyan-400 tracking-tight">Bigtable</h1>
+            <p class="text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto">
+                A sparse, distributed, persistent multi-dimensional sorted map. Mastering <span class="font-bold text-slate-900 dark:text-slate-100">SSTables</span>, <span class="font-bold text-slate-900 dark:text-slate-100">Memtables</span>, and the <span class="font-bold text-slate-900 dark:text-slate-100">LSM Read Path</span>.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 space-y-32 pb-32">
+        
+        <!-- Interactive Hierarchy Visualizer -->
+        <section id="location" class="scroll-mt-24">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">Tablet Location Hierarchy</h2>
+                    <p class="text-slate-600 dark:text-slate-400 max-w-xl">
+                        Bigtable uses a <strong class="text-indigo-600 dark:text-indigo-400">B+ Tree-like</strong> structure to locate tablets. Clients cache locations to avoid bottlenecks.
+                    </p>
+                </div>
+                <div class="flex gap-2 mt-4 md:mt-0">
+                    <button id="btn-next" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition-colors shadow-lg shadow-indigo-500/30 flex items-center gap-2 border border-indigo-500">
+                        Next Step <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button id="btn-reset" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-lg text-sm font-bold transition-colors border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl p-8 min-h-[500px] relative overflow-hidden shadow-sm transition-all duration-300">
+                
+                <div class="grid grid-cols-12 grid-rows-6 gap-4 h-[400px] relative z-10">
+                    
+                    <!-- SVG Topology -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg" style="fill: none;">
+                        <defs>
+                            <marker id="arrow-indigo" orient="auto" markerWidth="4" markerHeight="4" refX="2" refY="2">
+                                <path d="M0,0 V4 L4,2 Z" class="fill-indigo-500/50" />
+                            </marker>
+                        </defs>
+                        
+                        <!-- Client -> Chubby -->
+                        <path id="path-1" d="M150,200 Q250,50 350,80" class="stroke-slate-200 dark:stroke-slate-700 stroke-2" fill="none" />
+                        <!-- Client -> Root -->
+                        <path id="path-2" d="M150,200 Q300,150 550,80" class="stroke-slate-200 dark:stroke-slate-700 stroke-2" fill="none" />
+                        <!-- Client -> Meta -->
+                        <path id="path-3" d="M150,200 Q400,250 750,200" class="stroke-slate-200 dark:stroke-slate-700 stroke-2" fill="none" />
+                        <!-- Client -> User -->
+                        <path id="path-4" d="M150,200 Q500,400 950,300" class="stroke-slate-200 dark:stroke-slate-700 stroke-2" fill="none" />
+                    </svg>
+
+                    <!-- Client -->
+                    <div id="node-client" class="col-start-1 col-span-2 row-start-3 flex flex-col items-center justify-center p-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-850 shadow-lg relative transition-all">
+                        <i class="fas fa-laptop text-slate-500 mb-2 text-2xl"></i>
+                        <span class="text-xs font-bold">Client</span>
+                        <div class="absolute -top-12 bg-slate-800 text-white text-[10px] p-2 rounded hidden" id="client-cache">
+                            Cache: <span class="text-indigo-400">Empty</span>
+                        </div>
+                    </div>
+
+                    <!-- Level 1: Chubby -->
+                    <div id="node-chubby" class="col-start-4 col-span-2 row-start-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 border-indigo-500 bg-white dark:bg-slate-850 shadow-lg relative transition-all">
+                        <i class="fas fa-cloud text-indigo-500 mb-1 text-xl"></i>
+                        <span class="text-xs font-bold">Chubby</span>
+                        <span class="text-[9px] text-slate-400">Locates Root</span>
+                    </div>
+
+                    <!-- Level 2: Root Tablet -->
+                    <div id="node-root" class="col-start-6 col-span-2 row-start-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 border-cyan-500 bg-white dark:bg-slate-850 shadow-lg relative transition-all translate-y-8">
+                        <i class="fas fa-table text-cyan-500 mb-1 text-xl"></i>
+                        <span class="text-xs font-bold">Root Tablet</span>
+                        <span class="text-[9px] text-slate-400">1st META tablet</span>
+                    </div>
+
+                    <!-- Level 3: Metadata -->
+                    <div id="node-meta" class="col-start-8 col-span-2 row-start-3 flex flex-col items-center justify-center p-3 rounded-xl border-2 border-cyan-600 bg-white dark:bg-slate-850 shadow-lg relative transition-all">
+                        <i class="fas fa-list-alt text-cyan-600 mb-1 text-xl"></i>
+                        <span class="text-xs font-bold">METADATA</span>
+                        <span class="text-[9px] text-slate-400">User Table Locs</span>
+                    </div>
+
+                    <!-- User Tables -->
+                    <div id="node-user" class="col-start-10 col-span-2 row-start-4 flex flex-col items-center justify-center p-4 rounded-xl border-2 border-slate-400 dark:border-slate-500 bg-white dark:bg-slate-850 shadow-lg relative transition-all">
+                        <i class="fas fa-users text-slate-500 mb-2 text-2xl"></i>
+                        <span class="text-xs font-bold">User Tablet</span>
+                        <span class="text-[9px] text-slate-400">Actual Data</span>
+                    </div>
+
+                    <!-- Dynamic Packet -->
+                    <div id="packet" class="absolute w-4 h-4 bg-indigo-500 rounded-full shadow-lg z-50 hidden border-2 border-white dark:border-slate-900"></div>
+
+                </div>
+
+                <!-- Explanation Panel -->
+                <div class="absolute bottom-0 left-0 w-full bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md p-6 border-t border-slate-200 dark:border-slate-800 transition-transform duration-500 z-30">
+                    <div class="flex items-start gap-4">
+                        <div id="step-number" class="w-8 h-8 rounded-full bg-slate-800 dark:bg-slate-700 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-inner">0</div>
+                        <div>
+                            <h4 id="step-title" class="font-bold text-lg mb-1 text-slate-900 dark:text-white">Cold Start</h4>
+                            <p id="step-desc" class="text-slate-600 dark:text-slate-400 text-sm font-mono leading-relaxed">
+                                The client wants to read data from 'UserTable'. Its cache is empty. It must walk the hierarchy.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Model -->
+        <section id="datamodel" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
+                <span class="text-indigo-600 dark:text-indigo-400">01.</span> The Data Model
+            </h2>
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6 text-lg leading-relaxed">
+                        A Bigtable is a sparse, distributed, persistent multi-dimensional sorted map. The map is indexed by a row key, column key, and a timestamp.
+                    </p>
+                    <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 font-mono text-sm text-indigo-300 mb-6">
+                        (row:string, column:string, time:int64) → string
+                    </div>
+                    <ul class="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check mt-1 text-indigo-500"></i>
+                            <span><strong>Atomic Rows:</strong> Reads/writes under a single row key are atomic.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check mt-1 text-indigo-500"></i>
+                            <span><strong>Column Families:</strong> Basic unit of access control. <code>family:qualifier</code> syntax.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check mt-1 text-indigo-500"></i>
+                            <span><strong>Timestamps:</strong> Bigtable stores multiple versions of data, indexed by time (decreasing order).</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Model Visualization -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm overflow-x-auto">
+                    <div class="min-w-[400px]">
+                        <!-- Row Header -->
+                        <div class="flex border-b border-slate-200 dark:border-slate-700 pb-2 mb-2">
+                            <div class="w-1/3 font-bold text-xs uppercase tracking-wider text-slate-500">Row Key</div>
+                            <div class="w-2/3 font-bold text-xs uppercase tracking-wider text-slate-500 pl-4">Column Families</div>
+                        </div>
+                        
+                        <!-- Row 1 -->
+                        <div class="flex items-start py-4 border-b border-slate-100 dark:border-slate-800">
+                            <div class="w-1/3 font-mono text-xs text-indigo-600 dark:text-indigo-400">com.cnn.www</div>
+                            <div class="w-2/3 pl-4 space-y-4">
+                                <!-- Col Fam: Contents -->
+                                <div class="relative pl-4 border-l-2 border-cyan-500">
+                                    <div class="text-xs font-bold text-cyan-600 mb-1">contents:</div>
+                                    <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded text-[10px] font-mono mb-1 flex justify-between">
+                                        <span>"&lt;html&gt;..."</span>
+                                        <span class="text-slate-400">t6</span>
+                                    </div>
+                                    <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded text-[10px] font-mono opacity-60 flex justify-between">
+                                        <span>"&lt;html&gt;..."</span>
+                                        <span class="text-slate-400">t5</span>
+                                    </div>
+                                </div>
+                                <!-- Col Fam: Anchor -->
+                                <div class="relative pl-4 border-l-2 border-indigo-500">
+                                    <div class="text-xs font-bold text-indigo-600 mb-1">anchor:</div>
+                                    <div class="flex gap-2">
+                                        <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded text-[10px] font-mono">
+                                            <div class="text-slate-400 mb-1">cnnsi.com</div>
+                                            "CNN" <span class="text-slate-400 ml-1">t9</span>
+                                        </div>
+                                        <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded text-[10px] font-mono">
+                                            <div class="text-slate-400 mb-1">my.look.ca</div>
+                                            "CNN.com" <span class="text-slate-400 ml-1">t8</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tablet Serving & LSM Engine (Read Path) -->
+        <section id="serving" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
+                <span class="text-indigo-600 dark:text-indigo-400">02.</span> LSM Engine & Read Path
+            </h2>
+            
+            <div class="grid lg:grid-cols-2 gap-12 mb-12">
+                <!-- Detailed Technical Description -->
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-slate-100">Memtable Structure</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            The <strong>Memtable</strong> is an in-memory sorted buffer (essentially a mutable sorted map, often a SkipList). 
+                            It serves as the write buffer. To support concurrent reads and writes without blocking, Bigtable uses a 
+                            <strong>Copy-on-Write</strong> mechanism for row rows. When the memtable fills up, it is frozen and converted into an 
+                            immutable <strong>SSTable</strong> (Sorted String Table) file on GFS.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-slate-100">Two-Level Caching</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                <h4 class="font-bold text-xs uppercase text-emerald-600 mb-1">Scan Cache</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">High-level cache storing Key-Value pairs returned by the SSTable interface. Great for repeated reads of same data.</p>
+                            </div>
+                            <div class="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                                <h4 class="font-bold text-xs uppercase text-indigo-600 mb-1">Block Cache</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Low-level cache storing raw 64KB SSTable blocks fetched from GFS. Great for spatial locality (sequential reads).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-slate-100">The Merged View</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Since data is split across the Memtable and multiple SSTables, a read operation must execute on a <strong>merged view</strong> of all these sources. 
+                            It uses a heap to merge iterators from the Memtable and SSTables, ensuring the most recent version (highest timestamp) of a key is returned.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- SSTable Structure Visual -->
+                <div class="bg-slate-100 dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4 text-center">SSTable File Structure (GFS)</h3>
+                    <div class="flex flex-col gap-1 w-2/3 mx-auto">
+                        <div class="h-12 bg-slate-200 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded flex items-center justify-center text-xs font-mono text-slate-500">64KB Data Block</div>
+                        <div class="h-12 bg-slate-200 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded flex items-center justify-center text-xs font-mono text-slate-500">64KB Data Block</div>
+                        <div class="h-8 flex items-center justify-center text-slate-400 text-xs">...</div>
+                        <div class="h-12 bg-slate-200 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded flex items-center justify-center text-xs font-mono text-slate-500">64KB Data Block</div>
+                        <div class="h-10 bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-400 rounded flex items-center justify-center text-xs font-bold text-indigo-600">Block Index</div>
+                    </div>
+                    <p class="text-xs text-center mt-4 text-slate-500">Index loaded into RAM on open. 1 Disk seek per lookup.</p>
+                </div>
+            </div>
+
+            <!-- Read Path Simulator -->
+            <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl p-8 relative overflow-hidden shadow-sm">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-xl font-bold">Interactive Read Path Simulator</h3>
+                    <button id="btn-sim-read" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition-colors shadow-lg shadow-indigo-500/30 flex items-center gap-2 border border-indigo-500">
+                        Simulate Read Request <i class="fas fa-play"></i>
+                    </button>
+                </div>
+
+                <div class="relative h-[300px] flex items-center justify-between px-8 z-10" id="read-sim-container">
+                    
+                    <!-- SVG Connectors -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" style="fill: none;">
+                        <path d="M100,150 L250,150" class="stroke-slate-300 dark:stroke-slate-700 stroke-2" /> <!-- Request -> Memtable -->
+                        <path d="M350,150 L450,80" class="stroke-slate-300 dark:stroke-slate-700 stroke-2" /> <!-- Memtable -> Cache -->
+                        <path d="M350,150 L450,220" class="stroke-slate-300 dark:stroke-slate-700 stroke-2" /> <!-- Memtable -> SSTables -->
+                        
+                        <path d="M550,80 L650,80" class="stroke-slate-300 dark:stroke-slate-700 stroke-2" /> <!-- Scan -> Block -->
+                        <path d="M550,220 L650,220" class="stroke-slate-300 dark:stroke-slate-700 stroke-2" /> <!-- Bloom -> GFS -->
+                    </svg>
+
+                    <!-- Nodes -->
+                    <div id="comp-request" class="component-box w-24 border-dashed">
+                        <span class="text-xs font-bold block">Request</span>
+                        <i class="fas fa-search text-slate-400 mt-1"></i>
+                    </div>
+
+                    <div id="comp-memtable" class="component-box w-32 border-indigo-500">
+                        <span class="text-xs font-bold block text-indigo-600 dark:text-indigo-400">Memtable</span>
+                        <span class="text-[9px] text-slate-400">RAM (Sorted)</span>
+                    </div>
+
+                    <!-- Cache Branch -->
+                    <div class="flex flex-col gap-8">
+                        <div id="comp-scancache" class="component-box w-32 border-emerald-500">
+                            <span class="text-xs font-bold block text-emerald-600 dark:text-emerald-400">Scan Cache</span>
+                            <span class="text-[9px] text-slate-400">Key-Value</span>
+                        </div>
+                        
+                        <div id="comp-bloom" class="component-box w-32 border-amber-500">
+                            <span class="text-xs font-bold block text-amber-600 dark:text-amber-400">Bloom Filter</span>
+                            <span class="text-[9px] text-slate-400">May Contain?</span>
+                        </div>
+                    </div>
+
+                    <!-- Storage Branch -->
+                    <div class="flex flex-col gap-8">
+                        <div id="comp-blockcache" class="component-box w-32 border-cyan-500">
+                            <span class="text-xs font-bold block text-cyan-600 dark:text-cyan-400">Block Cache</span>
+                            <span class="text-[9px] text-slate-400">64KB Blocks</span>
+                        </div>
+
+                        <div id="comp-sstable" class="component-box w-32 border-slate-500 bg-slate-100 dark:bg-slate-800">
+                            <span class="text-xs font-bold block text-slate-600 dark:text-slate-400">SSTable (GFS)</span>
+                            <span class="text-[9px] text-slate-400">Disk Read</span>
+                        </div>
+                    </div>
+
+                    <!-- Moving Packet -->
+                    <div id="read-packet" class="absolute w-4 h-4 bg-indigo-500 rounded-full shadow-lg z-50 hidden border-2 border-white dark:border-slate-900"></div>
+                </div>
+                
+                <div id="sim-status" class="mt-4 text-center text-sm font-mono text-slate-500 min-h-[20px]">Ready to simulate.</div>
+            </div>
+        </section>
+
+        <!-- Refinements -->
+        <section id="refinements" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
+                <span class="text-indigo-600 dark:text-indigo-400">03.</span> Refinements
+            </h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Locality Groups -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-colors group">
+                    <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3 class="font-bold mb-2">Locality Groups</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">
+                        Clients can group column families. A separate SSTable is generated for each group. Enables reading metadata without reading page contents.
+                    </p>
+                </div>
+
+                <!-- Bloom Filters -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-colors group">
+                    <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <h3 class="font-bold mb-2">Bloom Filters</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">
+                        Drastically reduces disk accesses. Allows server to ask if an SSTable <em>might</em> contain data for a row/column before reading.
+                    </p>
+                </div>
+
+                <!-- Compression -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 transition-colors group">
+                    <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-compress-alt"></i>
+                    </div>
+                    <h3 class="font-bold mb-2">Compression</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">
+                        Applied to each SSTable block. Bentley-McIlroy algorithm compresses common strings across a large window (great for web pages from same host).
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white dark:bg-slate-950 py-20 px-6 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="text-center md:text-left">
+                <p class="font-bold text-xl mb-2 text-slate-900 dark:text-white">Arnab Bir</p>
+                <p class="text-slate-500 text-sm">Exploring the depths of distributed engineering.</p>
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"><i class="fab fa-github text-xl"></i></a>
+                <a href="#" class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
+                <a href="#" class="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"><i class="fas fa-envelope text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- THEME ---
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // --- HIERARCHY VISUALIZER LOGIC ---
+        const hierarchySteps = [
+            {
+                title: "1. Chubby Lookup",
+                desc: "Client asks Chubby for the location of the <strong>Root Tablet</strong>. This is the bootstrap step.",
+                action: (viz) => {
+                    viz.highlight('node-chubby');
+                    viz.animatePath('path-1');
+                }
+            },
+            {
+                title: "2. Root Tablet",
+                desc: "Client reads the Root Tablet (1st METADATA tablet) to find the METADATA tablet responsible for the target row key.",
+                action: (viz) => {
+                    viz.highlight('node-root');
+                    viz.animatePath('path-2');
+                }
+            },
+            {
+                title: "3. Metadata Tablet",
+                desc: "Client reads the specific METADATA tablet. This maps the User Row Key to a specific User Tablet Server.",
+                action: (viz) => {
+                    viz.highlight('node-meta');
+                    viz.animatePath('path-3');
+                }
+            },
+            {
+                title: "4. User Tablet",
+                desc: "Client communicates directly with the User Tablet Server to read/write data. Location is cached.",
+                action: (viz) => {
+                    viz.highlight('node-user');
+                    viz.animatePath('path-4');
+                    document.getElementById('client-cache').classList.remove('hidden');
+                    document.getElementById('client-cache').innerHTML = 'Cache: <span class="text-emerald-400">UserTable @ 10.0.0.5</span>';
+                }
+            }
+        ];
+
+        class HierarchyVisualizer {
+            constructor() {
+                this.stepIndex = -1;
+                this.btnNext = document.getElementById('btn-next');
+                this.btnReset = document.getElementById('btn-reset');
+                this.packet = document.getElementById('packet');
+                
+                this.btnNext.addEventListener('click', () => this.next());
+                this.btnReset.addEventListener('click', () => this.reset());
+            }
+
+            reset() {
+                this.stepIndex = -1;
+                this.updateText("Cold Start", "The client wants to read data from 'UserTable'. Its cache is empty. It must walk the hierarchy.");
+                document.querySelectorAll('.node-active').forEach(el => el.classList.remove('node-active'));
+                document.querySelectorAll('.animate-flow').forEach(el => el.classList.remove('animate-flow'));
+                document.getElementById('client-cache').classList.add('hidden');
+                document.getElementById('step-number').innerText = '0';
+            }
+
+            next() {
+                this.stepIndex++;
+                if (this.stepIndex >= hierarchySteps.length) {
+                    this.reset();
+                    return;
+                }
+                document.querySelectorAll('.node-active').forEach(el => el.classList.remove('node-active'));
+                document.querySelectorAll('.animate-flow').forEach(el => el.classList.remove('animate-flow'));
+                const step = hierarchySteps[this.stepIndex];
+                this.updateText(step.title, step.desc, this.stepIndex + 1);
+                step.action(this);
+            }
+
+            updateText(title, desc, num = 0) {
+                document.getElementById('step-title').innerHTML = title;
+                document.getElementById('step-desc').innerHTML = desc;
+                document.getElementById('step-number').innerText = num;
+            }
+
+            highlight(id) { document.getElementById(id).classList.add('node-active'); }
+            animatePath(id) {
+                const path = document.getElementById(id);
+                path.classList.add('animate-flow');
+                path.style.stroke = "#6366f1"; 
+            }
+        }
+
+        new HierarchyVisualizer();
+
+        // --- READ PATH SIMULATOR LOGIC ---
+        class ReadPathVisualizer {
+            constructor() {
+                this.btnSim = document.getElementById('btn-sim-read');
+                this.packet = document.getElementById('read-packet');
+                this.status = document.getElementById('sim-status');
+                this.isAnimating = false;
+                
+                this.btnSim.addEventListener('click', () => this.simulate());
+            }
+
+            getPos(id) {
+                const el = document.getElementById(id);
+                const rect = el.getBoundingClientRect();
+                const parent = document.getElementById('read-sim-container').getBoundingClientRect();
+                return {
+                    x: rect.left - parent.left + rect.width / 2,
+                    y: rect.top - parent.top + rect.height / 2
+                };
+            }
+
+            async move(toId, duration = 800) {
+                const end = this.getPos(toId);
+                this.packet.style.transition = `all ${duration}ms ease-in-out`;
+                this.packet.style.left = `${end.x - 8}px`;
+                this.packet.style.top = `${end.y - 8}px`;
+                await new Promise(r => setTimeout(r, duration));
+            }
+
+            async flash(id, type) {
+                const el = document.getElementById(id);
+                el.classList.add(type);
+                await new Promise(r => setTimeout(r, 600));
+                el.classList.remove(type);
+            }
+
+            async simulate() {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+                
+                // Reset
+                this.packet.classList.remove('hidden');
+                const start = this.getPos('comp-request');
+                this.packet.style.left = `${start.x - 8}px`;
+                this.packet.style.top = `${start.y - 8}px`;
+                this.status.textContent = "New Read Request arriving...";
+
+                // Step 1: Check Memtable
+                await this.move('comp-memtable');
+                this.status.textContent = "Checking Memtable (RAM)...";
+                await this.flash('comp-memtable', 'cache-miss');
+                this.status.textContent = "Not in Memtable.";
+
+                // Step 2: Check Scan Cache
+                await this.move('comp-scancache');
+                this.status.textContent = "Checking Scan Cache (Key-Value)...";
+                await this.flash('comp-scancache', 'cache-miss');
+                this.status.textContent = "Scan Cache Miss.";
+
+                // Step 3: Check Bloom Filter
+                await this.move('comp-bloom');
+                this.status.textContent = "Checking Bloom Filters (RAM)...";
+                await this.flash('comp-bloom', 'cache-hit'); // Simulation: Bloom says "Maybe"
+                this.status.textContent = "Bloom says: Maybe in SSTable.";
+
+                // Step 4: Check Block Cache
+                await this.move('comp-blockcache');
+                this.status.textContent = "Checking Block Cache (64KB Blocks)...";
+                await this.flash('comp-blockcache', 'cache-miss');
+                this.status.textContent = "Block Cache Miss. Need GFS.";
+
+                // Step 5: Read SSTable
+                await this.move('comp-sstable');
+                this.status.textContent = "Reading SSTable from GFS (Disk)...";
+                await this.flash('comp-sstable', 'cache-hit');
+                this.status.textContent = "Found data! Merging and returning.";
+
+                // Cleanup
+                this.packet.classList.add('hidden');
+                this.isAnimating = false;
+                setTimeout(() => this.status.textContent = "Ready to simulate.", 2000);
+            }
+        }
+
+        new ReadPathVisualizer();
+
+    </script>
+</body>
+</html>
