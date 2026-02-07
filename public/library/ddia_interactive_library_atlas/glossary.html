@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Glossary</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#chapters">Chapters</a>
+        <a href="glossary.html">Glossary</a>
+        <a href="index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-card">
+        <div class="pill"><span class="dot"></span> Searchable reference</div>
+        <h2 class="title">Glossary</h2>
+        <p class="subtitle">
+          A compact, engineering‑style glossary of the most important DDIA concepts.
+          Each entry is written as an operational definition (what it means in production),
+          with links to the chapter where it is explored.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="index.html#chapters">Back to chapters</a>
+          <a class="button" href="#terms">Jump to terms</a>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3 style="margin:0 0 10px; font-size:18px; letter-spacing:-.2px;">How to use</h3>
+        <div class="panel">
+          <h4>When reading</h4>
+          <p>
+            If a term feels fuzzy, search it here and then open the linked chapter.
+            Re-read the chapter section while looking for: invariants, failure modes, and boundaries.
+          </p>
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <h4>When designing</h4>
+          <p>
+            Use the glossary as a checklist of “questions to ask”:
+            what is your replication contract? which anomalies are acceptable? what is your watermark policy?
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="terms" class="section">
+    <h2>Terms</h2>
+    <p>Search by name or idea (e.g., “write skew”, “quorum”, “watermark”).</p>
+
+    <div style="margin-top:12px;" class="searchbar">
+      <span style="opacity:.8">🔎</span>
+      <input id="glossarySearch" type="text" placeholder="Search glossary…"/>
+      <span class="kbd">type</span>
+    </div>
+
+    <div id="glossaryEmpty" class="callout" style="display:none; margin-top:14px;">
+      <strong>No matches</strong>
+      <p>Try “linearizability”, “compaction”, “idempotency”, or “2PC”.</p>
+    </div>
+
+    <div class="card-grid" style="margin-top:14px;">
+      
+    <div class="card" data-term="Availability (SLO)" data-search="availability (slo) fraction of requests that are served successfully within the defined correctness + latency contract. often expressed as 'nines'. must be paired with a measurement window and clear error definition. reliability sre">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>reliability, sre</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Availability (SLO)</h3>
+      <p style="margin-bottom:10px;">Fraction of requests that are served successfully within the defined correctness + latency contract. Often expressed as 'nines'. Must be paired with a measurement window and clear error definition.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/01-reliable-scalable-maintainable.html" class="pill" style="text-decoration:none;">Ch 1</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Error budget" data-search="error budget the allowable amount of unreliability implied by an availability slo (e.g., 99.9% over 30 days ⇒ ~43.2 minutes of 'bad' time). used to balance feature velocity and stability. reliability sre">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>reliability, sre</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Error budget</h3>
+      <p style="margin-bottom:10px;">The allowable amount of unreliability implied by an availability SLO (e.g., 99.9% over 30 days ⇒ ~43.2 minutes of 'bad' time). Used to balance feature velocity and stability.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/01-reliable-scalable-maintainable.html" class="pill" style="text-decoration:none;">Ch 1</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Tail latency (p99/p999)" data-search="tail latency (p99/p999) high-percentile latency that dominates user experience in composed systems. tail latency is amplified by queues, retries, and fanout. performance">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>performance</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Tail latency (p99/p999)</h3>
+      <p style="margin-bottom:10px;">High-percentile latency that dominates user experience in composed systems. Tail latency is amplified by queues, retries, and fanout.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/01-reliable-scalable-maintainable.html" class="pill" style="text-decoration:none;">Ch 1</a> <a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a> <a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Load parameter" data-search="load parameter a measurable dimension of workload that predicts resource usage: qps, write ratio, fanout, distinct keys, skew, payload size, working set. scalability">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>scalability</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Load parameter</h3>
+      <p style="margin-bottom:10px;">A measurable dimension of workload that predicts resource usage: QPS, write ratio, fanout, distinct keys, skew, payload size, working set.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/01-reliable-scalable-maintainable.html" class="pill" style="text-decoration:none;">Ch 1</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Idempotency key" data-search="idempotency key client-supplied unique token that allows a server to safely deduplicate retries for non-idempotent operations (e.g., charging a card). correctness">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>correctness</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Idempotency key</h3>
+      <p style="margin-bottom:10px;">Client-supplied unique token that allows a server to safely deduplicate retries for non-idempotent operations (e.g., charging a card).</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/01-reliable-scalable-maintainable.html" class="pill" style="text-decoration:none;">Ch 1</a> <a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a> <a href="chapters/11-stream-processing.html" class="pill" style="text-decoration:none;">Ch 11</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="WAL (Write-Ahead Log)" data-search="wal (write-ahead log) append-only log of intended changes written before in-place structures are updated. enables crash recovery by replaying committed intents. storage">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage</span>
+      </div>
+      <h3 style="margin-bottom:8px;">WAL (Write-Ahead Log)</h3>
+      <p style="margin-bottom:10px;">Append-only log of intended changes written before in-place structures are updated. Enables crash recovery by replaying committed intents.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="B-tree" data-search="b-tree balanced tree over sorted keys stored in fixed-size pages. supports fast point lookups and range scans with predictable io depth. storage">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage</span>
+      </div>
+      <h3 style="margin-bottom:8px;">B-tree</h3>
+      <p style="margin-bottom:10px;">Balanced tree over sorted keys stored in fixed-size pages. Supports fast point lookups and range scans with predictable IO depth.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="LSM-tree" data-search="lsm-tree log-structured merge tree: writes buffered in memory and flushed as immutable sorted tables; background compaction maintains read performance. storage">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage</span>
+      </div>
+      <h3 style="margin-bottom:8px;">LSM-tree</h3>
+      <p style="margin-bottom:10px;">Log-Structured Merge tree: writes buffered in memory and flushed as immutable sorted tables; background compaction maintains read performance.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="SSTable" data-search="sstable immutable, sorted string table on disk used by lsm engines. supports efficient range reads and compaction merging. storage">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage</span>
+      </div>
+      <h3 style="margin-bottom:8px;">SSTable</h3>
+      <p style="margin-bottom:10px;">Immutable, sorted string table on disk used by LSM engines. Supports efficient range reads and compaction merging.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Compaction" data-search="compaction background process that merges and rewrites lsm tables to reduce read amplification and reclaim space from tombstones/old versions. storage">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Compaction</h3>
+      <p style="margin-bottom:10px;">Background process that merges and rewrites LSM tables to reduce read amplification and reclaim space from tombstones/old versions.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Write amplification" data-search="write amplification ratio of physical bytes written to logical bytes written. increased by compaction, replication, indexes, and gc. storage performance">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage, performance</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Write amplification</h3>
+      <p style="margin-bottom:10px;">Ratio of physical bytes written to logical bytes written. Increased by compaction, replication, indexes, and GC.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Read amplification" data-search="read amplification extra disk reads required to satisfy a query due to fragmented data, multiple levels/files, or missing locality. storage performance">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage, performance</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Read amplification</h3>
+      <p style="margin-bottom:10px;">Extra disk reads required to satisfy a query due to fragmented data, multiple levels/files, or missing locality.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Bloom filter" data-search="bloom filter probabilistic data structure that quickly tests 'definitely not present' vs 'maybe present' to avoid unnecessary disk reads. storage">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>storage</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Bloom filter</h3>
+      <p style="margin-bottom:10px;">Probabilistic data structure that quickly tests 'definitely not present' vs 'maybe present' to avoid unnecessary disk reads.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/03-storage-and-retrieval.html" class="pill" style="text-decoration:none;">Ch 3</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Backward compatibility" data-search="backward compatibility new code can read old data/messages. commonly achieved by additive schema changes with defaults. evolution">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>evolution</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Backward compatibility</h3>
+      <p style="margin-bottom:10px;">New code can read old data/messages. Commonly achieved by additive schema changes with defaults.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/04-encoding-and-evolution.html" class="pill" style="text-decoration:none;">Ch 4</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Forward compatibility" data-search="forward compatibility old code can tolerate new data/messages (unknown fields). requires encoding rules that preserve unknown fields or safe ignore semantics. evolution">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>evolution</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Forward compatibility</h3>
+      <p style="margin-bottom:10px;">Old code can tolerate new data/messages (unknown fields). Requires encoding rules that preserve unknown fields or safe ignore semantics.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/04-encoding-and-evolution.html" class="pill" style="text-decoration:none;">Ch 4</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Schema registry" data-search="schema registry central system/process that stores schemas and enforces compatibility checks across producers/consumers. evolution">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>evolution</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Schema registry</h3>
+      <p style="margin-bottom:10px;">Central system/process that stores schemas and enforces compatibility checks across producers/consumers.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/04-encoding-and-evolution.html" class="pill" style="text-decoration:none;">Ch 4</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Replication lag" data-search="replication lag delay between a write being acknowledged at one replica and becoming visible on another. drives staleness of follower reads. replication">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>replication</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Replication lag</h3>
+      <p style="margin-bottom:10px;">Delay between a write being acknowledged at one replica and becoming visible on another. Drives staleness of follower reads.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Leader / follower replication" data-search="leader / follower replication single leader defines write order; followers replicate the leader’s log. simplifies conflict resolution at cost of leader bottleneck/failover complexity. replication">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>replication</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Leader / follower replication</h3>
+      <p style="margin-bottom:10px;">Single leader defines write order; followers replicate the leader’s log. Simplifies conflict resolution at cost of leader bottleneck/failover complexity.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Multi-leader replication" data-search="multi-leader replication multiple leaders accept writes and replicate between regions. improves locality but requires conflict detection/resolution. replication">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>replication</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Multi-leader replication</h3>
+      <p style="margin-bottom:10px;">Multiple leaders accept writes and replicate between regions. Improves locality but requires conflict detection/resolution.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Conflict resolution" data-search="conflict resolution rule for reconciling divergent concurrent updates: lww, merge functions, crdts, or application-level reconciliation. replication">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>replication</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Conflict resolution</h3>
+      <p style="margin-bottom:10px;">Rule for reconciling divergent concurrent updates: LWW, merge functions, CRDTs, or application-level reconciliation.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Quorum read/write" data-search="quorum read/write technique where clients read/write from multiple replicas such that read and write sets intersect. improves availability but does not guarantee linearizability by itself. replication consistency">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>replication, consistency</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Quorum read/write</h3>
+      <p style="margin-bottom:10px;">Technique where clients read/write from multiple replicas such that read and write sets intersect. Improves availability but does not guarantee linearizability by itself.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a> <a href="chapters/09-consistency-and-consensus.html" class="pill" style="text-decoration:none;">Ch 9</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Anti-entropy" data-search="anti-entropy background process to reconcile replicas (e.g., merkle trees, gossip). repairs divergence independent of client reads. replication">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>replication</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Anti-entropy</h3>
+      <p style="margin-bottom:10px;">Background process to reconcile replicas (e.g., Merkle trees, gossip). Repairs divergence independent of client reads.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Partition key" data-search="partition key key used to route data to a shard. must align with dominant query patterns and avoid hotspots. partitioning">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>partitioning</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Partition key</h3>
+      <p style="margin-bottom:10px;">Key used to route data to a shard. Must align with dominant query patterns and avoid hotspots.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/06-partitioning.html" class="pill" style="text-decoration:none;">Ch 6</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Consistent hashing" data-search="consistent hashing mapping of keys and nodes onto a ring to minimize key movement when nodes join/leave. helps churn, not hotspots. partitioning">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>partitioning</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Consistent hashing</h3>
+      <p style="margin-bottom:10px;">Mapping of keys and nodes onto a ring to minimize key movement when nodes join/leave. Helps churn, not hotspots.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/06-partitioning.html" class="pill" style="text-decoration:none;">Ch 6</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Scatter/gather query" data-search="scatter/gather query query that touches many shards and must merge results. latency tends toward the slowest shard (tail amplification). partitioning performance">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>partitioning, performance</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Scatter/gather query</h3>
+      <p style="margin-bottom:10px;">Query that touches many shards and must merge results. Latency tends toward the slowest shard (tail amplification).</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/06-partitioning.html" class="pill" style="text-decoration:none;">Ch 6</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Hotspot / skew" data-search="hotspot / skew non-uniform access where a small subset of keys dominates traffic. causes shard overload and poor scaling. partitioning performance">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>partitioning, performance</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Hotspot / skew</h3>
+      <p style="margin-bottom:10px;">Non-uniform access where a small subset of keys dominates traffic. Causes shard overload and poor scaling.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/06-partitioning.html" class="pill" style="text-decoration:none;">Ch 6</a> <a href="chapters/10-batch-processing.html" class="pill" style="text-decoration:none;">Ch 10</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="MVCC" data-search="mvcc multi-version concurrency control: keeps multiple versions of data to allow snapshot reads without blocking writers. transactions">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>transactions</span>
+      </div>
+      <h3 style="margin-bottom:8px;">MVCC</h3>
+      <p style="margin-bottom:10px;">Multi-Version Concurrency Control: keeps multiple versions of data to allow snapshot reads without blocking writers.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/07-transactions.html" class="pill" style="text-decoration:none;">Ch 7</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Snapshot isolation" data-search="snapshot isolation transactions read from a consistent snapshot and write without blocking readers. prevents many anomalies but allows write skew. transactions">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>transactions</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Snapshot isolation</h3>
+      <p style="margin-bottom:10px;">Transactions read from a consistent snapshot and write without blocking readers. Prevents many anomalies but allows write skew.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/07-transactions.html" class="pill" style="text-decoration:none;">Ch 7</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Write skew" data-search="write skew anomaly where two transactions read the same snapshot and make disjoint writes that violate a cross-row invariant. transactions">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>transactions</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Write skew</h3>
+      <p style="margin-bottom:10px;">Anomaly where two transactions read the same snapshot and make disjoint writes that violate a cross-row invariant.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/07-transactions.html" class="pill" style="text-decoration:none;">Ch 7</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Serializable isolation" data-search="serializable isolation strongest isolation where outcome matches some serial order. implemented via locks, ssi, or deterministic ordering. transactions">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>transactions</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Serializable isolation</h3>
+      <p style="margin-bottom:10px;">Strongest isolation where outcome matches some serial order. Implemented via locks, SSI, or deterministic ordering.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/07-transactions.html" class="pill" style="text-decoration:none;">Ch 7</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="2PC (Two-Phase Commit)" data-search="2pc (two-phase commit) distributed transaction protocol: prepare phase then commit/abort. can block on failures; adds coordination overhead. transactions">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>transactions</span>
+      </div>
+      <h3 style="margin-bottom:8px;">2PC (Two-Phase Commit)</h3>
+      <p style="margin-bottom:10px;">Distributed transaction protocol: prepare phase then commit/abort. Can block on failures; adds coordination overhead.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/07-transactions.html" class="pill" style="text-decoration:none;">Ch 7</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Saga" data-search="saga distributed workflow pattern that breaks a transaction into steps with compensating actions. higher availability, more complex correctness. transactions">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>transactions</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Saga</h3>
+      <p style="margin-bottom:10px;">Distributed workflow pattern that breaks a transaction into steps with compensating actions. Higher availability, more complex correctness.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/07-transactions.html" class="pill" style="text-decoration:none;">Ch 7</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Partial failure" data-search="partial failure some nodes/links fail while others continue. fundamental to distributed systems; must design for uncertainty. distributed">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>distributed</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Partial failure</h3>
+      <p style="margin-bottom:10px;">Some nodes/links fail while others continue. Fundamental to distributed systems; must design for uncertainty.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Failure detector" data-search="failure detector mechanism to suspect a node is dead (timeouts/heartbeats). in an asynchronous network, detectors are inherently imperfect. distributed">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>distributed</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Failure detector</h3>
+      <p style="margin-bottom:10px;">Mechanism to suspect a node is dead (timeouts/heartbeats). In an asynchronous network, detectors are inherently imperfect.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a> <a href="chapters/09-consistency-and-consensus.html" class="pill" style="text-decoration:none;">Ch 9</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Clock skew" data-search="clock skew difference between physical clocks on different machines. can break timestamp ordering and expiry logic. distributed">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>distributed</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Clock skew</h3>
+      <p style="margin-bottom:10px;">Difference between physical clocks on different machines. Can break timestamp ordering and expiry logic.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Lamport clock" data-search="lamport clock logical clock that preserves happens-before ordering via counters piggybacked on messages. distributed">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>distributed</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Lamport clock</h3>
+      <p style="margin-bottom:10px;">Logical clock that preserves happens-before ordering via counters piggybacked on messages.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Vector clock" data-search="vector clock logical clock using per-node counters to detect concurrency vs causality. useful for conflict detection in multi-writer replication. distributed replication">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>distributed, replication</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Vector clock</h3>
+      <p style="margin-bottom:10px;">Logical clock using per-node counters to detect concurrency vs causality. Useful for conflict detection in multi-writer replication.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/08-trouble-with-distributed-systems.html" class="pill" style="text-decoration:none;">Ch 8</a> <a href="chapters/05-replication.html" class="pill" style="text-decoration:none;">Ch 5</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Linearizability" data-search="linearizability strong consistency where operations appear to take effect atomically in real time. requires coordination; sensitive to partitions. consistency">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>consistency</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Linearizability</h3>
+      <p style="margin-bottom:10px;">Strong consistency where operations appear to take effect atomically in real time. Requires coordination; sensitive to partitions.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/09-consistency-and-consensus.html" class="pill" style="text-decoration:none;">Ch 9</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Causal consistency" data-search="causal consistency guarantee that reads respect cause-effect relationships without enforcing a total order. often cheaper than linearizability. consistency">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>consistency</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Causal consistency</h3>
+      <p style="margin-bottom:10px;">Guarantee that reads respect cause-effect relationships without enforcing a total order. Often cheaper than linearizability.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/09-consistency-and-consensus.html" class="pill" style="text-decoration:none;">Ch 9</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Consensus" data-search="consensus agreement among nodes on a value/order despite failures. foundation for replicated logs, leader election, and coordination services. consensus">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>consensus</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Consensus</h3>
+      <p style="margin-bottom:10px;">Agreement among nodes on a value/order despite failures. Foundation for replicated logs, leader election, and coordination services.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/09-consistency-and-consensus.html" class="pill" style="text-decoration:none;">Ch 9</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Fencing token" data-search="fencing token monotonically increasing epoch/term used to prevent a stale leader from issuing commands after failover. consensus">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>consensus</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Fencing token</h3>
+      <p style="margin-bottom:10px;">Monotonically increasing epoch/term used to prevent a stale leader from issuing commands after failover.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/09-consistency-and-consensus.html" class="pill" style="text-decoration:none;">Ch 9</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Shuffle" data-search="shuffle batch operation that redistributes data across workers based on key. often the dominant cost due to network + disk spill. batch">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>batch</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Shuffle</h3>
+      <p style="margin-bottom:10px;">Batch operation that redistributes data across workers based on key. Often the dominant cost due to network + disk spill.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/10-batch-processing.html" class="pill" style="text-decoration:none;">Ch 10</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Straggler" data-search="straggler slow task that dominates job completion time. causes tail latency in batch pipelines. batch">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>batch</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Straggler</h3>
+      <p style="margin-bottom:10px;">Slow task that dominates job completion time. Causes tail latency in batch pipelines.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/10-batch-processing.html" class="pill" style="text-decoration:none;">Ch 10</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Watermark" data-search="watermark stream processing notion of progress in event time: boundary after which events are considered 'late'. trades correctness vs latency. stream">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>stream</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Watermark</h3>
+      <p style="margin-bottom:10px;">Stream processing notion of progress in event time: boundary after which events are considered 'late'. Trades correctness vs latency.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/11-stream-processing.html" class="pill" style="text-decoration:none;">Ch 11</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Window" data-search="window time-bounded grouping for stream aggregation (tumbling, sliding, session). requires state retention and late-event handling. stream">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>stream</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Window</h3>
+      <p style="margin-bottom:10px;">Time-bounded grouping for stream aggregation (tumbling, sliding, session). Requires state retention and late-event handling.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/11-stream-processing.html" class="pill" style="text-decoration:none;">Ch 11</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Exactly-once processing" data-search="exactly-once processing guarantee that each input event affects output state once. achieved via idempotency, deduplication, or transactional sinks. stream">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>stream</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Exactly-once processing</h3>
+      <p style="margin-bottom:10px;">Guarantee that each input event affects output state once. Achieved via idempotency, deduplication, or transactional sinks.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/11-stream-processing.html" class="pill" style="text-decoration:none;">Ch 11</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Derived data" data-search="derived data data computed from other data: indexes, caches, materialized views, aggregates. must be kept consistent with sources. architecture">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>architecture</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Derived data</h3>
+      <p style="margin-bottom:10px;">Data computed from other data: indexes, caches, materialized views, aggregates. Must be kept consistent with sources.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/12-future-of-data-systems.html" class="pill" style="text-decoration:none;">Ch 12</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Data lineage" data-search="data lineage metadata describing how derived data was produced from sources. enables audits, debugging, and rebuilds. architecture">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>architecture</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Data lineage</h3>
+      <p style="margin-bottom:10px;">Metadata describing how derived data was produced from sources. Enables audits, debugging, and rebuilds.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/12-future-of-data-systems.html" class="pill" style="text-decoration:none;">Ch 12</a></span>
+      </div>
+    </div>
+    
+
+    <div class="card" data-term="Unbundling" data-search="unbundling architectural trend to separate storage/compute/indexing/query processing into specialized systems connected by logs/pipelines. architecture">
+      <div class="meta">
+        <span class="badge">TERM</span>
+        <span>architecture</span>
+      </div>
+      <h3 style="margin-bottom:8px;">Unbundling</h3>
+      <p style="margin-bottom:10px;">Architectural trend to separate storage/compute/indexing/query processing into specialized systems connected by logs/pipelines.</p>
+      <div class="cta">
+        <span>Related</span>
+        <span><a href="chapters/12-future-of-data-systems.html" class="pill" style="text-decoration:none;">Ch 12</a></span>
+      </div>
+    </div>
+    
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="fine">
+      This glossary is an original educational aid. It avoids reproducing the book text and focuses on practical engineering definitions.
+    </div>
+  </footer>
+</main>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

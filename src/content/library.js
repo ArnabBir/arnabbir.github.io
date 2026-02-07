@@ -144,4 +144,90 @@ export default [
     difficulty: "Advanced",
     readingTime: "35 min",
   },
+  {
+    id: "ddia",
+    title: "Designing Data-Intensive Applications — Interactive Atlas",
+    description:
+      "Chapter-by-chapter interactive companion to DDIA covering data models, replication, partitioning, transactions, consistency, batch & stream processing, and the future of data systems.",
+    category: "Systems Design",
+    tags: ["Distributed Systems", "Databases", "DDIA", "Data Engineering"],
+    contentPath: "/library/ddia_interactive_library_atlas/index.html",
+    date: "2026-02-07",
+    featured: true,
+    highlights: [
+      "12 interactive chapters with hands-on labs",
+      "Design checklists and failure-mode thinking",
+      "Concept map across all chapters",
+      "Glossary of key terms and tradeoffs",
+    ],
+    chapters: [
+      {
+        title: "Reliable, Scalable & Maintainable Applications",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/01-reliable-scalable-maintainable.html",
+      },
+      {
+        title: "Data Models & Query Languages",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/02-data-models-query-languages.html",
+      },
+      {
+        title: "Storage & Retrieval",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/03-storage-and-retrieval.html",
+      },
+      {
+        title: "Encoding & Evolution",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/04-encoding-and-evolution.html",
+      },
+      {
+        title: "Replication",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/05-replication.html",
+      },
+      {
+        title: "Partitioning",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/06-partitioning.html",
+      },
+      {
+        title: "Transactions",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/07-transactions.html",
+      },
+      {
+        title: "The Trouble with Distributed Systems",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/08-trouble-with-distributed-systems.html",
+      },
+      {
+        title: "Consistency & Consensus",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/09-consistency-and-consensus.html",
+      },
+      {
+        title: "Batch Processing",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/10-batch-processing.html",
+      },
+      {
+        title: "Stream Processing",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/11-stream-processing.html",
+      },
+      {
+        title: "The Future of Data Systems",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/chapters/12-future-of-data-systems.html",
+      },
+      {
+        title: "Glossary",
+        contentPath:
+          "/library/ddia_interactive_library_atlas/glossary.html",
+      },
+    ],
+    difficulty: "Advanced",
+    readingTime: "12 chapters",
+  },
 ];

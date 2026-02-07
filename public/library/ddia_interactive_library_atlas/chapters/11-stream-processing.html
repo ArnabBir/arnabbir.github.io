@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 11: Stream Processing</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="10-batch-processing.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="12-future-of-data-systems.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Event-time, watermarks, windows, joins, and exactly-once/at-least-once trade-offs.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 11: Stream Processing</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Processing</span>
+        <span class="pill">Difficulty: Advanced</span>
+        <span class="pill">Event time</span><span class="pill">Watermarks</span><span class="pill">Windows</span><span class="pill">State</span><span class="pill">Exactly-once</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="stream">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Watermarks — Completeness vs Latency</h3>
+      <p class="lab-sub">Increase allowed lateness to drop fewer late events, but pay in output latency.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Event-time</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Event rate (events/sec) <span class="kbd"><span data-val="rate">—</span></span></label>
+      <input type="range" min="10" max="10000" value="1500" data-k="rate" oninput="this.parentElement.querySelector('[data-val=rate]').textContent=this.value"/>
+
+      <label>Late events (%) <span class="kbd"><span data-val="late">—</span></span></label>
+      <input type="range" min="0" max="30" step="0.5" value="4" data-k="late" oninput="this.parentElement.querySelector('[data-val=late]').textContent=this.value"/>
+
+      <label>Allowed lateness / watermark (sec) <span class="kbd"><span data-val="wm">—</span></span></label>
+      <input type="range" min="0" max="60" value="12" data-k="wm" oninput="this.parentElement.querySelector('[data-val=wm]').textContent=this.value"/>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Different engines implement watermarks differently (periodic vs punctuated). But the trade‑off is universal.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Dropped late fraction</span><span class="v" data-out="loss">—</span></div>
+      <div class="metric"><span class="k">Output latency (toy)</span><span class="v" data-out="lag">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Streams are “data in motion” — unbounded sequences of events.
+Stream processing is about maintaining derived state continuously:
+counts, joins, alerts, materialized views.
+The core challenge is <strong>time</strong>: event time vs processing time, and handling out-of-order/late events.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Log as a backbone</h4>
+    <p>
+      Durable logs (append-only) decouple producers and consumers.
+      Consumers can replay for recovery, rebuild state, or start new derived views.
+      This makes streams the “nervous system” of a data platform.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>State is unavoidable</h4>
+    <p>
+      Non-trivial stream processing is stateful:
+      windows, joins, deduplication, sessionization.
+      Therefore you must engineer state: checkpoints, changelogs, and recovery time.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Event time vs processing time</h3>
+<p>
+Processing time is when the system sees the event. Event time is when the event happened in the real world.
+If you aggregate by processing time, late events fall into the wrong window.
+To produce correct results, systems use event time + watermarks.
+</p>
+
+<h3>Watermarks and allowed lateness</h3>
+<p>
+A watermark is a statement like: “we believe we have seen all events up to time T”.
+Because networks delay, you can’t be sure.
+So you choose allowed lateness: wait longer for late events (more correct) vs emit results sooner (lower latency).
+</p>
+
+<h3>Exactly-once vs at-least-once</h3>
+<p>
+Streams often use at-least-once delivery: events can be duplicated. Exactly-once processing is achieved by making processing idempotent
+or by coupling input offsets with output commits (transactional sinks).
+</p>
+
+<details>
+  <summary>Idempotency in stream processing</summary>
+  <p>
+    Exactly-once often reduces to: “Can we make applying the same event twice harmless?”
+    Use unique event IDs, upserts, and state stores keyed by (key, event_id) for deduplication where needed.
+  </p>
+</details>
+
+<h3>Joins: stream-stream vs stream-table</h3>
+<ul>
+  <li><strong>Stream-table join</strong>: enrich events with a slowly-changing dimension table.</li>
+  <li><strong>Stream-stream join</strong>: correlate two streams within a time window (harder, requires buffering + time semantics).</li>
+</ul>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Late data</strong>: results change after you emitted them; you need retractions/updates or tolerance for approximations.</li>
+  <li><strong>State blow-up</strong>: windows or joins require storing too much state; memory/disk pressure grows.</li>
+  <li><strong>Reprocessing storms</strong>: after a failure, replay can cause huge spikes.</li>
+  <li><strong>Backpressure</strong>: slow sinks cause upstream queues, increasing event-time lag.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Define event schema, IDs, and ordering assumptions.</li>
+  <li>Choose time semantics: event time, processing time, or both (with clear UI expectations).</li>
+  <li>Plan state management: checkpoint interval, state backend, recovery time objective.</li>
+  <li>Choose delivery semantics: at-least-once + idempotent sink, or transactions where needed.</li>
+  <li>Monitor: consumer lag, watermark lag, state size, checkpoint duration, late-event rate.</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Define a watermark policy</summary>
+  <p>
+    Your mobile clients can be offline for minutes.
+    If you aggregate “sessions per minute”, how do you define allowed lateness?
+    Can you update results after emission? Do you publish corrections?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Deduplication boundary</summary>
+  <p>
+    Events can be duplicated. Where do you deduplicate:
+    at ingestion, in the stream processor, or in the sink?
+    Compare cost and correctness, and note that global dedup is itself stateful.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Stream-table join drift</summary>
+  <p>
+    You enrich clicks with a user profile table.
+    Profiles change. Do old events use old profile values (as-of time) or latest profile?
+    Decide and write the contract. Your analytics correctness depends on it.
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="10-batch-processing.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="12-future-of-data-systems.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

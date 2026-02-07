@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 5: Replication</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="04-encoding-and-evolution.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="06-partitioning.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Leader/follower, multi-leader, quorum reads/writes, and conflict resolution.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 5: Replication</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Distributed Core</span>
+        <span class="pill">Difficulty: Intermediate</span>
+        <span class="pill">Leader/follower</span><span class="pill">Quorum</span><span class="pill">Replication lag</span><span class="pill">Conflict resolution</span><span class="pill">Anti-entropy</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="replication">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Replication — Latency, Staleness, Availability</h3>
+      <p class="lab-sub">Tune sync/async and quorum size. Observe how “stronger” reads/writes often cost latency or availability.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Quorum intuition</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Replication mode</label>
+      <select data-k="mode">
+        <option value="async">Async (leader ack, followers catch up)</option>
+        <option value="sync">Sync-ish (wait for followers/quorum)</option>
+      </select>
+
+      <label>Replication lag / network delay (ms) <span class="kbd"><span data-val="lag">—</span></span></label>
+      <input type="range" min="5" max="800" value="120" data-k="lag" oninput="this.parentElement.querySelector('[data-val=lag]').textContent=this.value"/>
+
+      <label>Write quorum (replicas) <span class="kbd"><span data-val="quorum">—</span></span></label>
+      <input type="range" min="1" max="3" value="1" data-k="quorum" oninput="this.parentElement.querySelector('[data-val=quorum]').textContent=this.value"/>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Reality check: staleness also depends on read routing (leader vs follower), caches, client retries, and batching.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Write latency (toy)</span><span class="v" data-out="lat">—</span></div>
+      <div class="metric"><span class="k">Staleness (toy)</span><span class="v" data-out="stale">—</span></div>
+      <div class="metric"><span class="k">Availability (toy)</span><span class="v" data-out="avail">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Replication exists because we want more of something: availability, low latency, throughput, or geographic proximity.
+But replication introduces a new dimension: <strong>time</strong>. Copies diverge, then converge — unless you design for convergence.
+Every replicated system must choose what it means to “commit” a write and what reads are allowed to observe.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Three replication “questions”</h4>
+    <p>
+      1) <strong>Who accepts writes?</strong> (leader, any node, multi-leader)<br>
+      2) <strong>How are writes propagated?</strong> (log shipping, anti-entropy, gossip)<br>
+      3) <strong>How are conflicts resolved?</strong> (last-write-wins, merge functions, CRDTs, app logic)
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Replication is an interface</h4>
+    <p>
+      The most valuable output is not “n replicas” — it’s a clear API:
+      read-your-writes? monotonic reads? causal consistency? linearizable reads?
+      Pick the contract you can actually uphold under partitions.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Leader-based replication (primary/secondary)</h3>
+<p>
+One node is leader: it defines the write order. Followers replicate the leader’s log.
+Reads can go to the leader (fresh) or followers (possibly stale).
+</p>
+
+<ul>
+  <li><strong>Synchronous</strong> replication waits for followers before ack → lower data loss, higher latency.</li>
+  <li><strong>Asynchronous</strong> acks at leader → lower latency, risk of losing acknowledged writes on leader failure.</li>
+</ul>
+
+<p>
+A subtle point: “sync vs async” is not binary; it depends on quorum, regions, and timeouts.
+Many systems do “sync within region, async cross region”.
+</p>
+
+<h3>Multi-leader replication</h3>
+<p>
+Multiple leaders accept writes and replicate to each other. This helps with multi-region writes and disconnected operation,
+but it creates conflicts when two leaders update the same record.
+A system must define conflict semantics:
+</p>
+<ul>
+  <li><strong>Detect</strong> conflicts (version vectors, per-item histories) and surface to app.</li>
+  <li><strong>Resolve</strong> conflicts automatically (LWW, merge fields, CRDT).</li>
+</ul>
+
+<details>
+  <summary>Conflict resolution: what is a “merge”?</summary>
+  <p>
+    Merging is domain-specific.
+    Sets can be unioned; counters can be added; but money transfers cannot be blindly merged.
+    For high-stakes invariants, you often need a single leader per invariant or a consensus-based approach.
+  </p>
+</details>
+
+<h3>Leaderless replication and quorums</h3>
+<p>
+Leaderless systems allow writes to any node. Clients (or coordinators) write to multiple replicas and read from multiple replicas.
+Quorum reads/writes trade availability and latency against stronger guarantees.
+They also require repair mechanisms:
+</p>
+<ul>
+  <li><strong>Read repair</strong>: fix stale replicas during reads.</li>
+  <li><strong>Anti-entropy</strong>: background reconciliation (Merkle trees, gossip).</li>
+  <li><strong>Hinted handoff</strong>: temporarily store writes for an unavailable node.</li>
+</ul>
+
+<p>
+The hard truth: quorums do not automatically give linearizability. Timing, concurrent writes, and sloppy quorums can still produce anomalies.
+</p>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Replication lag</strong>: followers behind → stale reads, surprising UI behavior.</li>
+  <li><strong>Split brain</strong>: two leaders accept writes → divergent histories.</li>
+  <li><strong>Conflict storms</strong>: multi-leader with high contention creates many conflicts.</li>
+  <li><strong>Stale caches</strong>: caching layered on replication can amplify staleness.</li>
+  <li><strong>Failover anomalies</strong>: leader failover changes which writes are visible, depending on commit rule.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>What is your required <strong>RPO</strong> (data loss) and <strong>RTO</strong> (recovery time)?</li>
+  <li>Which reads must be fresh? Which can tolerate staleness?</li>
+  <li>How do you detect and resolve conflicts? Is LWW acceptable?</li>
+  <li>How do clients route reads/writes? Where are timeouts and retries?</li>
+  <li>What is the operational plan for failover, rejoin, and repair?</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Choose your commit rule</summary>
+  <p>
+    For a payments ledger, can you acknowledge a write after one node fsyncs?
+    Or must you replicate to a quorum? Argue your choice using RPO/RTO.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Stale read UX</summary>
+  <p>
+    Your app shows “like counts” and “account balance”. Which can be stale?
+    If likes are stale, users may not care. If balances are stale, you may lose money or trust.
+    Classify each field by “staleness tolerance”.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Multi-region writes</summary>
+  <p>
+    You want fast writes in 3 regions. Can you do it with leader-based replication?
+    If you use multi-leader, how do you handle conflicts for the same user profile edited in two regions?
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="04-encoding-and-evolution.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="06-partitioning.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

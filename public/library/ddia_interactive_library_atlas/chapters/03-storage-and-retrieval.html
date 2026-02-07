@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 3: Storage & Retrieval</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="02-data-models-query-languages.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="04-encoding-and-evolution.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>B‑trees, LSM-trees, SSTables, compaction, indexes, and read/write amplification.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 3: Storage & Retrieval</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Foundations</span>
+        <span class="pill">Difficulty: Intermediate</span>
+        <span class="pill">WAL</span><span class="pill">B‑tree</span><span class="pill">LSM</span><span class="pill">Compaction</span><span class="pill">Bloom filter</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="storage">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Storage Engines — Write Path vs Read Path</h3>
+      <p class="lab-sub">LSM trees trade background compaction for sequential writes; B‑trees trade random writes for predictable reads.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> IO economics</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Engine</label>
+      <select data-k="engine">
+        <option value="lsm">LSM‑tree (SSTables + compaction)</option>
+        <option value="btree">B‑tree (in‑place updates)</option>
+      </select>
+
+      <label>Write intensity <span class="kbd"><span data-val="writes">—</span>%</span></label>
+      <input type="range" min="0" max="100" value="55" data-k="writes" oninput="this.parentElement.querySelector('[data-val=writes]').textContent=this.value"/>
+
+      <label>Memory budget for cache/buffer <span class="kbd"><span data-val="mem">—</span>%</span></label>
+      <input type="range" min="0" max="100" value="60" data-k="mem" oninput="this.parentElement.querySelector('[data-val=mem]').textContent=this.value"/>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        The curves are simplified. Real systems also depend on compression, block size, Bloom filters, merge policy, and workload skew.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Write amplification</span><span class="v" data-out="wa">—</span></div>
+      <div class="metric"><span class="k">Read cost (relative)</span><span class="v" data-out="read">—</span></div>
+      <div class="metric"><span class="k">Write cost (relative)</span><span class="v" data-out="write">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Storage engines are about turning random workloads into <strong>economical IO</strong>.
+The “shape” of IO matters more than the total bytes:
+sequential writes are cheap; random writes are expensive; read amplification kills tail latency.
+Your job is to understand the write path, the read path, and the background maintenance work.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Write path (common)</h4>
+    <p>
+      Many engines append to a log first (<strong>WAL</strong>) for durability, then update an in-memory structure, then flush/compact later.
+      This decouples “acknowledge write” from “organize data for reads”.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Read path (common)</h4>
+    <p>
+      Reads often hit: cache → memtable → index → disk blocks.
+      Tail latency is dominated by cache misses and random IO.
+      Optimizations include Bloom filters, block caches, and locality-aware layouts.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>B‑trees: in-place updates with page structure</h3>
+<p>
+A B‑tree stores sorted key ranges in fixed-size pages. Updates modify pages in place.
+To keep the tree balanced, inserts may split pages; deletes may merge or rebalance.
+The B‑tree’s big advantage is that <strong>reads follow a small, predictable number of page reads</strong>.
+</p>
+
+<p>
+The tricky part is durability and crash consistency. Most engines use a write-ahead log:
+write the intent to disk first, then apply changes to pages.
+On crash, replay the log to recover.
+</p>
+
+<details>
+  <summary>Where B‑trees struggle</summary>
+  <p>
+    Random writes can be costly (especially on spinning disks, or when pages are not in cache).
+    Also, page splits can cause write bursts and fragmentation.
+  </p>
+</details>
+
+<h3>LSM trees: log-structured writes + compaction</h3>
+<p>
+An LSM-based engine treats disk as an append-friendly medium.
+Writes go to an in-memory sorted structure (memtable); when full, it flushes to an immutable sorted file (SSTable).
+Background compaction merges SSTables to keep read costs bounded.
+</p>
+
+<p>
+Core idea: convert random writes into sequential writes — then pay the bill later via compaction.
+That “later bill” is <strong>write amplification</strong>:
+one logical write can be rewritten multiple times as it moves through levels.
+</p>
+
+<pre><code>// Simplified: a key can be rewritten at each level during compaction.
+write_amplification ≈ 1 + (#levels * merge_factor)</code></pre>
+
+<p>
+To keep reads fast, LSM engines use:
+</p>
+<ul>
+  <li><strong>Bloom filters</strong> to avoid disk reads for keys that aren’t present.</li>
+  <li><strong>Index blocks</strong> and sparse indexes to jump into SSTables quickly.</li>
+  <li><strong>Compaction strategies</strong> (leveled vs tiered) to trade write amp vs space amp.</li>
+</ul>
+
+<h3>Secondary indexes: power + cost</h3>
+<p>
+Indexes are read accelerators that impose write costs. Every index must be updated on every write.
+In distributed settings, secondary indexes become even more expensive:
+if the index is partitioned differently from the primary key, writes require cross-shard coordination.
+</p>
+
+<details>
+  <summary>Rule of thumb for index design</summary>
+  <p>
+    Index for the queries you will actually run at p99.
+    Avoid “index everything”; it increases amplification, storage, and write tail latency.
+    Prefer a minimal set of high-value indexes and keep them warm in cache.
+  </p>
+</details>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Compaction debt</strong>: background compaction can’t keep up → read amplification grows → p99 explodes.</li>
+  <li><strong>Write stalls</strong>: to protect read performance, engines may stall writers when too many files accumulate.</li>
+  <li><strong>Hot blocks</strong>: a few blocks become hot and thrash cache.</li>
+  <li><strong>Space amplification</strong>: tombstones + old versions increase disk usage until compaction cleans them.</li>
+  <li><strong>Corruption & bit rot</strong>: checksums and scrubbing matter at scale.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Workload: read-heavy? write-heavy? point lookups vs range scans?</li>
+  <li>Latency target: which percentile matters? (p50 vs p99 vs p999)</li>
+  <li>Durability: when do you ack? after fsync? after replication?</li>
+  <li>Index plan: which predicates must be fast? what is the write amplification cost?</li>
+  <li>Maintenance: compaction budget, monitoring (SSTable count, stall time), backup/restore.</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Compaction budget</summary>
+  <p>
+    Suppose you ingest 200MB/s sustained. How much compaction throughput do you need if write amplification is 5×?
+    What happens if you only have 500MB/s disk bandwidth available for compaction and reads together?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Index tradeoff</summary>
+  <p>
+    You add a secondary index that doubles write cost but reduces a critical query from 800ms to 20ms.
+    When is that worth it? Consider cache hit rate, query frequency, and SLA penalties.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Data layout for scans</summary>
+  <p>
+    Compare row-oriented and column-oriented layouts for analytics.
+    Which one minimizes IO for “scan 3 columns across 1B rows”? What compression opportunities exist?
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="02-data-models-query-languages.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="04-encoding-and-evolution.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

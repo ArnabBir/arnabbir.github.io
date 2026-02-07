@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 7: Transactions</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="06-partitioning.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="08-trouble-with-distributed-systems.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Isolation levels, anomalies, serializability, and how real systems approximate it.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 7: Transactions</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Distributed Core</span>
+        <span class="pill">Difficulty: Advanced</span>
+        <span class="pill">ACID</span><span class="pill">MVCC</span><span class="pill">Write skew</span><span class="pill">Serializable</span><span class="pill">2PC vs saga</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="txn">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Isolation Levels & Anomalies</h3>
+      <p class="lab-sub">Select an isolation level and see which anomalies can still happen (engine-dependent in practice).</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Correctness</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Isolation level</label>
+      <select data-k="iso">
+        <option value="read_committed">Read committed</option>
+        <option value="repeatable_read">Repeatable read</option>
+        <option value="snapshot" selected>Snapshot isolation</option>
+        <option value="serializable">Serializable</option>
+      </select>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Serializable is the gold standard, but achieving it may require aborts, locks, or validation.
+        Many systems default to snapshot isolation because it’s fast and avoids many anomalies — but not all.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Anomaly surface</span><span class="v" data-out="anoms">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Transactions are about <strong>invariants under concurrency</strong>.
+They provide a programming model: “act as if you are alone”.
+But at scale, this illusion is expensive. Real systems implement different isolation levels
+and make trade-offs between correctness, throughput, and latency.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Atomicity is not isolation</h4>
+    <p>
+      Atomicity: all-or-nothing for a group of writes.
+      Isolation: what you can see while concurrent transactions run.
+      Durability: what survives crashes.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Think in anomalies</h4>
+    <p>
+      Rather than memorize levels, reason about anomalies:
+      dirty reads, lost updates, write skew, phantoms.
+      An isolation level is a set of anomalies it prevents.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Isolation levels (practical view)</h3>
+<p>
+Many systems expose:
+</p>
+<ul>
+  <li><strong>Read committed</strong>: each statement sees committed data, but successive reads can change.</li>
+  <li><strong>Repeatable read</strong> / <strong>snapshot isolation</strong>: a transaction reads a consistent snapshot.</li>
+  <li><strong>Serializable</strong>: behaves like transactions ran one-by-one (strongest).</li>
+</ul>
+
+<p>
+Snapshot isolation is popular because it avoids many read anomalies and allows readers to avoid blocking writers (MVCC).
+But snapshot isolation can allow <strong>write skew</strong>:
+two transactions read the same snapshot and make disjoint writes that violate a global invariant.
+</p>
+
+<pre><code>// Classic write-skew shape (pseudocode)
+T1: if (doctors_on_call &gt;= 2) set doctorA=off
+T2: if (doctors_on_call &gt;= 2) set doctorB=off
+// both read snapshot with 2 doctors; both commit; invariant broken (0 on call)</code></pre>
+
+<h3>How serializability is implemented</h3>
+<p>
+Common approaches:
+</p>
+<ul>
+  <li><strong>Two-phase locking (2PL)</strong>: locks guarantee serial order, but contention can kill throughput.</li>
+  <li><strong>Serializable Snapshot Isolation (SSI)</strong>: allow snapshots, detect dangerous structures, abort some transactions.</li>
+  <li><strong>Deterministic ordering</strong>: pre-order transactions (requires coordination, can help with replication).</li>
+</ul>
+
+<p>
+In distributed systems, transactions expand into distributed transactions (2PC) or application-level sagas.
+This is where theory meets operational pain.
+</p>
+
+<h3>Distributed transactions and sagas</h3>
+<p>
+If an invariant spans multiple partitions/services, you can:
+</p>
+<ul>
+  <li>Use <strong>2PC</strong>: coordinator asks participants to prepare, then commit. Strong, but can block on failures.</li>
+  <li>Use <strong>sagas</strong>: break into steps with compensating actions. Higher availability, harder reasoning.</li>
+</ul>
+
+<details>
+  <summary>Engineering rule: pick your invariant boundaries</summary>
+  <p>
+    Make the hardest invariants local to one transaction domain if possible.
+    “Atomic money movement” is a good boundary. Cross-boundary invariants often require coordination or compensation.
+  </p>
+</details>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Lost updates</strong>: last write wins when two writers update the same row without detection.</li>
+  <li><strong>Write skew</strong>: snapshot isolation allows invariant violation across multiple rows.</li>
+  <li><strong>Deadlocks</strong>: lock-based systems can deadlock; need detection and retries.</li>
+  <li><strong>Retry amplification</strong>: higher isolation → more aborts → more retries → more load.</li>
+  <li><strong>Distributed blocking</strong>: 2PC can block if coordinator fails.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Write down the invariants (what must never happen).</li>
+  <li>For each invariant: can it be enforced with a single row/key? If not, do you need serializable/locks?</li>
+  <li>Define idempotency and retry strategy (transactions will abort sometimes).</li>
+  <li>Measure contention: which keys are hot? do you need to shard counters? use escrow techniques?</li>
+  <li>For cross-service workflows: pick 2PC (strong, lower availability) vs saga (higher availability, complex compensation).</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Find the write skew</summary>
+  <p>
+    Imagine a “seat reservation” system. Two users reserve different seats; invariant is “total reserved ≤ capacity”.
+    Under snapshot isolation, can write skew occur? How would you prevent it (SELECT FOR UPDATE, materialized counter row, serializable)?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — When is 2PC acceptable?</summary>
+  <p>
+    Consider a workflow: create order → charge card → decrement inventory.
+    If you require atomicity across all three, what is your failure story when one service is down?
+    If you use a saga, what is the compensating action for each step?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Observability for correctness</summary>
+  <p>
+    What metrics/logs prove that your transaction system is healthy?
+    Examples: abort rate, deadlock rate, lock wait time, replication lag (if replicated), “compensation executed” count (if saga).
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="06-partitioning.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="08-trouble-with-distributed-systems.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

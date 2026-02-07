@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 12: The Future of Data Systems</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="11-stream-processing.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Unbundling databases, dataflow engines, and designing for change + correctness.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 12: The Future of Data Systems</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Synthesis</span>
+        <span class="pill">Difficulty: Advanced</span>
+        <span class="pill">Unbundling</span><span class="pill">Derived data</span><span class="pill">Dataflow</span><span class="pill">Lineage</span><span class="pill">Governance</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="future">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Architecture Builder — Unbundling & Dataflow</h3>
+      <p class="lab-sub">Pick a few “future system” ingredients. Notice how agility and correctness can rise together… until complexity eats you.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Synthesis</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label><input type="checkbox" data-k="unbundle"/> Unbundle storage + compute (separate systems)</label>
+      <label><input type="checkbox" data-k="dataflow" checked/> Dataflow pipelines (explicit DAGs)</label>
+      <label><input type="checkbox" data-k="transact"/> Strong transactional boundaries</label>
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        The score is not a prescription. It’s a lens: every new capability adds operational surface area and failure modes.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Scorecard</span><span class="v" data-out="score">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+“Future of data systems” is less about predicting the next database and more about a design philosophy:
+build systems from composable primitives with explicit semantics.
+A mature architecture separates concerns:
+storage, indexing, processing, and serving — and connects them with well-defined contracts.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Unbundling</h4>
+    <p>
+      Historically, databases bundled storage + compute + indexing + query + transactions.
+      Modern stacks often separate these into specialized systems connected by logs and pipelines.
+      This increases flexibility, but also increases coordination and operational burden.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Derived data is everywhere</h4>
+    <p>
+      Caches, indexes, materialized views, search indexes, feature stores — all are derived.
+      The key question becomes: how do you keep derived data correct and up to date?
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Dataflow architecture</h3>
+<p>
+A dataflow system treats computations as a graph of operators with explicit inputs/outputs.
+This makes it easier to:
+</p>
+<ul>
+  <li>Recompute derived data from source logs.</li>
+  <li>Incrementally update materialized views.</li>
+  <li>Unify batch and stream semantics (same operators, different boundedness).</li>
+</ul>
+
+<h3>Correctness as a product feature</h3>
+<p>
+As systems get more complex, correctness becomes an explicit engineering investment:
+lineage tracking, reproducible pipelines, schema governance, and testable invariants.
+Teams that treat correctness as “someone else’s problem” accumulate invisible debt until a backfill becomes impossible.
+</p>
+
+<details>
+  <summary>Derivation loop: the “rebuild” story</summary>
+  <p>
+    Ask: if our derived data is wrong, can we rebuild it from source-of-truth logs?
+    If the answer is “no”, you likely don’t truly have a source of truth.
+  </p>
+</details>
+
+<h3>Transactions vs streams vs invariants</h3>
+<p>
+Some invariants require synchronous coordination (transactions, consensus).
+Other invariants can be enforced asynchronously (stream validation + repair).
+The future stack is not “streams replace transactions” — it’s the ability to combine them coherently.
+</p>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Semantic mismatch</strong>: different systems have incompatible guarantees; the glue code lies.</li>
+  <li><strong>Operational sprawl</strong>: many systems → many upgrades, configs, oncall paths.</li>
+  <li><strong>Derived-data drift</strong>: caches/indexes silently diverge and no one can rebuild.</li>
+  <li><strong>Complexity collapse</strong>: the system is flexible but unmaintainable.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Define your source(s) of truth (append-only logs are powerful).</li>
+  <li>For each derived dataset: define how it is built, validated, and rebuilt.</li>
+  <li>Unbundle deliberately: only separate components when you can support the operational cost.</li>
+  <li>Make semantics explicit: delivery guarantees, time semantics, consistency level, transactional boundaries.</li>
+  <li>Invest in governance: schemas, lineage, and automated checks for drift.</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — “Single source of truth” audit</summary>
+  <p>
+    Pick a system you know. List every place the same fact exists (DB row, cache, search index, analytics table).
+    Which one is authoritative? How do the others update? What happens on failure?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — When to unbundle</summary>
+  <p>
+    You have a monolithic DB. You want separate search, analytics, and streaming features.
+    Which component do you split first and why? What new failure modes appear?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Build a correctness plan</summary>
+  <p>
+    Choose an invariant (e.g., “order totals are never negative”).
+    Implement it in three layers: transaction constraints, stream validation, and offline audits.
+    Describe how each layer catches different classes of bugs.
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="11-stream-processing.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

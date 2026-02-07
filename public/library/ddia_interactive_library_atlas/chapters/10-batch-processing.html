@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 10: Batch Processing</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="09-consistency-and-consensus.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="11-stream-processing.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>MapReduce mental model, dataflow graphs, shuffle/sort, and fault tolerance.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 10: Batch Processing</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Processing</span>
+        <span class="pill">Difficulty: Advanced</span>
+        <span class="pill">MapReduce</span><span class="pill">Shuffle</span><span class="pill">Skew</span><span class="pill">Dataflow DAG</span><span class="pill">Atomic output</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="batch">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Batch Costs — Shuffle, Sort, IO</h3>
+      <p class="lab-sub">Batch systems are limited by data movement. Shuffle is often the bill you didn’t know you were paying.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Data movement</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Input data (GB) <span class="kbd"><span data-val="data">—</span></span></label>
+      <input type="range" min="1" max="500" value="120" data-k="data" oninput="this.parentElement.querySelector('[data-val=data]').textContent=this.value"/>
+
+      <label>Partitions / reducers <span class="kbd"><span data-val="parts">—</span></span></label>
+      <input type="range" min="1" max="200" value="60" data-k="parts" oninput="this.parentElement.querySelector('[data-val=parts]').textContent=this.value"/>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Real costs depend on compression, spill-to-disk, skew, and whether you can avoid a full shuffle (e.g., pre-partitioned inputs).
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Shuffle time (toy)</span><span class="v" data-out="shuffle">—</span></div>
+      <div class="metric"><span class="k">Sort time (toy)</span><span class="v" data-out="sort">—</span></div>
+      <div class="metric"><span class="k">IO volume (toy)</span><span class="v" data-out="io">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Batch processing is about <strong>throughput and completeness</strong>, not latency.
+It shines when you can process large volumes offline and produce derived datasets:
+indexes, aggregates, training data, backfills.
+The core trick is fault-tolerant parallelism: split work, run it, retry deterministically.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Why batch still matters</h4>
+    <p>
+      Batch is the “big hammer” for correctness after the fact:
+      rebuild a search index, recompute aggregates, backfill a new schema field.
+      It’s your recovery tool when online systems drift or bugs happen.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Dataflow thinking</h4>
+    <p>
+      Think of batch as a DAG of operators:
+      map → filter → group → join → sort → write.
+      The expensive edges are shuffles (data movement).
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>MapReduce (as a mental model)</h3>
+<p>
+Map emits key/value pairs. Reduce groups by key and aggregates.
+Between them, the framework performs a shuffle: partition by key, transfer, and sort.
+Even if you never use “classic MapReduce”, the model explains many batch engines.
+</p>
+
+<pre><code>// Word count sketch
+map(doc) -> emit(word, 1)
+reduce(word, counts[]) -> emit(word, sum(counts))</code></pre>
+
+<h3>Sort and shuffle dominate cost</h3>
+<p>
+The shuffle phase is where data is redistributed across machines.
+This is expensive because it touches network, disk (spill), and CPU (serialization/compression).
+Avoid unnecessary shuffles by:
+</p>
+<ul>
+  <li>Choosing good partition keys.</li>
+  <li>Pre-aggregating locally (combiners).</li>
+  <li>Using map-side joins when one input is small.</li>
+  <li>Co-partitioning datasets when you frequently join them.</li>
+</ul>
+
+<h3>Fault tolerance: replayable computation</h3>
+<p>
+Batch engines rely on determinism: if a task fails, re-run it.
+This requires:
+</p>
+<ul>
+  <li>Inputs are immutable or versioned.</li>
+  <li>Tasks have no external side effects (or side effects are idempotent).</li>
+  <li>Outputs written atomically (commit protocol, temp files then rename).</li>
+</ul>
+
+<details>
+  <summary>Batch correctness pitfall</summary>
+  <p>
+    If your batch job performs non-idempotent side effects (sending emails, charging cards), retries become dangerous.
+    Keep batch jobs pure or isolate side effects behind exactly-once mechanisms.
+  </p>
+</details>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Skew</strong>: a few keys dominate → one reducer becomes a bottleneck.</li>
+  <li><strong>Shuffle explosion</strong>: naive joins cause enormous data movement.</li>
+  <li><strong>Small files</strong>: metadata overhead and scheduling overhead dominate.</li>
+  <li><strong>Non-determinism</strong>: time-based logic, random sampling, or external calls break replayability.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Define data contracts: schema, partitions, and input immutability guarantees.</li>
+  <li>Plan for skew: sampling, heavy-hitter detection, custom partitioners.</li>
+  <li>Minimize shuffles: choose join strategies deliberately.</li>
+  <li>Make outputs atomic and idempotent (commit protocols).</li>
+  <li>Monitor: task retries, stragglers, shuffle bytes, spill bytes, output commit time.</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Skewed join</summary>
+  <p>
+    You join clicks(user_id, url) with users(user_id, country).
+    1% of users generate 50% of clicks. How does skew affect reducers?
+    Propose a mitigation: salting heavy keys, two-stage aggregation, or approximate methods.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Backfill design</summary>
+  <p>
+    You introduce a new derived field. Would you compute it in a batch backfill or online at read-time?
+    Compare correctness (eventual consistency), cost, and operational risk.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Exactly-once output</summary>
+  <p>
+    A batch job writes results to a database table. The job retries tasks.
+    How do you prevent duplicate writes? Consider idempotent upserts, staging tables + swap, or output partition overwrite.
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="09-consistency-and-consensus.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="11-stream-processing.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

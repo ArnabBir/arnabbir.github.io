@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 6: Partitioning</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="05-replication.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="07-transactions.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Sharding strategies, consistent hashing, hotspots, and rebalancing.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 6: Partitioning</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Distributed Core</span>
+        <span class="pill">Difficulty: Intermediate</span>
+        <span class="pill">Shard key</span><span class="pill">Consistent hashing</span><span class="pill">Hotspots</span><span class="pill">Rebalancing</span><span class="pill">Scatter/gather</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="partition">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Partitioning Skew — Hotspots & Consistent Hashing</h3>
+      <p class="lab-sub">Increase skew and watch keys concentrate on a subset of nodes. The ring visualization updates each run.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Hot keys</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <div class="row">
+        <div>
+          <label>Nodes <span class="kbd"><span data-val="nodes">—</span></span></label>
+          <input type="range" min="3" max="12" value="6" data-k="nodes" oninput="this.parentElement.querySelector('[data-val=nodes]').textContent=this.value"/>
+        </div>
+        <div>
+          <label>Sampled keys <span class="kbd"><span data-val="keys">—</span></span></label>
+          <input type="range" min="80" max="800" value="240" data-k="keys" oninput="this.parentElement.querySelector('[data-val=keys]').textContent=this.value"/>
+        </div>
+      </div>
+
+      <label>Skew / hotspot intensity <span class="kbd"><span data-val="skew">—</span>%</span></label>
+      <input type="range" min="0" max="100" value="25" data-k="skew" oninput="this.parentElement.querySelector('[data-val=skew]').textContent=this.value"/>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Use as intuition: consistent hashing helps with node churn, but hotspots still require techniques like key salting,
+        request hedging, caching, or splitting the hot shard.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Hotspot factor (max/min)</span><span class="v" data-out="hot">—</span></div>
+      <div class="metric"><span class="k">Key spread</span><span class="v" data-out="spread">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Partitioning (sharding) is scaling by dividing responsibility.
+You are choosing:
+<strong>how keys map to partitions</strong>,
+<strong>how queries route</strong>,
+and <strong>how you move partitions as the cluster changes</strong>.
+Most real failures come from skew: not all keys are equal.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Two partitioning primitives</h4>
+    <p>
+      <strong>Key range</strong>: partitions hold contiguous key ranges (good for range scans, can hotspot).<br>
+      <strong>Hash</strong>: keys spread uniformly (good load balance, range scans harder).
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Partitioning changes queries</h4>
+    <p>
+      Any query that doesn’t include the partition key becomes scatter/gather.
+      Scatter/gather is a tail-latency generator: slowest shard wins.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Choosing a partition key</h3>
+<p>
+A “good” partition key has:
+</p>
+<ul>
+  <li>High cardinality (many distinct values)</li>
+  <li>Stable distribution (not all traffic hits one value)</li>
+  <li>Aligns with query routing (most queries include it)</li>
+</ul>
+
+<p>
+In practice you may need composite keys or derived keys:
+<code>(tenant_id, user_id)</code>, or <code>hash(user_id)</code>.
+For multi-tenant systems, <code>tenant_id</code> is often the first dimension to control noisy neighbors.
+</p>
+
+<h3>Secondary indexes across shards</h3>
+<p>
+A secondary index (e.g., by <code>email</code>) may be:
+</p>
+<ul>
+  <li><strong>Local</strong>: each shard indexes its own records → queries must fan out.</li>
+  <li><strong>Global</strong>: index is partitioned by the indexed field → writes become multi-shard (primary + index).</li>
+</ul>
+<p>
+Neither is free. Local indexes preserve write locality; global indexes make reads cheaper but complicate writes and consistency.
+</p>
+
+<h3>Rebalancing</h3>
+<p>
+Clusters change: nodes added, removed, fail. Rebalancing moves partitions between nodes.
+Key concerns:
+</p>
+<ul>
+  <li><strong>Minimize movement</strong> (don’t reshuffle everything when adding one node).</li>
+  <li><strong>Maintain availability</strong> (serve reads/writes while moving data).</li>
+  <li><strong>Bound the blast radius</strong> (throttle migration to avoid saturating disk/network).</li>
+</ul>
+
+<details>
+  <summary>Consistent hashing intuition</summary>
+  <p>
+    Consistent hashing reduces reshuffling by mapping keys to a ring.
+    Adding/removing a node only moves the keys in its adjacent range.
+    But you still need strategies for hotspots (hot keys) and for non-uniform node capacity.
+  </p>
+</details>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Hot partitions</strong>: a celebrity key, a tenant, or a time-based key overwhelms one shard.</li>
+  <li><strong>Rebalance storms</strong>: moving too much data triggers cascading timeouts and retries.</li>
+  <li><strong>Scatter/gather tail</strong>: query latency becomes max(shard latency).</li>
+  <li><strong>Cross-shard transactions</strong>: enforcing invariants across shards requires coordination.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Partition key: does it match the top read/write paths?</li>
+  <li>Hotspots: do you have mitigation strategies (salting, caching, splitting hot key, dynamic re-partition)?</li>
+  <li>Routing: where is the shard map stored and updated? clients? routers? metadata service?</li>
+  <li>Rebalancing: can you throttle, resume, and roll back migrations?</li>
+  <li>Consistency: how do you ensure reads during migration are correct (dual reads, forwarding, versioned ownership)?</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Time-based keys</summary>
+  <p>
+    You partition by <code>created_at</code>. New writes all go to the “latest” shard.
+    List 3 solutions: pre-splitting ranges, hash on (time bucket + random), or separate “ingest log” then compaction.
+    Evaluate each for query patterns.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Global secondary index</summary>
+  <p>
+    You need “find user by email” in O(log n).
+    Do you build a global index service? If yes, what consistency do you require between primary and index?
+    What happens on partial failures (primary write succeeds, index write fails)?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Rebalancing safety</summary>
+  <p>
+    Describe a safe migration protocol:
+    mark partition “moving”, copy data, dual-write, switch ownership, then garbage collect.
+    Where do you store the authoritative state? How do clients learn it?
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="05-replication.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="07-transactions.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

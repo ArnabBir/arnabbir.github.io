@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 1: Reliable, Scalable & Maintainable Applications</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="02-data-models-query-languages.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Reliability metrics, scalability curves, maintainability as a first-class constraint.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 1: Reliable, Scalable & Maintainable Applications</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Foundations</span>
+        <span class="pill">Difficulty: Foundational</span>
+        <span class="pill">SLO/SLI</span><span class="pill">Error budget</span><span class="pill">Tail latency</span><span class="pill">Backpressure</span><span class="pill">Reliability vs scalability</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="slo">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Error Budget & Latency Pressure</h3>
+      <p class="lab-sub">Move the sliders and watch how a small change in error rate or p99 latency can burn your monthly budget.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Reliability math</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <div class="row">
+        <div>
+          <label>Traffic (requests/sec) <span class="kbd"><span data-val="qps">—</span></span></label>
+          <input type="range" min="10" max="5000" value="800" data-k="qps" oninput="this.parentElement.parentElement.querySelector('[data-val=qps]').textContent=this.value"/>
+        </div>
+        <div>
+          <label>Error rate (%) <span class="kbd"><span data-val="err">—</span></span></label>
+          <input type="range" min="0" max="5" step="0.05" value="0.3" data-k="err" oninput="this.parentElement.parentElement.querySelector('[data-val=err]').textContent=this.value"/>
+        </div>
+      </div>
+      <label>p99 latency (ms) <span class="kbd"><span data-val="lat">—</span></span></label>
+      <input type="range" min="20" max="900" value="160" data-k="lat" oninput="this.parentElement.querySelector('[data-val=lat]').textContent=this.value"/>
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Interpretation: availability ≈ 1 − error_rate. Latency “pressure” is modeled as extra burn once p99 crosses a 200ms target.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Availability</span><span class="v" data-out="avail">—</span></div>
+      <div class="metric"><span class="k">30‑day error budget</span><span class="v" data-out="budget">—</span></div>
+      <div class="metric"><span class="k">Bad requests per hour</span><span class="v" data-out="bad">—</span></div>
+      <div class="metric"><span class="k">Observed p99</span><span class="v" data-out="p99">—</span></div>
+      <div class="metric"><span class="k">Latency SLO risk</span><span class="v" data-out="slo">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+A data‑intensive system is not “a database”. It’s the combination of:
+<strong>data model</strong> (what you store), <strong>access patterns</strong> (how you read/write),
+and <strong>operational reality</strong> (traffic spikes, failures, humans, upgrades).
+You’re designing <em>behavior under stress</em>.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Three first‑class properties</h4>
+    <p>
+      <strong>Reliability</strong> — the system does what it promised, even when things go wrong.<br>
+      <strong>Scalability</strong> — you can keep promises as load grows.<br>
+      <strong>Maintainability</strong> — humans can safely change the system over years.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Design in invariants</h4>
+    <p>
+      Translate vague goals into invariants:
+      “no lost writes”, “no double charge”, “<code>p99 &lt; 200ms</code>”, “RPO ≤ 5 minutes”, “rebuild a node in 30 minutes”.
+      Invariants turn arguments into math.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Reliability: what “correct” means in production</h3>
+<p>
+Reliability is not “never fails”. It’s <em>predictable failure</em>, fast detection, and bounded blast radius.
+Engineers usually decompose it into:
+</p>
+<ul>
+  <li><strong>Faults</strong>: bad disks, buggy deploys, fat‑fingered configs, network partitions.</li>
+  <li><strong>Failures</strong>: what users observe (timeouts, wrong data, dropped writes).</li>
+  <li><strong>Fault tolerance</strong>: mechanisms that prevent faults from becoming failures.</li>
+</ul>
+
+<p>
+A useful pattern is to treat faults as an adversary and design a “contract”:
+what will the system do if a node restarts mid‑write? If a network link drops? If a client retries?
+</p>
+
+<details>
+  <summary>Reliability contracts you should write down</summary>
+  <p>
+    • <strong>Idempotency</strong>: can the client safely retry the request?<br>
+    • <strong>Deduplication key</strong>: how do you prevent double processing?<br>
+    • <strong>Durability boundary</strong>: when do we acknowledge “committed”? (fsync? replicated? queued?)<br>
+    • <strong>Consistency boundary</strong>: what reads are allowed after a write? (read-your-writes? monotonic reads?)<br>
+    • <strong>Degradation mode</strong>: what do we drop first under overload?
+  </p>
+</details>
+
+<h3>Scalability: load, not “user count”</h3>
+<p>
+Scalability is about <em>which resources saturate</em> as load changes.
+Define your load in parameters:
+<code>QPS</code>, working set size, write percentage, fanout, payload size, distinct keys, skew.
+Two systems with the same QPS can be totally different if one is “hot‑key heavy” and the other is uniform.
+</p>
+
+<p>
+Then model the critical path:
+CPU, memory, disk IO, network, or coordination.
+Most performance failures appear as <strong>tail latency</strong> problems:
+the slowest 1% becomes the user experience because services compose.
+</p>
+
+<pre><code>// A mental model for tail latency compounding:
+p99(end-to-end) ≈ p99(A) + p99(B) + p99(C) + queueing + retries
+// retries can amplify tail latency: a retry is a second lottery ticket
+</code></pre>
+
+<h3>Maintainability: long-lived systems are human systems</h3>
+<p>
+Maintainability can be made concrete via three sub‑properties:
+</p>
+<ul>
+  <li><strong>Operability</strong>: can oncall diagnose issues quickly? Are there runbooks, dashboards, and safe rollbacks?</li>
+  <li><strong>Simplicity</strong>: can engineers reason about it without holding 50 details in their head?</li>
+  <li><strong>Evolvability</strong>: can you change schemas, interfaces, and behavior without downtime?</li>
+</ul>
+
+<p>
+A strong litmus test: “Can a new engineer make a safe change in week 2?”
+If not, your architecture likely has hidden coupling.
+</p>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Retry storms</strong>: clients retry on timeouts, which increases load and causes more timeouts (positive feedback loop).</li>
+  <li><strong>Slow dependency amplification</strong>: one slow downstream service increases queueing, pushing p99 up everywhere.</li>
+  <li><strong>Overload collapse</strong>: saturation leads to context switching, GC pressure, and worse throughput.</li>
+  <li><strong>Unknown unknowns</strong>: missing metrics or logs mean the failure is “invisible”.</li>
+</ul>
+
+<details>
+  <summary>Production-grade countermeasures</summary>
+  <p>
+    • Timeouts + budgets per hop (propagate deadlines).<br>
+    • Bounded retries with jitter; prefer hedged requests for read paths.<br>
+    • Circuit breakers and load shedding.<br>
+    • Bulkheads (resource partitioning) between critical and non-critical work.<br>
+    • Graceful degradation: reduce features before failing hard.
+  </p>
+</details>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li><strong>Promises</strong>: define SLOs/SLIs (availability, latency, correctness) and what happens when you miss them.</li>
+  <li><strong>Budget</strong>: establish error budgets and “launch gates” (what stops a bad rollout?).</li>
+  <li><strong>Capacity model</strong>: identify your bottleneck resource and scaling strategy (vertical/horizontal/sharding/caching).</li>
+  <li><strong>Change model</strong>: safe deployments, schema evolution, feature flags, migrations.</li>
+  <li><strong>Observability</strong>: tracing, structured logs, high-cardinality metrics for key dimensions (tenant, region, route).</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+<details>
+  <summary>Drill 1 — Pick your SLOs</summary>
+  <p>
+    You have an internal API used by 20 services. Pick an SLO for availability and p99 latency.
+    Then decide: what is your error budget policy? (freeze launches if budget burn &gt; X?).
+    Write down the policy as if you’re going to enforce it.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Identify the real load parameter</summary>
+  <p>
+    A feed service “has 1M daily active users.” That’s not enough. List the parameters that matter:
+    fanout per request, percent of cache hits, size of user graph, write rate of new posts, skew (celebrity accounts).
+    Which parameter would break you first, and how would you measure it?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Design a failure mode</summary>
+  <p>
+    Choose one failure: database is slow, cache cluster is down, or a deploy introduces a hot loop.
+    For each: what does the user see? what does oncall see? what is the automatic mitigation?
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="02-data-models-query-languages.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

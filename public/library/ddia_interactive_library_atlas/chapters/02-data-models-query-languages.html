@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 2: Data Models & Query Languages</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="01-reliable-scalable-maintainable.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="03-storage-and-retrieval.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Relational vs document vs graph; query shapes, constraints, and evolution.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 2: Data Models & Query Languages</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Foundations</span>
+        <span class="pill">Difficulty: Foundational</span>
+        <span class="pill">Relational</span><span class="pill">Document</span><span class="pill">Graph</span><span class="pill">Aggregates</span><span class="pill">Schema evolution</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="datamodel">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Data Model Fit — Query Shape vs Constraints</h3>
+      <p class="lab-sub">Pick a model and an access pattern. The “scores” are heuristics to trigger design discussion, not universal truth.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Modeling tradeoffs</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Primary data model</label>
+      <select data-k="model">
+        <option value="relational">Relational (tables + joins)</option>
+        <option value="document">Document (aggregate‑oriented JSON)</option>
+        <option value="graph">Graph (vertices + edges)</option>
+      </select>
+
+      <label>Dominant access pattern</label>
+      <select data-k="access">
+        <option value="oltp">OLTP: point lookups + small updates</option>
+        <option value="analytics">Analytics: scans + aggregations</option>
+        <option value="traversal">Traversal: multi-hop relationships</option>
+        <option value="search">Search: text + ranking</option>
+      </select>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Reminder: you can mix models (polyglot persistence). The hard part is defining
+        <em>boundaries</em> and <em>consistency contracts</em> across stores.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Design advice</span><span class="v" data-out="advice">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+A data model is a <strong>compression format for reality</strong>. It decides what relationships are easy, what invariants are enforceable,
+and how your team thinks about change.
+The most important question is not “SQL vs NoSQL” — it’s:
+<strong>What are the aggregates and boundaries of consistency in your domain?</strong>
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Aggregate orientation</h4>
+    <p>
+      Many systems revolve around aggregates: “Order”, “User profile”, “Session”, “Device”.
+      If your read/write patterns mostly touch one aggregate at a time,
+      document models can align naturally.
+      If invariants span multiple aggregates, relational constraints or transactions may fit better.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Relationship orientation</h4>
+    <p>
+      If relationships are the product (recommendations, access control, supply chains),
+      graph models make the links first-class and optimize traversals.
+      In other models, relationships often become joins or denormalized copies.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Relational: normalization and constraint power</h3>
+<p>
+Relational databases shine when you need:
+constraints, joins, and decades of tooling. The relational model makes data integrity explicit:
+primary keys, foreign keys, unique constraints, check constraints.
+This can be a huge maintainability advantage: the system enforces invariants even when application code changes.
+</p>
+
+<pre><code>-- Example: encode an invariant (one active subscription per user)
+CREATE UNIQUE INDEX one_active_sub
+ON subscriptions(user_id)
+WHERE status = 'active';</code></pre>
+
+<p>
+Trade-off: rigid schemas can be painful if your domain evolves quickly,
+and joins across huge tables can become expensive without careful indexing or denormalization.
+</p>
+
+<h3>Document: locality and flexible shape</h3>
+<p>
+Documents group related data together. This helps when the access pattern is “fetch one thing and render it”.
+Locality can reduce the need for joins and make caching easier.
+However, documents tend to push cross-document invariants into application code.
+If you need to enforce “exactly once” semantics across many documents, you’ll need transaction support or careful design.
+</p>
+
+<details>
+  <summary>When document models hurt</summary>
+  <p>
+    • Many-to-many relationships become awkward (duplication or join tables reappear).<br>
+    • Updates that touch many documents can be slow or inconsistent.<br>
+    • “Schema on read” can become “schema in every service” if you don’t define versioning discipline.
+  </p>
+</details>
+
+<h3>Graph: traversals and evolving relationships</h3>
+<p>
+Graph databases represent entities and edges explicitly. They excel at queries like:
+“friends-of-friends”, “devices connected to compromised account”, “shortest path”.
+In relational systems, these queries can become repeated self-joins or recursive queries; in document stores, they can become multi-round trips.
+</p>
+
+<p>
+Engineering reality: graphs are not magic. High-degree vertices can create hotspots; traversals can explode combinatorially.
+Graph models force you to think about limiting fanout (depth, edge predicates, sampling).
+</p>
+
+<h3>Query languages: declarative vs imperative</h3>
+<ul>
+  <li><strong>Declarative</strong> (SQL, many graph query languages): you describe <em>what</em> you want; the engine chooses <em>how</em>.</li>
+  <li><strong>Imperative</strong> (MapReduce-style): you define steps; the engine gives you distributed execution and fault tolerance.</li>
+</ul>
+
+<p>
+Declarative queries are maintainable when you trust the optimizer and can index for the plan you need.
+Imperative pipelines are flexible but can become harder to reason about and optimize if you reimplement query logic in code.
+</p>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Impedance mismatch</strong>: domain objects don’t map cleanly to tables; mapping layers become complex and leaky.</li>
+  <li><strong>Hidden coupling</strong>: multiple services interpret semi-structured data differently (schema drift).</li>
+  <li><strong>Denormalization debt</strong>: duplicated fields diverge; “source of truth” becomes unclear.</li>
+  <li><strong>Hot traversals</strong>: graph queries blow up in cost for high-degree nodes.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Define your <strong>unit of atomic update</strong> (aggregate). Do you need multi-aggregate transactions?</li>
+  <li>List your top 5 query shapes. Can your model serve them efficiently with indexes/locality?</li>
+  <li>Decide your <strong>schema evolution policy</strong>: additive only? deprecations? type changes allowed?</li>
+  <li>Decide where invariants live: database constraints, application code, or asynchronous repair jobs.</li>
+  <li>Plan for analytics: will OLTP and OLAP share storage, or will you replicate/ETL into a warehouse?</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Aggregate boundaries</summary>
+  <p>
+    Pick a domain (shopping cart, ride request, payments, messaging). Define what a single “aggregate” is.
+    For each invariant (e.g., no double charge), decide: can it be enforced within one aggregate?
+    If not, what mechanism will enforce it (transaction, saga, consensus, compensating action)?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Query-first design</summary>
+  <p>
+    Write 3 queries that matter. Example: “last 50 messages in a conversation”, “search messages by keyword”, “list unread counts”.
+    Which model makes each query cheap? Where do you need secondary indexes? Which query becomes expensive as data grows?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Evolution without downtime</summary>
+  <p>
+    Add a new field and remove an old field. Describe how old and new services coexist.
+    How do you prevent old services from breaking when they see new data?
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="01-reliable-scalable-maintainable.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="03-storage-and-retrieval.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

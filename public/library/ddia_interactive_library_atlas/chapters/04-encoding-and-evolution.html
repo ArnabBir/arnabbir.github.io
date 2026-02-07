@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 4: Encoding & Evolution</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="03-storage-and-retrieval.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="05-replication.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Formats, schema evolution, compatibility, and rolling upgrades across services.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 4: Encoding & Evolution</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Foundations</span>
+        <span class="pill">Difficulty: Intermediate</span>
+        <span class="pill">Backward/forward</span><span class="pill">Defaults</span><span class="pill">Schema registry</span><span class="pill">RPC vs messaging</span><span class="pill">Rolling upgrade</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="schema">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Schema Evolution Compatibility</h3>
+      <p class="lab-sub">Simulate rolling upgrades: writers and readers may run different versions at the same time.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Backward/forward</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <div class="row">
+        <div>
+          <label>Writer version</label>
+          <select data-k="writer">
+            <option value="1">v1 (base fields)</option>
+            <option value="2" selected>v2 (+ optional field)</option>
+            <option value="3">v3 (+ another field, preserved IDs)</option>
+          </select>
+        </div>
+        <div>
+          <label>Reader version</label>
+          <select data-k="reader">
+            <option value="1">v1</option>
+            <option value="2" selected>v2</option>
+            <option value="3">v3</option>
+          </select>
+        </div>
+      </div>
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Compatibility depends on your encoding rules:
+        field IDs vs names, default values, unknown-field preservation, unions, and type changes.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Compatibility verdict</span><span class="v" data-out="compat">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Encoding is the boundary between programs and data. It determines:
+how you evolve schemas, how you perform rolling upgrades, and how you integrate heterogeneous systems.
+A mature system treats <strong>schema evolution as a first‑class operational process</strong>, not an afterthought.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Compatibility is a contract</h4>
+    <p>
+      Backward compatibility: new readers can read old data.
+      Forward compatibility: old readers can tolerate new data.
+      In production you often need both, because deploys are staggered.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Two worlds</h4>
+    <p>
+      <strong>Data at rest</strong> (stored records) and <strong>data in motion</strong> (RPC/messages) have different evolution constraints.
+      Storage formats are optimized for long-term stability; RPC may evolve faster but needs strict discipline.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Text formats vs binary formats</h3>
+<p>
+Text formats (JSON, CSV) are human-friendly but can be ambiguous:
+numbers vs strings, missing vs null, timezone handling, precision loss.
+Binary formats (Avro-like, Proto-like, Thrift-like) are compact and explicit, and often include schema support.
+</p>
+
+<ul>
+  <li><strong>Text</strong>: great for debugging, flexible, but larger and slower; schema often implicit.</li>
+  <li><strong>Binary</strong>: efficient, schema-driven, better compatibility tooling; less ad-hoc inspectable.</li>
+</ul>
+
+<h3>Schema evolution: additive changes are the safest</h3>
+<p>
+Most safe evolution strategies are variations of:
+</p>
+<ul>
+  <li>Add new fields as optional with defaults.</li>
+  <li>Never reuse field identifiers (IDs / tags / numbers).</li>
+  <li>Avoid changing types; instead add a new field and deprecate old.</li>
+  <li>Keep unknown fields if the encoding supports it (so forward compatibility works).</li>
+</ul>
+
+<pre><code>// Example evolution strategy (pseudocode)
+v1: { user_id: int, name: string }
+v2: { user_id: int, name: string, email?: string = "" }  // additive
+v3: { user_id: int, name: string, email?: string, locale?: string = "en-US" }</code></pre>
+
+<h3>RPC and messaging: different coupling</h3>
+<p>
+RPC makes “call-and-response” explicit. It also tends to couple clients and servers:
+method signatures, timeouts, retry behavior.
+Messaging introduces an asynchronous boundary that can decouple producers/consumers — if you treat the message schema as a stable API.
+</p>
+
+<details>
+  <summary>Operational rule: decouple rollout from deploy</summary>
+  <p>
+    Use feature flags and compatibility rules so you can deploy code without switching behavior.
+    Rollouts should be controllable, observable, and reversible.
+  </p>
+</details>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Schema drift</strong>: teams interpret “the same” JSON differently.</li>
+  <li><strong>Silent truncation</strong>: types or precision are lost (e.g., 64-bit → 32-bit, float rounding).</li>
+  <li><strong>Version skew</strong>: mixed versions in production break assumptions.</li>
+  <li><strong>“Unknown field” loss</strong>: some systems drop unknown fields, breaking forward compatibility.</li>
+  <li><strong>Partial migrations</strong>: stored data exists in multiple versions; reads must handle all.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Define a schema registry or source of truth (even if it’s just a repo + CI checks).</li>
+  <li>Decide which changes are allowed (additive only, deprecations, no type changes).</li>
+  <li>Define handling of unknown fields and defaults.</li>
+  <li>Plan rolling upgrades: new writers first? new readers first? both?</li>
+  <li>Test compatibility in CI with “golden” old/new payload fixtures.</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Rolling upgrade sequence</summary>
+  <p>
+    You add a required field. How can you roll it out without downtime?
+    (Hint: you can’t add “required” directly. Make it optional + default, deploy readers, backfill, then enforce.)
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Backfill strategy</summary>
+  <p>
+    You want to populate a new derived field for 2B records.
+    Do you backfill offline (batch job) or lazily on read/write?
+    Compare cost, correctness, and operational risk.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — RPC compatibility</summary>
+  <p>
+    An RPC method changes from <code>getUser(id)</code> to <code>getUser(id, projection)</code>.
+    How do you keep old clients working? Consider default projections, method overloading, and endpoint versioning.
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="03-storage-and-retrieval.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="05-replication.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

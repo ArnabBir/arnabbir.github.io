@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 9: Consistency & Consensus</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="08-trouble-with-distributed-systems.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="10-batch-processing.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Linearizability, consensus, leader election, and coordination patterns.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 9: Consistency & Consensus</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Distributed Core</span>
+        <span class="pill">Difficulty: Advanced</span>
+        <span class="pill">Linearizability</span><span class="pill">Consensus</span><span class="pill">Leader election</span><span class="pill">Fencing token</span><span class="pill">Causal consistency</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="consensus">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Leader Election — Why Timeouts Matter</h3>
+      <p class="lab-sub">Simulate elections. With low timeout jitter, nodes time out together → split votes → more terms.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Coordination</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <div class="row">
+        <div>
+          <label>Cluster size <span class="kbd"><span data-val="n">—</span></span></label>
+          <input type="range" min="3" max="9" value="5" data-k="n" oninput="this.parentElement.querySelector('[data-val=n]').textContent=this.value"/>
+        </div>
+        <div>
+          <label>Timeout jitter <span class="kbd"><span data-val="jitter">—</span>%</span></label>
+          <input type="range" min="0" max="100" value="35" data-k="jitter" oninput="this.parentElement.querySelector('[data-val=jitter]').textContent=this.value"/>
+        </div>
+      </div>
+
+      <button class="button" type="button" data-action="tick">Run election</button>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        This is not a full Raft implementation — it’s a compact intuition pump:
+        stable leadership requires timeouts that are not too synchronized.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Leader</span><span class="v" data-out="leader">—</span></div>
+      <div class="metric"><span class="k">Term</span><span class="v" data-out="term">—</span></div>
+      <div class="metric"><span class="k">Split vote?</span><span class="v" data-out="split">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Consistency is about what values reads are allowed to return.
+Consensus is about a set of nodes agreeing on one value (or one order of values) despite failures.
+In practice, we use consensus to build things like:
+leader election, configuration management, distributed locks, and replicated logs.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Two kinds of guarantees</h4>
+    <p>
+      <strong>Safety</strong>: never decide conflicting values (no split brain).<br>
+      <strong>Liveness</strong>: eventually decide, if enough nodes communicate.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Linearizability vs causality</h4>
+    <p>
+      Linearizability gives the illusion of a single global order (strong, expensive).
+      Causal consistency preserves cause-effect order without forcing all operations into one total order.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Linearizability (intuitive)</h3>
+<p>
+A system is linearizable if each operation appears to take effect at a single point in time between its invocation and response.
+This is the mental model most developers expect from a single machine variable.
+It’s powerful — and costly under partitions, because it typically requires coordination with a leader/quorum.
+</p>
+
+<h3>Consensus via a replicated log</h3>
+<p>
+Many practical consensus systems are built around a replicated log:
+a leader proposes entries, followers replicate them, a quorum commits them.
+Once committed, entries are applied to a state machine deterministically.
+This is the “state machine replication” pattern.
+</p>
+
+<pre><code>// Replicated log mental model
+append(command) -> index
+commit index when replicated to quorum
+apply commands in order to state machine</code></pre>
+
+<h3>Leader election and fencing tokens</h3>
+<p>
+Leader election must avoid split brain. But even after electing a leader,
+you must prevent an old leader (that was partitioned) from continuing to issue commands.
+A common pattern is a <strong>fencing token</strong>:
+a monotonically increasing term/epoch number.
+Downstream systems reject commands with an older token.
+</p>
+
+<details>
+  <summary>Why split brain happens in real systems</summary>
+  <p>
+    Because failure detection is imperfect.
+    If node A can’t hear node B, each might conclude the other is dead.
+    A correct consensus protocol prevents both from committing conflicting decisions, but services built on top must also respect epochs.
+  </p>
+</details>
+
+<h3>CAP is not the whole story</h3>
+<p>
+It’s tempting to reduce everything to “CAP”.
+But real systems choose different consistency guarantees per operation.
+You can have high availability for “likes” and strong consistency for “payments”.
+The real design work is deciding which invariants demand coordination.
+</p>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Split vote / election churn</strong>: leadership changes too often, throughput collapses.</li>
+  <li><strong>Stale leader</strong>: old leader continues writing without fencing, corrupting state.</li>
+  <li><strong>Clock assumptions</strong>: using timeouts without jitter causes synchronized elections.</li>
+  <li><strong>Read anomalies</strong>: mixing follower reads with leader writes without causal/linearizable guarantees.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Which operations need linearizability? Which can use causal or eventual consistency?</li>
+  <li>If you use a coordination service: what is stored there (configs, leader, locks)? Keep it minimal.</li>
+  <li>Do you use fencing tokens when interacting with external systems (databases, storage)?</li>
+  <li>How do you handle network partitions? Do you prefer safety over availability for critical invariants?</li>
+  <li>What is your plan for membership changes and upgrades?</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — Identify coordination boundaries</summary>
+  <p>
+    List 5 things your system wants to coordinate: leader, schema version, shard map, rate limits, feature flags.
+    Which must be strongly consistent? Which can be cached and eventually consistent?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Fencing token scenario</summary>
+  <p>
+    A “primary” node writes to an external database. A partition occurs; a new primary is elected.
+    How do you prevent the old primary from continuing to write? Describe how the DB checks the token.
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Read guarantees</summary>
+  <p>
+    Clients read from followers for latency. They then perform writes through the leader.
+    What anomalies can users observe? How would you provide read-your-writes (session stickiness, causal tokens)?
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="08-trouble-with-distributed-systems.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="10-batch-processing.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

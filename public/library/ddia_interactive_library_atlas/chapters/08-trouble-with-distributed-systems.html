@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Chapter 8: The Trouble with Distributed Systems</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="../index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="../index.html#chapters">Chapters</a>
+        <a href="../glossary.html">Glossary</a>
+        <a href="../index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <div class="layout">
+    <aside class="sidebar">
+      <h4>On this page</h4>
+      <nav class="toc">
+        <a href="#overview">Overview</a>
+<a href="#mental-model">Mental model</a>
+<a href="#mechanics">Mechanics</a>
+<a href="#failure-modes">Failure modes</a>
+<a href="#checklist">Design checklist</a>
+<a href="#drills">Design drills</a>
+      </nav>
+      <hr class="sep"/>
+      <h4>Navigation</h4>
+      <div class="split-actions">
+        <a class="button" href="07-transactions.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="09-consistency-and-consensus.html">Next →</a>
+      </div>
+      <hr class="sep"/>
+      <div class="panel">
+        <h4>Focus question</h4>
+        <p>Partial failure, time/clock pitfalls, network reality, and what ‘correct’ even means.</p>
+      </div>
+    </aside>
+
+    <article class="doc">
+      <h1>Chapter 8: The Trouble with Distributed Systems</h1>
+      <div class="chapter-meta">
+        <span class="pill"><span class="dot"></span> Interactive lab included</span>
+        <span class="pill">Theme: Distributed Core</span>
+        <span class="pill">Difficulty: Advanced</span>
+        <span class="pill">Partial failure</span><span class="pill">Timeouts</span><span class="pill">Retries</span><span class="pill">Clock skew</span><span class="pill">Idempotency</span>
+      </div>
+
+      <div id="overview" class="prose">
+        <div class="callout">
+          <strong>What you should be able to do after this chapter</strong>
+          <p>
+            Explain the core trade‑offs, predict the major failure modes, and choose a design with clear assumptions.
+            Use the lab to make the trade‑offs “numerical” instead of vague.
+          </p>
+        </div>
+
+        
+<div class="lab" data-lab="time">
+  <div class="lab-head">
+    <div>
+      <h3 class="lab-title">Lab: Time, Clocks & Uncertainty</h3>
+      <p class="lab-sub">Crank clock skew and network delay. Notice how “timestamp ordering” stops meaning what you think.</p>
+    </div>
+    <div class="pill"><span class="dot"></span> Partial failure</div>
+  </div>
+  <div class="lab-grid">
+    <div class="controls">
+      <label>Clock skew (ms) <span class="kbd"><span data-val="skew">—</span></span></label>
+      <input type="range" min="0" max="500" value="70" data-k="skew" oninput="this.parentElement.querySelector('[data-val=skew]').textContent=this.value"/>
+
+      <label>Network delay (ms) <span class="kbd"><span data-val="delay">—</span></span></label>
+      <input type="range" min="1" max="800" value="120" data-k="delay" oninput="this.parentElement.querySelector('[data-val=delay]').textContent=this.value"/>
+
+      <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
+        Ordering-risk is a heuristic: when skew becomes comparable to message delay, many “time-based” assumptions become unsafe.
+      </p>
+    </div>
+    <div class="output">
+      <div class="metric"><span class="k">Ordering-risk</span><span class="v" data-out="risk">—</span></div>
+      <div class="canvas-wrap"><canvas></canvas></div>
+    </div>
+  </div>
+</div>
+
+
+        
+<h2 id="mental-model">Mental model</h2>
+<p>
+Distributed systems are systems where the computer can’t know the truth in time.
+You don’t get reliable clocks, reliable networks, or reliable failure signals.
+You get: partial failure, reordering, duplication, delay, and partitions.
+The “trouble” is not the bugs — it’s the physics.
+</p>
+
+<div class="grid2">
+  <div class="panel">
+    <h4>Two hard constraints</h4>
+    <p>
+      • <strong>Unbounded latency</strong>: a message can be delayed arbitrarily (from your perspective).<br>
+      • <strong>Unreliable failure detection</strong>: “no response” might mean slow, partitioned, or dead.
+    </p>
+  </div>
+  <div class="panel">
+    <h4>Design with adversaries</h4>
+    <p>
+      Imagine an adversary controlling the network: delays, drops, duplicates, reorders.
+      Your protocol must remain safe even if it becomes slow.
+    </p>
+  </div>
+</div>
+
+<h2 id="mechanics">Mechanics</h2>
+
+<h3>Timeouts and retries are part of correctness</h3>
+<p>
+Timeouts are guesses. Retries are duplicates. Combined, they can change system semantics.
+If a request times out, you do not know whether it executed.
+Therefore, idempotency is a correctness requirement, not an optimization.
+</p>
+
+<pre><code>// Idempotency key pattern
+POST /charge
+{ idempotency_key: "uuid", amount: 100, account: "A" }
+// server stores key -> result; retries return same result.</code></pre>
+
+<h3>Clocks: physical time vs logical time</h3>
+<p>
+Physical clocks drift and jump (NTP corrections, leap seconds, VM pauses).
+If you order writes by timestamp, skew can violate causality (“future write arrives before past write”).
+Logical clocks (Lamport, vector clocks) model <em>happens-before</em> without relying on wall clock time.
+</p>
+
+<details>
+  <summary>When you must use physical time</summary>
+  <p>
+    Physical time is still useful for TTLs, user-facing timestamps, and operational reasoning.
+    But avoid using wall-clock time as a correctness oracle for ordering or uniqueness unless you have explicit uncertainty bounds.
+  </p>
+</details>
+
+<h3>Partial failure: degrade without corrupting</h3>
+<p>
+You need two properties:
+</p>
+<ul>
+  <li><strong>Safety</strong>: never return wrong results (e.g., never double charge).</li>
+  <li><strong>Liveness</strong>: eventually make progress (e.g., continue serving reads) when conditions allow.</li>
+</ul>
+
+<p>
+Often you choose safety over liveness during partitions. The UI may show “temporarily unavailable” rather than lie.
+This is an engineering decision: user trust vs availability.
+</p>
+
+<h3>Backpressure and overload control</h3>
+<p>
+Under overload, the worst thing you can do is queue forever:
+latency grows without bound, retries increase load, and the system collapses.
+Backpressure is the discipline of rejecting work early and predictably.
+</p>
+
+<h2 id="failure-modes">Failure modes</h2>
+<ul>
+  <li><strong>Retry storms</strong>: exponential traffic growth due to retries.</li>
+  <li><strong>Thundering herd</strong>: many clients wake at once (e.g., cache miss, leader failover).</li>
+  <li><strong>Split brain</strong>: two parts of cluster both act as leaders.</li>
+  <li><strong>Clock regressions</strong>: time moves backwards, breaking monotonic assumptions.</li>
+  <li><strong>Heisenbugs</strong>: timing-sensitive bugs that disappear under observation.</li>
+</ul>
+
+<h2 id="checklist">Design checklist</h2>
+<ul>
+  <li>Timeout budgets and retry policies (with jitter) for every hop.</li>
+  <li>Idempotency keys for all non-idempotent operations.</li>
+  <li>Explicit failure semantics: what errors are safe to retry? which are not?</li>
+  <li>Backpressure: queue limits, load shedding strategy, bulkheads.</li>
+  <li>Clock discipline: monotonic time for durations, wall clock for display; avoid timestamp-order correctness.</li>
+</ul>
+
+<h2 id="drills">Design drills</h2>
+
+<details>
+  <summary>Drill 1 — “Did it happen?” problem</summary>
+  <p>
+    A client times out on a write. List three possible realities.
+    How does your API let the client discover the truth? (idempotency key, read-your-writes, status endpoint).
+  </p>
+</details>
+
+<details>
+  <summary>Drill 2 — Deadline propagation</summary>
+  <p>
+    You have a request that fans out to 5 services. Total budget is 300ms.
+    Allocate per-service budgets. What happens if one hop uses 300ms alone?
+    How do you enforce budgets end-to-end?
+  </p>
+</details>
+
+<details>
+  <summary>Drill 3 — Clock skew incident</summary>
+  <p>
+    One node’s clock jumps forward by 10 minutes. Your system uses timestamps for “last write wins”.
+    What happens? How do you prevent data loss? Consider logical clocks, fencing tokens, or hybrid logical clocks.
+  </p>
+</details>
+
+
+        <hr class="sep"/>
+        <div class="callout">
+          <strong>Self‑check</strong>
+          <p>
+            If you can explain this chapter’s ideas using <em>invariants</em> (“what must be true”), <em>interfaces</em> (“what the system promises”), and <em>adversaries</em> (“how the world breaks it”),
+            you understand it at an engineering level.
+          </p>
+        </div>
+
+        <div class="split-actions">
+          <a class="button" href="07-transactions.html">← Prev</a>
+<a class="button" href="../index.html#chapters">All chapters</a>
+<a class="button primary" href="09-consistency-and-consensus.html">Next →</a>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="fine">
+          This page is an original interactive study aid and does not reproduce the DDIA book text.
+          Concepts are presented in fresh wording and simplified models for intuition.
+        </div>
+      </footer>
+    </article>
+  </div>
+</main>
+
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

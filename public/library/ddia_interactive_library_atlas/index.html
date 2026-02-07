@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="dark light"/>
+  <title>DDIA Atlas — Interactive Chapter Library</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="index.html" aria-label="DDIA interactive home">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Interactive Engineering Library</h1>
+          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#chapters">Chapters</a>
+        <a href="glossary.html">Glossary</a>
+        <a href="index.html#concept-map">Concept map</a>
+        <button id="themeToggle" class="button" type="button" aria-pressed="true">Light mode</button>
+      </nav>
+    </div>
+    <div class="top-progress" aria-hidden="true"><div id="scrollProgress" class="top-progress-bar"></div></div>
+  </header>
+  
+<main class="container">
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-card">
+        <div class="pill"><span class="dot"></span> Offline‑first interactive study companion</div>
+        <h2 class="title">DDIA Atlas</h2>
+        <p class="subtitle">
+          A chapter‑by‑chapter, <strong>interactive</strong> engineering library for <em>Designing Data‑Intensive Applications</em>.
+          Each chapter includes a technical walkthrough, design checklists, failure‑mode thinking, and a hands‑on lab you can tweak to build intuition.
+          <br><br>
+          This library is written as an <strong>original learning aid</strong> (not a copy of the book) — use it to rehearse concepts, then go deeper in the source text.
+        </p>
+
+        <div class="hero-actions">
+          <a class="button primary" href="chapters/01-reliable-scalable-maintainable.html">Start at Chapter 1</a>
+          <a class="button" href="#chapters">Browse chapters</a>
+          <a class="button" href="#concept-map">Explore concept map</a>
+        </div>
+
+        <div class="kpi-grid" aria-label="What you get">
+          <div class="kpi"><strong>12</strong><span>Chapters with labs</span></div>
+          <div class="kpi"><strong>Offline</strong><span>No build step, no server</span></div>
+          <div class="kpi"><strong>Systems‑first</strong><span>Tradeoffs + invariants</span></div>
+          <div class="kpi"><strong>Practical</strong><span>Checklists + drills</span></div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3 style="margin:0 0 10px; font-size:18px; letter-spacing:-.2px;">How to use this library</h3>
+        <div class="panel">
+          <h4>Recommended flow</h4>
+          <p>
+            1) Read the chapter page end‑to‑end.<br>
+            2) Move the sliders in the lab until your intuition matches the output.<br>
+            3) Do the “Design drills” and write down your own answers.<br>
+            4) Go back to the book and compare mental models.
+          </p>
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <h4>Pro tip</h4>
+          <p>
+            Use <span class="kbd">Ctrl</span>+<span class="kbd">K</span> to jump to chapter search.
+            Toggle dark/light mode anytime — diagrams and charts adapt automatically.
+          </p>
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <h4>Scope note</h4>
+          <p>
+            These pages are an interactive synthesis of widely‑known distributed‑systems ideas: replication, partitioning, transactions, consensus, batch/stream processing.
+            They are written in fresh wording and do not reproduce the original book text.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="chapters" class="section">
+    <h2>Chapter Library</h2>
+    <p>Search by concept (e.g., “LSM”, “quorum”, “watermark”, “serializable”, “hotspot”).</p>
+    <div style="margin-top:12px;" class="searchbar">
+      <span style="opacity:.8">🔎</span>
+      <input id="chapterSearch" type="text" placeholder="Search chapters… (Ctrl/⌘+K)"/>
+      <span class="kbd">Ctrl K</span>
+    </div>
+    <div id="searchEmpty" class="callout" style="display:none; margin-top:14px;">
+      <strong>No matches</strong>
+      <p>Try searching “replication”, “LSM”, “consensus”, “watermark”, or “write skew”.</p>
+    </div>
+
+    <div class="card-grid" style="margin-top:14px;">
+      
+    <div class="card" data-chapter="1" data-search="chapter 1 reliable, scalable & maintainable applications reliability metrics, scalability curves, maintainability as a first-class constraint.">
+      <div class="meta">
+        <span class="badge">CH01</span>
+        <span>Foundations</span>
+      </div>
+      <h3>Reliable, Scalable & Maintainable Applications</h3>
+      <p>Reliability metrics, scalability curves, maintainability as a first-class constraint.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/01-reliable-scalable-maintainable.html" aria-label="Open chapter 1: Reliable, Scalable & Maintainable Applications">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="2" data-search="chapter 2 data models & query languages relational vs document vs graph; query shapes, constraints, and evolution.">
+      <div class="meta">
+        <span class="badge">CH02</span>
+        <span>Foundations</span>
+      </div>
+      <h3>Data Models & Query Languages</h3>
+      <p>Relational vs document vs graph; query shapes, constraints, and evolution.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/02-data-models-query-languages.html" aria-label="Open chapter 2: Data Models & Query Languages">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="3" data-search="chapter 3 storage & retrieval b‑trees, lsm-trees, sstables, compaction, indexes, and read/write amplification.">
+      <div class="meta">
+        <span class="badge">CH03</span>
+        <span>Foundations</span>
+      </div>
+      <h3>Storage & Retrieval</h3>
+      <p>B‑trees, LSM-trees, SSTables, compaction, indexes, and read/write amplification.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/03-storage-and-retrieval.html" aria-label="Open chapter 3: Storage & Retrieval">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="4" data-search="chapter 4 encoding & evolution formats, schema evolution, compatibility, and rolling upgrades across services.">
+      <div class="meta">
+        <span class="badge">CH04</span>
+        <span>Foundations</span>
+      </div>
+      <h3>Encoding & Evolution</h3>
+      <p>Formats, schema evolution, compatibility, and rolling upgrades across services.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/04-encoding-and-evolution.html" aria-label="Open chapter 4: Encoding & Evolution">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="5" data-search="chapter 5 replication leader/follower, multi-leader, quorum reads/writes, and conflict resolution.">
+      <div class="meta">
+        <span class="badge">CH05</span>
+        <span>Distributed Core</span>
+      </div>
+      <h3>Replication</h3>
+      <p>Leader/follower, multi-leader, quorum reads/writes, and conflict resolution.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/05-replication.html" aria-label="Open chapter 5: Replication">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="6" data-search="chapter 6 partitioning sharding strategies, consistent hashing, hotspots, and rebalancing.">
+      <div class="meta">
+        <span class="badge">CH06</span>
+        <span>Distributed Core</span>
+      </div>
+      <h3>Partitioning</h3>
+      <p>Sharding strategies, consistent hashing, hotspots, and rebalancing.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/06-partitioning.html" aria-label="Open chapter 6: Partitioning">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="7" data-search="chapter 7 transactions isolation levels, anomalies, serializability, and how real systems approximate it.">
+      <div class="meta">
+        <span class="badge">CH07</span>
+        <span>Distributed Core</span>
+      </div>
+      <h3>Transactions</h3>
+      <p>Isolation levels, anomalies, serializability, and how real systems approximate it.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/07-transactions.html" aria-label="Open chapter 7: Transactions">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="8" data-search="chapter 8 the trouble with distributed systems partial failure, time/clock pitfalls, network reality, and what ‘correct’ even means.">
+      <div class="meta">
+        <span class="badge">CH08</span>
+        <span>Distributed Core</span>
+      </div>
+      <h3>The Trouble with Distributed Systems</h3>
+      <p>Partial failure, time/clock pitfalls, network reality, and what ‘correct’ even means.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/08-trouble-with-distributed-systems.html" aria-label="Open chapter 8: The Trouble with Distributed Systems">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="9" data-search="chapter 9 consistency & consensus linearizability, consensus, leader election, and coordination patterns.">
+      <div class="meta">
+        <span class="badge">CH09</span>
+        <span>Distributed Core</span>
+      </div>
+      <h3>Consistency & Consensus</h3>
+      <p>Linearizability, consensus, leader election, and coordination patterns.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/09-consistency-and-consensus.html" aria-label="Open chapter 9: Consistency & Consensus">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="10" data-search="chapter 10 batch processing mapreduce mental model, dataflow graphs, shuffle/sort, and fault tolerance.">
+      <div class="meta">
+        <span class="badge">CH10</span>
+        <span>Processing</span>
+      </div>
+      <h3>Batch Processing</h3>
+      <p>MapReduce mental model, dataflow graphs, shuffle/sort, and fault tolerance.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/10-batch-processing.html" aria-label="Open chapter 10: Batch Processing">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="11" data-search="chapter 11 stream processing event-time, watermarks, windows, joins, and exactly-once/at-least-once trade-offs.">
+      <div class="meta">
+        <span class="badge">CH11</span>
+        <span>Processing</span>
+      </div>
+      <h3>Stream Processing</h3>
+      <p>Event-time, watermarks, windows, joins, and exactly-once/at-least-once trade-offs.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/11-stream-processing.html" aria-label="Open chapter 11: Stream Processing">.</a>
+    </div>
+    
+
+    <div class="card" data-chapter="12" data-search="chapter 12 the future of data systems unbundling databases, dataflow engines, and designing for change + correctness.">
+      <div class="meta">
+        <span class="badge">CH12</span>
+        <span>Synthesis</span>
+      </div>
+      <h3>The Future of Data Systems</h3>
+      <p>Unbundling databases, dataflow engines, and designing for change + correctness.</p>
+      <div class="cta">
+        <span>Interactive notes + labs</span>
+        <span class="go">Open →</span>
+      </div>
+      <a class="coverlink" href="chapters/12-future-of-data-systems.html" aria-label="Open chapter 12: The Future of Data Systems">.</a>
+    </div>
+    
+    </div>
+  </section>
+
+  <section id="concept-map" class="section">
+    <h2>Concept Map</h2>
+    <p>
+      Click a node to jump into a chapter. Edges highlight a suggested dependency path (storage → encoding → replication → partitioning → transactions → consensus).
+    </p>
+    <div class="card" style="padding:16px; margin-top:12px;">
+      <div class="grid2">
+        <div>
+          <div class="pill"><span class="dot"></span> Interactive constellation</div>
+          <p style="margin-top:10px; color: var(--muted); font-size:13px; line-height:1.6;">
+            The map is intentionally <strong>non‑hierarchical</strong> — in real systems, decisions cross-cut layers.
+            Use it like a flight map: choose your next “hop” based on the problem you’re solving.
+          </p>
+          <div id="mapTip" class="panel" style="margin-top:12px; opacity:0; transition: opacity .15s ease;">
+            <h4>Hover a node</h4>
+            <p>Move your cursor over a chapter number.</p>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="conceptCanvas" data-nodes='[{"title": "Ch 1: Reliable, Scalable & Maintainable Applications", "short": "1", "hint": "Reliability metrics, scalability curves, maintainability as a first-class constraint.", "href": "chapters/01-reliable-scalable-maintainable.html"}, {"title": "Ch 2: Data Models & Query Languages", "short": "2", "hint": "Relational vs document vs graph; query shapes, constraints, and evolution.", "href": "chapters/02-data-models-query-languages.html"}, {"title": "Ch 3: Storage & Retrieval", "short": "3", "hint": "B\u2011trees, LSM-trees, SSTables, compaction, indexes, and read/write amplification.", "href": "chapters/03-storage-and-retrieval.html"}, {"title": "Ch 4: Encoding & Evolution", "short": "4", "hint": "Formats, schema evolution, compatibility, and rolling upgrades across services.", "href": "chapters/04-encoding-and-evolution.html"}, {"title": "Ch 5: Replication", "short": "5", "hint": "Leader/follower, multi-leader, quorum reads/writes, and conflict resolution.", "href": "chapters/05-replication.html"}, {"title": "Ch 6: Partitioning", "short": "6", "hint": "Sharding strategies, consistent hashing, hotspots, and rebalancing.", "href": "chapters/06-partitioning.html"}, {"title": "Ch 7: Transactions", "short": "7", "hint": "Isolation levels, anomalies, serializability, and how real systems approximate it.", "href": "chapters/07-transactions.html"}, {"title": "Ch 8: The Trouble with Distributed Systems", "short": "8", "hint": "Partial failure, time/clock pitfalls, network reality, and what \u2018correct\u2019 even means.", "href": "chapters/08-trouble-with-distributed-systems.html"}, {"title": "Ch 9: Consistency & Consensus", "short": "9", "hint": "Linearizability, consensus, leader election, and coordination patterns.", "href": "chapters/09-consistency-and-consensus.html"}, {"title": "Ch 10: Batch Processing", "short": "10", "hint": "MapReduce mental model, dataflow graphs, shuffle/sort, and fault tolerance.", "href": "chapters/10-batch-processing.html"}, {"title": "Ch 11: Stream Processing", "short": "11", "hint": "Event-time, watermarks, windows, joins, and exactly-once/at-least-once trade-offs.", "href": "chapters/11-stream-processing.html"}, {"title": "Ch 12: The Future of Data Systems", "short": "12", "hint": "Unbundling databases, dataflow engines, and designing for change + correctness.", "href": "chapters/12-future-of-data-systems.html"}]' style="height:320px;"></canvas>
+        </div>
+      </div>
+    </div>
+    <script src="assets/js/map.js"></script>
+  </section>
+
+  <section id="how-to-use" class="section">
+    <h2>What makes this “engineering-grade”</h2>
+    <div class="grid2" style="margin-top:12px;">
+      <div class="panel">
+        <h4>Mental models & invariants</h4>
+        <p>
+          Every chapter emphasizes: <em>What must remain true</em> (invariants), what can be traded off, and which assumptions break under partial failure.
+          This is closer to real design reviews than “definition memorization”.
+        </p>
+      </div>
+      <div class="panel">
+        <h4>Labs that move</h4>
+        <p>
+          Sliders are not “toy UI”. They encode simplified but instructive equations (burn rate, amplification, staleness, skew, shuffle cost, watermark completeness).
+          The goal is intuition you can reuse when sizing systems.
+        </p>
+      </div>
+      <div class="panel">
+        <h4>Failure-mode thinking</h4>
+        <p>
+          Distributed systems are defined by what happens when the network lies: partitions, delays, reordering, retries, duplicates, and stale reads.
+          Chapters call out “pitfalls you only learn in production”.
+        </p>
+      </div>
+      <div class="panel">
+        <h4>Design drills</h4>
+        <p>
+          Each chapter contains short drills that force a decision. This is the quickest path from “I understand the words” to “I can choose an architecture”.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="fine">
+      <strong>Copyright note:</strong> This interactive library is an original educational summary and does not reproduce the book text.
+      If you need the authoritative explanations, diagrams, and details, please purchase and read the original book.
+      <br><br>
+      Built as a static offline bundle: open <code>index.html</code> in your browser.
+    </div>
+  </footer>
+</main>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
