@@ -47,7 +47,10 @@ export default [
         title: "The Google File System (GFS)",
         contentPath: "/library/google_file_system.html",
       },
-      { title: "MapReduce: Simplified Data Processing" },
+      {
+        title: "MapReduce: Simplified Data Processing",
+        contentPath: "/library/map_reduce.html",
+      },
       { title: "Bigtable: A Distributed Storage System" },
       { title: "The Chubby Lock Service" },
       { title: "Spanner: Globally Distributed Database" },
