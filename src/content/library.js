@@ -29,7 +29,7 @@ export default [
     id: "mendel",
     title: "Google Mendel: Overlapping Experiment Infrastructure",
     description: "Deep dive into the architecture enabling 10,000+ simultaneous experiments via orthogonal layering, cookie-based diversion, and real-time parameter injection.",
-    category: "Systems Design",
+    category: "Google Whitepapers",
     tags: ["A/B Testing", "Infrastructure", "Experimentation", "Google"],
     // thumbnail: "/images/mendel-thumb.png", // Optional: Add thumbnail image to public/images/
     contentPath: "/library/mendel.html", // Path to the HTML file (served from public/library/)
@@ -149,7 +149,7 @@ export default [
     title: "Designing Data-Intensive Applications — Interactive Atlas",
     description:
       "Chapter-by-chapter interactive companion to DDIA covering data models, replication, partitioning, transactions, consistency, batch & stream processing, and the future of data systems.",
-    category: "Systems Design",
+    category: "DDIA",
     tags: ["Distributed Systems", "Databases", "DDIA", "Data Engineering"],
     contentPath: "/library/ddia_interactive_library_atlas/index.html",
     date: "2026-02-07",
