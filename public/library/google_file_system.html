@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GFS Internals | Arnab Bir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#161b22',
+                            900: '#0d1117',
+                            950: '#010409',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Standard CSS for things Tailwind shouldn't handle dynamically -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+        /* Scrollbar customization */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+        /* Syntax Highlighting Colors */
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .com { color: #8b949e; font-style: italic; }
+        .type { color: #79c0ff; }
+        
+        /* Animation keyframes */
+        @keyframes bounce-sm {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-sm {
+            animation: bounce-sm 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors duration-300 antialiased selection:bg-emerald-500/30 font-sans">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-sky-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fas fa-server text-white text-xs"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">Arnab<span class="text-emerald-500">Bir</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-400">
+                <a href="#simulation" class="hover:text-emerald-500 transition-colors">Protocol</a>
+                <a href="#architecture" class="hover:text-emerald-500 transition-colors">Architecture</a>
+                <a href="#consistency" class="hover:text-emerald-500 transition-colors">Consistency</a>
+                <a href="#namespace" class="hover:text-emerald-500 transition-colors">Locking</a>
+            </div>
+
+            
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="pt-32 pb-20 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="inline-block px-3 py-1 mb-4 text-xs font-bold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-100 dark:bg-emerald-900/30 rounded-full border border-emerald-200 dark:border-emerald-800">
+                Distributed Systems Series
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-sky-600 dark:from-emerald-400 dark:to-sky-400 tracking-tight">Google File System</h1>
+            <p class="text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
+                Deconstructing the architecture that defined Big Data. An interactive exploration of <span class="text-slate-900 dark:text-slate-100 font-bold">Leases</span>, <span class="text-slate-900 dark:text-slate-100 font-bold">Pipelines</span>, and <span class="text-slate-900 dark:text-slate-100 font-bold">Consistency</span>.
+            </p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 space-y-32 pb-32">
+        
+        <!-- Interactive Write Protocol Simulation -->
+        <section id="simulation" class="scroll-mt-24">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">Write Protocol Visualizer</h2>
+                    <p class="text-slate-600 dark:text-slate-400 max-w-xl">
+                        Simulating the <strong class="text-emerald-600 dark:text-emerald-400">Decoupled Data Flow</strong>. Notice how data travels through the pipeline (green) separately from control signals (purple).
+                    </p>
+                </div>
+                <div class="flex gap-2 mt-4 md:mt-0">
+                    <button id="btn-next" class="px-6 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/30 flex items-center gap-2 border border-emerald-500">
+                        Next Step <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button id="btn-reset" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Simulation Canvas -->
+            <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl p-8 min-h-[500px] relative overflow-hidden shadow-sm transition-all duration-300">
+                
+                <!-- Topology Grid -->
+                <div class="grid grid-cols-12 grid-rows-6 gap-4 h-[400px] relative z-10">
+                    
+                    <!-- SVG Topology Background -->
+                    <!-- FORCE FILL="NONE" to prevent black shapes -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg" style="fill: none;">
+                        <defs>
+                            <marker id="head-control" orient="auto" markerWidth="4" markerHeight="4" refX="2" refY="2">
+                                <path d="M0,0 V4 L4,2 Z" class="fill-purple-500/50" />
+                            </marker>
+                        </defs>
+                        
+                        <!-- Control Lines (Curved) -->
+                        <path d="M210,230 Q300,100 480,70" fill="none" stroke="currentColor" class="stroke-slate-300 dark:stroke-slate-600 stroke-2" marker-end="url(#head-control)" />
+                        <path d="M480,70 Q600,150 500,230" fill="none" stroke="currentColor" class="stroke-slate-300 dark:stroke-slate-600 stroke-2" marker-end="url(#head-control)" />
+                        
+                        <!-- Data Pipeline Lines (Dashed) -->
+                        <path d="M210,230 L740,130" fill="none" class="stroke-emerald-500/30 stroke-[3] stroke-dasharray-4" />
+                        <path d="M740,130 L500,230" fill="none" class="stroke-emerald-500/30 stroke-[3] stroke-dasharray-4" />
+                        <path d="M500,230 L740,330" fill="none" class="stroke-emerald-500/30 stroke-[3] stroke-dasharray-4" />
+                    </svg>
+
+                    <!-- Master Node -->
+                    <div id="node-master" class="col-start-6 col-span-2 row-start-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 font-bold text-center transition-all relative z-20 bg-white dark:bg-slate-850 shadow-lg border-purple-500 text-purple-600 dark:text-purple-400">
+                        <i class="fas fa-brain text-3xl mb-2"></i>
+                        <span class="text-xs uppercase tracking-wider">Master</span>
+                        <span class="text-[9px] text-slate-400 mt-1 font-mono">RAM Metadata</span>
+                    </div>
+
+                    <!-- Client Node -->
+                    <div id="node-client" class="col-start-2 col-span-2 row-start-3 flex flex-col items-center justify-center p-4 rounded-xl border-2 font-bold text-center transition-all relative z-20 bg-white dark:bg-slate-850 shadow-lg border-emerald-500 text-emerald-600 dark:text-emerald-400">
+                        <i class="fas fa-laptop-code text-3xl mb-2"></i>
+                        <span class="text-xs uppercase tracking-wider">Client</span>
+                        <span class="text-[9px] text-slate-400 mt-1 font-mono">App Logic</span>
+                    </div>
+
+                    <!-- Primary Replica -->
+                    <div id="node-p" class="col-start-6 col-span-2 row-start-3 flex flex-col items-center justify-center p-4 rounded-xl border-2 font-bold text-center transition-all relative z-20 bg-white dark:bg-slate-850 shadow-lg border-sky-500 text-sky-600 dark:text-sky-400">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-sky-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">PRIMARY (A)</span>
+                        <i class="fas fa-server text-3xl mb-2"></i>
+                        <span class="text-xs font-mono">Lease Holder</span>
+                    </div>
+
+                    <!-- Replica B -->
+                    <div id="node-s1" class="col-start-9 col-span-2 row-start-2 flex flex-col items-center justify-center p-4 rounded-xl border-2 font-bold text-center transition-all relative z-20 bg-white dark:bg-slate-850 shadow-lg border-slate-400 text-slate-500 dark:text-slate-400 dark:border-slate-600">
+                        <i class="fas fa-hdd text-3xl mb-2"></i>
+                        <span class="text-xs">Replica B</span>
+                    </div>
+
+                    <!-- Replica C -->
+                    <div id="node-s2" class="col-start-9 col-span-2 row-start-4 flex flex-col items-center justify-center p-4 rounded-xl border-2 font-bold text-center transition-all relative z-20 bg-white dark:bg-slate-850 shadow-lg border-slate-400 text-slate-500 dark:text-slate-400 dark:border-slate-600">
+                        <i class="fas fa-hdd text-3xl mb-2"></i>
+                        <span class="text-xs">Replica C</span>
+                    </div>
+
+                    <!-- Packets -->
+                    <div id="packet-control" class="absolute w-5 h-5 rounded-full shadow-lg z-30 transition-all duration-700 ease-in-out hidden border-2 border-white dark:border-slate-900 bg-purple-500 flex items-center justify-center">
+                        <i class="fas fa-bolt text-[8px] text-white"></i>
+                    </div>
+                    <div id="packet-data" class="absolute w-5 h-5 rounded-full shadow-lg z-30 transition-all duration-700 ease-in-out hidden border-2 border-white dark:border-slate-900 bg-emerald-500 flex items-center justify-center text-[10px] text-white font-bold font-mono">D</div>
+                </div>
+
+                <!-- Legend -->
+                <div class="absolute top-8 right-8 bg-white/90 dark:bg-slate-800/90 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs shadow-sm z-10">
+                    <div class="flex items-center gap-2 mb-1">
+                        <div class="w-4 h-0.5 bg-purple-400"></div>
+                        <span class="text-slate-600 dark:text-slate-300">Control Flow</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-0.5 border-t-2 border-emerald-500 border-dashed"></div>
+                        <span class="text-slate-600 dark:text-slate-300">Data Pipeline</span>
+                    </div>
+                </div>
+
+                <!-- Explanation Panel -->
+                <div class="absolute bottom-0 left-0 w-full bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md p-6 border-t border-slate-200 dark:border-slate-800 transition-transform duration-500 z-30">
+                    <div class="flex items-start gap-4">
+                        <div id="step-number" class="w-8 h-8 rounded-full bg-slate-800 dark:bg-slate-700 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-inner">0</div>
+                        <div>
+                            <h4 id="step-title" class="font-bold text-lg mb-1 text-slate-900 dark:text-white">Ready to Write</h4>
+                            <p id="step-desc" class="text-slate-600 dark:text-slate-400 text-sm font-mono leading-relaxed">Click 'Next Step' to initiate the 7-step GFS write mutation protocol.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Namespace Management -->
+        <section id="namespace" class="p-8 md:p-12 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 scroll-mt-24 relative overflow-hidden shadow-xl">
+            <div class="flex flex-col gap-8">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-bold mb-6 border border-orange-200 dark:border-orange-800">
+                        <i class="fas fa-lock"></i> DISTRIBUTED LOCKING
+                    </div>
+                    <h2 class="text-3xl font-bold mb-4">Namespace Management</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed max-w-3xl">
+                        Unlike traditional file systems, GFS does not maintain a directory tree data structure. It maps full pathnames to metadata in a massive lookup table. 
+                        To ensure consistency during concurrent operations (like creating a file while deleting its parent), the Master applies a strict locking protocol on paths.
+                    </p>
+                </div>
+
+                <!-- Interactive Locking Demo -->
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-slate-100">Locking Protocol Simulator</h3>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="simLock('/usr/bin/java', 'snapshot')" class="text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all group bg-slate-50 dark:bg-slate-850">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-sm text-slate-700 dark:text-slate-300">Snapshot /usr/bin/java</span>
+                                    <i class="fas fa-camera text-slate-400 group-hover:text-emerald-500"></i>
+                                </div>
+                            </button>
+                            <button onclick="simLock('/home/docs/report.txt', 'create')" class="text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all group bg-slate-50 dark:bg-slate-850">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-sm text-slate-700 dark:text-slate-300">Create /home/docs/report.txt</span>
+                                    <i class="fas fa-plus text-slate-400 group-hover:text-emerald-500"></i>
+                                </div>
+                            </button>
+                            <button onclick="simLock('/data/big/chunk_01', 'write')" class="text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all group bg-slate-50 dark:bg-slate-850">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-mono text-sm text-slate-700 dark:text-slate-300">Write /data/big/chunk_01</span>
+                                    <i class="fas fa-pen text-slate-400 group-hover:text-emerald-500"></i>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            <p class="mb-2 font-bold uppercase text-slate-700 dark:text-slate-300">Locking Rules:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li><strong>Ancestors:</strong> Acquire <span class="text-emerald-600 dark:text-emerald-400 font-bold">Read Lock (Shared)</span>. Prevents deletion/rename of parent directories.</li>
+                                <li><strong>Target:</strong> Acquire <span class="text-red-600 dark:text-red-400 font-bold">Write Lock (Exclusive)</span> on the specific leaf node.</li>
+                                <li>Locks are acquired in strictly consistent path order to prevent deadlocks.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Visualizer -->
+                    <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-8 rounded-2xl min-h-[300px] flex flex-col justify-center items-center relative transition-all duration-300 shadow-sm" id="lock-viz">
+                        <div class="text-slate-400 text-sm font-mono absolute" id="lock-placeholder">
+                            <i class="fas fa-mouse-pointer mb-2 block text-center text-2xl opacity-50"></i>
+                            Select an operation to visualize locks
+                        </div>
+                        <div id="lock-container" class="flex flex-col gap-2 w-full max-w-sm hidden">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Deep Dive -->
+        <section id="architecture" class="scroll-mt-24">
+            <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
+                <span class="text-emerald-500">01.</span> Architecture Mechanics
+            </h2>
+            
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Master Node -->
+                <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-8 rounded-2xl border-t-4 border-t-purple-500 shadow-sm transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-4">Single Master Strategy</h3>
+                    <p class="text-slate-600 dark:text-slate-400 mb-4 text-sm leading-relaxed">
+                        To simplify design, GFS uses a single master. To prevent bottlenecks, clients <strong>never</strong> move data through the Master.
+                    </p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-emerald-500 mt-1"></i>
+                            <span class="text-slate-500">Holds file system metadata in RAM.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-check text-emerald-500 mt-1"></i>
+                            <span class="text-slate-500">Manages Leases and Garbage Collection.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
+                            <span class="text-slate-500">Single point of failure (mitigated by Shadow Masters).</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 64MB Chunks -->
+                <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-8 rounded-2xl border-t-4 border-t-emerald-500 shadow-sm transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-4">The 64MB Chunk</h3>
+                    <p class="text-slate-600 dark:text-slate-400 mb-4 text-sm leading-relaxed">
+                        Files are divided into fixed-size 64MB chunks. This is massive compared to standard OS block sizes (4KB).
+                    </p>
+                    <div class="bg-slate-100 dark:bg-slate-950 p-4 rounded-lg">
+                        <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Why so large?</h4>
+                        <ol class="list-decimal list-inside text-xs text-slate-600 dark:text-slate-400 space-y-1">
+                            <li>Reduces Master's metadata size (kept in RAM).</li>
+                            <li>Reduces client-master interaction.</li>
+                            <li>Persistent TCP connection to chunkservers.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Consistency Model -->
+                <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-8 rounded-2xl border-t-4 border-t-sky-500 shadow-sm transition-all duration-300">
+                    <h3 class="text-xl font-bold mb-4">Relaxed Consistency</h3>
+                    <p class="text-slate-600 dark:text-slate-400 mb-4 text-sm leading-relaxed">
+                        GFS relaxes consistency for performance. It distinguishes between <em>Consistent</em> and <em>Defined</em> states.
+                    </p>
+                    <div class="font-mono bg-slate-950 text-slate-300 rounded-lg p-5 overflow-x-auto text-sm border border-slate-800 shadow-inner whitespace-pre mt-4">
+<span class="com">// Atomic Record Append</span>
+<span class="kw">if</span> (write > 64MB) {
+  <span class="fn">pad_chunk</span>();
+  <span class="fn">retry_next_chunk</span>();
+} <span class="kw">else</span> {
+  <span class="fn">append_at_offset</span>();
+}</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deep Tech Analysis: Consistency -->
+        <section id="consistency" class="scroll-mt-24">
+             <div class="flex flex-col lg:flex-row gap-12">
+                <div class="lg:w-2/3">
+                    <h2 class="text-3xl font-bold mb-6 flex items-center gap-3">
+                        <span class="text-emerald-500">02.</span> The Consistency Model
+                    </h2>
+                    <p class="text-slate-600 dark:text-slate-400 mb-8 text-lg">
+                        GFS relaxes consistency to achieve high aggregate throughput. It distinguishes between a <strong>Defined</strong> state (all clients see same data, fully written) and a <strong>Consistent</strong> state (all clients see same data, but it might be partial/undefined).
+                    </p>
+                    
+                    <!-- Consistency Matrix Table -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 mb-8">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-100 dark:bg-slate-850 text-slate-500 dark:text-slate-400 uppercase font-mono text-xs">
+                                <tr>
+                                    <th class="px-6 py-3">Operation</th>
+                                    <th class="px-6 py-3">Write Success</th>
+                                    <th class="px-6 py-3">Concurrent Write Success</th>
+                                    <th class="px-6 py-3">Failure</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                                <tr>
+                                    <td class="px-6 py-4 font-bold">Region State</td>
+                                    <td class="px-6 py-4 text-emerald-600 dark:text-emerald-400">Defined</td>
+                                    <td class="px-6 py-4 text-amber-600 dark:text-amber-400">Consistent (Undefined)</td>
+                                    <td class="px-6 py-4 text-red-600 dark:text-red-400">Inconsistent</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-slate-500">Explanation</td>
+                                    <td class="px-6 py-4 text-slate-500">All replicas identical. Data is what app wrote.</td>
+                                    <td class="px-6 py-4 text-slate-500">All replicas identical, but data from multiple writers is interleaved.</td>
+                                    <td class="px-6 py-4 text-slate-500">Replicas differ. Client sees different data.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="space-y-6">
+                         <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-700 p-6 rounded-xl border-l-4 border-emerald-500 shadow-sm transition-all duration-300">
+                            <h4 class="font-bold text-slate-900 dark:text-white mb-2">Atomic Record Appends</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">
+                                Unlike standard writes where the client specifies the offset, in GFS appends, the <strong>Primary chooses the offset</strong>. If an append fails at a secondary, the client retries. This creates "padding" (garbage) regions in the file, but ensures that the data block exists <em>at least once</em> at the same offset on all replicas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:w-1/3 space-y-8">
+                    <div class="bg-slate-950 rounded-xl border border-slate-800 p-6 shadow-2xl">
+                        <div class="text-xs font-bold text-slate-500 mb-4 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-trash-alt"></i> Garbage Collection
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                            GFS does not reclaim physical storage immediately when a file is deleted.
+                        </p>
+                        <div class="font-mono bg-transparent p-0 border-0 text-slate-300 overflow-x-auto text-xs whitespace-pre">
+<span class="com">// 1. Rename to hidden file</span>
+<span class="fn">rename</span>(<span class="str">"foo"</span>, <span class="str">".trash/foo_timestamp"</span>);
+
+<span class="com">// 2. Master periodic scan</span>
+<span class="kw">if</span> (<span class="fn">now</span>() > file.deletion_time + <span class="str">3d</span>) {
+   <span class="fn">remove_metadata</span>(file);
+}
+
+<span class="com">// 3. Stale Replica Detection</span>
+<span class="com">// During Heartbeat</span>
+<span class="kw">if</span> (chunk.version < master.version) {
+   chunkserver.<span class="fn">delete</span>(chunk);
+}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white dark:bg-slate-950 py-20 px-6 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="text-center md:text-left">
+                <p class="font-bold text-xl mb-2 text-slate-900 dark:text-white">Arnab Bir</p>
+                <p class="text-slate-500 text-sm">Exploring the depths of distributed engineering.</p>
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-slate-400 hover:text-emerald-500 transition-colors"><i class="fab fa-github text-xl"></i></a>
+                <a href="#" class="text-slate-400 hover:text-emerald-500 transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
+                <a href="#" class="text-slate-400 hover:text-emerald-500 transition-colors"><i class="fas fa-envelope text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- THEME (synced with parent) ---
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        };
+
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                applyTheme(event.data.theme);
+            }
+        });
+
+        window.addEventListener('load', function() {
+            try {
+                if (window.parent && window.parent !== window) {
+                    const parentTheme = window.parent.document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                    applyTheme(parentTheme);
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+
+        // --- INTERACTIVE SIMULATION ---
+        const steps = [
+            {
+                title: "1. Ask Master",
+                desc: "Client asks Master: 'Who holds the lease for Chunk #42?'",
+                action: (ui) => {
+                    ui.movePacket('node-client', 'node-master', 'control', () => {
+                        document.getElementById('node-master').classList.add('ring-2', 'ring-purple-500');
+                    });
+                }
+            },
+            {
+                title: "2. Master Replies",
+                desc: "Master returns identity of Primary (A) and Secondaries (B, C).",
+                action: (ui) => {
+                    ui.movePacket('node-master', 'node-client', 'control');
+                    document.getElementById('node-master').classList.remove('ring-2', 'ring-purple-500');
+                }
+            },
+            {
+                title: "3. Data Pushing (Pipeline)",
+                desc: "Client pushes data to nearest replica (Replica B). Data flows B -> A -> C. It is buffered, not written yet.",
+                action: (ui) => {
+                    // Pipeline visualization: Client -> B -> A -> C
+                    ui.movePacket('node-client', 'node-s1', 'data', () => {
+                        ui.movePacket('node-s1', 'node-p', 'data', () => {
+                            ui.movePacket('node-p', 'node-s2', 'data');
+                        });
+                    });
+                }
+            },
+            {
+                title: "4. Write Request",
+                desc: "Once data is everywhere, Client sends 'Write' request to Primary.",
+                action: (ui) => {
+                     ui.movePacket('node-client', 'node-p', 'control');
+                }
+            },
+            {
+                title: "5. Primary Assigns Order",
+                desc: "Primary assigns serial number to mutation. Applies locally.",
+                action: (ui) => {
+                    document.getElementById('node-p').classList.add('animate-bounce-sm');
+                    setTimeout(() => document.getElementById('node-p').classList.remove('animate-bounce-sm'), 500);
+                }
+            },
+            {
+                title: "6. Forward Write",
+                desc: "Primary instructs Secondaries to apply mutation in same serial order.",
+                action: (ui) => {
+                    ui.movePacket('node-p', 'node-s1', 'control');
+                    ui.movePacket('node-p', 'node-s2', 'control');
+                }
+            },
+            {
+                title: "7. Acknowledgement",
+                desc: "Secondaries ACK to Primary. Primary replies 'Success' to Client.",
+                action: (ui) => {
+                    ui.movePacket('node-s1', 'node-p', 'control');
+                    ui.movePacket('node-s2', 'node-p', 'control', () => {
+                        setTimeout(() => ui.movePacket('node-p', 'node-client', 'control'), 500);
+                    });
+                }
+            }
+        ];
+
+        class Simulator {
+            constructor() {
+                this.currentStep = -1;
+                this.isAnimating = false;
+                this.packetControl = document.getElementById('packet-control');
+                this.packetData = document.getElementById('packet-data');
+                
+                document.getElementById('btn-next').addEventListener('click', () => this.next());
+                document.getElementById('btn-reset').addEventListener('click', () => this.reset());
+            }
+
+            reset() {
+                this.currentStep = -1;
+                this.updateUI("Ready to Write", "Click 'Next Step' to initiate the 7-step GFS write mutation protocol.");
+                this.packetControl.classList.add('hidden');
+                this.packetData.classList.add('hidden');
+                document.getElementById('node-master').classList.remove('ring-2', 'ring-purple-500');
+            }
+
+            next() {
+                if (this.isAnimating) return;
+                this.currentStep++;
+                if (this.currentStep >= steps.length) {
+                    this.reset();
+                    return;
+                }
+
+                const step = steps[this.currentStep];
+                this.updateUI(step.title, step.desc, this.currentStep + 1);
+                step.action(this);
+            }
+
+            updateUI(title, desc, num = 0) {
+                document.getElementById('step-title').innerText = title;
+                document.getElementById('step-desc').innerText = desc;
+                document.getElementById('step-number').innerText = num;
+            }
+
+            getCoords(id) {
+                const el = document.getElementById(id);
+                const rect = el.getBoundingClientRect();
+                // We need coords relative to the container (the parent of the grid)
+                // The grid container is the parent of the topology grid div
+                const parent = el.offsetParent.getBoundingClientRect();
+                return {
+                    x: rect.left - parent.left + rect.width / 2 - 10, // 10 is half packet width (w-5)
+                    y: rect.top - parent.top + rect.height / 2 - 10
+                };
+            }
+
+            movePacket(fromId, toId, type, callback) {
+                this.isAnimating = true;
+                const packet = type === 'control' ? this.packetControl : this.packetData;
+                const start = this.getCoords(fromId);
+                const end = this.getCoords(toId);
+
+                packet.style.left = `${start.x}px`;
+                packet.style.top = `${start.y}px`;
+                packet.classList.remove('hidden');
+
+                // Force reflow
+                void packet.offsetWidth;
+
+                packet.style.left = `${end.x}px`;
+                packet.style.top = `${end.y}px`;
+
+                setTimeout(() => {
+                    packet.classList.add('hidden');
+                    this.isAnimating = false;
+                    if (callback) callback();
+                }, 700);
+            }
+        }
+
+        new Simulator();
+
+
+        // --- NAMESPACE LOCKING SIMULATOR ---
+        function simLock(path, op) {
+            const container = document.getElementById('lock-container');
+            const placeholder = document.getElementById('lock-placeholder');
+            
+            placeholder.classList.add('hidden');
+            container.classList.remove('hidden');
+            container.innerHTML = '';
+
+            const parts = path.split('/').filter(p => p);
+            let currentPath = '';
+            
+            // Add root lock first
+            renderLock('/', 'READ (Shared)', 0, container);
+
+            parts.forEach((part, index) => {
+                const isLast = index === parts.length - 1;
+                const type = isLast ? 'WRITE (Exclusive)' : 'READ (Shared)';
+                const delay = (index + 1) * 300;
+                renderLock('/' + part, type, delay, container);
+            });
+        }
+
+        function renderLock(name, type, delay, container) {
+            const isWrite = type.includes('WRITE');
+            const color = isWrite ? 'border-red-500 text-red-600 dark:text-red-400 bg-red-500/10' : 'border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10';
+            const icon = isWrite ? 'fa-pen' : 'fa-eye';
+            
+            const el = document.createElement('div');
+            el.className = `p-3 rounded-lg border-l-4 ${color} font-mono text-sm opacity-0 transform translate-x-4 transition-all duration-500 mb-2 shadow-sm bg-white dark:bg-slate-800`;
+            el.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-700 dark:text-slate-200">${name}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded opacity-75 text-slate-600 dark:text-slate-400">${type}</span>
+                        <i class="fas ${icon} text-xs"></i>
+                    </div>
+                </div>
+            `;
+            container.appendChild(el);
+
+            setTimeout(() => {
+                el.classList.remove('opacity-0', 'translate-x-4');
+            }, delay);
+        }
+
+    </script>
+</body>
+</html>

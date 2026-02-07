@@ -40,6 +40,11 @@ function useCategoryRacks(items) {
       category,
       rackId: slugify(category),
       books,
+      bookCount: books.length,
+      chapterCount: books.reduce(
+        (sum, book) => sum + (book.chapters?.length || 1),
+        0
+      ),
     }));
   }, [items]);
 }
@@ -53,10 +58,15 @@ function RackCard({ rack, index }) {
       <CardHeader className="space-y-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">{rack.category}</CardTitle>
-          <Badge variant="secondary">{rack.books.length} books</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{rack.chapterCount} chapters</Badge>
+            <Badge variant="outline" className="text-[11px]">
+              {rack.bookCount} books
+            </Badge>
+          </div>
         </div>
         <CardDescription>
-          Each book becomes a chapter. Open the rack for the full table of contents.
+          Each rack bundles books into chapter-by-chapter study paths.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -65,11 +75,14 @@ function RackCard({ rack, index }) {
             <div key={book.id} className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary" />
               <span className="line-clamp-1">{book.title}</span>
+              <span className="text-xs text-muted-foreground">
+                {book.chapters?.length || 1} ch
+              </span>
             </div>
           ))}
           {rack.books.length > previewBooks.length && (
             <div className="text-xs text-muted-foreground">
-              +{rack.books.length - previewBooks.length} more chapters
+              +{rack.books.length - previewBooks.length} more books
             </div>
           )}
         </div>

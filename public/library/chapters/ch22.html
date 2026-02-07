@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Chapter 22 — Signals: Advanced Features</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Chapter 22 — Signals: Advanced Features</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Chapter metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">491</span> (0-based index 490).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>signals</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>sigaction</strong></span> <span class="pill"><strong>masks</strong></span> <span class="pill"><strong>handlers</strong></span> <span class="pill"><strong>EINTR</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Chapter 22 — Signals: Advanced Features
+          </h2>
+          <div class="subtitle">
+            <p>Signals are asynchronous control flow injected by the kernel. They’re powerful (timeouts, termination, child tracking) and dangerous (reentrancy, interrupted syscalls, handler safety). If you treat signals as “rare”, you’ll ship fragile code; if you treat them as a first-class concurrency primitive, you can build robust supervisors and event loops.</p><p>This guide focuses on signal *mechanics*: dispositions, masks, pending queues, SA_RESTART vs EINTR, and safe patterns (self-pipe/signalfd, flag + main loop).</p>
+          </div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Signal masks are per-thread; blocked signals become pending until unblocked.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Handlers are interrupt contexts; unsafe functions can deadlock/corrupt state.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Trace signals with strace -e trace=signal and inspect /proc/&lt;pid&gt;/status Sig* fields.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Mental model">Mental model</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+          </div>
+          <div class="prose">
+            <ul><li>Signals are asynchronous events delivered to threads with per-thread masks.</li><li>Handlers are interrupt contexts: minimal work, async-signal-safe only.</li><li>EINTR is a normal outcome; write loops that preserve deadlines.</li><li>Use sigaction to specify flags (SA_RESTART/SA_SIGINFO) and handler masks.</li><li>Pending signals deliver when unblocked; standard signals may coalesce.</li><li>For event loops, signalfd/self-pipe converts signals into fd readability.</li></ul>
+          </div>
+          <hr class="sep"/>
+          <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>Disposition</td><td>Per-signal behavior: default, ignore, or user handler (sigaction).</td></tr><tr><td class='mono'>Mask</td><td>Per-thread set of blocked signals; blocked signals become pending.</td></tr><tr><td class='mono'>Pending</td><td>Signals that have been generated but not yet delivered due to masking.</td></tr><tr><td class='mono'>SA_RESTART</td><td>Flag that causes some syscalls to restart after handler returns instead of returning EINTR.</td></tr><tr><td class='mono'>Async-signal-safe</td><td>Functions safe to call in a handler (e.g., write, _exit).</td></tr><tr><td class='mono'>signalfd</td><td>Linux fd API to receive signals as read() events; integrates with epoll.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Poke the simulators to build intuition. These labs are educational models (not exact kernel behavior) but preserve key invariants.
+  </div>
+  <div id="kg_ch22"></div>
+<div id="sig_ch22"></div>
+<div id="str_ch22"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            A compact map of the APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>sigaction</td><td class='mono'>int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Modern signal handler API; supports SA_RESTART, SA_SIGINFO, signal masks per handler.</td></tr><tr><td class='mono'>sigprocmask</td><td class='mono'>int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Blocks/unblocks signals for the calling thread (in NPTL). Use pthread_sigmask in threaded apps.</td></tr><tr><td class='mono'>timer_create</td><td class='mono'>int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid);</td><td class='mono muted2'>EAGAIN, EINVAL, ENOMEM</td><td>POSIX timers can deliver signals or notify via threads; choose CLOCK_MONOTONIC for intervals.</td></tr><tr><td class='mono'>signalfd</td><td class='mono'>int signalfd(int fd, const sigset_t *mask, int flags);</td><td class='mono muted2'>EINVAL, EBADF</td><td>Receives signals via a file descriptor; integrate with poll/epoll event loops.</td></tr>
+  </tbody>
+</table>
+          <div class="muted2 small" style="margin-top:12px">
+            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Edge cases & invariants">Edge cases & invariants</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            This is where production bugs live. Expand each panel and treat the bullets as test cases.
+          </div>
+          <details class="accordion">
+  <summary>Mask + pending queue: how to think about delivery</summary>
+  <div class="content"><ul><li>Each thread has a signal mask. A blocked signal becomes pending; it is delivered when unblocked.</li><li>Some signals coalesce (standard signals): multiple occurrences may merge into one pending instance; real-time signals can queue with data.</li><li>SIGKILL and SIGSTOP cannot be caught or blocked — design shutdown strategies accordingly.</li><li>Signal handlers run on the interrupted thread, on its stack (unless alt stack configured), with strict reentrancy constraints.</li></ul></div>
+</details><details class="accordion">
+  <summary>SA_RESTART vs EINTR: choose intentionally</summary>
+  <div class="content"><ul><li>With SA_RESTART, many blocking syscalls restart automatically after the handler returns. This reduces boilerplate but can hide wakeups.</li><li>Without SA_RESTART, syscalls return -1/EINTR and you control retry. This is often clearer for event loops and timeouts.</li><li>Always write code so that EINTR is safe even if you think it “won’t happen”. Production systems run with timers and signals.</li><li>If you use timeouts, consider clockconsiderations: restarting a syscall can extend the actual sleep beyond the intended deadline.</li></ul></div>
+</details><details class="accordion">
+  <summary>Safe handler patterns</summary>
+  <div class="content"><ul><li>Keep handlers tiny: set an atomic flag, write to a self-pipe/eventfd, or use signalfd to move handling into the main loop.</li><li>Only call async-signal-safe functions inside handlers. printf/malloc are not safe.</li><li>Use sigaction rather than signal(); specify masks to prevent handler reentrancy for the same signal when needed.</li><li>Test with high signal rates; races show up under stress.</li></ul></div>
+</details><details class="accordion">
+  <summary>Debugging workflow</summary>
+  <div class="content"><ul><li>strace can show EINTR and which syscalls were interrupted. Use -e trace=signal.</li><li>gdb can be configured to stop/pass/ignore signals; inspect siginfo_t for details.</li><li>Check /proc/&lt;pid&gt;/status for pending/blocked signals (SigPnd, ShdPnd, SigBlk).</li><li>If signals are used for shutdown, ensure the process cannot deadlock in a handler or during cleanup.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+    <h3 class="section" data-toc="Code patterns">Code patterns (C / POSIX) </h3>
+    <button class="btn small" data-copy="#code_ch22">Copy</button>
+  </div>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+  </div>
+  <pre id="code_ch22"><code class="mono">// EINTR-safe sleep-until-deadline (monotonic)
+int sleep_until(struct timespec deadline){
+  for(;;){
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &amp;now);
+    if ((now.tv_sec &gt; deadline.tv_sec) ||
+        (now.tv_sec==deadline.tv_sec &amp;&amp; now.tv_nsec&gt;=deadline.tv_nsec))
+      return 0;
+    struct timespec rem = { deadline.tv_sec - now.tv_sec,
+                            deadline.tv_nsec - now.tv_nsec };
+    if (rem.tv_nsec &lt; 0) { rem.tv_sec--; rem.tv_nsec += 1000000000L; }
+    if (nanosleep(&amp;rem, NULL) == 0) return 0;
+    if (errno == EINTR) continue;
+    return -1;
+  }
+}</code></pre>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+          </div>
+          <div class="prose">
+            <ul><li>Use sigaction (not signal) and define SA_RESTART policy intentionally.</li><li>Keep handlers async-signal-safe; move work to main loop via self-pipe/signalfd.</li><li>Design for EINTR everywhere. Even if you use SA_RESTART, assume some calls can still return EINTR.</li><li>Avoid signal-based synchronization between threads; use mutex/cond/atomics.</li><li>Test shutdown paths under load and during blocking syscalls.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Exercises">Exercises</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+          </div>
+          <div class="prose">
+            <ul><li>Implement a self-pipe trick: handler writes 1 byte to a pipe; main loop uses poll() to wake up safely.</li><li>Write a program that demonstrates SA_RESTART differences for read() and nanosleep().</li><li>Use sigsuspend() to wait for a signal without race windows (block → check predicate → sigsuspend).</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Click an option to check your understanding. The explanation points to the underlying invariant.
+          </div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Signals can interrupt blocking syscalls; callers must retry or handle partial progress.">
+  <div class="qp">Q1. Why do syscalls return EINTR?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">EOF</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Signal interrupted blocking syscall</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Kernel bug</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Permission denied</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="2" data-explain="Handlers must be async-signal-safe; set a flag or write to a pipe.">
+  <div class="qp">Q2. Which is a safe handler practice?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Call printf</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Allocate memory</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Set a flag and return</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Lock a mutex</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="In NPTL, signal masks are per-thread.">
+  <div class="qp">Q3. What does sigprocmask change in threaded programs?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Process-wide mask</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Calling thread&#x27;s mask</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Kernel mask</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Network mask</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Read like an operator</div>
+          <div class="muted small" style="line-height:1.7">
+            <div><span class="pill"><strong>Observe</strong> strace / /proc / ss</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Model</strong> kernel objects</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Prove</strong> with tests</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Measure</strong> perf + latency</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Chapter 22. Static HTML. 
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch22", n:22, subtitle:"Chapter 22 \u2014 Signals: Advanced Features"});
+    TLPIWidgets.mountKernelGraph("kg_ch22", {
+      title: "Kernel mental model (chapter context)",
+      subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (signals). Click to pin a tooltip.",
+      highlight: ["signal", "process", "thread", "timer", "scheduler"]
+    });
+TLPIWidgets.mountSignalLab("sig_ch22", {});
+TLPIWidgets.mountStraceParser("str_ch22", {example: "rt_sigaction(SIGINT, {sa_handler=0x401020, sa_flags=SA_RESTART}, NULL, 8) = 0\nread(0, 0x7ffd..., 1024) = -1 EINTR (Interrupted system call)\n--- SIGINT {si_signo=SIGINT, si_code=SI_KERNEL} ---\n"});
+  </script>
+</body>
+</html>

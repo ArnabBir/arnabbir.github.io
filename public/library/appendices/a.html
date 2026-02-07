@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Appendix A — Tracing System Calls</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Appendix A — Tracing System Calls</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Appendix metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1445</span> (0-based index 1444).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>io</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fd table</strong></span> <span class="pill"><strong>O_CLOEXEC</strong></span> <span class="pill"><strong>EINTR/EAGAIN</strong></span> <span class="pill"><strong>atomicity</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Appendix A — Tracing System Calls
+          </h2>
+          <div class="subtitle"><p>strace is one of the highest leverage tools in Linux systems programming. It answers a simple question: *what did the process ask the kernel to do, and what did the kernel say back?* When you can see the syscall boundary, most “mystery failures” collapse into a concrete errno and a missing invariant.</p><p>This appendix is a practical playbook: which strace flags to use, how to interpret noisy traces, and how to connect syscalls to kernel objects (fds, processes, signals, sockets).</p></div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">fd → open file description → inode. dup/fork share the open file description (offset + flags).</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Assuming read/write complete fully. They can return short counts or EINTR/EAGAIN.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Use strace -f -tt -T and inspect /proc/&lt;pid&gt;/fd for ground truth.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Key concepts">Key concepts</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Use these as a cross-chapter index: the same kernel objects reappear everywhere.
+          </div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>FD table</td><td>Per-process map: small integers → pointers to open file descriptions.</td></tr><tr><td class='mono'>Open file description</td><td>Kernel object holding file offset + status flags; shared via dup() and fork().</td></tr><tr><td class='mono'>Page cache</td><td>Caches file-backed pages in RAM; affects reads, writes, and durability.</td></tr><tr><td class='mono'>O_CLOEXEC</td><td>Close-on-exec flag preventing FD leakage into exec&#x27;d programs; set atomically where possible.</td></tr><tr><td class='mono'>EINTR</td><td>Error indicating a blocking syscall was interrupted by a signal; requires retry logic.</td></tr><tr><td class='mono'>EAGAIN</td><td>Nonblocking operation would block; treat as flow-control and retry later.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Appendices are practice-oriented: use these widgets to reinforce core mechanics and debugging posture.
+  </div>
+  <div id="kg_appA"></div>
+<div id="str_appA"></div>
+<div id="proc_appA"></div>
+<div id="fd_appA"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Deep dive">Deep dive</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Practical panels: tools, workflows, and invariants worth memorizing.
+          </div>
+          <details class="accordion">
+  <summary>Essential strace flags</summary>
+  <div class="content"><ul><li>-f: follow fork/clone/exec and trace the full process tree.</li><li>-tt and -T: include timestamps and syscall durations (useful for latency and hangs).</li><li>-s N: increase string size for seeing paths and buffers (careful with secrets).</li><li>-e trace=...: filter by category (file, process, network, signal, desc, memory).</li><li>-y: decode file descriptor paths (shows where fds point).</li></ul></div>
+</details><details class="accordion">
+  <summary>How to read traces like an engineer</summary>
+  <div class="content"><ul><li>Look for the *first failing syscall* (return -1) and read errno immediately. Later failures can be cascades.</li><li>Group syscalls by intent: startup (execve, openat), config reads, network connect/accept, main loop I/O.</li><li>Treat EINTR/EAGAIN as control flow, not &#x27;errors&#x27;. Check whether code retries or respects deadlines.</li><li>Correlate with /proc/&lt;pid&gt;/fd and /proc/&lt;pid&gt;/maps when you suspect leaks or memory mapping behavior.</li></ul></div>
+</details><details class="accordion">
+  <summary>Common signatures</summary>
+  <div class="content"><ul><li>ENOENT on execve/openat: missing file, missing interpreter, or missing library path component.</li><li>EACCES: permissions, mount noexec, or directory traversal blocked by execute bit.</li><li>EMFILE/ENFILE: per-process vs system-wide fd exhaustion — check rlimits and close-on-exec leaks.</li><li>EPIPE/SIGPIPE: writing to a pipe/socket with no reader; fix by handling SIGPIPE or using MSG_NOSIGNAL.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            APIs you’ll likely use while working through these topics.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>openat</td><td class='mono'>int openat(int dirfd, const char *path, int flags, mode_t mode /* optional */);</td><td class='mono muted2'>ENOENT, EACCES, ENOTDIR, EMFILE, ENFILE</td><td>Compose with *at() family to avoid TOCTOU. Use AT_FDCWD for CWD.</td></tr><tr><td class='mono'>read</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, EFAULT</td><td>Short reads are normal (pipes/sockets/tty). Loop until done; handle EINTR and EAGAIN for nonblocking.</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, EBADF, ENOSPC</td><td>Short writes are normal on pipes/sockets/nonblocking fds. SIGPIPE/EPIPE when peer is gone.</td></tr><tr><td class='mono'>close</td><td class='mono'>int close(int fd);</td><td class='mono muted2'>EBADF, EINTR</td><td>After close(), fd number can be reused; avoid close() races in multithreaded code.</td></tr><tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr><tr><td class='mono'>waitpid</td><td class='mono'>pid_t waitpid(pid_t pid, int *wstatus, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>Reaps children and collects exit status. Handle EINTR; use WNOHANG for nonblocking polls.</td></tr><tr><td class='mono'>socket</td><td class='mono'>int socket(int domain, int type, int protocol);</td><td class='mono muted2'>EAFNOSUPPORT, EPROTONOSUPPORT, EMFILE, ENFILE</td><td>Creates a socket fd. Use SOCK_CLOEXEC / SOCK_NONBLOCK to avoid races.</td></tr><tr><td class='mono'>connect</td><td class='mono'>int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EINPROGRESS, ECONNREFUSED, ETIMEDOUT, EHOSTUNREACH</td><td>In nonblocking mode returns EINPROGRESS; use poll/epoll for writability then check SO_ERROR.</td></tr><tr><td class='mono'>accept4</td><td class='mono'>int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, ECONNABORTED</td><td>Accepts connection; use SOCK_CLOEXEC|SOCK_NONBLOCK via accept4 to avoid fd races.</td></tr><tr><td class='mono'>sigaction</td><td class='mono'>int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Modern signal handler API; supports SA_RESTART, SA_SIGINFO, signal masks per handler.</td></tr><tr><td class='mono'>errno</td><td class='mono'>extern int errno; (thread-local)</td><td class='mono muted2'>—</td><td>Thread-local error indicator set by failing syscalls/libc wrappers; read immediately after failure.</td></tr><tr><td class='mono'>perror</td><td class='mono'>void perror(const char *s);</td><td class='mono muted2'>—</td><td>Prints s + error message for current errno to stderr.</td></tr>
+  </tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+            <h3 class="section" data-toc="Code patterns">Code patterns</h3>
+            <button class="btn small" data-copy="#code_appA">Copy</button>
+          </div>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Appendix snippets emphasize workflow and instrumentation.
+          </div>
+          <pre id="code_appA"><code class="mono"># Trace only file+process syscalls for a command, with timing.
+strace -f -tt -T -e trace=file,process -o trace.txt -- your_command --flags
+
+# Decode fd paths (-y) and enlarge strings (-s 256)
+strace -f -y -s 256 -- your_command
+
+# Attach to a running process
+strace -p &lt;pid&gt; -tt -T -e trace=network,signal
+</code></pre>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Checklists are how you stop repeating incidents.
+          </div>
+          <div class="prose"><ul><li>Set O_CLOEXEC / FD_CLOEXEC on all fds by default (use openat/pipe2/socket with CLOEXEC flags).</li><li>Handle partial I/O, EINTR, and EAGAIN in loops; never assume single-call completion.</li><li>Decide and document durability: if data must survive crash, use fsync/fdatasync and correct ordering.</li><li>Avoid mixing stdio and raw fd operations on the same underlying file descriptor unless you understand buffering.</li><li>Log errno with context (path, flags, fd) — it’s your future debugging time-saver.</li></ul></div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">Quick self-check.</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="strace traces syscalls: arguments, return values, and errors (errno).">
+  <div class="qp">Q1. What does strace show you?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Kernel source code</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Syscalls and their results/errno</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Only CPU usage</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Only network packets</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="EINTR indicates interruption by a signal; you must retry or handle it as control flow.">
+  <div class="qp">Q2. A syscall returning -1 EINTR means:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">The file ended</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">A signal interrupted the call</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Out of memory</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Permission denied</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="-f follows forks/clones/execs to trace the entire process tree.">
+  <div class="qp">Q3. Which strace flag follows fork/exec into children?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">-c</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">-f</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">-p</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">-o</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Appendix A. Static HTML.
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"appendix", id:"appA", letter:"A", subtitle:"Appendix A \u2014 Tracing System Calls"});
+    TLPIWidgets.mountKernelGraph("kg_appA", {
+      title: "Kernel object map (appendix context)",
+      subtitle: "Appendices reinforce the same kernel object model; hover nodes and connect concepts across chapters.",
+      highlight: ["fdtable", "file", "inode", "pagecache", "pipe", "epoll"]
+    });
+TLPIWidgets.mountStraceParser("str_appA", {example: "openat(AT_FDCWD, \"/etc/hosts\", O_RDONLY|O_CLOEXEC) = 3\nread(3, \"...\", 4096) = 172\nclose(3) = 0\n"});
+TLPIWidgets.mountProcLab("proc_appA", {});
+TLPIWidgets.mountFDLab("fd_appA", {});
+  </script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Appendix D — Kernel Configuration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Appendix D — Kernel Configuration</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Appendix metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1461</span> (0-based index 1460).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>sys</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>/proc</strong></span> <span class="pill"><strong>time</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Appendix D — Kernel Configuration
+          </h2>
+          <div class="subtitle"><p>Kernel configuration shows up in real debugging constantly: sysctls, /proc tunables, limits, and feature availability. Many “my code is broken” incidents are actually “the kernel is configured differently than you assumed”.</p><p>This appendix gives you a practical map of where configuration lives and how to reason about it safely.</p></div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Effective IDs + rlimits shape what your process can do.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">sysconf can return -1 for both error and &#x27;unlimited&#x27;—check errno.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Use /proc and prlimit/ulimit to inspect limits and runtime state.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Key concepts">Key concepts</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Use these as a cross-chapter index: the same kernel objects reappear everywhere.
+          </div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>UID/GID</td><td>User/group IDs controlling permission checks and access control decisions.</td></tr><tr><td class='mono'>rlimit</td><td>Resource limit preventing runaway usage (open files, memory, CPU).</td></tr><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing live kernel process state and system info.</td></tr><tr><td class='mono'>Clock</td><td>Time source (realtime vs monotonic) used for measurement and deadlines.</td></tr><tr><td class='mono'>errno</td><td>Thread-local error indicator set by failing syscalls.</td></tr><tr><td class='mono'>Capability</td><td>Fine-grained privilege bit; alternative to full root for some operations.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Appendices are practice-oriented: use these widgets to reinforce core mechanics and debugging posture.
+  </div>
+  <div id="kg_appD"></div>
+<div id="proc_appD"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Deep dive">Deep dive</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Practical panels: tools, workflows, and invariants worth memorizing.
+          </div>
+          <details class="accordion">
+  <summary>Where configuration lives</summary>
+  <div class="content"><ul><li>/proc/sys/*: sysctl interface (runtime tunables). Example: net.core.somaxconn influences listen backlog behavior.</li><li>/sys/*: device and subsystem configuration surfaces (cgroups, block devices, network).</li><li>/boot/config-$(uname -r): build-time kernel config (if installed).</li><li>sysctl(8) tool provides a stable interface to /proc/sys.</li></ul></div>
+</details><details class="accordion">
+  <summary>Operational safety rules</summary>
+  <div class="content"><ul><li>Treat configuration as part of your deployment contract. Document required sysctls and validate at startup.</li><li>Prefer per-service isolation (namespaces/cgroups) over global sysctls when possible.</li><li>Never change sysctls in ad-hoc ways on production systems without rollback and monitoring.</li><li>Understand scope: some sysctls are per-namespace; others are global.</li></ul></div>
+</details><details class="accordion">
+  <summary>Debugging patterns</summary>
+  <div class="content"><ul><li>If networking behaves oddly, check somaxconn, tcp_tw_reuse, and related tunables.</li><li>If memory behavior is weird, inspect overcommit and cgroup memory settings.</li><li>If file descriptor usage fails, check rlimits and fs.file-max.</li><li>Always record kernel version and config when collecting incident evidence.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            APIs you’ll likely use while working through these topics.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>uname</td><td class='mono'>int uname(struct utsname *buf);</td><td class='mono muted2'>EFAULT</td><td>Kernel/system identification (release, machine).</td></tr><tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>—</td><td>Queries runtime system limits (e.g., _SC_PAGESIZE). Returns -1 on error or when unlimited (check errno).</td></tr><tr><td class='mono'>getrlimit</td><td class='mono'>int getrlimit(int resource, struct rlimit *rlim);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Resource limits (RLIMIT_NOFILE, RLIMIT_AS, etc).</td></tr><tr><td class='mono'>setrlimit</td><td class='mono'>int setrlimit(int resource, const struct rlimit *rlim);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Raises/lowers resource limits; raising often requires privilege.</td></tr>
+  </tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+            <h3 class="section" data-toc="Code patterns">Code patterns</h3>
+            <button class="btn small" data-copy="#code_appD">Copy</button>
+          </div>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Appendix snippets emphasize workflow and instrumentation.
+          </div>
+          <pre id="code_appD"><code class="mono"># Inspect a few common sysctls (read-only)
+sysctl net.core.somaxconn
+sysctl fs.file-max
+sysctl vm.overcommit_memory
+
+# The raw files are in /proc/sys (dots become slashes)
+cat /proc/sys/net/core/somaxconn
+</code></pre>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Checklists are how you stop repeating incidents.
+          </div>
+          <div class="prose"><ul><li>Log effective IDs, rlimits, and key environment at startup for debuggability.</li><li>Use CLOCK_MONOTONIC for timeouts; never rely on realtime for deadlines.</li><li>Handle “unlimited” returns from sysconf/pathconf correctly (check errno).</li><li>Treat /proc as the source of truth for runtime state; build tooling around it.</li><li>Make errors actionable: include which resource, which limit, and current values.</li></ul></div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">Quick self-check.</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="0" data-explain="sysctl exposes runtime tunables via /proc/sys.">
+  <div class="qp">Q1. Where do sysctl runtime tunables live?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/proc/sys</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/etc/init.d</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/bin</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/tmp</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="Treat sysctls as part of the deployment contract and validate them.">
+  <div class="qp">Q2. Which is a safe operational practice?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Change sysctls randomly</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Document and validate required sysctls at startup</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Never measure</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Disable monitoring</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="Many distros install the kernel config under /boot/config-*.">
+  <div class="qp">Q3. Kernel build-time configuration is commonly found in:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/proc/sys</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/boot/config-$(uname -r)</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/dev/null</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/etc/passwd</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Appendix D. Static HTML.
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"appendix", id:"appD", letter:"D", subtitle:"Appendix D \u2014 Kernel Configuration"});
+    TLPIWidgets.mountKernelGraph("kg_appD", {
+      title: "Kernel object map (appendix context)",
+      subtitle: "Appendices reinforce the same kernel object model; hover nodes and connect concepts across chapters.",
+      highlight: ["process", "cred", "scheduler", "tty", "fdtable"]
+    });
+TLPIWidgets.mountProcLab("proc_appD", {});
+  </script>
+</body>
+</html>

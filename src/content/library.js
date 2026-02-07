@@ -3,7 +3,28 @@
  * Each item can be a standalone HTML page or embedded content
  */
 
+import { tlpiAppendices, tlpiChapters, tlpiMeta } from "./tlpi";
+
 export default [
+  {
+    id: "tlpi",
+    title: "The Linux Programming Interface - Interactive Companion",
+    description: "Interactive chapter-by-chapter companion to TLPI with kernel mental models, syscall maps, labs, and production notes.",
+    category: "Systems Programming",
+    tags: ["Linux", "OS", "Syscalls", "Kernel", "TLPI"],
+    contentPath: "/library/index.html",
+    date: "2026-02-06",
+    featured: true,
+    highlights: [
+      "64 interactive chapters plus appendices",
+      "Kernel mental model maps and syscall layers",
+      "Hands-on labs: processes, files, signals, sockets",
+      "Production debugging checklists and pitfalls"
+    ],
+    chapters: [...tlpiChapters, ...tlpiAppendices],
+    difficulty: "Advanced",
+    readingTime: `${tlpiMeta.chapterCount} chapters`,
+  },
   {
     id: "mendel",
     title: "Google Mendel: Overlapping Experiment Infrastructure",
@@ -21,28 +42,31 @@ export default [
       "Complete technical architecture breakdown"
     ],
     chapters: [
-      "Chapter 01 — Google Mendel: Overlapping Experiment Infrastructure",
-      "Chapter 02 — The Google File System (GFS)",
-      "Chapter 03 — MapReduce: Simplified Data Processing",
-      "Chapter 04 — Bigtable: A Distributed Storage System",
-      "Chapter 05 — The Chubby Lock Service",
-      "Chapter 06 — Spanner: Globally Distributed Database",
-      "Chapter 07 — Borg: The Cluster Management System",
-      "Chapter 08 — Dremel: Interactive Analysis of Web-Scale Data",
-      "Chapter 09 — Pregel: Large-Scale Graph Processing",
-      "Chapter 10 — F1: The Fault-Tolerant Distributed SQL Database",
-      "Chapter 11 — Colossus: The Google File System (Next Gen)",
-      "Chapter 12 — Percolator: Incremental Processing",
-      "Chapter 13 — MillWheel: Stream Processing System",
-      "Chapter 14 — TensorFlow: Large-Scale Machine Learning",
-      "Chapter 15 — Lambda Architecture (Google perspective)",
-      "Chapter 16 — Monarch: Planet-Scale Monitoring",
-      "Chapter 17 — Google Infrastructure Security Design",
-      "Chapter 18 — Photon / PubSub: Messaging at Scale",
-      "Chapter 19 — Jupiter Rising: Network Architecture at Google",
-      "Chapter 20 — Autopilot: Workload Management",
-      "Chapter 21 — Inside Google Datacenters & Networking",
-      "Chapter 22 — SRE Workbook Foundations (Google SRE)"
+      { title: "Google Mendel: Overlapping Experiment Infrastructure" },
+      {
+        title: "The Google File System (GFS)",
+        contentPath: "/library/google_file_system.html",
+      },
+      { title: "MapReduce: Simplified Data Processing" },
+      { title: "Bigtable: A Distributed Storage System" },
+      { title: "The Chubby Lock Service" },
+      { title: "Spanner: Globally Distributed Database" },
+      { title: "Borg: The Cluster Management System" },
+      { title: "Dremel: Interactive Analysis of Web-Scale Data" },
+      { title: "Pregel: Large-Scale Graph Processing" },
+      { title: "F1: The Fault-Tolerant Distributed SQL Database" },
+      { title: "Colossus: The Google File System (Next Gen)" },
+      { title: "Percolator: Incremental Processing" },
+      { title: "MillWheel: Stream Processing System" },
+      { title: "TensorFlow: Large-Scale Machine Learning" },
+      { title: "Lambda Architecture (Google perspective)" },
+      { title: "Monarch: Planet-Scale Monitoring" },
+      { title: "Google Infrastructure Security Design" },
+      { title: "Photon / PubSub: Messaging at Scale" },
+      { title: "Jupiter Rising: Network Architecture at Google" },
+      { title: "Autopilot: Workload Management" },
+      { title: "Inside Google Datacenters & Networking" },
+      { title: "SRE Workbook Foundations (Google SRE)" }
     ],
     difficulty: "Advanced",
     readingTime: "15 min",

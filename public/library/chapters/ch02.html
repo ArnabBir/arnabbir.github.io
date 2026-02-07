@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Chapter 02 — Fundamental Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Chapter 02 — Fundamental Concepts</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Chapter metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">65</span> (0-based index 64).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>intro</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>standards</strong></span> <span class="pill"><strong>POSIX</strong></span> <span class="pill"><strong>errno</strong></span> <span class="pill"><strong>man pages</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Chapter 02 — Fundamental Concepts
+          </h2>
+          <div class="subtitle">
+            <p>Systems programming is the discipline of writing software that *negotiates* with the operating system: files, processes, memory, time, and permissions. TLPI’s opening chapters build the vocabulary you’ll keep using for the rest of the book: standards, portability boundaries, and the mental model of “kernel objects + syscalls”.</p><p>For production work, the goal is not to memorize APIs. It’s to develop fast instincts for: (1) what the kernel is tracking, (2) which operations are atomic, (3) how errors surface (errno), and (4) how to debug by observation (strace, /proc, perf).</p>
+          </div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Syscalls expose kernel objects; libc wraps them and sets errno on failure.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Man pages have details in NOTES/CAVEATS that are easy to miss.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Use strace early; it quickly reveals the kernel boundary and errors.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Mental model">Mental model</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+          </div>
+          <div class="prose">
+            <ul><li>The kernel is a set of objects; syscalls are operations that mutate/query those objects.</li><li>The most important skill is reading man pages and mapping them to experiments.</li><li>Errors are part of the interface; errno is a first-class output.</li><li>Portability is a choice: write to standards or isolate Linux-specific optimizations.</li><li>Debugging starts by observing reality (strace, /proc) before hypothesizing.</li><li>Build small reproducible programs to validate assumptions.</li></ul>
+          </div>
+          <hr class="sep"/>
+          <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>Syscall</td><td>Kernel entry point providing OS services; invoked via libc wrappers.</td></tr><tr><td class='mono'>Libc wrapper</td><td>User-space function that prepares arguments and invokes syscall; may add compatibility logic.</td></tr><tr><td class='mono'>POSIX</td><td>Standard defining portable APIs and behavior; Linux adds extensions.</td></tr><tr><td class='mono'>Man pages</td><td>Primary interface documentation; section 2=syscalls, 3=libc.</td></tr><tr><td class='mono'>errno</td><td>Error reporting mechanism for many syscalls and libc calls.</td></tr><tr><td class='mono'>UAPI</td><td>User-space API headers defining kernel interfaces.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Poke the simulators to build intuition. These labs are educational models (not exact kernel behavior) but preserve key invariants.
+  </div>
+  <div id="kg_ch02"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            A compact map of the APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>open</td><td class='mono'>int open(const char *path, int flags, mode_t mode /* optional */);</td><td class='mono muted2'>ENOENT, EACCES, EISDIR, EMFILE, ENFILE, ENOSPC</td><td>Prefer openat() for race-resistant path handling; set O_CLOEXEC by default.</td></tr><tr><td class='mono'>read</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, EFAULT</td><td>Short reads are normal (pipes/sockets/tty). Loop until done; handle EINTR and EAGAIN for nonblocking.</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, EBADF, ENOSPC</td><td>Short writes are normal on pipes/sockets/nonblocking fds. SIGPIPE/EPIPE when peer is gone.</td></tr><tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr><tr><td class='mono'>mmap</td><td class='mono'>void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);</td><td class='mono muted2'>ENOMEM, EACCES, EINVAL, EBADF</td><td>Maps file/anon memory. Page faults happen on first touch; mind MAP_PRIVATE vs MAP_SHARED.</td></tr>
+  </tbody>
+</table>
+          <div class="muted2 small" style="margin-top:12px">
+            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Edge cases & invariants">Edge cases & invariants</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            This is where production bugs live. Expand each panel and treat the bullets as test cases.
+          </div>
+          <details class="accordion">
+  <summary>Standards and portability boundaries</summary>
+  <div class="content"><ul><li>POSIX defines interfaces; Linux adds extensions. glibc may offer wrappers that differ from raw syscalls.</li><li>When you care about portability, code to POSIX and isolate Linux-specific paths behind feature detection.</li><li>The kernel’s UAPI headers define syscall interfaces; user-space libraries provide ergonomics and compatibility layers.</li><li>In production, always specify target platforms (kernel + libc) explicitly.</li></ul></div>
+</details><details class="accordion">
+  <summary>Reading man pages like a pro</summary>
+  <div class="content"><ul><li>Man page sections matter: 2 = syscalls, 3 = libc. A function might exist in both with different meaning.</li><li>Check RETURN VALUE and ERRORS; treat errno list as part of your API contract.</li><li>Look for NOTES and CAVEATS: that’s where the dragons live (thread-safety, async-signal-safety, portability).</li><li>Confirm versions: some flags and syscalls require newer kernels or glibc.</li></ul></div>
+</details><details class="accordion">
+  <summary>Debugging workflow toolkit</summary>
+  <div class="content"><ul><li>strace: what the process asks the kernel to do (syscalls + errno).</li><li>ltrace: library calls (less reliable for modern systems but still useful).</li><li>/proc: live kernel view of a process (fds, maps, status).</li><li>perf: performance and kernel stacks; use when “it’s slow” is the bug.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+    <h3 class="section" data-toc="Code patterns">Code patterns (C / POSIX) </h3>
+    <button class="btn small" data-copy="#code_ch02">Copy</button>
+  </div>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+  </div>
+  <pre id="code_ch02"><code class="mono">// See man pages for the core APIs of this chapter.
+</code></pre>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+          </div>
+          <div class="prose">
+            <ul><li>Always read the ERRORS section of man pages and treat it as part of your API contract.</li><li>Write minimal experiments to confirm assumptions; keep strace/perf in your toolbox.</li><li>Separate portability layer from Linux-specific optimizations.</li><li>Make error messages actionable: include inputs and context.</li><li>Prefer simple, explicit invariants over clever code.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Exercises">Exercises</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+          </div>
+          <div class="prose">
+            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Click an option to check your understanding. The explanation points to the underlying invariant.
+          </div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
+  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Guessing</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Copying random code</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Avoiding errors</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
+  <div class="qp">Q2. Which is true about errno?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is global and never changes</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is only for networking</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
+  <div class="qp">Q3. A good debugging approach is:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with perf</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Ignore symptoms</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Read like an operator</div>
+          <div class="muted small" style="line-height:1.7">
+            <div><span class="pill"><strong>Observe</strong> strace / /proc / ss</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Model</strong> kernel objects</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Prove</strong> with tests</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Measure</strong> perf + latency</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Chapter 02. Static HTML. 
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch02", n:2, subtitle:"Chapter 02 \u2014 Fundamental Concepts"});
+    TLPIWidgets.mountKernelGraph("kg_ch02", {
+      title: "Kernel mental model (chapter context)",
+      subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (intro). Click to pin a tooltip.",
+      highlight: ["process", "fdtable", "file", "inode", "vmm", "signal", "socket"]
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+{
+  "generatedAt": "2026-02-06 20:53 UTC",
+  "chapters": [
+    {
+      "id": "ch01",
+      "n": 1,
+      "title": "History and Standards",
+      "pdfPageIndex": 44,
+      "href": "chapters/ch01.html"
+    },
+    {
+      "id": "ch02",
+      "n": 2,
+      "title": "Fundamental Concepts",
+      "pdfPageIndex": 64,
+      "href": "chapters/ch02.html"
+    },
+    {
+      "id": "ch03",
+      "n": 3,
+      "title": "System Programming Concepts",
+      "pdfPageIndex": 86,
+      "href": "chapters/ch03.html"
+    },
+    {
+      "id": "ch04",
+      "n": 4,
+      "title": "File I/O: The Universal I/O Model",
+      "pdfPageIndex": 112,
+      "href": "chapters/ch04.html"
+    },
+    {
+      "id": "ch05",
+      "n": 5,
+      "title": "File I/O: Further Details",
+      "pdfPageIndex": 132,
+      "href": "chapters/ch05.html"
+    },
+    {
+      "id": "ch06",
+      "n": 6,
+      "title": "Processes",
+      "pdfPageIndex": 156,
+      "href": "chapters/ch06.html"
+    },
+    {
+      "id": "ch07",
+      "n": 7,
+      "title": "Memory Allocation",
+      "pdfPageIndex": 182,
+      "href": "chapters/ch07.html"
+    },
+    {
+      "id": "ch08",
+      "n": 8,
+      "title": "Users and Groups",
+      "pdfPageIndex": 196,
+      "href": "chapters/ch08.html"
+    },
+    {
+      "id": "ch09",
+      "n": 9,
+      "title": "Process Credentials",
+      "pdfPageIndex": 210,
+      "href": "chapters/ch09.html"
+    },
+    {
+      "id": "ch10",
+      "n": 10,
+      "title": "Time",
+      "pdfPageIndex": 228,
+      "href": "chapters/ch10.html"
+    },
+    {
+      "id": "ch11",
+      "n": 11,
+      "title": "System Limits and Options",
+      "pdfPageIndex": 254,
+      "href": "chapters/ch11.html"
+    },
+    {
+      "id": "ch12",
+      "n": 12,
+      "title": "System and Process Information",
+      "pdfPageIndex": 266,
+      "href": "chapters/ch12.html"
+    },
+    {
+      "id": "ch13",
+      "n": 13,
+      "title": "File I/O Buffering",
+      "pdfPageIndex": 276,
+      "href": "chapters/ch13.html"
+    },
+    {
+      "id": "ch14",
+      "n": 14,
+      "title": "File Systems",
+      "pdfPageIndex": 294,
+      "href": "chapters/ch14.html"
+    },
+    {
+      "id": "ch15",
+      "n": 15,
+      "title": "File Attributes",
+      "pdfPageIndex": 322,
+      "href": "chapters/ch15.html"
+    },
+    {
+      "id": "ch16",
+      "n": 16,
+      "title": "Extended Attributes",
+      "pdfPageIndex": 354,
+      "href": "chapters/ch16.html"
+    },
+    {
+      "id": "ch17",
+      "n": 17,
+      "title": "Access Control Lists",
+      "pdfPageIndex": 362,
+      "href": "chapters/ch17.html"
+    },
+    {
+      "id": "ch18",
+      "n": 18,
+      "title": "Directories and Links",
+      "pdfPageIndex": 382,
+      "href": "chapters/ch18.html"
+    },
+    {
+      "id": "ch19",
+      "n": 19,
+      "title": "Monitoring File Events",
+      "pdfPageIndex": 418,
+      "href": "chapters/ch19.html"
+    },
+    {
+      "id": "ch20",
+      "n": 20,
+      "title": "Signals: Fundamental Concepts",
+      "pdfPageIndex": 430,
+      "href": "chapters/ch20.html"
+    },
+    {
+      "id": "ch21",
+      "n": 21,
+      "title": "Signals: Signal Handlers",
+      "pdfPageIndex": 464,
+      "href": "chapters/ch21.html"
+    },
+    {
+      "id": "ch22",
+      "n": 22,
+      "title": "Signals: Advanced Features",
+      "pdfPageIndex": 490,
+      "href": "chapters/ch22.html"
+    },
+    {
+      "id": "ch23",
+      "n": 23,
+      "title": "Timers and Sleeping",
+      "pdfPageIndex": 522,
+      "href": "chapters/ch23.html"
+    },
+    {
+      "id": "ch24",
+      "n": 24,
+      "title": "Process Creation",
+      "pdfPageIndex": 556,
+      "href": "chapters/ch24.html"
+    },
+    {
+      "id": "ch25",
+      "n": 25,
+      "title": "Process Termination",
+      "pdfPageIndex": 574,
+      "href": "chapters/ch25.html"
+    },
+    {
+      "id": "ch26",
+      "n": 26,
+      "title": "Monitoring Child Processes",
+      "pdfPageIndex": 584,
+      "href": "chapters/ch26.html"
+    },
+    {
+      "id": "ch27",
+      "n": 27,
+      "title": "Program Execution",
+      "pdfPageIndex": 606,
+      "href": "chapters/ch27.html"
+    },
+    {
+      "id": "ch28",
+      "n": 28,
+      "title": "Process Creation and Program Execution in More Detail",
+      "pdfPageIndex": 634,
+      "href": "chapters/ch28.html"
+    },
+    {
+      "id": "ch29",
+      "n": 29,
+      "title": "Threads: Introduction",
+      "pdfPageIndex": 660,
+      "href": "chapters/ch29.html"
+    },
+    {
+      "id": "ch30",
+      "n": 30,
+      "title": "Threads: Thread Synchronization",
+      "pdfPageIndex": 674,
+      "href": "chapters/ch30.html"
+    },
+    {
+      "id": "ch31",
+      "n": 31,
+      "title": "Threads: Thread Safety and Per-Thread Storage",
+      "pdfPageIndex": 698,
+      "href": "chapters/ch31.html"
+    },
+    {
+      "id": "ch32",
+      "n": 32,
+      "title": "Threads: Thread Cancellation",
+      "pdfPageIndex": 714,
+      "href": "chapters/ch32.html"
+    },
+    {
+      "id": "ch33",
+      "n": 33,
+      "title": "Threads: Further Details",
+      "pdfPageIndex": 724,
+      "href": "chapters/ch33.html"
+    },
+    {
+      "id": "ch34",
+      "n": 34,
+      "title": "Process Groups, Sessions, and Job Control",
+      "pdfPageIndex": 742,
+      "href": "chapters/ch34.html"
+    },
+    {
+      "id": "ch35",
+      "n": 35,
+      "title": "Process Priorities and Scheduling",
+      "pdfPageIndex": 776,
+      "href": "chapters/ch35.html"
+    },
+    {
+      "id": "ch36",
+      "n": 36,
+      "title": "Process Resources",
+      "pdfPageIndex": 796,
+      "href": "chapters/ch36.html"
+    },
+    {
+      "id": "ch37",
+      "n": 37,
+      "title": "Daemons",
+      "pdfPageIndex": 810,
+      "href": "chapters/ch37.html"
+    },
+    {
+      "id": "ch38",
+      "n": 38,
+      "title": "Writing Secure Privileged Programs",
+      "pdfPageIndex": 826,
+      "href": "chapters/ch38.html"
+    },
+    {
+      "id": "ch39",
+      "n": 39,
+      "title": "Capabilities",
+      "pdfPageIndex": 840,
+      "href": "chapters/ch39.html"
+    },
+    {
+      "id": "ch40",
+      "n": 40,
+      "title": "Login Accounting",
+      "pdfPageIndex": 860,
+      "href": "chapters/ch40.html"
+    },
+    {
+      "id": "ch41",
+      "n": 41,
+      "title": "Fundamentals of Shared Libraries",
+      "pdfPageIndex": 876,
+      "href": "chapters/ch41.html"
+    },
+    {
+      "id": "ch42",
+      "n": 42,
+      "title": "Advanced Features of Shared Libraries",
+      "pdfPageIndex": 902,
+      "href": "chapters/ch42.html"
+    },
+    {
+      "id": "ch43",
+      "n": 43,
+      "title": "Interprocess Communication Overview",
+      "pdfPageIndex": 920,
+      "href": "chapters/ch43.html"
+    },
+    {
+      "id": "ch44",
+      "n": 44,
+      "title": "Pipes and FIFOs",
+      "pdfPageIndex": 932,
+      "href": "chapters/ch44.html"
+    },
+    {
+      "id": "ch45",
+      "n": 45,
+      "title": "Introduction to System V IPC",
+      "pdfPageIndex": 964,
+      "href": "chapters/ch45.html"
+    },
+    {
+      "id": "ch46",
+      "n": 46,
+      "title": "System V Message Queues",
+      "pdfPageIndex": 980,
+      "href": "chapters/ch46.html"
+    },
+    {
+      "id": "ch47",
+      "n": 47,
+      "title": "System V Semaphores",
+      "pdfPageIndex": 1008,
+      "href": "chapters/ch47.html"
+    },
+    {
+      "id": "ch48",
+      "n": 48,
+      "title": "System V Shared Memory",
+      "pdfPageIndex": 1040,
+      "href": "chapters/ch48.html"
+    },
+    {
+      "id": "ch49",
+      "n": 49,
+      "title": "Memory Mappings",
+      "pdfPageIndex": 1060,
+      "href": "chapters/ch49.html"
+    },
+    {
+      "id": "ch50",
+      "n": 50,
+      "title": "Virtual Memory Operations",
+      "pdfPageIndex": 1088,
+      "href": "chapters/ch50.html"
+    },
+    {
+      "id": "ch51",
+      "n": 51,
+      "title": "Introduction to POSIX IPC",
+      "pdfPageIndex": 1100,
+      "href": "chapters/ch51.html"
+    },
+    {
+      "id": "ch52",
+      "n": 52,
+      "title": "POSIX Message Queues",
+      "pdfPageIndex": 1106,
+      "href": "chapters/ch52.html"
+    },
+    {
+      "id": "ch53",
+      "n": 53,
+      "title": "POSIX Semaphores",
+      "pdfPageIndex": 1132,
+      "href": "chapters/ch53.html"
+    },
+    {
+      "id": "ch54",
+      "n": 54,
+      "title": "POSIX Shared Memory",
+      "pdfPageIndex": 1150,
+      "href": "chapters/ch54.html"
+    },
+    {
+      "id": "ch55",
+      "n": 55,
+      "title": "File Locking",
+      "pdfPageIndex": 1160,
+      "href": "chapters/ch55.html"
+    },
+    {
+      "id": "ch56",
+      "n": 56,
+      "title": "Sockets: Introduction",
+      "pdfPageIndex": 1192,
+      "href": "chapters/ch56.html"
+    },
+    {
+      "id": "ch57",
+      "n": 57,
+      "title": "Sockets: UNIX Domain",
+      "pdfPageIndex": 1208,
+      "href": "chapters/ch57.html"
+    },
+    {
+      "id": "ch58",
+      "n": 58,
+      "title": "Sockets: Fundamentals of TCP/IP Networks",
+      "pdfPageIndex": 1222,
+      "href": "chapters/ch58.html"
+    },
+    {
+      "id": "ch59",
+      "n": 59,
+      "title": "Sockets: Internet Domains",
+      "pdfPageIndex": 1240,
+      "href": "chapters/ch59.html"
+    },
+    {
+      "id": "ch60",
+      "n": 60,
+      "title": "Sockets: Server Design",
+      "pdfPageIndex": 1282,
+      "href": "chapters/ch60.html"
+    },
+    {
+      "id": "ch61",
+      "n": 61,
+      "title": "Sockets: Advanced Topics",
+      "pdfPageIndex": 1296,
+      "href": "chapters/ch61.html"
+    },
+    {
+      "id": "ch62",
+      "n": 62,
+      "title": "Terminals",
+      "pdfPageIndex": 1332,
+      "href": "chapters/ch62.html"
+    },
+    {
+      "id": "ch63",
+      "n": 63,
+      "title": "Alternative I/O Models",
+      "pdfPageIndex": 1368,
+      "href": "chapters/ch63.html"
+    },
+    {
+      "id": "ch64",
+      "n": 64,
+      "title": "Pseudoterminals",
+      "pdfPageIndex": 1418,
+      "href": "chapters/ch64.html"
+    }
+  ],
+  "appendices": [
+    {
+      "id": "appA",
+      "letter": "A",
+      "title": "Tracing System Calls",
+      "pdfPageIndex": 1444,
+      "href": "appendices/a.html"
+    },
+    {
+      "id": "appB",
+      "letter": "B",
+      "title": "Parsing Command-Line Options",
+      "pdfPageIndex": 1448,
+      "href": "appendices/b.html"
+    },
+    {
+      "id": "appC",
+      "letter": "C",
+      "title": "Casting the NULL Pointer",
+      "pdfPageIndex": 1456,
+      "href": "appendices/c.html"
+    },
+    {
+      "id": "appD",
+      "letter": "D",
+      "title": "Kernel Configuration",
+      "pdfPageIndex": 1460,
+      "href": "appendices/d.html"
+    },
+    {
+      "id": "appE",
+      "letter": "E",
+      "title": "Further Sources of Information",
+      "pdfPageIndex": 1462,
+      "href": "appendices/e.html"
+    },
+    {
+      "id": "appF",
+      "letter": "F",
+      "title": "Solutions to Selected Exercises",
+      "pdfPageIndex": 1468,
+      "href": "appendices/f.html"
+    }
+  ],
+  "book": {
+    "title": "The Linux Programming Interface",
+    "short": "TLPI",
+    "totalChapters": 64
+  }
+}

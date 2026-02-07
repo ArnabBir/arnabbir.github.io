@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Chapter 41 — Fundamentals of Shared Libraries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Chapter 41 — Fundamentals of Shared Libraries</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Chapter metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">877</span> (0-based index 876).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>libs</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>ELF</strong></span> <span class="pill"><strong>ld.so</strong></span> <span class="pill"><strong>dlopen</strong></span> <span class="pill"><strong>symbol resolution</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Chapter 41 — Fundamentals of Shared Libraries
+          </h2>
+          <div class="subtitle">
+            <p>Shared libraries are a performance and deployment trick: code is mapped once and shared, with relocations and symbol resolution performed by the dynamic loader. Understanding ELF + ld.so pays off when debugging “works on my machine”, ABI breakage, or strange symbol conflicts.</p><p>This guide emphasizes operational debugging: ldd, readelf, LD_DEBUG, RTLD_LOCAL/RTLD_GLOBAL, and why dlopen plugins can cause subtle versioning issues.</p>
+          </div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Dynamic loader maps shared objects and resolves symbols at runtime.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Symbol collisions and search paths cause “works on my machine” failures.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Use readelf/ldd and LD_DEBUG to see resolution decisions.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Mental model">Mental model</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+          </div>
+          <div class="prose">
+            <ul><li>Dynamic linking maps code into memory and resolves symbols at runtime.</li><li>Symbol resolution order and scope rules can cause surprising conflicts.</li><li>dlopen plugins introduce lifecycle issues: unload safety and global namespace pollution.</li><li>ABI compatibility is a contract: versioning and consistent build flags matter.</li><li>Observability tools (readelf, LD_DEBUG) turn “mystery loader errors” into facts.</li><li>Pin and validate dependencies in production builds.</li></ul>
+          </div>
+          <hr class="sep"/>
+          <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>ELF</td><td>Executable and Linkable Format: binary format for Linux executables and shared objects.</td></tr><tr><td class='mono'>ld.so</td><td>Dynamic loader that maps libraries and resolves symbols at program startup or dlopen.</td></tr><tr><td class='mono'>RPATH/RUNPATH</td><td>Embedded search paths for shared libraries; affects resolution order.</td></tr><tr><td class='mono'>Symbol versioning</td><td>Mechanism allowing multiple ABI versions of a symbol to coexist.</td></tr><tr><td class='mono'>RTLD_LOCAL</td><td>dlopen flag that keeps symbols local to that object; avoids polluting global namespace.</td></tr><tr><td class='mono'>PLT/GOT</td><td>Indirection tables used for dynamic calls and relocations.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Poke the simulators to build intuition. These labs are educational models (not exact kernel behavior) but preserve key invariants.
+  </div>
+  <div id="kg_ch41"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            A compact map of the APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>dlopen</td><td class='mono'>void *dlopen(const char *filename, int flag);</td><td class='mono muted2'>—</td><td>Loads shared objects dynamically. Pair with dlsym; watch symbol visibility and RTLD_LOCAL/RTLD_GLOBAL.</td></tr><tr><td class='mono'>dlsym</td><td class='mono'>void *dlsym(void *handle, const char *symbol);</td><td class='mono muted2'>—</td><td>Looks up symbol from a dlopen() handle; errors via dlerror().</td></tr><tr><td class='mono'>dlclose</td><td class='mono'>int dlclose(void *handle);</td><td class='mono muted2'>—</td><td>Decrements refcount and may unload library; beware of calling into unloaded code.</td></tr>
+  </tbody>
+</table>
+          <div class="muted2 small" style="margin-top:12px">
+            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Edge cases & invariants">Edge cases & invariants</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            This is where production bugs live. Expand each panel and treat the bullets as test cases.
+          </div>
+          <details class="accordion">
+  <summary>Dynamic linking mental model</summary>
+  <div class="content"><ul><li>A shared library is mapped into memory (mmap) and relocations resolve references to symbols.</li><li>Symbol resolution follows a search order (RPATH/RUNPATH, LD_LIBRARY_PATH, default paths) and scope rules.</li><li>Versioned symbols allow ABI evolution but can cause confusing runtime errors when mismatched.</li><li>Plugins via dlopen introduce another layer: unload safety and global symbol pollution.</li></ul></div>
+</details><details class="accordion">
+  <summary>Debugging workflow</summary>
+  <div class="content"><ul><li>Use ldd to see dependencies (but be careful: it can execute code in some cases).</li><li>Use readelf/objdump to inspect ELF headers, dynamic section, and symbol tables.</li><li>LD_DEBUG=libs,bindings provides loader diagnostics.</li><li>For production, pin versions and validate at startup; dynamic surprises are expensive.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+    <h3 class="section" data-toc="Code patterns">Code patterns (C / POSIX) </h3>
+    <button class="btn small" data-copy="#code_ch41">Copy</button>
+  </div>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+  </div>
+  <pre id="code_ch41"><code class="mono">// dlopen plugin pattern (outline)
+void *h = dlopen(&quot;./plugin.so&quot;, RTLD_NOW|RTLD_LOCAL);
+if(!h) die(dlerror());
+typedef int (*fn_t)(int);
+fn_t f = (fn_t)dlsym(h, &quot;plugin_entry&quot;);
+if(!f) die(dlerror());
+int r = f(42);
+dlclose(h);</code></pre>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+          </div>
+          <div class="prose">
+            <ul><li>Pin ABI versions; test startup for required symbol versions.</li><li>Prefer RTLD_LOCAL for plugins unless you explicitly need global symbol sharing.</li><li>Avoid unloading libraries if callbacks/threads may still execute code from them.</li><li>Use loader diagnostics (LD_DEBUG) in controlled environments; avoid leaking in production logs.</li><li>Document build flags and runtime search paths to prevent dependency drift.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Exercises">Exercises</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+          </div>
+          <div class="prose">
+            <ul><li>Create a tiny plugin system using dlopen/dlsym; load a shared object at runtime and call a function pointer.</li><li>Use LD_DEBUG=libs to observe library search and resolution order for a binary.</li><li>Demonstrate symbol collisions with RTLD_GLOBAL and fix using RTLD_LOCAL + versioning.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Click an option to check your understanding. The explanation points to the underlying invariant.
+          </div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
+  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Guessing</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Copying random code</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Avoiding errors</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
+  <div class="qp">Q2. Which is true about errno?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is global and never changes</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is only for networking</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
+  <div class="qp">Q3. A good debugging approach is:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with perf</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Ignore symptoms</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Read like an operator</div>
+          <div class="muted small" style="line-height:1.7">
+            <div><span class="pill"><strong>Observe</strong> strace / /proc / ss</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Model</strong> kernel objects</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Prove</strong> with tests</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Measure</strong> perf + latency</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Chapter 41. Static HTML. 
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch41", n:41, subtitle:"Chapter 41 \u2014 Fundamentals of Shared Libraries"});
+    TLPIWidgets.mountKernelGraph("kg_ch41", {
+      title: "Kernel mental model (chapter context)",
+      subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (libs). Click to pin a tooltip.",
+      highlight: ["process", "vmm", "file"]
+    });
+  </script>
+</body>
+</html>

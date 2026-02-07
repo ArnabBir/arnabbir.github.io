@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Appendix E — Further Sources of Information</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Appendix E — Further Sources of Information</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Appendix metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1463</span> (0-based index 1462).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>intro</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>standards</strong></span> <span class="pill"><strong>POSIX</strong></span> <span class="pill"><strong>errno</strong></span> <span class="pill"><strong>man pages</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Appendix E — Further Sources of Information
+          </h2>
+          <div class="subtitle"><p>This appendix is your map for going deeper than TLPI. When you hit a subtle behavior or performance issue, you need primary sources: kernel docs, libc docs, and reproducible experiments.</p><p>Use this as a checklist of where to look depending on the kind of question you have (API semantics vs performance vs security).</p></div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Syscalls expose kernel objects; libc wraps them and sets errno on failure.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Man pages have details in NOTES/CAVEATS that are easy to miss.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Use strace early; it quickly reveals the kernel boundary and errors.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Key concepts">Key concepts</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Use these as a cross-chapter index: the same kernel objects reappear everywhere.
+          </div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>Syscall</td><td>Kernel entry point providing OS services; invoked via libc wrappers.</td></tr><tr><td class='mono'>Libc wrapper</td><td>User-space function that prepares arguments and invokes syscall; may add compatibility logic.</td></tr><tr><td class='mono'>POSIX</td><td>Standard defining portable APIs and behavior; Linux adds extensions.</td></tr><tr><td class='mono'>Man pages</td><td>Primary interface documentation; section 2=syscalls, 3=libc.</td></tr><tr><td class='mono'>errno</td><td>Error reporting mechanism for many syscalls and libc calls.</td></tr><tr><td class='mono'>UAPI</td><td>User-space API headers defining kernel interfaces.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Appendices are practice-oriented: use these widgets to reinforce core mechanics and debugging posture.
+  </div>
+  <div id="kg_appE"></div>
+<div id="str_appE"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Deep dive">Deep dive</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Practical panels: tools, workflows, and invariants worth memorizing.
+          </div>
+          <details class="accordion">
+  <summary>Primary sources</summary>
+  <div class="content"><ul><li>man 2/3 and man7.org for syscall/libc behavior.</li><li>Linux kernel documentation (in the kernel tree) for subsystem internals.</li><li>glibc manual for libc-level semantics (stdio, threads, locale).</li><li>POSIX/SUS docs for portability requirements and defined behavior.</li></ul></div>
+</details><details class="accordion">
+  <summary>Performance &amp; tracing</summary>
+  <div class="content"><ul><li>perf: profiling and kernel stacks.</li><li>eBPF/BCC/bpftrace: dynamic instrumentation and latency debugging.</li><li>ftrace/tracefs: kernel-level function and event tracing.</li><li>Flame graphs for visualizing CPU stacks.</li></ul></div>
+</details><details class="accordion">
+  <summary>Security &amp; hardening</summary>
+  <div class="content"><ul><li>Capabilities and securebits: model privilege transitions.</li><li>seccomp for syscall filtering.</li><li>Namespaces + cgroups for isolation and resource control.</li><li>Audit logs (if enabled) for security-relevant events.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            APIs you’ll likely use while working through these topics.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>perror</td><td class='mono'>void perror(const char *s);</td><td class='mono muted2'>—</td><td>Prints s + error message for current errno to stderr.</td></tr><tr><td class='mono'>errno</td><td class='mono'>extern int errno; (thread-local)</td><td class='mono muted2'>—</td><td>Thread-local error indicator set by failing syscalls/libc wrappers; read immediately after failure.</td></tr><tr><td class='mono'>strerror</td><td class='mono'>char *strerror(int errnum);</td><td class='mono muted2'>—</td><td>Maps errno value to human-readable string; strerror_r() is safer in threads.</td></tr>
+  </tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+            <h3 class="section" data-toc="Code patterns">Code patterns</h3>
+            <button class="btn small" data-copy="#code_appE">Copy</button>
+          </div>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Appendix snippets emphasize workflow and instrumentation.
+          </div>
+          <pre id="code_appE"><code class="mono"># A fast “learn by observation” loop
+# 1) write a minimal reproducer
+# 2) strace it
+# 3) read the relevant man pages
+# 4) confirm with /proc and measurements
+
+strace -f -tt -T -o trace.txt -- ./repro
+man 2 openat
+man 2 epoll_wait
+</code></pre>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Checklists are how you stop repeating incidents.
+          </div>
+          <div class="prose"><ul><li>Always read the ERRORS section of man pages and treat it as part of your API contract.</li><li>Write minimal experiments to confirm assumptions; keep strace/perf in your toolbox.</li><li>Separate portability layer from Linux-specific optimizations.</li><li>Make error messages actionable: include inputs and context.</li><li>Prefer simple, explicit invariants over clever code.</li></ul></div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">Quick self-check.</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
+  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Guessing</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Copying random code</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Avoiding errors</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
+  <div class="qp">Q2. Which is true about errno?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is global and never changes</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is only for networking</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
+  <div class="qp">Q3. A good debugging approach is:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with perf</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Ignore symptoms</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Appendix E. Static HTML.
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"appendix", id:"appE", letter:"E", subtitle:"Appendix E \u2014 Further Sources of Information"});
+    TLPIWidgets.mountKernelGraph("kg_appE", {
+      title: "Kernel object map (appendix context)",
+      subtitle: "Appendices reinforce the same kernel object model; hover nodes and connect concepts across chapters.",
+      highlight: ["process", "fdtable", "file", "inode", "vmm", "signal", "socket"]
+    });
+TLPIWidgets.mountStraceParser("str_appE", {example: "openat(AT_FDCWD, \"/etc/ld.so.cache\", O_RDONLY|O_CLOEXEC) = 3\nread(3, \"...\", 4096) = 4096\nclose(3) = 0\n"});
+  </script>
+</body>
+</html>

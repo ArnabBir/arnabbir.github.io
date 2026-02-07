@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { ArrowLeft, BookOpen, Home, Loader2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -17,6 +17,7 @@ import { libraryContent } from "@/content";
 export default function LibraryItem() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, resolvedTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,6 +26,36 @@ export default function LibraryItem() {
 
   // Find the library item
   const libraryItem = libraryContent.find((item) => item.id === id);
+
+  const searchParams = new URLSearchParams(location.search);
+  const chapterParam = parseInt(searchParams.get("chapter") || "", 10);
+  const chapterIndex = Number.isFinite(chapterParam) ? chapterParam - 1 : null;
+  const rawChapter =
+    libraryItem && chapterIndex !== null && libraryItem.chapters?.[chapterIndex]
+      ? libraryItem.chapters[chapterIndex]
+      : null;
+  const chapterTitle =
+    rawChapter && typeof rawChapter === "string" ? rawChapter : rawChapter?.title;
+  const chapterContentPath =
+    rawChapter && typeof rawChapter === "object" && rawChapter.contentPath
+      ? rawChapter.contentPath
+      : null;
+
+  const activeTitle = chapterTitle || libraryItem?.title || "";
+  const activeContentPath = chapterContentPath || libraryItem?.contentPath || "";
+  const appendixMatch = chapterTitle?.match(/^Appendix\s+([A-Z])/i);
+  const chapterLabel =
+    chapterIndex !== null && chapterTitle
+      ? appendixMatch
+        ? `Appendix ${appendixMatch[1]}`
+        : `Chapter ${String(chapterIndex + 1).padStart(2, "0")}`
+      : "";
+  const readingLabel =
+    libraryItem?.readingTime && /chapter/i.test(libraryItem.readingTime)
+      ? libraryItem.readingTime
+      : libraryItem?.readingTime
+      ? `${libraryItem.readingTime} read`
+      : "";
 
   // Send theme to iframe when it changes
   useEffect(() => {
@@ -116,7 +147,7 @@ export default function LibraryItem() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <span className="font-medium text-foreground">{libraryItem.title}</span>
+                  <span className="font-medium text-foreground">{activeTitle}</span>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -188,15 +219,21 @@ export default function LibraryItem() {
             {/* Info Banner */}
             <div className="border-b bg-muted/30">
               <Container className="py-3">
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
                     <span className="font-medium">{libraryItem.category}</span>
                   </div>
-                  {libraryItem.readingTime && (
+                  {chapterLabel && (
                     <>
                       <span>•</span>
-                      <span>{libraryItem.readingTime} read</span>
+                      <span className="font-medium">{chapterLabel}</span>
+                    </>
+                  )}
+                  {readingLabel && (
+                    <>
+                      <span>•</span>
+                      <span>{readingLabel}</span>
                     </>
                   )}
                   {libraryItem.difficulty && (
@@ -213,14 +250,14 @@ export default function LibraryItem() {
             <div className="w-full">
               <iframe
                 ref={iframeRef}
-                src={libraryItem.contentPath}
+                src={activeContentPath}
                 className="w-full border-0 bg-background"
                 style={{
                   minHeight: "calc(100vh - 200px)",
                   display: "block",
                   width: "100%",
                 }}
-                title={libraryItem.title}
+                title={activeTitle}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
                 onLoad={() => {
                   setLoading(false);

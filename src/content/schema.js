@@ -114,7 +114,17 @@ export const LibraryItemSchema = z.object({
   date: z.string().optional(),
   featured: z.boolean().default(false),
   highlights: z.array(z.string()).default([]),
-  chapters: z.array(z.string()).default([]),
+  chapters: z
+    .array(
+      z.union([
+        z.string(),
+        z.object({
+          title: z.string(),
+          contentPath: z.string().optional(),
+        }),
+      ])
+    )
+    .default([]),
   difficulty: z.enum(["Beginner", "Intermediate", "Advanced"]).optional(),
   readingTime: z.string().optional(),
 });

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Appendix F — Solutions to Selected Exercises</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Appendix F — Solutions to Selected Exercises</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Appendix metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1469</span> (0-based index 1468).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>misc</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>linux</strong></span> <span class="pill"><strong>systems</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Appendix F — Solutions to Selected Exercises
+          </h2>
+          <div class="subtitle"><p>This companion intentionally does not reproduce TLPI’s exercise text or solutions verbatim. However, you can still use it as a framework to *arrive* at solutions in a rigorous way.</p><p>This appendix gives you a repeatable workflow for solving systems exercises: define invariants, build a minimal reproducer, add instrumentation, test failure modes, and validate with strace.</p></div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Build a mental model of kernel objects and their relationships.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Assuming happy-path semantics in systems code leads to fragile behavior.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Measure and observe with strace, /proc, and perf.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Key concepts">Key concepts</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Use these as a cross-chapter index: the same kernel objects reappear everywhere.
+          </div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>Invariants</td><td>Rules that must always hold; use them to reason about correctness.</td></tr><tr><td class='mono'>Observability</td><td>Ability to understand state from outside via logs, traces, /proc, and metrics.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Appendices are practice-oriented: use these widgets to reinforce core mechanics and debugging posture.
+  </div>
+  <div id="kg_appF"></div>
+<div id="str_appF"></div>
+<div id="ep_appF"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Deep dive">Deep dive</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Practical panels: tools, workflows, and invariants worth memorizing.
+          </div>
+          <details class="accordion">
+  <summary>A repeatable solution workflow</summary>
+  <div class="content"><ul><li>Restate the problem as explicit invariants: inputs, outputs, and allowed failure modes.</li><li>Identify the kernel objects involved (processes, fds, signals, sockets, memory mappings).</li><li>Implement the simplest correct version first (even if slow).</li><li>Add tests for edge cases: EINTR, EAGAIN, partial I/O, and resource exhaustion.</li><li>Use strace to validate syscall sequences and errno handling.</li></ul></div>
+</details><details class="accordion">
+  <summary>What “good” looks like</summary>
+  <div class="content"><ul><li>Clear error messages that include context (paths, flags, sizes).</li><li>Resource hygiene: close fds, free memory, handle exec failure paths.</li><li>Deterministic behavior under signals and concurrent events.</li><li>Performance awareness: avoid O(N) scans in event loops when N is large.</li></ul></div>
+</details><details class="accordion">
+  <summary>Suggested extensions</summary>
+  <div class="content"><ul><li>After correctness, add nonblocking mode + epoll integration where appropriate.</li><li>Add metrics: counts, latencies, and failure rates.</li><li>Document portability assumptions (Linux vs POSIX).</li><li>Write a README describing how to reproduce and debug.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            APIs you’ll likely use while working through these topics.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>read</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, EFAULT</td><td>Short reads are normal (pipes/sockets/tty). Loop until done; handle EINTR and EAGAIN for nonblocking.</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, EBADF, ENOSPC</td><td>Short writes are normal on pipes/sockets/nonblocking fds. SIGPIPE/EPIPE when peer is gone.</td></tr><tr><td class='mono'>poll</td><td class='mono'>int poll(struct pollfd *fds, nfds_t nfds, int timeout);</td><td class='mono muted2'>EINTR, EINVAL</td><td>O(N) scan; no FD_SETSIZE bitset limit but still linear.</td></tr><tr><td class='mono'>epoll_wait</td><td class='mono'>int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Returns ready events (O(k)). Handle EINTR; use timeout for periodic housekeeping.</td></tr><tr><td class='mono'>errno</td><td class='mono'>extern int errno; (thread-local)</td><td class='mono muted2'>—</td><td>Thread-local error indicator set by failing syscalls/libc wrappers; read immediately after failure.</td></tr><tr><td class='mono'>perror</td><td class='mono'>void perror(const char *s);</td><td class='mono muted2'>—</td><td>Prints s + error message for current errno to stderr.</td></tr>
+  </tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+            <h3 class="section" data-toc="Code patterns">Code patterns</h3>
+            <button class="btn small" data-copy="#code_appF">Copy</button>
+          </div>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Appendix snippets emphasize workflow and instrumentation.
+          </div>
+          <pre id="code_appF"><code class="mono">// Exercise-solver template: skeleton for robust syscall loops
+for (;;) {
+  ssize_t n = read(fd, buf, sizeof(buf));
+  if (n &gt; 0) { /* process */ continue; }
+  if (n == 0) break; // EOF
+  if (errno == EINTR) continue;
+  if (errno == EAGAIN) { /* wait with poll/epoll */ continue; }
+  perror(&quot;read&quot;); break;
+}</code></pre>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Checklists are how you stop repeating incidents.
+          </div>
+          <div class="prose"><ul><li>Extract invariants, design for failure modes, and validate with strace + tests.</li></ul></div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">Quick self-check.</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Invariants and kernel objects guide design and make debugging systematic.">
+  <div class="qp">Q1. A good first step in solving a systems exercise is:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Optimize immediately</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Define invariants and kernel objects</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Ignore errors</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Write 1000 lines first</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="These are the common real-world edge cases for robust I/O.">
+  <div class="qp">Q2. Which failure modes should you test early for I/O problems?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Only success path</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">EINTR/EAGAIN/partial I/O</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Only ENOENT</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">None</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="strace makes the kernel boundary visible so you can validate assumptions.">
+  <div class="qp">Q3. Why use strace while solving exercises?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It compiles code</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It validates syscall sequences and errno handling</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It edits files</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It replaces tests</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Appendix F. Static HTML.
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"appendix", id:"appF", letter:"F", subtitle:"Appendix F \u2014 Solutions to Selected Exercises"});
+    TLPIWidgets.mountKernelGraph("kg_appF", {
+      title: "Kernel object map (appendix context)",
+      subtitle: "Appendices reinforce the same kernel object model; hover nodes and connect concepts across chapters.",
+      highlight: ["process", "fdtable", "file"]
+    });
+TLPIWidgets.mountStraceParser("str_appF", {example: "openat(AT_FDCWD, \"/etc/ld.so.cache\", O_RDONLY|O_CLOEXEC) = 3\nread(3, \"...\", 4096) = 4096\nclose(3) = 0\n"});
+TLPIWidgets.mountEpollLab("ep_appF", {N: 5000, k: 25});
+  </script>
+</body>
+</html>

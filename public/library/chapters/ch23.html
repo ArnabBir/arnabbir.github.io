@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Chapter 23 — Timers and Sleeping</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Chapter 23 — Timers and Sleeping</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Chapter metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">523</span> (0-based index 522).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>timers</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>clocks</strong></span> <span class="pill"><strong>timeouts</strong></span> <span class="pill"><strong>POSIX timers</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Chapter 23 — Timers and Sleeping
+          </h2>
+          <div class="subtitle">
+            <p>Time in operating systems is not a single thing. There are multiple clocks (realtime vs monotonic), multiple timer mechanisms (interval timers, POSIX timers, timerfd), and subtle interactions with signals and scheduling. The main production skill is choosing the correct clock and designing for jitter and interruptions.</p><p>This chapter guide is built around practical scheduling: deadlines, timeouts, backoff, and the reality that sleep is “at least” not “exactly”.</p>
+          </div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">Timeout correctness requires monotonic clocks and deadline-preserving retries.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Sleep is not precise; load and signals introduce jitter and EINTR.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Log monotonic deltas and use strace to observe nanosleep/timer syscalls.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Mental model">Mental model</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+          </div>
+          <div class="prose">
+            <ul><li>Time is a family of clocks. Pick monotonic for intervals to avoid jumps.</li><li>Treat sleep as &#x27;at least&#x27; — scheduling introduces delay and jitter.</li><li>Timeout logic should preserve deadlines across EINTR and retries.</li><li>Signals are one delivery mechanism; fd-based timers integrate better with event loops.</li><li>Timer storms under load are real; coalesce and bound work.</li><li>Always log monotonic deltas for debugging time-related incidents.</li></ul>
+          </div>
+          <hr class="sep"/>
+          <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>CLOCK_MONOTONIC</td><td>Monotonic clock for intervals/timeouts; not affected by wall-clock changes.</td></tr><tr><td class='mono'>CLOCK_REALTIME</td><td>Wall clock time; can jump due to NTP/admin changes.</td></tr><tr><td class='mono'>Timer</td><td>Kernel object that fires at deadlines; can notify via signal, fd, or thread.</td></tr><tr><td class='mono'>Jitter</td><td>Variability in timer firing time due to scheduling and load.</td></tr><tr><td class='mono'>Deadline</td><td>Absolute time by which work must happen; better than repeated relative sleeps.</td></tr><tr><td class='mono'>EINTR</td><td>Interruptions by signals can affect sleep syscalls; design retry logic.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Poke the simulators to build intuition. These labs are educational models (not exact kernel behavior) but preserve key invariants.
+  </div>
+  <div id="kg_ch23"></div>
+<div id="sig_ch23"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            A compact map of the APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>nanosleep</td><td class='mono'>int nanosleep(const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>High-resolution sleep; interrupted by signals returning EINTR and remaining time.</td></tr><tr><td class='mono'>timer_create</td><td class='mono'>int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid);</td><td class='mono muted2'>EAGAIN, EINVAL, ENOMEM</td><td>POSIX timers can deliver signals or notify via threads; choose CLOCK_MONOTONIC for intervals.</td></tr><tr><td class='mono'>kill</td><td class='mono'>int kill(pid_t pid, int sig);</td><td class='mono muted2'>ESRCH, EINVAL, EPERM</td><td>Send a signal. With pid &lt; 0, targets process groups; with pid=0, current process group.</td></tr>
+  </tbody>
+</table>
+          <div class="muted2 small" style="margin-top:12px">
+            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Edge cases & invariants">Edge cases & invariants</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            This is where production bugs live. Expand each panel and treat the bullets as test cases.
+          </div>
+          <details class="accordion">
+  <summary>Choosing clocks correctly</summary>
+  <div class="content"><ul><li>CLOCK_REALTIME can jump (NTP, admin changes). Don’t use it for timeouts or measuring durations.</li><li>CLOCK_MONOTONIC is steady for intervals and deadlines; combine with absolute timeouts for correctness under delays.</li><li>If you need CPU time, use CLOCK_PROCESS_CPUTIME_ID or CLOCK_THREAD_CPUTIME_ID.</li><li>Always log both realtime and monotonic deltas in debugging to catch clock jumps.</li></ul></div>
+</details><details class="accordion">
+  <summary>Timer delivery strategies</summary>
+  <div class="content"><ul><li>Signals are traditional but can complicate handler safety and EINTR semantics.</li><li>timerfd/signalfd integrate timers/signals into fd-based event loops cleanly.</li><li>For multi-threaded servers, consider a dedicated timer wheel or scheduler thread to avoid per-connection timers.</li><li>Beware of timer storms under overload; coalesce and backoff.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+    <h3 class="section" data-toc="Code patterns">Code patterns (C / POSIX) </h3>
+    <button class="btn small" data-copy="#code_ch23">Copy</button>
+  </div>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+  </div>
+  <pre id="code_ch23"><code class="mono">// See man pages for the core APIs of this chapter.
+</code></pre>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+          </div>
+          <div class="prose">
+            <ul><li>Use CLOCK_MONOTONIC for timeouts and interval measurement; realtime can jump.</li><li>Design timeouts as deadlines, not repeated sleeps (avoid drift).</li><li>Expect EINTR and jitter; write retry logic that preserves deadlines.</li><li>Avoid per-connection timers at huge scale; use timer wheels/coalescing strategies.</li><li>Test under NTP adjustments and heavy load to validate behavior.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Exercises">Exercises</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+          </div>
+          <div class="prose">
+            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Click an option to check your understanding. The explanation points to the underlying invariant.
+          </div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
+  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Guessing</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Copying random code</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Avoiding errors</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
+  <div class="qp">Q2. Which is true about errno?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is global and never changes</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is only for networking</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
+  <div class="qp">Q3. A good debugging approach is:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with perf</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Ignore symptoms</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Read like an operator</div>
+          <div class="muted small" style="line-height:1.7">
+            <div><span class="pill"><strong>Observe</strong> strace / /proc / ss</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Model</strong> kernel objects</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Prove</strong> with tests</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Measure</strong> perf + latency</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Chapter 23. Static HTML. 
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch23", n:23, subtitle:"Chapter 23 \u2014 Timers and Sleeping"});
+    TLPIWidgets.mountKernelGraph("kg_ch23", {
+      title: "Kernel mental model (chapter context)",
+      subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (timers). Click to pin a tooltip.",
+      highlight: ["timer", "signal", "process", "scheduler"]
+    });
+TLPIWidgets.mountSignalLab("sig_ch23", {});
+  </script>
+</body>
+</html>

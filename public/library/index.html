@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI Interactive Library v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub">Chapter-by-chapter interactive companion • fancy UI • technical labs • original content</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle title="Toggle dark/light">Toggle</button>
+        <a class="btn small primary" href="chapters/ch01.html">Start →</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="glass hero">
+      <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.95), rgba(6,182,212,.9)); -webkit-background-clip:text; background-clip:text; color:transparent">
+        Learn Linux systems programming like an engineer
+      </h2>
+      <div class="subtitle">
+        This is a <strong>high-signal</strong>, <strong>interactive</strong> library to help you internalize concepts from
+        <span class="mono">The Linux Programming Interface</span> without copying the book.
+        Each chapter page contains: a kernel mental model, syscall maps, edge cases, failure modes, performance notes,
+        debugging workflows, hands-on labs, and interactive simulators (processes, file descriptors, signals, sockets, and I/O models).
+      </div>
+      <div class="meta">
+        <span class="pill"><strong>64</strong><span class="muted2">chapters</span></span>
+        <span class="pill"><strong>6</strong><span class="muted2">appendices</span></span>
+        <span class="pill"><strong>Interactive labs</strong><span class="muted2">process/fd/signal/tcp/epoll/strace</span></span>
+        <span class="pill"><strong>Keyboard</strong><span class="muted2">/ search • Ctrl/⌘ + ←/→ navigate</span></span>
+      </div>
+    </div>
+
+    <div class="shell" style="grid-template-columns: 380px 1fr 0px">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Quick find</div>
+          <input id="globalSearch" class="input" placeholder="Search chapters (e.g., 'signals', 'sockets', 'mmap', 'pthread')…"/>
+          <div class="muted2 small" style="margin-top:10px">
+            Tip: run locally for best experience: <span class="mono">python -m http.server</span> then open <span class="mono">http://localhost:8000</span>
+          </div>
+          <hr class="sep"/>
+          <div class="section-title">What you get per chapter</div>
+          <div class="prose">
+            <ul>
+              <li><strong>Mental model</strong>: invariants and “what the kernel is really tracking”.</li>
+              <li><strong>API surface</strong>: syscalls + libc, typical errno, and retry rules.</li>
+              <li><strong>Failure modes</strong>: race conditions, deadlocks, partial I/O, EINTR, resource leaks.</li>
+              <li><strong>Performance</strong>: caching, batching, O(N) pitfalls, backpressure.</li>
+              <li><strong>Production checklist</strong>: safe defaults and “ship it” guardrails.</li>
+              <li><strong>Interactive labs</strong>: simulations you can actually poke at.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Kernel mental model</div>
+          <div class="muted small">Hover nodes. Highlighted nodes change per chapter.</div>
+          <div style="margin-top:10px" id="indexKernelGraph"></div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Chapters">Browse chapters</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Pick a chapter to open its interactive page. This companion is an original explainer; it does not reproduce the book text or figures.
+          </div>
+          <div id="chapterCards" style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px"></div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Appendices">Appendices</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Extra tooling and patterns that come up constantly in real systems work.
+          </div>
+          <div id="appendixCards" style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px"></div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Disclaimer">Disclaimer</h3>
+          <div class="prose">
+            <p>
+              This library is designed to be used alongside a legally obtained copy of TLPI.
+              It intentionally does <strong>not</strong> include the book’s text or images.
+              Explanations are written from first principles and focus on production engineering intuition.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Built as static HTML/CSS/JS — offline-friendly.
+    </div>
+  </div>
+
+  <script src="assets/tlpi_nav.js"></script>
+  <script src="assets/widgets.js"></script>
+  <script src="assets/ui.js"></script>
+  <script>
+    // index cards + search
+    TLPIUI.initIndexPage();
+
+    // appendices cards
+    (function(){
+      const root = document.getElementById('appendixCards');
+      if(!root || !window.TLPI_NAV) return;
+      window.TLPI_NAV.appendices.forEach(a=>{
+        const el = document.createElement('a');
+        el.className = "glass pad hover";
+        el.href = a.href;
+        el.style.display = "block";
+        el.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px">
+            <div class="pill"><strong>App ${a.letter}</strong><span class="muted2">•</span><span class="muted">${a.id}</span></div>
+            <div class="muted2 small mono">PDF p.${a.pdfPageIndex+1}</div>
+          </div>
+          <div style="margin-top:10px; font-weight:900; letter-spacing:-.02em; font-size:16px">${a.title}</div>
+          <div class="muted" style="margin-top:8px; font-size:13px; line-height:1.55">
+            Tooling and patterns: tracing, option parsing, kernel config, and deeper sources.
+          </div>
+        `;
+        root.appendChild(el);
+      });
+    })();
+
+    // kernel graph preview
+    TLPIWidgets.mountKernelGraph('indexKernelGraph', {
+      title: "Kernel object map (preview)",
+      subtitle: "This is the map your brain should build. Each chapter highlights a subset of these nodes.",
+      highlight: ["process","fdtable","file","inode","vmm","socket","signal","epoll","pagecache"]
+    });
+  </script>
+</body>
+</html>

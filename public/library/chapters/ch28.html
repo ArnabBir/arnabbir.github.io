@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TLPI v2 — Chapter 28 — Process Creation and Program Execution in More Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
+          <div class="sub" id="subTitle">Chapter 28 — Process Creation and Program Execution in More Detail</div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
+        <button class="btn small" data-theme-toggle>Toggle</button>
+        <a class="btn small ghost" href="../index.html">Index</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+      </div>
+    </div>
+    <div class="progress" id="scrollProgress"></div>
+  </header>
+
+  <div class="layout">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="glass pad">
+          <div class="section-title">Chapters</div>
+          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <div id="navList" class="navlist"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Chapter metadata</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">635</span> (0-based index 634).</div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>proc</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fork/exec</strong></span> <span class="pill"><strong>zombies</strong></span> <span class="pill"><strong>pid namespaces</strong></span> <span class="pill"><strong>scheduling</strong></span></div>
+          <hr class="sep"/>
+          <div class="muted2 small">Keyboard:</div>
+          <div class="muted small" style="margin-top:6px">
+            <span class="pill"><span class="mono">/</span> search</span>
+            <span class="pill"><span class="mono">Ctrl/⌘ + ←/→</span> nav</span>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="glass hero">
+          <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Chapter 28 — Process Creation and Program Execution in More Detail
+          </h2>
+          <div class="subtitle">
+            <p>Processes are isolated execution contexts with their own PID, address space, credentials, and resource tables. The kernel keeps a surprisingly rich *process state machine*: runnable, sleeping, stopped, zombie, and more. Understanding how a process *moves* through states is the key to debugging leaks, zombies, and deadlocks.</p><p>In practice, process control is about composing a small set of primitives (fork/exec/wait, signals, pipes, dup2, setpgid/setsid) into reliable patterns: supervisors, daemons, pipelines, sandboxes, and service managers.</p>
+          </div>
+          <div class="callouts"><div class="callout good">
+  <div class="k">Invariant</div>
+  <div class="v">fork clones, exec overlays, wait reaps. PID persists across exec.</div>
+</div><div class="callout warn">
+  <div class="k">Gotcha</div>
+  <div class="v">Zombies accumulate if you never reap children (waitpid).</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Check /proc/&lt;pid&gt;/status for state, signals, and children; use strace -f.</div>
+</div></div>
+        </div>
+
+        <div class="glass pad-lg">
+          <h3 class="section" data-toc="Mental model">Mental model</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+          </div>
+          <div class="prose">
+            <ul><li>A process is a task_struct plus resources (mm, files, cred, signals).</li><li>fork() clones structure; execve() replaces image; wait*() reaps termination status.</li><li>Copy-on-write makes fork cheap until you write; memory behavior changes with workload.</li><li>Signals are the asynchronous control plane for process trees (SIGCHLD, shutdown).</li><li>Job control uses sessions + process groups + controlling terminals; signals target groups.</li><li>In multithreaded code, fork is a sharp edge: exec quickly or use posix_spawn.</li></ul>
+          </div>
+          <hr class="sep"/>
+          <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
+          <table class="table">
+  <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
+  <tbody><tr><td class='mono'>task_struct</td><td>Kernel structure representing a task (process or thread) with scheduling + state.</td></tr><tr><td class='mono'>PID</td><td>Process identifier; can be recycled; stable across exec but not across fork.</td></tr><tr><td class='mono'>Zombie</td><td>Exited process whose exit status is retained until reaped by wait*().</td></tr><tr><td class='mono'>Copy-on-write</td><td>fork() shares pages until a write triggers duplication; makes fork cheap.</td></tr><tr><td class='mono'>Session</td><td>Collection of process groups; setsid() creates new session and detaches from controlling tty.</td></tr><tr><td class='mono'>Process group</td><td>Used for job control and signal delivery to related processes.</td></tr></tbody>
+</table>
+        </div>
+
+        <div class="glass pad-lg">
+  <h3 class="section" data-toc="Interactive labs">Interactive labs</h3>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    Poke the simulators to build intuition. These labs are educational models (not exact kernel behavior) but preserve key invariants.
+  </div>
+  <div id="kg_ch28"></div>
+<div id="proc_ch28"></div>
+<div id="str_ch28"></div>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="API quick reference">API quick reference</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            A compact map of the APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
+          </div>
+          <table class="table">
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Signature / shape</th>
+      <th>Common errno</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr><tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>posix_spawn</td><td class='mono'>int posix_spawn(pid_t *pid, const char *path, const posix_spawn_file_actions_t *fa, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[]);</td><td class='mono muted2'>EINVAL, ENOMEM</td><td>Fork+exec with controlled actions; can be more efficient on some systems.</td></tr><tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr>
+  </tbody>
+</table>
+          <div class="muted2 small" style="margin-top:12px">
+            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Edge cases & invariants">Edge cases & invariants</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            This is where production bugs live. Expand each panel and treat the bullets as test cases.
+          </div>
+          <details class="accordion">
+  <summary>Fork/exec/wait: the production pattern</summary>
+  <div class="content"><ul><li>fork() clones the process (copy-on-write). execve() replaces the program image. waitpid() reaps the exit status.</li><li>The PID stays the same across exec. File descriptors survive exec unless marked close-on-exec (FD_CLOEXEC / O_CLOEXEC).</li><li>In multi-threaded parents, after fork() only async-signal-safe functions are safe before exec/_exit.</li><li>Zombies exist because the kernel must retain exit status until the parent collects it. If you forget to wait, zombies accumulate.</li></ul></div>
+</details><details class="accordion">
+  <summary>Signals and job control interactions</summary>
+  <div class="content"><ul><li>SIGCHLD is how the kernel tells a parent that a child changed state. Always write robust SIGCHLD handling or a wait loop.</li><li>Process groups and sessions matter for terminals: Ctrl-C sends SIGINT to the foreground process group.</li><li>Stopping/continuing (SIGTSTP/SIGCONT) creates state transitions you must handle in shells and supervisors.</li><li>Avoid sending signals by PID alone in long-lived systems; PIDs can be recycled. Consider pidfds (newer kernels) when available.</li></ul></div>
+</details><details class="accordion">
+  <summary>Scheduling and priorities — practical view</summary>
+  <div class="content"><ul><li>nice/priority influence the scheduler, but do not replace correct design. CPU-bound work needs backpressure and sometimes isolation.</li><li>Real-time policies (SCHED_FIFO/RR) can starve the system. Only use with strict limits and watchdogs.</li><li>Affinity and cgroups are often a better lever for performance isolation than priority tweaks.</li><li>Measure: CPU usage, context switches, run queue length, and tail latency — then decide.</li></ul></div>
+</details><details class="accordion">
+  <summary>Debugging workflow</summary>
+  <div class="content"><ul><li>Use ps/top/htop for state; look for Z (zombie), D (uninterruptible sleep), or stopped tasks.</li><li>Inspect /proc/&lt;pid&gt;/status (state, threads, signals), /proc/&lt;pid&gt;/cmdline, and /proc/&lt;pid&gt;/fd.</li><li>strace -f for process trees; add -e trace=process for fork/exec/wait focus.</li><li>For elusive deadlocks, capture stack traces (gdb, pstack) and correlate with futex waits.</li></ul></div>
+</details>
+        </div>
+
+        <div class="glass pad-lg">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+    <h3 class="section" data-toc="Code patterns">Code patterns (C / POSIX) </h3>
+    <button class="btn small" data-copy="#code_ch28">Copy</button>
+  </div>
+  <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+  </div>
+  <pre id="code_ch28"><code class="mono">// Minimal pipeline: producer | consumer
+int p[2];
+pipe2(p, O_CLOEXEC);
+
+if (fork() == 0) { // producer
+  dup2(p[1], STDOUT_FILENO);
+  close(p[0]); close(p[1]);
+  execlp(&quot;printf&quot;, &quot;printf&quot;, &quot;hello\n&quot;, (char*)NULL);
+  _exit(127);
+}
+if (fork() == 0) { // consumer
+  dup2(p[0], STDIN_FILENO);
+  close(p[0]); close(p[1]);
+  execlp(&quot;wc&quot;, &quot;wc&quot;, &quot;-l&quot;, (char*)NULL);
+  _exit(127);
+}
+close(p[0]); close(p[1]);
+while (wait(NULL) &gt; 0) {}</code></pre>
+</div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Production checklist">Production checklist</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+          </div>
+          <div class="prose">
+            <ul><li>Use fork+exec with close-on-exec hygiene; avoid leaking fds into children.</li><li>Reap children reliably (waitpid loop, SIGCHLD handling) to avoid zombie buildup.</li><li>Make shutdown explicit: define signals, timeouts, and escalation (TERM → KILL).</li><li>Treat fork in multithreaded programs as dangerous: exec ASAP; use posix_spawn if appropriate.</li><li>Prefer structured supervisors (systemd) when available; integrate with service managers rather than reinventing.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Exercises">Exercises</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+          </div>
+          <div class="prose">
+            <ul><li>Write a tiny supervisor: fork worker, restart on crash, exponential backoff, and SIGTERM shutdown.</li><li>Create a pipeline (producer | consumer) using pipe(), fork(), dup2(), execve(). Verify with strace -f.</li><li>Implement a &#x27;timeout&#x27; wrapper: run a command and kill it if it exceeds a deadline.</li></ul>
+          </div>
+        </div>
+
+        <div class="glass pad-lg" style="margin-top:12px">
+          <h3 class="section" data-toc="Quiz">Quiz</h3>
+          <div class="muted" style="margin-top:-4px; margin-bottom:12px">
+            Click an option to check your understanding. The explanation points to the underlying invariant.
+          </div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="waitpid collects termination status and releases kernel resources for the exited child.">
+  <div class="qp">Q1. What does waitpid() do?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Starts a process</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Reaps a child and returns its status</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Sends a signal</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Allocates memory</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="2" data-explain="Use _exit in the child on exec failure to avoid flushing shared stdio buffers.">
+  <div class="qp">Q2. A common safe pattern in the child after fork() is:</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">printf then exit()</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">malloc then exec()</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">_exit() on exec failure</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">pthread_mutex_lock()</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="1" data-explain="Children inherit file descriptors (refcounted); PID is new.">
+  <div class="qp">Q3. Which entity is inherited across fork()?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">PID</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Open file descriptors</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Thread IDs</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">None</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="muted2 small">
+            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Always verify details with man pages and your target kernel/libc versions.
+          </div>
+        </div>
+      </main>
+
+      <aside class="righttoc">
+        <div class="glass pad">
+          <div class="section-title">On this page</div>
+          <div id="toc" class="toc"></div>
+        </div>
+
+        <div class="glass pad" style="margin-top:12px">
+          <div class="section-title">Read like an operator</div>
+          <div class="muted small" style="line-height:1.7">
+            <div><span class="pill"><strong>Observe</strong> strace / /proc / ss</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Model</strong> kernel objects</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Prove</strong> with tests</span></div>
+            <div style="margin-top:8px"><span class="pill"><strong>Measure</strong> perf + latency</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Generated 2026-02-06 20:53 UTC. Chapter 28. Static HTML. 
+    </div>
+  </div>
+
+  <script src="../assets/tlpi_nav.js"></script>
+  <script src="../assets/widgets.js"></script>
+  <script src="../assets/ui.js"></script>
+  <script>
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch28", n:28, subtitle:"Chapter 28 \u2014 Process Creation and Program Execution in More Detail"});
+    TLPIWidgets.mountKernelGraph("kg_ch28", {
+      title: "Kernel mental model (chapter context)",
+      subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",
+      highlight: ["process", "thread", "scheduler", "signal", "fdtable", "cred", "tty"]
+    });
+TLPIWidgets.mountProcLab("proc_ch28", {});
+TLPIWidgets.mountStraceParser("str_ch28", {example: "fork() = 2001\n[pid 2001] execve(\"/usr/bin/true\", [\"true\"], 0x7ffd...) = 0\nwait4(2001, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 2001\n"});
+  </script>
+</body>
+</html>
