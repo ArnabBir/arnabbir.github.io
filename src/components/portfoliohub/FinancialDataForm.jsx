@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-const FinancialDataForm = ({ onSubmit, initialData }) => {
-  const [formData, setFormData] = useState(initialData || {
+const buildEmptyFormData = () => ({
     assets: {
       cashAndEquivalents: {
         savingsAccounts: 0,
@@ -75,23 +74,40 @@ const FinancialDataForm = ({ onSubmit, initialData }) => {
     },
   });
 
+const FinancialDataForm = ({ onSubmit, initialData }) => {
+  const [formData, setFormData] = useState(initialData || buildEmptyFormData());
+
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
+    } else {
+      setFormData(buildEmptyFormData());
     }
   }, [initialData]);
 
   const handleInputChange = (category, subcategory, field, value) => {
-    setFormData(prevData => ({
-      ...prevData,
-      [category]: {
-        ...prevData[category],
-        [subcategory]: {
-          ...prevData[category][subcategory],
-          [field]: parseFloat(value) || 0
-        }
+    setFormData((prevData) => {
+      if (!subcategory) {
+        return {
+          ...prevData,
+          [category]: {
+            ...prevData[category],
+            [field]: parseFloat(value) || 0,
+          },
+        };
       }
-    }));
+
+      return {
+        ...prevData,
+        [category]: {
+          ...prevData[category],
+          [subcategory]: {
+            ...(prevData[category]?.[subcategory] || {}),
+            [field]: parseFloat(value) || 0,
+          },
+        },
+      };
+    });
   };
 
   const handleSubmit = (e) => {
@@ -99,71 +115,101 @@ const FinancialDataForm = ({ onSubmit, initialData }) => {
     onSubmit(formData);
   };
 
-  const renderInputField = (category, subcategory, field, label) => (
-    <div key={`${category}-${subcategory}-${field}`} className="mb-2">
-      <Label htmlFor={`${category}-${subcategory}-${field}`} className="capitalize text-sm font-medium text-gray-700">
-        {label || field.replace(/([A-Z])/g, ' $1').trim()}
-      </Label>
-      <Input
-        id={`${category}-${subcategory}-${field}`}
-        type="text"
-        value={formData[category][subcategory] ? formData[category][subcategory][field] : 0}
-        onChange={(e) => {
-          const value = e.target.value;
-          if (value === '' || /^\d*\.?\d*$/.test(value)) {
-            handleInputChange(category, subcategory, field, value);
-          }
-        }}
-        className={`mt-1 ${!/^\d*\.?\d*$/.test(formData[category][subcategory] ? formData[category][subcategory][field] : '') ? 'border-red-500' : ''}`}
-      />
-    </div>
-  );
+  const renderInputField = (category, subcategory, field, label) => {
+    const inputId = `${category}-${subcategory || "root"}-${field}`;
+    const currentValue = subcategory
+      ? formData?.[category]?.[subcategory]?.[field]
+      : formData?.[category]?.[field];
+
+    return (
+      <div key={inputId} className="space-y-1">
+        <Label htmlFor={inputId} className="text-xs font-medium text-muted-foreground">
+          {label || field.replace(/([A-Z])/g, " $1").trim()}
+        </Label>
+        <Input
+          id={inputId}
+          type="text"
+          inputMode="decimal"
+          placeholder="0"
+          value={currentValue ?? 0}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "" || /^\d*\.?\d*$/.test(value)) {
+              handleInputChange(category, subcategory, field, value);
+            }
+          }}
+          className={`h-9 ${
+            !/^\d*\.?\d*$/.test(String(currentValue ?? ""))
+              ? "border-destructive"
+              : ""
+          }`}
+        />
+      </div>
+    );
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Card className="bg-gradient-to-br from-purple-50 to-indigo-100 shadow-lg">
+      <Card className="border-border/70 bg-card/80 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-indigo-800">Enter Your Financial Details</CardTitle>
+          <CardTitle className="text-xl font-semibold">Financial inputs</CardTitle>
+          <CardDescription>
+            Enter totals in INR. Use annual values for income and expenses.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full space-y-2">
             <AccordionItem value="assets">
-              <AccordionTrigger className="text-xl font-semibold text-indigo-700">Assets</AccordionTrigger>
-              <AccordionContent>
-                {Object.entries(formData.assets).map(([subcategory, fields]) => (
-                  <div key={subcategory} className="mb-4">
-                    <h4 className="text-lg font-medium text-indigo-600 mb-2">{subcategory.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                    {typeof fields === 'object' ? 
-                      Object.entries(fields).map(([field, value]) => renderInputField('assets', subcategory, field))
-                      : renderInputField('assets', 'assets', subcategory)
-                    }
-                  </div>
-                ))}
+              <AccordionTrigger className="text-sm font-semibold">Assets</AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                {Object.entries(formData.assets).map(([subcategory, fields]) => {
+                  const title = subcategory.replace(/([A-Z])/g, " $1").trim();
+                  const isGroup = typeof fields === "object" && fields !== null;
+
+                  return (
+                    <div key={subcategory} className="rounded-lg border border-border/70 bg-background/60 p-4">
+                      <div className="text-sm font-semibold text-foreground">{title}</div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {isGroup
+                          ? Object.entries(fields).map(([field]) =>
+                              renderInputField("assets", subcategory, field)
+                            )
+                          : renderInputField("assets", null, subcategory)}
+                      </div>
+                    </div>
+                  );
+                })}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="liabilities">
-              <AccordionTrigger className="text-xl font-semibold text-indigo-700">Liabilities</AccordionTrigger>
-              <AccordionContent>
-                {Object.entries(formData.liabilities).map(([field, value]) => renderInputField('liabilities', 'liabilities', field))}
+              <AccordionTrigger className="text-sm font-semibold">Liabilities</AccordionTrigger>
+              <AccordionContent className="grid gap-3 sm:grid-cols-2">
+                {Object.entries(formData.liabilities).map(([field]) =>
+                  renderInputField("liabilities", null, field)
+                )}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="income">
-              <AccordionTrigger className="text-xl font-semibold text-indigo-700">Income</AccordionTrigger>
-              <AccordionContent>
-                {Object.entries(formData.income).map(([field, value]) => renderInputField('income', 'income', field))}
+              <AccordionTrigger className="text-sm font-semibold">Income</AccordionTrigger>
+              <AccordionContent className="grid gap-3 sm:grid-cols-2">
+                {Object.entries(formData.income).map(([field]) =>
+                  renderInputField("income", null, field)
+                )}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="expenses">
-              <AccordionTrigger className="text-xl font-semibold text-indigo-700">Expenses</AccordionTrigger>
-              <AccordionContent>
-                {Object.entries(formData.expenses).map(([field, value]) => renderInputField('expenses', 'expenses', field))}
+              <AccordionTrigger className="text-sm font-semibold">Expenses</AccordionTrigger>
+              <AccordionContent className="grid gap-3 sm:grid-cols-2">
+                {Object.entries(formData.expenses).map(([field]) =>
+                  renderInputField("expenses", null, field)
+                )}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         </CardContent>
       </Card>
-      <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-        Calculate
+      <Button type="submit" className="w-full">
+        Calculate and update dashboard
       </Button>
     </form>
   );

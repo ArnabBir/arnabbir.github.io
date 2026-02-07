@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { formatIndianCurrency } from '../../utils/currencyFormatter';
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { formatIndianCurrency } from "../../utils/currencyFormatter";
 
 const PortfolioDistribution = ({ data = {} }) => {
   const { assets = {} } = data;
@@ -21,15 +21,26 @@ const PortfolioDistribution = ({ data = {} }) => {
   const chartData = calculateTotal(assets);
   const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#A4DE6C', '#D0ED57'];
+  const COLORS = [
+    "#6366f1",
+    "#22c55e",
+    "#f97316",
+    "#0ea5e9",
+    "#a855f7",
+    "#facc15",
+    "#14b8a6",
+    "#f43f5e",
+  ];
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-2 border rounded shadow">
-          <p className="font-bold">{data.name}</p>
-          <p>{formatIndianCurrency(data.value)} ({((data.value / totalValue) * 100).toFixed(2)}%)</p>
+        <div className="rounded-md border border-border bg-background/95 p-2 text-sm shadow-sm">
+          <p className="font-medium">{data.name}</p>
+          <p className="text-muted-foreground">
+            {formatIndianCurrency(data.value)} ({((data.value / totalValue) * 100).toFixed(1)}%)
+          </p>
         </div>
       );
     }
@@ -37,9 +48,10 @@ const PortfolioDistribution = ({ data = {} }) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-purple-50 to-pink-100 shadow-lg">
+    <Card className="border-border/70 bg-card/80 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-purple-800">Portfolio Distribution</CardTitle>
+        <CardTitle className="text-lg">Portfolio distribution</CardTitle>
+        <CardDescription>Asset allocation across major buckets.</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
@@ -63,7 +75,7 @@ const PortfolioDistribution = ({ data = {} }) => {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <p>No asset data available</p>
+          <p className="text-sm text-muted-foreground">No asset data available.</p>
         )}
       </CardContent>
     </Card>

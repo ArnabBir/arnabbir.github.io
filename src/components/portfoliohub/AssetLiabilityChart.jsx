@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { formatIndianCurrency } from '../../utils/currencyFormatter';
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { formatIndianCurrency } from "../../utils/currencyFormatter";
 
 const AssetLiabilityChart = ({ data = {} }) => {
   const calculateTotal = (obj) => {
@@ -23,15 +23,15 @@ const AssetLiabilityChart = ({ data = {} }) => {
     { name: 'Liabilities', value: totalLiabilities },
   ];
 
-  const COLORS = ['#4CAF50', '#FF5722'];
+  const COLORS = ["#22c55e", "#f97316"];
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-2 border rounded shadow">
-          <p className="font-bold">{data.name}</p>
-          <p>{formatIndianCurrency(data.value)}</p>
+        <div className="rounded-md border border-border bg-background/95 p-2 text-sm shadow-sm">
+          <p className="font-medium">{data.name}</p>
+          <p className="text-muted-foreground">{formatIndianCurrency(data.value)}</p>
         </div>
       );
     }
@@ -39,9 +39,10 @@ const AssetLiabilityChart = ({ data = {} }) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-yellow-50 to-amber-100 shadow-lg">
+    <Card className="border-border/70 bg-card/80 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-amber-800">Assets vs Liabilities</CardTitle>
+        <CardTitle className="text-lg">Assets vs liabilities</CardTitle>
+        <CardDescription>How your balance sheet is weighted.</CardDescription>
       </CardHeader>
       <CardContent>
         {totalAssets > 0 || totalLiabilities > 0 ? (
@@ -65,7 +66,9 @@ const AssetLiabilityChart = ({ data = {} }) => {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <p>No asset or liability data available</p>
+          <p className="text-sm text-muted-foreground">
+            No asset or liability data available.
+          </p>
         )}
       </CardContent>
     </Card>

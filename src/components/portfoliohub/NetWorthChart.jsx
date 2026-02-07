@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { formatIndianCurrency } from '../../utils/currencyFormatter';
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { formatIndianCurrency } from "../../utils/currencyFormatter";
 
 const NetWorthChart = ({ data = {} }) => {
   const { assets = {}, liabilities = {} } = data;
@@ -17,20 +17,21 @@ const NetWorthChart = ({ data = {} }) => {
   });
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 to-emerald-100 shadow-lg">
+    <Card className="border-border/70 bg-card/80 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-emerald-800">Net Worth Projection (50 Years)</CardTitle>
+        <CardTitle className="text-lg">Net worth projection</CardTitle>
+        <CardDescription>Assumes 7% annual compounding for 50 years.</CardDescription>
       </CardHeader>
       <CardContent>
         {currentNetWorth > 0 ? (
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={projectionData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#666" />
-              <XAxis dataKey="year" stroke="#888" />
-              <YAxis stroke="#888" tickFormatter={(value) => formatIndianCurrency(value)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
+              <XAxis dataKey="year" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" tickFormatter={(value) => formatIndianCurrency(value)} />
               <Tooltip formatter={(value) => formatIndianCurrency(value)} />
               <Legend />
-              <Line type="monotone" dataKey="netWorth" stroke="#4f46e5" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="netWorth" stroke="#22c55e" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         ) : (

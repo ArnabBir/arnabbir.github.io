@@ -1,7 +1,7 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { formatIndianCurrency } from '../../utils/currencyFormatter';
+import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { formatIndianCurrency } from "../../utils/currencyFormatter";
 
 const IncomeExpenseChart = ({ data }) => {
   const calculateTotal = (obj) => {
@@ -27,25 +27,28 @@ const IncomeExpenseChart = ({ data }) => {
   ];
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 shadow-lg">
+    <Card className="border-border/70 bg-card/80 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-indigo-800">Income vs Expenses</CardTitle>
+        <CardTitle className="text-lg">Income vs expenses</CardTitle>
+        <CardDescription>Annual cashflow comparison.</CardDescription>
       </CardHeader>
       <CardContent>
         {totalIncome > 0 || totalExpenses > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
               <XAxis dataKey="category" />
               <YAxis tickFormatter={(value) => formatIndianCurrency(value)} />
               <Tooltip formatter={(value) => formatIndianCurrency(value)} />
               <Legend />
-              <Bar dataKey="Income" fill="#8884d8" />
-              <Bar dataKey="Expenses" fill="#82ca9d" />
+              <Bar dataKey="Income" fill="#6366f1" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Expenses" fill="#f97316" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p>No income or expense data available</p>
+          <p className="text-sm text-muted-foreground">
+            No income or expense data available.
+          </p>
         )}
       </CardContent>
     </Card>

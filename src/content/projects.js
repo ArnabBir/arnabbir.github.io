@@ -25,9 +25,12 @@ export default [
   {
     name: "PortfolioHub",
     description:
-      "A personal finance tracker to plan goals, visualize net worth, and experiment with early-retirement scenarios.",
-    tags: ["React", "Data Viz"],
-    highlights: ["Interactive dashboards and reports.", "Import/export workflows (CSV/XLSX)."],
+      "A personal finance command center for net worth, asset allocation, cashflow health, and FIRE planning.",
+    tags: ["React", "Data Viz", "Personal Finance"],
+    highlights: [
+      "Insight-rich dashboards with projections and savings diagnostics.",
+      "Import/export workflows plus shareable PDF reports.",
+    ],
     links: [{ label: "Open app", href: "/portfoliohub" }],
     featured: true,
     kind: "lab",
