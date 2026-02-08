@@ -93,7 +93,7 @@ export default function Experience() {
             <SectionHeading
               eyebrow="Experience"
               title="Where I’ve built impact"
-              description="A timeline of roles, scope, and the kinds of problems I enjoy solving. (Everything here is data-driven — add new items in src/content/experience.js.)"
+              description="A timeline of roles, scope, and the kinds of problems I enjoy solving."
             />
 
             {siteContent.resumeUrl ? (

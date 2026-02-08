@@ -11,7 +11,7 @@ const ExperienceSection = () => {
       company: 'PhonePe',
       position: 'Software Engineer',
       duration: 'May 2023 - Present',
-      description: 'Engineered TStore (Transaction Store), the high-performance post payment persistence platform at PhonePe, scaling 300M+ transactions daily with 99.99% availability serving 570+ million users, guaranteeing latency sensitive Transaction APIs (SLO p99 < 100ms, p50 < 5ms, 200K RPS).',
+      description: 'Engineered TStore (Transaction Store), the high-performance post payment persistence platform at PhonePe, scaling 400M+ transactions daily with 99.99% availability serving 570+ million users, guaranteeing latency sensitive Transaction APIs (SLO p99 < 100ms, p50 < 5ms, 200K RPS).',
       logo: '/images/phonepe-logo.jpeg',
       artifacts: ['/images/tstore1.png', '/images/tstore2.png']
     },

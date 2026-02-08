@@ -32,7 +32,7 @@ export default function Contact() {
           <SectionHeading
             eyebrow="Contact"
             title="Want to build something together?"
-            description="If you’re hiring, collaborating, or just want to nerd out about distributed systems — I’m happy to chat."
+            description="Reach out for mentorship, interview prep or professional opportunities."
           />
 
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
