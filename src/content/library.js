@@ -55,7 +55,10 @@ export default [
         title: "Bigtable: A Distributed Storage System",
         contentPath: "/library/bigtable.html",
       },
-      { title: "The Chubby Lock Service" },
+      {
+        title: "The Chubby Lock Service",
+        contentPath: "/library/chubby.html",
+      },
       { title: "Spanner: Globally Distributed Database" },
       { title: "Borg: The Cluster Management System" },
       { title: "Dremel: Interactive Analysis of Web-Scale Data" },
