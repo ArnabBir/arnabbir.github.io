@@ -96,7 +96,7 @@ export default [
     links: [
       {
         label: "Flipkart Tech — Services Fulfilment Cockpit",
-        href: "https://tech.flipkart.com/services-fulfilment-cockpit-why-passengers-within-flipkarts-airport-never-miss-a-flight-693855697f45",
+        href: "https://blog.flipkart.tech/services-fulfilment-cockpit-why-passengers-within-flipkarts-airport-never-miss-a-flight-693855697f45",
       },
     ],
   },
