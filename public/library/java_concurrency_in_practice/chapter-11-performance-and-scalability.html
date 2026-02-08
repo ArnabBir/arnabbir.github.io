@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 11 · Performance and Scalability</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 11</span><span class="pill ">III · Liveness, Performance, and Testing</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Performance and Scalability</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-10-avoiding-liveness-hazards.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-12-testing-concurrent-programs.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Performance: measure the right thing 
+          For concurrency, throughput and tail latency usually matter more than single-operation service time. Many slowdowns are caused by:
+          
+            lock contention (serialization)
+   ">
+      <div class="card-header">
+        <h3>Performance: measure the right thing</h3>
+        <span class="badge ok">metrics</span>
+      </div>
+      <div class="card-body">
+        
+          <p>For concurrency, throughput and tail latency usually matter more than single-operation service time. Many slowdowns are caused by:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>lock contention (serialization)</li>
+            <li>context switching (too many runnable threads)</li>
+            <li>false sharing / cache line ping-pong</li>
+            <li>allocation and GC pressure in hot paths</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="amdahl-lab">
+    <div class="card" data-searchable="Scalability Lab: Amdahl’s Law &amp; the Serial Ceiling 
+      Amdahl’s Law quantifies why “more threads” doesn’t automatically mean “more speed”. Adjust the parallel fraction p and core count n to see diminishing returns and the hard ceiling imposed by se">
+      <div class="card-header">
+        <h3>Scalability Lab: Amdahl’s Law &amp; the Serial Ceiling</h3>
+        <span class="badge warn">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Amdahl’s Law quantifies why “more threads” doesn’t automatically mean “more speed”. Adjust the parallel fraction <b>p</b> and core count <b>n</b> to see diminishing returns and the hard ceiling imposed by serial work.</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Parallel fraction p: <span id="pVal">90%</span></label>
+          <input data-field="p" type="range" min="0" max="0.99" step="0.01" value="0.90" />
+          <div class="meta">p includes work that scales with cores.</div>
+        </div>
+        <div class="control">
+          <label>Cores n: <span id="nVal">8</span></label>
+          <input data-field="n" type="range" min="1" max="64" value="8" />
+          <div class="meta">Speedup = 1 / ((1−p) + (p/n))</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="amdahl-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge warn amdahl-badge">tune sliders</span><span style="color:var(--muted2)">Look for the “knee” where adding cores stops helping.</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="Reduce lock contention: a playbook 
+          1) Reduce lock hold time: move work out of critical sections.
+          2) Reduce lock granularity: lock splitting/striping; separate independent state.
+          3) Avoid exclusive locks: ">
+      <div class="card-header">
+        <h3>Reduce lock contention: a playbook</h3>
+        <span class="badge warn">tuning</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>1) Reduce lock hold time</b>: move work out of critical sections.</p>
+          <p><b>2) Reduce lock granularity</b>: lock splitting/striping; separate independent state.</p>
+          <p><b>3) Avoid exclusive locks</b>: use read-write locks or lock-free/atomic techniques where appropriate.</p>
+          <p><b>4) Eliminate sharing</b>: thread confinement or sharded ownership (true scalability often comes from not sharing at all).</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Micro-benchmark warnings 
+          Concurrency performance is often dominated by scheduler effects and JVM warmup. Avoid naive microbenchmarks. Prefer JMH and measure under realistic contention and allocation patterns.
+     ">
+      <div class="card-header">
+        <h3>Micro-benchmark warnings</h3>
+        <span class="badge danger">pitfall</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Concurrency performance is often dominated by scheduler effects and JVM warmup. Avoid naive microbenchmarks. Prefer JMH and measure under realistic contention and allocation patterns.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-10-avoiding-liveness-hazards.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-12-testing-concurrent-programs.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

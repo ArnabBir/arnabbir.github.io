@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 01 · Introduction</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 01</span><span class="pill ">Prelude</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Introduction</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="index.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-02-thread-safety.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Threads, parallelism, and the shape of modern software 
+          Threads are a resource multiplexing mechanism: the CPU time slice and memory model expose interleavings that your code must tolerate. You use concurrency for:
+          
+            Respons">
+      <div class="card-header">
+        <h3>Threads, parallelism, and the shape of modern software</h3>
+        <span class="badge ok">foundation</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Threads are a <b>resource multiplexing mechanism</b>: the CPU time slice and memory model expose interleavings that your code must tolerate. You use concurrency for:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li><b>Responsiveness</b>: keep a UI/event-loop responsive by pushing long work off the event thread.</li>
+            <li><b>Throughput</b>: overlap I/O and compute; keep cores busy by working on independent tasks.</li>
+            <li><b>Latency hiding</b>: issue multiple requests concurrently, then compose results.</li>
+          </ul>
+          <div class="divider"></div>
+          <p><b>The trap</b>: concurrency doesn’t just reorder operations; without the right synchronization it can change what values are observable, because compilers/CPUs can reorder and cache aggressively.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Safety vs liveness: two orthogonal correctness axes 
+          Safety properties are invariants: “nothing bad happens”. Examples: counters never go negative, map never loses an entry, money is conserved. Safety failures are often race conditions (lost ">
+      <div class="card-header">
+        <h3>Safety vs liveness: two orthogonal correctness axes</h3>
+        <span class="badge warn">mental model</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>Safety</b> properties are invariants: “nothing bad happens”. Examples: counters never go negative, map never loses an entry, money is conserved. Safety failures are often <b>race conditions</b> (lost updates, broken invariants, stale reads).</p>
+          <p><b>Liveness</b> properties are progress guarantees: “something good eventually happens”. Examples: request eventually completes, threads don’t get stuck forever. Liveness failures include <b>deadlock</b>, <b>livelock</b>, and <b>starvation</b>.</p>
+          <div class="divider"></div>
+          <p><b>Engineering rule:</b> design correctness as <b>state + transitions</b>. Specify the invariant, then choose a coordination primitive that makes each transition atomic with respect to the invariant.</p>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="race-lab">
+    <div class="card" data-searchable="Atomicity Lab: Lost Updates &amp; Linearizability 
+      Model a classic lost-update bug: two threads increment a shared counter. In unsafe mode we interleave read → add → write steps; unlucky schedules overwrite newer values. Compare with lock (mutu">
+      <div class="card-header">
+        <h3>Atomicity Lab: Lost Updates &amp; Linearizability</h3>
+        <span class="badge ok">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Model a classic lost-update bug: two threads increment a shared counter. In <b>unsafe</b> mode we interleave <span style="font-family:var(--mono)">read → add → write</span> steps; unlucky schedules overwrite newer values. Compare with <b>lock</b> (mutual exclusion) and <b>atomic (CAS)</b> (linearizable increments).</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Mode</label>
+          <select data-field="mode">
+            <option value="unsafe">unsafe (RMW interleavings)</option>
+            <option value="lock">lock (mutual exclusion)</option>
+            <option value="atomic">atomic (CAS loop)</option>
+          </select>
+          <div class="meta">Switch modes to see which guarantees atomicity and visibility.</div>
+        </div>
+        <div class="control">
+          <label>Iterations per thread: <span id="itersVal">200</span></label>
+          <input data-field="iters" type="range" min="50" max="1200" value="200" />
+          <div class="meta">Expected final counter = <b>2×iters</b>.</div>
+        </div>
+        <div class="control">
+          <label>Scheduler chaos: <span id="chaosVal">50%</span></label>
+          <input data-field="chaos" type="range" min="0" max="1" step="0.01" value="0.50" />
+          <div class="meta">Higher chaos → more adversarial interleavings & CAS retries.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn primary" data-action="run">Run</button>
+          <button class="btn" data-action="reset">Reset</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="race-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge warn race-badge">not run</span><span style="color:var(--muted2)">Tip: press <span style="font-family:var(--mono)">Run</span> repeatedly in unsafe mode — drift is probabilistic.</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="A practical workflow for building intuition 
+          1) Identify shared mutable state. 2) Decide the synchronization policy (lock? immutability? confinement? atomics?). 3) Prove the invariant under interleavings. 4) Check visibility (publicat">
+      <div class="card-header">
+        <h3>A practical workflow for building intuition</h3>
+        <span class="badge ok">how to study</span>
+      </div>
+      <div class="card-body">
+        
+          <p>1) Identify shared mutable state. 2) Decide the synchronization policy (lock? immutability? confinement? atomics?). 3) Prove the invariant under interleavings. 4) Check visibility (publication & happens-before). 5) Stress-test with adversarial schedules.</p>
+          <div class="divider"></div>
+          <div class="callout">
+            <div class="icon">★</div>
+            <div class="t"><b>Gold-standard mental picture</b>: a method is safe when its externally visible behavior is equivalent to some <b>serial</b> execution order (linearizability) for the operations that matter.</div>
+          </div>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="index.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-02-thread-safety.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

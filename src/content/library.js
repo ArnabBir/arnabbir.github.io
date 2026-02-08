@@ -145,6 +145,103 @@ export default [
     readingTime: "35 min",
   },
   {
+    id: "java-concurrency-in-practice",
+    title: "Java Concurrency in Practice — Interactive Atlas",
+    description:
+      "Deep, interactive engineering notes for JCIP: thread safety, sharing objects, task execution, liveness, performance, the Java Memory Model, and nonblocking synchronization.",
+    category: "Programming Languages",
+    tags: ["Java", "Concurrency", "JMM", "Threads", "Locks"],
+    contentPath: "/library/java_concurrency_in_practice/index.html",
+    date: "2026-02-08",
+    featured: true,
+    highlights: [
+      "16 interactive chapters with labs (atomicity, deadlock, happens-before, CAS)",
+      "Cheat sheet, glossary, and patterns library",
+      "Amdahl's law and thread pool sizing simulators",
+      "Production rules and failure-mode thinking",
+    ],
+    chapters: [
+      {
+        title: "Introduction",
+        contentPath: "/library/java_concurrency_in_practice/chapter-01-introduction.html",
+      },
+      {
+        title: "Thread Safety",
+        contentPath: "/library/java_concurrency_in_practice/chapter-02-thread-safety.html",
+      },
+      {
+        title: "Sharing Objects",
+        contentPath: "/library/java_concurrency_in_practice/chapter-03-sharing-objects.html",
+      },
+      {
+        title: "Composing Objects",
+        contentPath: "/library/java_concurrency_in_practice/chapter-04-composing-objects.html",
+      },
+      {
+        title: "Building Blocks",
+        contentPath: "/library/java_concurrency_in_practice/chapter-05-building-blocks.html",
+      },
+      {
+        title: "Task Execution",
+        contentPath: "/library/java_concurrency_in_practice/chapter-06-task-execution.html",
+      },
+      {
+        title: "Cancellation and Shutdown",
+        contentPath: "/library/java_concurrency_in_practice/chapter-07-cancellation-and-shutdown.html",
+      },
+      {
+        title: "Applying Thread Pools",
+        contentPath: "/library/java_concurrency_in_practice/chapter-08-applying-thread-pools.html",
+      },
+      {
+        title: "GUI Applications",
+        contentPath: "/library/java_concurrency_in_practice/chapter-09-gui-applications.html",
+      },
+      {
+        title: "Avoiding Liveness Hazards",
+        contentPath: "/library/java_concurrency_in_practice/chapter-10-avoiding-liveness-hazards.html",
+      },
+      {
+        title: "Performance and Scalability",
+        contentPath: "/library/java_concurrency_in_practice/chapter-11-performance-and-scalability.html",
+      },
+      {
+        title: "Testing Concurrent Programs",
+        contentPath: "/library/java_concurrency_in_practice/chapter-12-testing-concurrent-programs.html",
+      },
+      {
+        title: "Explicit Locks",
+        contentPath: "/library/java_concurrency_in_practice/chapter-13-explicit-locks.html",
+      },
+      {
+        title: "Building Custom Synchronizers",
+        contentPath: "/library/java_concurrency_in_practice/chapter-14-building-custom-synchronizers.html",
+      },
+      {
+        title: "Atomic Variables and Nonblocking Synchronization",
+        contentPath: "/library/java_concurrency_in_practice/chapter-15-atomic-variables-and-nonblocking-synchronization.html",
+      },
+      {
+        title: "The Java Memory Model",
+        contentPath: "/library/java_concurrency_in_practice/chapter-16-the-java-memory-model.html",
+      },
+      {
+        title: "Cheat Sheet",
+        contentPath: "/library/java_concurrency_in_practice/cheatsheet.html",
+      },
+      {
+        title: "Glossary",
+        contentPath: "/library/java_concurrency_in_practice/glossary.html",
+      },
+      {
+        title: "Patterns Library",
+        contentPath: "/library/java_concurrency_in_practice/patterns.html",
+      },
+    ],
+    difficulty: "Advanced",
+    readingTime: "16 chapters",
+  },
+  {
     id: "ddia",
     title: "Designing Data-Intensive Applications — Interactive Atlas",
     description:

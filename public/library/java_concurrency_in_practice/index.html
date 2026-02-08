@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Interactive Atlas · Home</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters (e.g., deadlock, volatile, executor, CAS)…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Library</span><span class="pill ">Java Concurrency in Practice</span><span class="pill ">Chapter-by-chapter interactive notes</span></div>
+            <div class="h-title">Java Concurrency in Practice — Interactive Atlas</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        Welcome to a <b>best-in-class</b> interactive learning library for concurrency engineering. Each chapter is built as a <b>technical atlas</b>:
+        dense mental models, production rules, and hands-on simulations (atomicity, deadlock, happens-before, pool sizing, CAS/ABA, and more).
+        <div style="margin-top:10px" class="note"><strong>Tip:</strong> Press <b>/</b> to search. Try queries like <span style="font-family:var(--mono)">deadlock</span>, <span style="font-family:var(--mono)">volatile</span>, <span style="font-family:var(--mono)">executor</span>, <span style="font-family:var(--mono)">CAS</span>.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn primary" href="cheatsheet.html">Start with Cheat Sheet</a><a class="btn " href="chapter-01-introduction.html">Jump to Chapter 1</a><a class="btn " href="patterns.html">Patterns library</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Interactive labs</div>
+              <div class="value">Atomicity · HB · Deadlock · Pools · Amdahl · CAS</div>
+            </div>
+            <div class="badge ok">hands-on</div>
+          </div>
+          <div class="hint">Each lab is implemented in vanilla JS + Canvas (no external libraries) so the zip is portable.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Design system</div>
+              <div class="value">Dark, high-contrast, technical UI</div>
+            </div>
+            <div class="badge warn">UI</div>
+          </div>
+          <div class="hint">Glassy panels, responsive layout, keyboard-first navigation, and searchable cards.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Overview</h2>
+      <p class="lead">This atlas is organized chapter-by-chapter with additional reference sections.</p>
+      <div class="grid cols-3">
+    <div class="card" data-searchable="How to use this library 
+          Read the mental model card, then open the lab and break it. Most concurrency bugs are “works until it doesn’t”. Your goal is to feel the failure mode.
+          Apply the production rules t">
+      <div class="card-header">
+        <h3>How to use this library</h3>
+        <span class="badge ok">workflow</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>Read</b> the mental model card, then open the lab and <b>break it</b>. Most concurrency bugs are “works until it doesn’t”. Your goal is to feel the failure mode.</p>
+          <p><b>Apply</b> the production rules to your own code: identify shared state, decide a policy, document it, and test under contention.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="What you get (and what you don’t) 
+          This zip does not include the book’s copyrighted text. Instead it provides original explanations, simulations, and example code inspired by the chapter topics.
+          Use it as a study c">
+      <div class="card-header">
+        <h3>What you get (and what you don’t)</h3>
+        <span class="badge warn">copyright-safe</span>
+      </div>
+      <div class="card-body">
+        
+          <p>This zip does <b>not</b> include the book’s copyrighted text. Instead it provides original explanations, simulations, and example code inspired by the chapter topics.</p>
+          <p>Use it as a study companion and a sandbox to build intuition.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Keyboard-first navigation 
+          / focuses search on any page. Esc clears it. Search filters chapters on the home page and cards within chapters.
+          Tip: search for HB, pool, ABA, liveness.
+        ">
+      <div class="card-header">
+        <h3>Keyboard-first navigation</h3>
+        <span class="badge ok">productivity</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>/</b> focuses search on any page. <b>Esc</b> clears it. Search filters chapters on the home page and cards within chapters.</p>
+          <p>Tip: search for <span style="font-family:var(--mono)">HB</span>, <span style="font-family:var(--mono)">pool</span>, <span style="font-family:var(--mono)">ABA</span>, <span style="font-family:var(--mono)">liveness</span>.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="section" id="chapters">
+    <div class="container">
+      <h2>Chapters</h2>
+      <p class="lead">Start at Chapter 1, then follow the parts. Use search to filter by topic instantly.</p>
+      <div id="chaptersList">
+        
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <h3>Prelude</h3>
+            <span class="badge">chapters</span>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <tr><th>Chapter</th><th>Title</th><th>File</th></tr>
+              
+            <tr data-chapter-item data-searchable="chapter 1 Introduction Prelude">
+              <td style="width:110px"><span class="badge ok">Ch 01</span></td>
+              <td><a href="chapter-01-introduction.html" style="font-weight:750;color:var(--text)">Introduction</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">Prelude</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-01-introduction.html</span></td>
+            </tr>
+            
+            </table>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <h3>I · Fundamentals</h3>
+            <span class="badge">chapters</span>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <tr><th>Chapter</th><th>Title</th><th>File</th></tr>
+              
+            <tr data-chapter-item data-searchable="chapter 2 Thread Safety I · Fundamentals">
+              <td style="width:110px"><span class="badge ok">Ch 02</span></td>
+              <td><a href="chapter-02-thread-safety.html" style="font-weight:750;color:var(--text)">Thread Safety</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">I · Fundamentals</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-02-thread-safety.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 3 Sharing Objects I · Fundamentals">
+              <td style="width:110px"><span class="badge ok">Ch 03</span></td>
+              <td><a href="chapter-03-sharing-objects.html" style="font-weight:750;color:var(--text)">Sharing Objects</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">I · Fundamentals</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-03-sharing-objects.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 4 Composing Objects I · Fundamentals">
+              <td style="width:110px"><span class="badge ok">Ch 04</span></td>
+              <td><a href="chapter-04-composing-objects.html" style="font-weight:750;color:var(--text)">Composing Objects</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">I · Fundamentals</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-04-composing-objects.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 5 Building Blocks I · Fundamentals">
+              <td style="width:110px"><span class="badge ok">Ch 05</span></td>
+              <td><a href="chapter-05-building-blocks.html" style="font-weight:750;color:var(--text)">Building Blocks</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">I · Fundamentals</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-05-building-blocks.html</span></td>
+            </tr>
+            
+            </table>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <h3>II · Structuring Concurrent Applications</h3>
+            <span class="badge">chapters</span>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <tr><th>Chapter</th><th>Title</th><th>File</th></tr>
+              
+            <tr data-chapter-item data-searchable="chapter 6 Task Execution II · Structuring Concurrent Applications">
+              <td style="width:110px"><span class="badge ok">Ch 06</span></td>
+              <td><a href="chapter-06-task-execution.html" style="font-weight:750;color:var(--text)">Task Execution</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">II · Structuring Concurrent Applications</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-06-task-execution.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 7 Cancellation and Shutdown II · Structuring Concurrent Applications">
+              <td style="width:110px"><span class="badge ok">Ch 07</span></td>
+              <td><a href="chapter-07-cancellation-and-shutdown.html" style="font-weight:750;color:var(--text)">Cancellation and Shutdown</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">II · Structuring Concurrent Applications</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-07-cancellation-and-shutdown.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 8 Applying Thread Pools II · Structuring Concurrent Applications">
+              <td style="width:110px"><span class="badge ok">Ch 08</span></td>
+              <td><a href="chapter-08-applying-thread-pools.html" style="font-weight:750;color:var(--text)">Applying Thread Pools</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">II · Structuring Concurrent Applications</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-08-applying-thread-pools.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 9 GUI Applications II · Structuring Concurrent Applications">
+              <td style="width:110px"><span class="badge ok">Ch 09</span></td>
+              <td><a href="chapter-09-gui-applications.html" style="font-weight:750;color:var(--text)">GUI Applications</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">II · Structuring Concurrent Applications</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-09-gui-applications.html</span></td>
+            </tr>
+            
+            </table>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <h3>III · Liveness, Performance, and Testing</h3>
+            <span class="badge">chapters</span>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <tr><th>Chapter</th><th>Title</th><th>File</th></tr>
+              
+            <tr data-chapter-item data-searchable="chapter 10 Avoiding Liveness Hazards III · Liveness, Performance, and Testing">
+              <td style="width:110px"><span class="badge ok">Ch 10</span></td>
+              <td><a href="chapter-10-avoiding-liveness-hazards.html" style="font-weight:750;color:var(--text)">Avoiding Liveness Hazards</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">III · Liveness, Performance, and Testing</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-10-avoiding-liveness-hazards.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 11 Performance and Scalability III · Liveness, Performance, and Testing">
+              <td style="width:110px"><span class="badge ok">Ch 11</span></td>
+              <td><a href="chapter-11-performance-and-scalability.html" style="font-weight:750;color:var(--text)">Performance and Scalability</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">III · Liveness, Performance, and Testing</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-11-performance-and-scalability.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 12 Testing Concurrent Programs III · Liveness, Performance, and Testing">
+              <td style="width:110px"><span class="badge ok">Ch 12</span></td>
+              <td><a href="chapter-12-testing-concurrent-programs.html" style="font-weight:750;color:var(--text)">Testing Concurrent Programs</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">III · Liveness, Performance, and Testing</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-12-testing-concurrent-programs.html</span></td>
+            </tr>
+            
+            </table>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <h3>IV · Advanced Topics</h3>
+            <span class="badge">chapters</span>
+          </div>
+          <div class="card-body">
+            <table class="table">
+              <tr><th>Chapter</th><th>Title</th><th>File</th></tr>
+              
+            <tr data-chapter-item data-searchable="chapter 13 Explicit Locks IV · Advanced Topics">
+              <td style="width:110px"><span class="badge ok">Ch 13</span></td>
+              <td><a href="chapter-13-explicit-locks.html" style="font-weight:750;color:var(--text)">Explicit Locks</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">IV · Advanced Topics</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-13-explicit-locks.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 14 Building Custom Synchronizers IV · Advanced Topics">
+              <td style="width:110px"><span class="badge ok">Ch 14</span></td>
+              <td><a href="chapter-14-building-custom-synchronizers.html" style="font-weight:750;color:var(--text)">Building Custom Synchronizers</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">IV · Advanced Topics</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-14-building-custom-synchronizers.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 15 Atomic Variables and Nonblocking Synchronization IV · Advanced Topics">
+              <td style="width:110px"><span class="badge ok">Ch 15</span></td>
+              <td><a href="chapter-15-atomic-variables-and-nonblocking-synchronization.html" style="font-weight:750;color:var(--text)">Atomic Variables and Nonblocking Synchronization</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">IV · Advanced Topics</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-15-atomic-variables-and-nonblocking-synchronization.html</span></td>
+            </tr>
+            
+            <tr data-chapter-item data-searchable="chapter 16 The Java Memory Model IV · Advanced Topics">
+              <td style="width:110px"><span class="badge ok">Ch 16</span></td>
+              <td><a href="chapter-16-the-java-memory-model.html" style="font-weight:750;color:var(--text)">The Java Memory Model</a><div style="color:var(--muted2); font-size:12px; margin-top:2px">IV · Advanced Topics</div></td>
+              <td style="width:240px; color:var(--muted)"><span style="font-family:var(--mono)">chapter-16-the-java-memory-model.html</span></td>
+            </tr>
+            
+            </table>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="container">
+      <p>Built for deep engineering learning: interactive labs + production-grade rules of thumb.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

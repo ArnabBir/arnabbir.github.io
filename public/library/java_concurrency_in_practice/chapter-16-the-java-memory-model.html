@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 16 · The Java Memory Model</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 16</span><span class="pill ">IV · Advanced Topics</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">The Java Memory Model</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-15-atomic-variables-and-nonblocking-synchronization.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="index.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="The Java Memory Model: what it buys you 
+          The JMM defines the legal behaviors of reads/writes across threads. It allows aggressive optimization while giving programmers a way to regain predictability through happens-before relation">
+      <div class="card-header">
+        <h3>The Java Memory Model: what it buys you</h3>
+        <span class="badge ok">JMM</span>
+      </div>
+      <div class="card-body">
+        
+          <p>The JMM defines the legal behaviors of reads/writes across threads. It allows aggressive optimization while giving programmers a way to regain predictability through happens-before relationships.</p>
+          <p>Without HB, you can get surprising outcomes: reading default values, seeing writes out of order, or observing partially constructed objects.</p>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="hb-explorer">
+    <div class="card" data-searchable="Memory-Visibility Lab: Happens-Before Graph Explorer 
+      Happens-before (HB) is the backbone of the Java Memory Model: it defines when writes in one thread are guaranteed to be visible to reads in another. Toggle the HB primitives and see whether a r">
+      <div class="card-header">
+        <h3>Memory-Visibility Lab: Happens-Before Graph Explorer</h3>
+        <span class="badge ok">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Happens-before (HB) is the backbone of the Java Memory Model: it defines when writes in one thread are guaranteed to be visible to reads in another. Toggle the HB primitives and see whether a read is guaranteed to observe a write.</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Scenario</label>
+          <select data-field="scenario">
+            <option value="plain">Plain data race (no HB)</option>
+            <option value="monitor">Intrinsic locks (monitor enter/exit)</option>
+            <option value="volatile">Volatile handoff</option>
+            <option value="startJoin">Thread start / join</option>
+            <option value="finalField">Final-field + safe publication (simplified)</option>
+          </select>
+          <div class="meta">HB paths compose transitively — the graph matters.</div>
+        </div>
+        <div class="control">
+          <label>Edges enabled</label>
+          <div style="display:grid; gap:8px">
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="po" type="checkbox" checked/> Program order</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="lock" type="checkbox" /> Monitor unlock → lock</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="vol" type="checkbox" /> Volatile write → read</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="start" type="checkbox" /> start(T)</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="join" type="checkbox" /> join(T)</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="final" type="checkbox" /> final-field semantics</label>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="hb-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge warn hb-badge">toggle edges</span><span style="color:var(--muted2)">Goal: establish a HB path from the write node to the read node.</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="Publication and initialization safety 
+          Key ideas:
+          
+            Safe publication ensures other threads see an object’s constructed state.
+            Final fields have special initialization guarantees when the object i">
+      <div class="card-header">
+        <h3>Publication and initialization safety</h3>
+        <span class="badge warn">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Key ideas:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li><b>Safe publication</b> ensures other threads see an object’s constructed state.</li>
+            <li><b>Final fields</b> have special initialization guarantees when the object is safely published.</li>
+            <li><b>Volatile</b> establishes ordering and visibility, not mutual exclusion.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Classic pitfall: double-checked locking (and how to do it right) // Correct (Java 5+): volatile + double-checked locking
+class Lazy {
+  private static volatile Helper helper;
+
+  static Helper get(){
+    Helper h = helper;
+    if(h == null){
+      synchronized(Lazy.">
+      <div class="card-header">
+        <h3>Classic pitfall: double-checked locking (and how to do it right)</h3>
+        <span class="badge danger">pitfall</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Correct (Java 5+): volatile + double-checked locking
+class Lazy {
+  private static volatile Helper helper;
+
+  static Helper get(){
+    Helper h = helper;
+    if(h == null){
+      synchronized(Lazy.class){
+        h = helper;
+        if(h == null){
+          h = new Helper();    // safe publication via volatile write
+          helper = h;
+        }
+      }
+    }
+    return h;
+  }
+}
+</code></div>
+          <p>The volatile write to <span style="font-family:var(--mono)">helper</span> prevents reordering that would publish a partially constructed object.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Practical checklist: making shared state predictable 
+          
+            Prefer immutable objects for shared data.
+            Publish objects through safe mechanisms (volatile, locks, thread-safe collections, static init).
+            Use explicit ">
+      <div class="card-header">
+        <h3>Practical checklist: making shared state predictable</h3>
+        <span class="badge ok">checklist</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>Prefer immutable objects for shared data.</li>
+            <li>Publish objects through safe mechanisms (volatile, locks, thread-safe collections, static init).</li>
+            <li>Use explicit synchronization for compound invariants.</li>
+            <li>Document the policy: which lock guards which state.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-15-atomic-variables-and-nonblocking-synchronization.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="index.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 09 · GUI Applications</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 09</span><span class="pill ">II · Structuring Concurrent Applications</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">GUI Applications</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-08-applying-thread-pools.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-10-avoiding-liveness-hazards.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Single-threaded GUI model: why it exists 
+          Most GUI frameworks serialize UI mutations through a single event thread to avoid making every widget thread-safe. This simplifies the toolkit but pushes concurrency complexity to your appl">
+      <div class="card-header">
+        <h3>Single-threaded GUI model: why it exists</h3>
+        <span class="badge ok">responsiveness</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Most GUI frameworks serialize UI mutations through a single event thread to avoid making every widget thread-safe. This simplifies the toolkit but pushes concurrency complexity to your application: long work must be moved off the event thread.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Responsiveness pattern: background work + UI handoff // Sketch: background task reports progress back to UI thread
+ExecutorService bg = Executors.newFixedThreadPool(4);
+
+void onClick(){
+  Future&amp;lt;Result&amp;gt; f = bg.submit(() -&amp;gt; compute());
+  bg.subm">
+      <div class="card-header">
+        <h3>Responsiveness pattern: background work + UI handoff</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Sketch: background task reports progress back to UI thread
+ExecutorService bg = Executors.newFixedThreadPool(4);
+
+void onClick(){
+  Future&lt;Result&gt; f = bg.submit(() -&gt; compute());
+  bg.submit(() -&gt; {
+    try{
+      Result r = f.get();
+      uiThread(() -&gt; render(r));  // handoff to event dispatch thread
+    } catch(Exception e){
+      uiThread(() -&gt; showError(e));
+    }
+  });
+}
+</code></div>
+          <p>Keep UI work short. All background results are handed back to the event thread for rendering.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Thread confinement in UI code 
+          GUI objects are typically confined to the event thread. If worker threads touch UI state directly, you get heisenbugs: it may “work on my machine” then explode under load.
+          Use imm">
+      <div class="card-header">
+        <h3>Thread confinement in UI code</h3>
+        <span class="badge warn">discipline</span>
+      </div>
+      <div class="card-body">
+        
+          <p>GUI objects are typically <b>confined</b> to the event thread. If worker threads touch UI state directly, you get heisenbugs: it may “work on my machine” then explode under load.</p>
+          <p>Use immutable snapshots for data flowing into the UI, and synchronize or use concurrent data structures for shared models accessed by both UI and workers.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Generalization: single-threaded subsystems 
+          The same idea appears outside GUIs: event loops, actor mailboxes, and per-shard ownership are single-threaded subsystems. They trade raw parallelism for simpler invariants and predictable p">
+      <div class="card-header">
+        <h3>Generalization: single-threaded subsystems</h3>
+        <span class="badge ok">systems</span>
+      </div>
+      <div class="card-body">
+        
+          <p>The same idea appears outside GUIs: event loops, actor mailboxes, and per-shard ownership are single-threaded subsystems. They trade raw parallelism for simpler invariants and predictable performance.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-08-applying-thread-pools.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-10-avoiding-liveness-hazards.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

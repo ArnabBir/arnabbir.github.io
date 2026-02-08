@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 14 · Building Custom Synchronizers</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 14</span><span class="pill ">IV · Advanced Topics</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Building Custom Synchronizers</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-13-explicit-locks.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-15-atomic-variables-and-nonblocking-synchronization.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Building custom synchronizers: be careful 
+          Custom synchronizers are essentially small distributed protocols. Correctness requires a clear state machine, safe publication, and robust handling of interruption and timeouts.
+          I">
+      <div class="card-header">
+        <h3>Building custom synchronizers: be careful</h3>
+        <span class="badge danger">expert</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Custom synchronizers are essentially small distributed protocols. Correctness requires a clear state machine, safe publication, and robust handling of interruption and timeouts.</p>
+          <p>In practice, prefer built-in synchronizers unless you have a strong reason (performance characteristics, bespoke semantics, or educational exploration).</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="AQS mental model (high-level) 
+          AbstractQueuedSynchronizer (AQS) is a framework for building locks and synchronizers. It manages:
+          
+            a single state integer (or bits) representing the synchronizer’s sta">
+      <div class="card-header">
+        <h3>AQS mental model (high-level)</h3>
+        <span class="badge ok">aql</span>
+      </div>
+      <div class="card-body">
+        
+          <p>AbstractQueuedSynchronizer (AQS) is a framework for building locks and synchronizers. It manages:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>a single <b>state</b> integer (or bits) representing the synchronizer’s state</li>
+            <li>a FIFO wait queue of threads</li>
+            <li>acquire/release mechanics that park/unpark threads</li>
+          </ul>
+          <div class="divider"></div>
+          <p><b>Design trick:</b> encode your synchronizer’s state so that the transition “tryAcquire” can be expressed as a CAS loop on that single state variable.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Condition queues: the predicate loop // The correct waiting pattern
+lock.lock();
+try{
+  while(!predicate()){
+    condition.await();
+  }
+  // predicate holds; do work
+} finally { lock.unlock(); }
+
+          Always wait in a loop. Wakeups ">
+      <div class="card-header">
+        <h3>Condition queues: the predicate loop</h3>
+        <span class="badge warn">correctness</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// The correct waiting pattern
+lock.lock();
+try{
+  while(!predicate()){
+    condition.await();
+  }
+  // predicate holds; do work
+} finally { lock.unlock(); }
+</code></div>
+          <p>Always wait in a loop. Wakeups can be spurious, and signals can be lost if you don’t re-check the predicate under the lock.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="When to build a custom synchronizer 
+          Good reasons include: nonstandard admission control, specialized fairness constraints, or needing to coordinate many threads around a compact shared state. Bad reasons: “because it’s fun” i">
+      <div class="card-header">
+        <h3>When to build a custom synchronizer</h3>
+        <span class="badge ok">decision</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Good reasons include: nonstandard admission control, specialized fairness constraints, or needing to coordinate many threads around a compact shared state. Bad reasons: “because it’s fun” in production code.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-13-explicit-locks.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-15-atomic-variables-and-nonblocking-synchronization.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

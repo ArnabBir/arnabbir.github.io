@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 07 · Cancellation and Shutdown</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 07</span><span class="pill ">II · Structuring Concurrent Applications</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Cancellation and Shutdown</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-06-task-execution.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-08-applying-thread-pools.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Cancellation is a protocol 
+          Cancellation is not a “kill switch”; it’s a cooperative protocol between:
+          
+            the caller (who requests cancellation),
+            the task (which checks for cancellation)">
+      <div class="card-header">
+        <h3>Cancellation is a protocol</h3>
+        <span class="badge warn">lifecycle</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Cancellation is not a “kill switch”; it’s a cooperative protocol between:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>the caller (who requests cancellation),</li>
+            <li>the task (which checks for cancellation),</li>
+            <li>the executor/thread (which delivers interruption).</li>
+          </ul>
+          <p>Well-designed code makes cancellation <b>prompt</b>, <b>safe</b>, and <b>predictable</b>.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Interruption policy: your team needs one // Example: interruption-aware loop
+while(!Thread.currentThread().isInterrupted()){
+  try{
+    doBlockingWork();        // e.g., take/put/sleep/IO
+  } catch(InterruptedException e){
+    Thread.current">
+      <div class="card-header">
+        <h3>Interruption policy: your team needs one</h3>
+        <span class="badge ok">best practice</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Example: interruption-aware loop
+while(!Thread.currentThread().isInterrupted()){
+  try{
+    doBlockingWork();        // e.g., take/put/sleep/IO
+  } catch(InterruptedException e){
+    Thread.currentThread().interrupt(); // restore status
+    break;                                   // exit promptly
+  }
+}
+cleanup();
+</code></div>
+          <p><b>Rule:</b> if you catch InterruptedException and can’t fully handle it, reassert the interrupt and exit/propagate.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Shutdown: design for it early 
+          Robust services have explicit lifecycle methods: start(), stop(), and awaitTermination(). “Fire-and-forget” threads make shutdown unreliable and leak resources.
+          Common approach: a">
+      <div class="card-header">
+        <h3>Shutdown: design for it early</h3>
+        <span class="badge warn">systems</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Robust services have explicit lifecycle methods: <span style="font-family:var(--mono)">start()</span>, <span style="font-family:var(--mono)">stop()</span>, and <span style="font-family:var(--mono)">awaitTermination()</span>. “Fire-and-forget” threads make shutdown unreliable and leak resources.</p>
+          <p>Common approach: a coordinator thread signals shutdown, tasks stop accepting new work, and in-flight tasks either complete within a timeout or are cancelled.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Poison pills and end-of-stream 
+          In producer-consumer designs, a sentinel element (poison pill) can signal consumers to stop. The key is to ensure every consumer observes termination:
+          
+            enqueue N poiso">
+      <div class="card-header">
+        <h3>Poison pills and end-of-stream</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        
+          <p>In producer-consumer designs, a sentinel element (poison pill) can signal consumers to stop. The key is to ensure every consumer observes termination:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>enqueue <b>N</b> poison pills for <b>N</b> consumers, or</li>
+            <li>use a shared “done” flag + interruption, or</li>
+            <li>close the queue/channel if your abstraction supports it.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-06-task-execution.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-08-applying-thread-pools.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

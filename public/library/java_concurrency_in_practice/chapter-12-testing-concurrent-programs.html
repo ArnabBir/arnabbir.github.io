@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 12 · Testing Concurrent Programs</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 12</span><span class="pill ">III · Liveness, Performance, and Testing</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Testing Concurrent Programs</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-11-performance-and-scalability.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-13-explicit-locks.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Testing concurrent code: hunt the rare interleaving 
+          Most concurrency bugs are probabilistic: they happen only under particular timings. Good tests amplify the probability of bad schedules by:
+          
+            running many iterations
+  ">
+      <div class="card-header">
+        <h3>Testing concurrent code: hunt the rare interleaving</h3>
+        <span class="badge warn">testing</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Most concurrency bugs are <b>probabilistic</b>: they happen only under particular timings. Good tests amplify the probability of bad schedules by:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>running many iterations</li>
+            <li>adding contention (more threads, more shared state)</li>
+            <li>introducing scheduling noise (yields, sleeps, random delays)</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Harness patterns: latches, barriers, and deterministic start // Deterministic start: align threads, then race
+int threads = 8;
+CountDownLatch ready = new CountDownLatch(threads);
+CountDownLatch start = new CountDownLatch(1);
+CountDownLatch done  = new CountDown">
+      <div class="card-header">
+        <h3>Harness patterns: latches, barriers, and deterministic start</h3>
+        <span class="badge ok">patterns</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Deterministic start: align threads, then race
+int threads = 8;
+CountDownLatch ready = new CountDownLatch(threads);
+CountDownLatch start = new CountDownLatch(1);
+CountDownLatch done  = new CountDownLatch(threads);
+
+for(int i=0;i&lt;threads;i++){
+  pool.execute(() -&gt; {
+    ready.countDown();
+    start.await();     // all start together
+    exercise();        // contested operation
+    done.countDown();
+  });
+}
+ready.await();
+start.countDown();
+done.await();
+</code></div>
+          <p>This pattern increases the chance of hitting race windows by making the start simultaneous.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Safety and liveness tests 
+          Safety tests: check invariants (size matches links, counts never negative, snapshots consistent). Often require “atomic snapshot” support or exclusive locking for test probes.
+          Liv">
+      <div class="card-header">
+        <h3>Safety and liveness tests</h3>
+        <span class="badge warn">approach</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>Safety tests</b>: check invariants (size matches links, counts never negative, snapshots consistent). Often require “atomic snapshot” support or exclusive locking for test probes.</p>
+          <p><b>Liveness tests</b>: ensure no deadlock/starvation. Use timeouts and watchdogs; treat long stalls as failure. Instrument lock wait time, queue depth, and thread states.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Heisenbugs: tests can change timing 
+          Logging and breakpoints can hide bugs by perturbing schedules. Use sampling profilers and minimal tracing in the hot path. In some cases, run with stress tools or randomized schedulers to s">
+      <div class="card-header">
+        <h3>Heisenbugs: tests can change timing</h3>
+        <span class="badge danger">pitfall</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Logging and breakpoints can hide bugs by perturbing schedules. Use sampling profilers and minimal tracing in the hot path. In some cases, run with stress tools or randomized schedulers to shake out timing sensitivity.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-11-performance-and-scalability.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-13-explicit-locks.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

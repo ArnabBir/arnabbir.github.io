@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 04 · Composing Objects</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 04</span><span class="pill ">I · Fundamentals</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Composing Objects</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-03-sharing-objects.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-05-building-blocks.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Composing thread-safe components: the hard part 
+          Thread safety doesn’t always compose automatically. A thread-safe collection does not make your overall object thread-safe unless you maintain the combined invariant.
+          When you wra">
+      <div class="card-header">
+        <h3>Composing thread-safe components: the hard part</h3>
+        <span class="badge warn">architecture</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Thread safety doesn’t always compose automatically. A thread-safe collection does not make your overall object thread-safe unless you maintain the combined invariant.</p>
+          <p>When you wrap or extend a thread-safe class, you must preserve its synchronization policy. The most robust approach is <b>composition + delegation</b> rather than inheritance.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Designing a thread-safe class: a template 
+          1) State variables: list every field that can change over time.
+          2) Invariants: constraints that must always hold (e.g., min ≤ max, map size matches counter, etc.).
+          3) Gu">
+      <div class="card-header">
+        <h3>Designing a thread-safe class: a template</h3>
+        <span class="badge ok">template</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>1) State variables</b>: list every field that can change over time.</p>
+          <p><b>2) Invariants</b>: constraints that must always hold (e.g., <span style="font-family:var(--mono)">min ≤ max</span>, map size matches counter, etc.).</p>
+          <p><b>3) Guarding discipline</b>: decide which lock (or atomic) protects which fields.</p>
+          <p><b>4) Atomic actions</b>: identify compound operations that must appear indivisible (check-then-act, read-modify-write).</p>
+          <p><b>5) Documentation</b>: write down the policy so future changes don’t violate it.</p>
+          <div class="divider"></div>
+          <p><b>Pro tip:</b> treat the lock as a <i>capability</i> to access state. If code can touch state without holding the lock, you’ve lost the guarantee.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Example: compound actions with client-side locking // Pattern: atomic compound action on a synchronized collection
+List&amp;lt;String&amp;gt; list = Collections.synchronizedList(new ArrayList&amp;lt;&amp;gt;());
+
+void putIfAbsent(String x){
+  synchronized(list){     ">
+      <div class="card-header">
+        <h3>Example: compound actions with client-side locking</h3>
+        <span class="badge warn">example</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Pattern: atomic compound action on a synchronized collection
+List&lt;String&gt; list = Collections.synchronizedList(new ArrayList&lt;&gt;());
+
+void putIfAbsent(String x){
+  synchronized(list){           // must synchronize on the same monitor
+    if(!list.contains(x)){
+      list.add(x);
+    }
+  }
+}
+</code></div>
+          <p>The collection is synchronized, but <span style="font-family:var(--mono)">contains</span> + <span style="font-family:var(--mono)">add</span> is a compound action that requires external locking to be atomic.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Delegation &amp; split ownership 
+          Split ownership is the idea that the thread-safe object exclusively owns its state; callers can interact only through its methods. If you leak references to internal mutable state (like ret">
+      <div class="card-header">
+        <h3>Delegation &amp; split ownership</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Split ownership is the idea that the thread-safe object exclusively owns its state; callers can interact only through its methods. If you leak references to internal mutable state (like returning a live list), you hand the caller the ability to violate invariants.</p>
+          <p>Safer alternatives: return snapshots, immutable views, or publish through APIs that preserve the lock discipline.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-03-sharing-objects.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-05-building-blocks.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

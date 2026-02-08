@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 03 · Sharing Objects</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 03</span><span class="pill ">I · Fundamentals</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Sharing Objects</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-02-thread-safety.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-04-composing-objects.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Visibility is a correctness issue, not a performance detail 
+          Even if an operation looks “atomic”, other threads may not see it unless a happens-before relationship is established. Without sufficient synchronization, a thread may read a stale cached v">
+      <div class="card-header">
+        <h3>Visibility is a correctness issue, not a performance detail</h3>
+        <span class="badge warn">memory</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Even if an operation looks “atomic”, <b>other threads may not see it</b> unless a happens-before relationship is established. Without sufficient synchronization, a thread may read a stale cached value, or observe writes out of order.</p>
+          <p>Publication is the act of making an object reference reachable by another thread. Publication is safe only when the object’s construction is <b>visible</b> to the reading thread.</p>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="hb-explorer">
+    <div class="card" data-searchable="Memory-Visibility Lab: Happens-Before Graph Explorer 
+      Happens-before (HB) is the backbone of the Java Memory Model: it defines when writes in one thread are guaranteed to be visible to reads in another. Toggle the HB primitives and see whether a r">
+      <div class="card-header">
+        <h3>Memory-Visibility Lab: Happens-Before Graph Explorer</h3>
+        <span class="badge ok">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Happens-before (HB) is the backbone of the Java Memory Model: it defines when writes in one thread are guaranteed to be visible to reads in another. Toggle the HB primitives and see whether a read is guaranteed to observe a write.</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Scenario</label>
+          <select data-field="scenario">
+            <option value="plain">Plain data race (no HB)</option>
+            <option value="monitor">Intrinsic locks (monitor enter/exit)</option>
+            <option value="volatile">Volatile handoff</option>
+            <option value="startJoin">Thread start / join</option>
+            <option value="finalField">Final-field + safe publication (simplified)</option>
+          </select>
+          <div class="meta">HB paths compose transitively — the graph matters.</div>
+        </div>
+        <div class="control">
+          <label>Edges enabled</label>
+          <div style="display:grid; gap:8px">
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="po" type="checkbox" checked/> Program order</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="lock" type="checkbox" /> Monitor unlock → lock</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="vol" type="checkbox" /> Volatile write → read</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="start" type="checkbox" /> start(T)</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="join" type="checkbox" /> join(T)</label>
+            <label style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted)"><input data-edge="final" type="checkbox" /> final-field semantics</label>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="hb-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge warn hb-badge">toggle edges</span><span style="color:var(--muted2)">Goal: establish a HB path from the write node to the read node.</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="Four strategies for avoiding shared mutability 
+          1) Thread confinement: keep data private to a thread (locals, thread-owned actors, thread-local storage).
+          2) Immutability: publish an immutable object; no writes after publication">
+      <div class="card-header">
+        <h3>Four strategies for avoiding shared mutability</h3>
+        <span class="badge ok">design</span>
+      </div>
+      <div class="card-body">
+        
+          <p>1) <b>Thread confinement</b>: keep data private to a thread (locals, thread-owned actors, thread-local storage).</p>
+          <p>2) <b>Immutability</b>: publish an immutable object; no writes after publication.</p>
+          <p>3) <b>Synchronization</b>: guard state with a lock and enforce a lock discipline.</p>
+          <p>4) <b>Atomic/lock-free</b>: represent the shared state as an atomic variable and update via CAS.</p>
+          <div class="divider"></div>
+          <p><b>Rule of thumb:</b> if you can make data immutable or confined, do that first; it removes entire classes of bugs.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Safe publication checklist 
+          
+            Publish via static initializer or final static fields.
+            Publish via volatile reference or atomic reference.
+            Publish under a lock (write and read under sa">
+      <div class="card-header">
+        <h3>Safe publication checklist</h3>
+        <span class="badge ok">checklist</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>Publish via <b>static initializer</b> or final static fields.</li>
+            <li>Publish via <b>volatile reference</b> or <b>atomic reference</b>.</li>
+            <li>Publish under a <b>lock</b> (write and read under same lock).</li>
+            <li>Use <b>thread-safe</b> collections / concurrent queues for handoff.</li>
+            <li>Avoid “this escapes” during construction: don’t start threads or register callbacks from constructors unless you can guarantee they won’t run until construction completes.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-02-thread-safety.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-04-composing-objects.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

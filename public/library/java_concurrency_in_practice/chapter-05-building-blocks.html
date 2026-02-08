@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 05 · Building Blocks</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 05</span><span class="pill ">I · Fundamentals</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Building Blocks</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-04-composing-objects.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-06-task-execution.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Concurrent building blocks: choose the right primitive 
+          The platform gives you pre-built pieces whose correctness is carefully engineered: concurrent collections, blocking queues, and synchronizers. Your job is to map your problem’s invariants a">
+      <div class="card-header">
+        <h3>Concurrent building blocks: choose the right primitive</h3>
+        <span class="badge ok">toolbox</span>
+      </div>
+      <div class="card-body">
+        
+          <p>The platform gives you pre-built pieces whose correctness is carefully engineered: concurrent collections, blocking queues, and synchronizers. Your job is to map your problem’s invariants and progress requirements to the right building block.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Producer–consumer with BlockingQueue // Producer–consumer with bounded queue
+BlockingQueue&amp;lt;Job&amp;gt; q = new ArrayBlockingQueue&amp;lt;&amp;gt;(100);
+
+void producer() throws InterruptedException {
+  while(true){
+    Job j = makeJob();
+    q.put">
+      <div class="card-header">
+        <h3>Producer–consumer with BlockingQueue</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Producer–consumer with bounded queue
+BlockingQueue&lt;Job&gt; q = new ArrayBlockingQueue&lt;&gt;(100);
+
+void producer() throws InterruptedException {
+  while(true){
+    Job j = makeJob();
+    q.put(j);      // blocks when queue is full -&gt; backpressure
+  }
+}
+
+void consumer() throws InterruptedException {
+  while(true){
+    Job j = q.take();  // blocks when queue is empty
+    handle(j);
+  }
+}
+</code></div>
+          <p>Blocking queues give you a <b>handoff point</b> that is both thread-safe and a natural place to implement backpressure.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Synchronizers: shaping concurrency 
+          Synchronizers coordinate multiple threads around a condition:
+          
+            Semaphore: limit concurrency (e.g., max N in-flight requests).
+            CountDownLatch: one-time gate">
+      <div class="card-header">
+        <h3>Synchronizers: shaping concurrency</h3>
+        <span class="badge warn">sync</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Synchronizers coordinate multiple threads around a condition:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li><b>Semaphore</b>: limit concurrency (e.g., max N in-flight requests).</li>
+            <li><b>CountDownLatch</b>: one-time gate (wait for N events).</li>
+            <li><b>CyclicBarrier</b>: repeated rendezvous (phased computations).</li>
+            <li><b>Exchanger</b>: pairwise handoff.</li>
+          </ul>
+          <div class="divider"></div>
+          <p><b>Engineering note:</b> these primitives are correctness tools first; throughput is a bonus. Choose the one whose state machine matches your problem.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Caches and memoization: the “check-then-act” trap // Broken: race + redundant work
+V get(K k){
+  V v = map.get(k);
+  if(v == null){
+    v = compute(k);
+    map.put(k, v);
+  }
+  return v;
+}
+
+          This is a classic compound action: multiple thread">
+      <div class="card-header">
+        <h3>Caches and memoization: the “check-then-act” trap</h3>
+        <span class="badge danger">pitfall</span>
+      </div>
+      <div class="card-body">
+        <div class="code"><code>// Broken: race + redundant work
+V get(K k){
+  V v = map.get(k);
+  if(v == null){
+    v = compute(k);
+    map.put(k, v);
+  }
+  return v;
+}
+</code></div>
+          <p>This is a classic compound action: multiple threads can compute and overwrite values. Fix it with <span style="font-family:var(--mono)">computeIfAbsent</span>, memoizers, or a lock around the whole transition.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-04-composing-objects.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-06-task-execution.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

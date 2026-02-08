@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Glossary</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search glossary…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip active" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Glossary</span><span class="pill ">Precise language for precise engineering</span></div>
+            <div class="h-title">Glossary of Concurrency Concepts</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        Concurrency bugs thrive in ambiguous language. This glossary defines the terms you should use in design docs and code reviews.
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn primary" href="index.html#chapters">Back to chapters</a><a class="btn " href="patterns.html">Patterns library</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Usage</div>
+              <div class="value">Design docs · Reviews · Incidents</div>
+            </div>
+            <div class="badge ok">shared vocabulary</div>
+          </div>
+          <div class="hint">When you say “thread-safe”, specify whether you mean linearizable, synchronized, lock-free, etc.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Tip</div>
+              <div class="value">Search to filter</div>
+            </div>
+            <div class="badge warn">productivity</div>
+          </div>
+          <div class="hint">Press / and type “linearizable”, “HB”, “lock-free”…</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Definitions</h2>
+      <p class="lead">Use these terms consistently to reduce ambiguity and prevent incorrect “it seems safe” reasoning.</p>
+      
+    <div class="card" data-searchable="glossary terms definitions">
+      <div class="card-header"><h3>Terms</h3><span class="badge">reference</span></div>
+      <div class="card-body">
+        <table class="table">
+          <tr><th>Term</th><th>Definition</th></tr>
+          <tr data-searchable='Atomicity An operation is atomic if it appears indivisible: other threads cannot observe intermediate states. Atomicity is about interleavings; it often requires locks or atomic instructions.'><td style='width:220px'><b>Atomicity</b></td><td>An operation is atomic if it appears indivisible: other threads cannot observe intermediate states. Atomicity is about interleavings; it often requires locks or atomic instructions.</td></tr><tr data-searchable='Visibility A write is visible to another thread when that thread is guaranteed to observe the write (or a later write). Visibility requires a happens-before relationship.'><td style='width:220px'><b>Visibility</b></td><td>A write is visible to another thread when that thread is guaranteed to observe the write (or a later write). Visibility requires a happens-before relationship.</td></tr><tr data-searchable='Happens-before (HB) A partial order describing when actions in one thread must be observed by another. HB edges come from program order, locks, volatile, start/join, etc; HB is transitive.'><td style='width:220px'><b>Happens-before (HB)</b></td><td>A partial order describing when actions in one thread must be observed by another. HB edges come from program order, locks, volatile, start/join, etc; HB is transitive.</td></tr><tr data-searchable='Data race Two accesses to the same variable from different threads, at least one a write, without synchronization. Data races make behavior unpredictable under the memory model.'><td style='width:220px'><b>Data race</b></td><td>Two accesses to the same variable from different threads, at least one a write, without synchronization. Data races make behavior unpredictable under the memory model.</td></tr><tr data-searchable='Invariant A property that must always hold for the state of a component (e.g., queue size matches links). Concurrency control must preserve invariants under interleavings.'><td style='width:220px'><b>Invariant</b></td><td>A property that must always hold for the state of a component (e.g., queue size matches links). Concurrency control must preserve invariants under interleavings.</td></tr><tr data-searchable='Linearizability A correctness condition for concurrent objects: each operation appears to take effect instantaneously at some point between invocation and response, consistent with real-time ordering.'><td style='width:220px'><b>Linearizability</b></td><td>A correctness condition for concurrent objects: each operation appears to take effect instantaneously at some point between invocation and response, consistent with real-time ordering.</td></tr><tr data-searchable='Deadlock A cycle in the waits-for graph: each participant waits for a resource held by another. Classic necessary conditions include mutual exclusion, hold-and-wait, no preemption, and circular wait.'><td style='width:220px'><b>Deadlock</b></td><td>A cycle in the waits-for graph: each participant waits for a resource held by another. Classic necessary conditions include mutual exclusion, hold-and-wait, no preemption, and circular wait.</td></tr><tr data-searchable='Starvation A thread makes no progress because it never gets scheduled or never acquires a resource due to unfairness or priority inversion.'><td style='width:220px'><b>Starvation</b></td><td>A thread makes no progress because it never gets scheduled or never acquires a resource due to unfairness or priority inversion.</td></tr><tr data-searchable='Livelock Threads keep running and responding (e.g., retrying) but make no forward progress; often a symptom of contention + naive backoff.'><td style='width:220px'><b>Livelock</b></td><td>Threads keep running and responding (e.g., retrying) but make no forward progress; often a symptom of contention + naive backoff.</td></tr><tr data-searchable='Backpressure A mechanism that prevents overload from turning into unbounded queues and latency collapse by forcing producers to slow down or shed load.'><td style='width:220px'><b>Backpressure</b></td><td>A mechanism that prevents overload from turning into unbounded queues and latency collapse by forcing producers to slow down or shed load.</td></tr><tr data-searchable='CAS (compare-and-set) An atomic primitive that updates a value if it matches an expected value. CAS underlies many lock-free algorithms but can suffer ABA without versioning.'><td style='width:220px'><b>CAS (compare-and-set)</b></td><td>An atomic primitive that updates a value if it matches an expected value. CAS underlies many lock-free algorithms but can suffer ABA without versioning.</td></tr><tr data-searchable='Lock-free A progress guarantee: in a finite number of steps, some thread will complete. Individual threads may starve.'><td style='width:220px'><b>Lock-free</b></td><td>A progress guarantee: in a finite number of steps, some thread will complete. Individual threads may starve.</td></tr><tr data-searchable='Wait-free A stronger guarantee: every thread completes in a finite number of steps.'><td style='width:220px'><b>Wait-free</b></td><td>A stronger guarantee: every thread completes in a finite number of steps.</td></tr><tr data-searchable='Safe publication Publishing an object reference such that other threads are guaranteed to see the fully constructed object state.'><td style='width:220px'><b>Safe publication</b></td><td>Publishing an object reference such that other threads are guaranteed to see the fully constructed object state.</td></tr>
+        </table>
+      </div>
+    </div>
+    
+    </div>
+  </div>
+
+  <div class="footer"><div class="container">
+    <p>Precision in words → precision in invariants → fewer concurrency incidents.</p>
+  </div></div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

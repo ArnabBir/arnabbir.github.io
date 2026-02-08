@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 02 · Thread Safety</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 02</span><span class="pill ">I · Fundamentals</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Thread Safety</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-01-introduction.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-03-sharing-objects.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Definition of thread safety (the spec, not the implementation) 
+          A component is thread-safe if it behaves correctly when accessed from multiple threads, without requiring callers to do extra synchronization. “Correctly” means it preserves its invariants ">
+      <div class="card-header">
+        <h3>Definition of thread safety (the spec, not the implementation)</h3>
+        <span class="badge ok">fundamentals</span>
+      </div>
+      <div class="card-body">
+        
+          <p>A component is <b>thread-safe</b> if it behaves correctly when accessed from multiple threads, <b>without requiring</b> callers to do extra synchronization. “Correctly” means it preserves its invariants and meets its postconditions under all interleavings.</p>
+          <p>Thread safety is a property of the <b>contract</b>: thread-safe classes must document their synchronization policy (what’s guarded, by which lock, and what callers may assume).</p>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="race-lab">
+    <div class="card" data-searchable="Atomicity Lab: Lost Updates &amp; Linearizability 
+      Model a classic lost-update bug: two threads increment a shared counter. In unsafe mode we interleave read → add → write steps; unlucky schedules overwrite newer values. Compare with lock (mutu">
+      <div class="card-header">
+        <h3>Atomicity Lab: Lost Updates &amp; Linearizability</h3>
+        <span class="badge ok">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Model a classic lost-update bug: two threads increment a shared counter. In <b>unsafe</b> mode we interleave <span style="font-family:var(--mono)">read → add → write</span> steps; unlucky schedules overwrite newer values. Compare with <b>lock</b> (mutual exclusion) and <b>atomic (CAS)</b> (linearizable increments).</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Mode</label>
+          <select data-field="mode">
+            <option value="unsafe">unsafe (RMW interleavings)</option>
+            <option value="lock">lock (mutual exclusion)</option>
+            <option value="atomic">atomic (CAS loop)</option>
+          </select>
+          <div class="meta">Switch modes to see which guarantees atomicity and visibility.</div>
+        </div>
+        <div class="control">
+          <label>Iterations per thread: <span id="itersVal">200</span></label>
+          <input data-field="iters" type="range" min="50" max="1200" value="200" />
+          <div class="meta">Expected final counter = <b>2×iters</b>.</div>
+        </div>
+        <div class="control">
+          <label>Scheduler chaos: <span id="chaosVal">50%</span></label>
+          <input data-field="chaos" type="range" min="0" max="1" step="0.01" value="0.50" />
+          <div class="meta">Higher chaos → more adversarial interleavings & CAS retries.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn primary" data-action="run">Run</button>
+          <button class="btn" data-action="reset">Reset</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="race-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge warn race-badge">not run</span><span style="color:var(--muted2)">Tip: press <span style="font-family:var(--mono)">Run</span> repeatedly in unsafe mode — drift is probabilistic.</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="Guarding state with locks: granularity, scope, and invariants 
+          Locks are about making a compound action atomic with respect to an invariant. The lock must cover every read and write that participates in the invariant, and the invariant must not be obse">
+      <div class="card-header">
+        <h3>Guarding state with locks: granularity, scope, and invariants</h3>
+        <span class="badge warn">locks</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Locks are about <b>making a compound action atomic</b> with respect to an invariant. The lock must cover <b>every read and write</b> that participates in the invariant, and the invariant must not be observable in a broken intermediate state.</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li><b>Lock granularity</b>: coarser locks simplify correctness but increase contention.</li>
+            <li><b>Lock scope</b>: keep critical sections small; don’t hold locks across I/O or callbacks.</li>
+            <li><b>Lock ordering</b>: define a total order to prevent deadlock when acquiring multiple locks.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Atomic variables: when they’re enough (and when they’re not) 
+          Atomic variables solve a narrower problem: they make a single variable update atomic and provide visibility similar to volatile for the variable’s value. They’re ideal for:
+          
+     ">
+      <div class="card-header">
+        <h3>Atomic variables: when they’re enough (and when they’re not)</h3>
+        <span class="badge ok">atomics</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Atomic variables solve a narrower problem: they make a single variable update atomic and provide visibility similar to volatile for the variable’s value. They’re ideal for:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>independent counters and sequence generators</li>
+            <li>simple state machines expressed as one variable</li>
+            <li>nonblocking algorithms where the invariant can be maintained by updating <b>one pointer</b> at a time</li>
+          </ul>
+          <div class="divider"></div>
+          <p>If you need to update multiple fields <b>together</b> (e.g., <span style="font-family:var(--mono)">balance</span> and <span style="font-family:var(--mono)">history</span>), atomics alone are usually insufficient—you need a lock or a broader atomic representation.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-01-introduction.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-03-sharing-objects.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

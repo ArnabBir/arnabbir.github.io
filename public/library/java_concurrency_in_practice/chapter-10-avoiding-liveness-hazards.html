@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 10 · Avoiding Liveness Hazards</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 10</span><span class="pill ">III · Liveness, Performance, and Testing</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Avoiding Liveness Hazards</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-09-gui-applications.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-11-performance-and-scalability.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Liveness hazards: progress can fail even when safety holds 
+          Your invariant might be perfectly protected, yet the system can still fail by making no progress. Classic hazards:
+          
+            Deadlock: cyclic waiting for locks/resources.
+     ">
+      <div class="card-header">
+        <h3>Liveness hazards: progress can fail even when safety holds</h3>
+        <span class="badge danger">liveness</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Your invariant might be perfectly protected, yet the system can still fail by making no progress. Classic hazards:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li><b>Deadlock</b>: cyclic waiting for locks/resources.</li>
+            <li><b>Starvation</b>: a thread never gets CPU or lock access due to unfair scheduling or priority inversion.</li>
+            <li><b>Livelock</b>: threads keep “doing something” (retries/rollbacks) but make no progress.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="deadlock-lab">
+    <div class="card" data-searchable="Liveness Lab: Deadlock via Circular Wait 
+      Create (and then eliminate) a deadlock using two locks and two threads. Pick each thread’s lock acquisition order and step the scheduler. A deadlock is a cycle in the waits-for graph.
+      
+  ">
+      <div class="card-header">
+        <h3>Liveness Lab: Deadlock via Circular Wait</h3>
+        <span class="badge danger">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Create (and then eliminate) a deadlock using two locks and two threads. Pick each thread’s lock acquisition order and step the scheduler. A deadlock is a <b>cycle</b> in the waits-for graph.</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Thread A order</label>
+          <select data-field="orderA">
+            <option value="L1>L2">L1 → L2</option>
+            <option value="L2>L1">L2 → L1</option>
+          </select>
+          <div class="meta">Enforce a global order to prevent cycles.</div>
+        </div>
+        <div class="control">
+          <label>Thread B order</label>
+          <select data-field="orderB">
+            <option value="L2>L1">L2 → L1</option>
+            <option value="L1>L2">L1 → L2</option>
+          </select>
+          <div class="meta">Opposite order is the classic deadlock setup.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn primary" data-action="step">Step</button>
+          <button class="btn" data-action="run">Run</button>
+          <button class="btn" data-action="reset">Reset</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="deadlock-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge ok deadlock-badge">progressing</span><span style="color:var(--muted2)">Try A: L1→L2 and B: L2→L1, then click Run.</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="Diagnosis toolkit 
+          When production stalls:
+          
+            Capture thread dumps; look for BLOCKED / WAITING states.
+            Enable lock contention monitoring (where available).
+            Add time">
+      <div class="card-header">
+        <h3>Diagnosis toolkit</h3>
+        <span class="badge ok">operations</span>
+      </div>
+      <div class="card-body">
+        
+          <p>When production stalls:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>Capture thread dumps; look for BLOCKED / WAITING states.</li>
+            <li>Enable lock contention monitoring (where available).</li>
+            <li>Add timeouts and telemetry around lock acquisition and queue waits.</li>
+          </ul>
+          <div class="divider"></div>
+          <p><b>Design-time fix</b>: minimize nested locks, define lock ordering, and prefer higher-level concurrency utilities that avoid manual lock choreography.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Avoiding deadlock in practice 
+          Three practical strategies:
+          1) Lock ordering: assign each lock a rank and always acquire in increasing order.
+          2) Try-lock with timeout: if you can’t acquire quickly, bac">
+      <div class="card-header">
+        <h3>Avoiding deadlock in practice</h3>
+        <span class="badge warn">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Three practical strategies:</p>
+          <p><b>1) Lock ordering:</b> assign each lock a rank and always acquire in increasing order.</p>
+          <p><b>2) Try-lock with timeout:</b> if you can’t acquire quickly, back off and retry in a safe order.</p>
+          <p><b>3) Open calls:</b> don’t call external code (callbacks, remote services) while holding locks.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-09-gui-applications.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-11-performance-and-scalability.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

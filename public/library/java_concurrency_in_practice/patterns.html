@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Patterns</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search patterns…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip active" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Patterns</span><span class="pill ">Reusable building blocks for concurrent design</span></div>
+            <div class="h-title">Concurrency Patterns Library</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        Patterns are the unit of engineering reuse. Each pattern below includes: when to use it, what it guarantees, and a “failure mode” warning.
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn primary" href="index.html#chapters">Back to chapters</a><a class="btn " href="cheatsheet.html">Cheat sheet</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Goal</div>
+              <div class="value">Make invariants explicit</div>
+            </div>
+            <div class="badge ok">design</div>
+          </div>
+          <div class="hint">If a pattern doesn’t state its invariant and progress properties, it’s incomplete.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Anti-goal</div>
+              <div class="value">Ad-hoc locking</div>
+            </div>
+            <div class="badge danger">avoid</div>
+          </div>
+          <div class="hint">Random synchronized blocks without a documented policy create fragile systems.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Patterns</h2>
+      <p class="lead">Each pattern is a reusable synchronization story: it names the invariant, the guard, and the progress properties.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="Guarded-by lock (the core pattern) 
+      Use when: multiple fields participate in a shared invariant.
+      Guarantee: mutual exclusion + visibility for all guarded state.
+      Rule: every access to guarded fields must hold the same ">
+      <div class="card-header">
+        <h3>Guarded-by lock (the core pattern)</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        
+      <p><b>Use when:</b> multiple fields participate in a shared invariant.</p>
+      <p><b>Guarantee:</b> mutual exclusion + visibility for all guarded state.</p>
+      <p><b>Rule:</b> every access to guarded fields must hold the same lock.</p>
+      <div class="divider"></div>
+      <div class="code"><code>class Counter {
+  private final Object lock = new Object();
+  private long value;   // @GuardedBy(&quot;lock&quot;)
+
+  long incAndGet(){
+    synchronized(lock){
+      value++;
+      return value;
+    }
+  }
+}</code></div>
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Immutable snapshot 
+      Use when: many threads need read-only access to data that changes occasionally.
+      Guarantee: readers never need locks; updates publish a new immutable object.
+      Failure mode: leaking in">
+      <div class="card-header">
+        <h3>Immutable snapshot</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        
+      <p><b>Use when:</b> many threads need read-only access to data that changes occasionally.</p>
+      <p><b>Guarantee:</b> readers never need locks; updates publish a new immutable object.</p>
+      <p><b>Failure mode:</b> leaking internal mutable references breaks immutability.</p>
+      <div class="divider"></div>
+      <div class="code"><code>final class Config {
+  final Map&lt;String,String&gt; entries; // unmodifiable
+  Config(Map&lt;String,String&gt; src){
+    this.entries = Collections.unmodifiableMap(new HashMap&lt;&gt;(src));
+  }
+}
+
+class Holder {
+  private volatile Config cfg = new Config(Map.of());
+
+  Config get(){ return cfg; } // safe publication via volatile ref
+  void update(Map&lt;String,String&gt; src){ cfg = new Config(src); }
+}</code></div>
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Producer–consumer with bounded queue (backpressure) 
+      Use when: you need to smooth bursts but cap memory/latency.
+      Guarantee: bounded buffering; blocks producers under load (or rejects) instead of infinite queue growth.
+      
+      BlockingQ">
+      <div class="card-header">
+        <h3>Producer–consumer with bounded queue (backpressure)</h3>
+        <span class="badge warn">pattern</span>
+      </div>
+      <div class="card-body">
+        
+      <p><b>Use when:</b> you need to smooth bursts but cap memory/latency.</p>
+      <p><b>Guarantee:</b> bounded buffering; blocks producers under load (or rejects) instead of infinite queue growth.</p>
+      <div class="divider"></div>
+      <div class="code"><code>BlockingQueue&lt;Job&gt; q = new ArrayBlockingQueue&lt;&gt;(100);
+// Producers: q.put(job)  (blocks when full)
+// Consumers: q.take()    (blocks when empty)</code></div>
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Task execution via Executor (policy separation) 
+      Use when: you need to tune concurrency independently of business logic.
+      Guarantee: centralized lifecycle management, backpressure, and observability.
+      
+      ExecutorService pool =
+ ">
+      <div class="card-header">
+        <h3>Task execution via Executor (policy separation)</h3>
+        <span class="badge ok">pattern</span>
+      </div>
+      <div class="card-body">
+        
+      <p><b>Use when:</b> you need to tune concurrency independently of business logic.</p>
+      <p><b>Guarantee:</b> centralized lifecycle management, backpressure, and observability.</p>
+      <div class="divider"></div>
+      <div class="code"><code>ExecutorService pool =
+  new ThreadPoolExecutor(
+    8, 8,
+    0L, TimeUnit.MILLISECONDS,
+    new ArrayBlockingQueue&lt;&gt;(200),
+    new ThreadPoolExecutor.CallerRunsPolicy()
+  );</code></div>
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Lock ordering (deadlock prevention) 
+      Use when: you must acquire multiple locks.
+      Guarantee: prevents cycles by enforcing a total order.
+      Failure mode: any acquisition outside the order reintroduces deadlock.
+      
+     ">
+      <div class="card-header">
+        <h3>Lock ordering (deadlock prevention)</h3>
+        <span class="badge danger">pattern</span>
+      </div>
+      <div class="card-body">
+        
+      <p><b>Use when:</b> you must acquire multiple locks.</p>
+      <p><b>Guarantee:</b> prevents cycles by enforcing a total order.</p>
+      <p><b>Failure mode:</b> any acquisition outside the order reintroduces deadlock.</p>
+      <div class="divider"></div>
+      <div class="code"><code>// Order locks by identity hash (or explicit rank)
+void withLocks(Object a, Object b, Runnable r){
+  Object first = System.identityHashCode(a) &lt; System.identityHashCode(b) ? a : b;
+  Object second = (first == a) ? b : a;
+  synchronized(first){
+    synchronized(second){
+      r.run();
+    }
+  }
+}</code></div>
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="CAS state machine (single-variable invariant) 
+      Use when: the whole state can be encoded in one atomic variable.
+      Guarantee: lock-free updates with linearizable transitions.
+      Failure mode: ABA or complex multi-field invariants.
+   ">
+      <div class="card-header">
+        <h3>CAS state machine (single-variable invariant)</h3>
+        <span class="badge warn">pattern</span>
+      </div>
+      <div class="card-body">
+        
+      <p><b>Use when:</b> the whole state can be encoded in one atomic variable.</p>
+      <p><b>Guarantee:</b> lock-free updates with linearizable transitions.</p>
+      <p><b>Failure mode:</b> ABA or complex multi-field invariants.</p>
+      <div class="divider"></div>
+      <div class="code"><code>AtomicInteger state = new AtomicInteger(0);
+// 0=NEW, 1=RUNNING, 2=STOPPING, 3=STOPPED
+
+boolean start(){
+  return state.compareAndSet(0, 1);
+}</code></div>
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer"><div class="container">
+    <p>Want more labs (AQS, conditions, striping, false sharing)? Ask and I’ll extend the component set and regenerate the zip.</p>
+  </div></div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

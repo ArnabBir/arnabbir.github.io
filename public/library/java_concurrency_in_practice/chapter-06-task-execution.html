@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Chapter 06 · Task Execution</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search chapters &amp; modules…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip active" href="index.html"><span class="dot"></span>Home</a><a class="chip" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Chapter 06</span><span class="pill ">II · Structuring Concurrent Applications</span><span class="pill ">Interactive engineering notes</span></div>
+            <div class="h-title">Task Execution</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        A high-signal, example-driven companion to <i>Java Concurrency in Practice</i>. Each chapter distills the <b>engineering model</b> (invariants, failure modes, and APIs) into interactive labs and “production rules”.
+        <div style="margin-top:10px" class="note"><strong>Copyright note:</strong> This atlas is an original learning aid and does not reproduce the book’s text. It provides new explanations, simulations, and example code.</div>
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn " href="chapter-05-building-blocks.html">← Prev</a><a class="btn primary" href="index.html#chapters">All chapters</a><a class="btn " href="chapter-07-cancellation-and-shutdown.html">Next →</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Key lens</div>
+              <div class="value">Safety + Liveness + Performance</div>
+            </div>
+            <div class="badge ok">mental model</div>
+          </div>
+          <div class="hint">Safety: preserve invariants. Liveness: avoid waiting cycles & starvation. Performance: reduce contention & overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Workflow</div>
+              <div class="value">Read → Simulate → Apply</div>
+            </div>
+            <div class="badge warn">practice</div>
+          </div>
+          <div class="hint">Use the labs to build intuition, then port the patterns to Java using j.u.c primitives.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Chapter content</h2>
+      <p class="lead">Search on this page filters cards and labs. Press <b>/</b> to jump to search, <b>Esc</b> to clear.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="From threads to tasks: the key abstraction shift 
+          Instead of creating threads directly, structure work as tasks and hand them to an Executor. This decouples:
+          
+            what to do (task logic)
+            when and where it runs">
+      <div class="card-header">
+        <h3>From threads to tasks: the key abstraction shift</h3>
+        <span class="badge ok">architecture</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Instead of creating threads directly, structure work as <b>tasks</b> and hand them to an <b>Executor</b>. This decouples:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li><b>what</b> to do (task logic)</li>
+            <li><b>when</b> and <b>where</b> it runs (scheduling, pooling, queueing)</li>
+          </ul>
+          <div class="divider"></div>
+          <p>That separation is what makes systems tunable: you can swap policies without rewriting business logic.</p>
+        
+      </div>
+      
+    </div>
+    
+<div data-component="pool-lab">
+    <div class="card" data-searchable="Executor Lab: Thread Pool Stability, Queues &amp; Backpressure 
+      Simulate an executor as a queueing system: tasks arrive at rate λ, workers process at capacity μ. When λ ≥ μ, queues grow (or tasks are rejected). Tune pool size, service time, queue size, and ">
+      <div class="card-header">
+        <h3>Executor Lab: Thread Pool Stability, Queues &amp; Backpressure</h3>
+        <span class="badge ok">interactive</span>
+      </div>
+      <div class="card-body">
+        
+      <p>Simulate an executor as a queueing system: tasks arrive at rate <b>λ</b>, workers process at capacity <b>μ</b>. When λ ≥ μ, queues grow (or tasks are rejected). Tune pool size, service time, queue size, and rejection policy to build intuition for stability and backpressure.</p>
+      <div class="canvas-wrap"><canvas></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <label>Workers: <span id="workersVal">4</span></label>
+          <input data-field="workers" type="range" min="1" max="32" value="4" />
+          <div class="meta">Capacity μ = workers × (1000 / serviceMs)</div>
+        </div>
+        <div class="control">
+          <label>Arrival rate λ: <span id="arrivalVal">40</span> tasks/s</label>
+          <input data-field="arrival" type="range" min="1" max="400" value="40" />
+          <div class="meta">Drive overload by increasing arrivals.</div>
+        </div>
+        <div class="control">
+          <label>Service time: <span id="serviceVal">30ms</span></label>
+          <input data-field="service" type="range" min="5" max="200" value="30" />
+          <div class="meta">Lower service time → higher capacity.</div>
+        </div>
+        <div class="control">
+          <label>Queue limit: <span id="queueVal">100</span></label>
+          <input data-field="queue" type="range" min="0" max="1200" value="100" />
+          <div class="meta">0 ≈ direct handoff (SynchronousQueue-like).</div>
+        </div>
+        <div class="control">
+          <label>Rejection policy</label>
+          <select data-field="policy">
+            <option value="abort">abort (reject new)</option>
+            <option value="callerRuns">caller-runs (push back)</option>
+            <option value="discard">discard</option>
+            <option value="discardOldest">discard-oldest</option>
+          </select>
+          <div class="meta">Policies trade latency vs throughput vs fairness.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn primary" data-action="run">Re-run</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="pool-out"></div>
+    
+      </div>
+      <div class="card-footer"><span class="badge warn pool-badge">simulating</span><span style="color:var(--muted2)">Tune λ and workers to cross the saturation point (λ ≈ μ).</span></div>
+    </div>
+    </div>
+
+    <div class="card" data-searchable="Practical executor patterns 
+          1) Bound queues to prevent unbounded memory growth.
+          2) Apply backpressure (CallerRuns, semaphores, admission control) instead of unlimited buffering.
+          3) Capture context:">
+      <div class="card-header">
+        <h3>Practical executor patterns</h3>
+        <span class="badge ok">patterns</span>
+      </div>
+      <div class="card-body">
+        
+          <p><b>1) Bound queues</b> to prevent unbounded memory growth.</p>
+          <p><b>2) Apply backpressure</b> (CallerRuns, semaphores, admission control) instead of unlimited buffering.</p>
+          <p><b>3) Capture context</b>: name threads, propagate tracing ids, and set UncaughtExceptionHandler for diagnostics.</p>
+          <p><b>4) Prefer structured task lifecycles</b>: timeouts, cancellation, and clean shutdown.</p>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Finding exploitable parallelism 
+          Parallelism is not “run everything on more threads”. It comes from independence:
+          
+            data parallelism (partition input; reduce)
+            task parallelism (independent ">
+      <div class="card-header">
+        <h3>Finding exploitable parallelism</h3>
+        <span class="badge warn">technique</span>
+      </div>
+      <div class="card-body">
+        
+          <p>Parallelism is not “run everything on more threads”. It comes from <b>independence</b>:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
+            <li>data parallelism (partition input; reduce)</li>
+            <li>task parallelism (independent tasks with bounded coordination)</li>
+            <li>pipeline parallelism (stages with queues)</li>
+          </ul>
+          <p>Every shared mutable hotspot is a serialization point; it caps scalability.</p>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="container">
+      <p><b>Navigation:</b> <a href="chapter-05-building-blocks.html">← Prev</a> · <a href="index.html#chapters">All chapters</a> · <a href="chapter-07-cancellation-and-shutdown.html">Next →</a></p>
+      <p style="margin-top:8px">This atlas is a study aid with original explanations and simulations; it does not include the book’s text.</p>
+    </div>
+  </div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JCIP Atlas · Cheat Sheet</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>JCIP Interactive Atlas</h1>
+            <span class="subtitle">Deep, interactive engineering notes · no dependencies</span>
+          </div>
+        </div>
+
+        <div class="search" role="search" aria-label="Search">
+          <span style="opacity:.8">⌕</span>
+          <input id="globalSearch" type="text" placeholder="Search rules (e.g., volatile, backpressure, invariant)…" aria-label="Search"/>
+          <kbd id="searchHint" title="Press / to focus">/</kbd>
+        </div>
+
+        <div class="nav">
+          <a class="chip" href="index.html"><span class="dot"></span>Home</a><a class="chip active" href="cheatsheet.html"><span class="dot"></span>Cheat Sheet</a><a class="chip" href="glossary.html"><span class="dot"></span>Glossary</a><a class="chip" href="patterns.html"><span class="dot"></span>Patterns</a>
+          <button class="btn" id="themeToggle" title="Toggle theme (experimental)">☼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-card-inner">
+            <div class="kicker"><span class="pill accent">Cheat Sheet</span><span class="pill ">Rules you can apply on Monday</span><span class="pill ">High-signal concurrency checklist</span></div>
+            <div class="h-title">Concurrency Cheat Sheet</div>
+            <div class="h-sub">
+      <div class="h-sub">
+        This is an opinionated “production rules” sheet: crisp guidance for correctness first, then performance.
+        Each rule is phrased as <b>if/then</b> and linked to the chapter where it’s explained in depth.
+      </div>
+    </div>
+            <div class="cta-row"><a class="btn primary" href="index.html#chapters">Browse chapters</a><a class="btn " href="chapter-02-thread-safety.html">Thread Safety (Ch 2)</a><a class="btn " href="chapter-16-the-java-memory-model.html">JMM (Ch 16)</a></div>
+          </div>
+        </div>
+        <div class="right-stack">
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Focus</div>
+              <div class="value">Correctness → Liveness → Performance</div>
+            </div>
+            <div class="badge ok">order matters</div>
+          </div>
+          <div class="hint">First make it correct under interleavings. Then ensure it makes progress. Then optimize contention and overhead.</div>
+        </div>
+        
+        <div class="stat">
+          <div class="row">
+            <div>
+              <div class="label">Use cases</div>
+              <div class="value">Code review · debugging · design docs</div>
+            </div>
+            <div class="badge warn">practical</div>
+          </div>
+          <div class="hint">Paste these rules into your engineering handbook and enforce them in reviews.</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h2>Rules of thumb</h2>
+      <p class="lead">These rules are designed to be copied into design docs and code reviews.</p>
+      <div class="grid cols-2">
+    <div class="card" data-searchable="State &amp; invariants 
+          
+            Write the invariant. If you can’t state it, you can’t protect it.Map every mutable field to a guard. If a field has no guard, it’s a data race waiting to happen.Prefer eliminat">
+      <div class="card-header">
+        <h3>State &amp; invariants</h3>
+        <span class="badge ok">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.75">
+            <li><b>Write the invariant.</b> If you can’t state it, you can’t protect it.</li><li><b>Map every mutable field to a guard.</b> If a field has no guard, it’s a data race waiting to happen.</li><li><b>Prefer eliminating sharing</b> (immutability/confinement) over managing sharing (locks/atomics).</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Locks &amp; synchronization 
+          
+            Lock for the invariant, not for the method. The critical section must cover all reads/writes that participate in the invariant.Never hold a lock across I/O, sleep, or callbacks">
+      <div class="card-header">
+        <h3>Locks &amp; synchronization</h3>
+        <span class="badge warn">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.75">
+            <li><b>Lock for the invariant, not for the method.</b> The critical section must cover all reads/writes that participate in the invariant.</li><li><b>Never hold a lock across I/O, sleep, or callbacks</b> unless you are deliberately serializing for correctness and can justify it.</li><li><b>When you acquire multiple locks, enforce a global order.</b> Document the order and test it.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Visibility &amp; publication 
+          
+            Without happens-before, visibility is not guaranteed. If you publish a reference without a HB edge, readers may see a partially constructed object.Safe publication mechanisms: ">
+      <div class="card-header">
+        <h3>Visibility &amp; publication</h3>
+        <span class="badge warn">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.75">
+            <li><b>Without happens-before, visibility is not guaranteed.</b> If you publish a reference without a HB edge, readers may see a partially constructed object.</li><li><b>Safe publication mechanisms:</b> static init, volatile/atomic refs, locks, thread-safe handoff structures.</li><li><b>Volatile is not a lock.</b> It provides ordering/visibility for that variable, but not atomicity across multiple variables.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Executors &amp; thread pools 
+          
+            Prefer tasks + executors to explicit thread creation.Bound your queues. Unbounded queues convert overload into latency and memory collapse.Design backpressure. Pick an overload">
+      <div class="card-header">
+        <h3>Executors &amp; thread pools</h3>
+        <span class="badge ok">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.75">
+            <li><b>Prefer tasks + executors</b> to explicit thread creation.</li><li><b>Bound your queues.</b> Unbounded queues convert overload into latency and memory collapse.</li><li><b>Design backpressure.</b> Pick an overload policy (caller-runs, reject, shed) and make it observable with metrics.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Cancellation &amp; lifecycle 
+          
+            Cancellation is cooperative. Code must check/interact with interruption and timeouts.Never swallow interrupts. If you catch InterruptedException and can’t handle it, restore th">
+      <div class="card-header">
+        <h3>Cancellation &amp; lifecycle</h3>
+        <span class="badge warn">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.75">
+            <li><b>Cancellation is cooperative.</b> Code must check/interact with interruption and timeouts.</li><li><b>Never swallow interrupts.</b> If you catch InterruptedException and can’t handle it, restore the interrupt and exit/propagate.</li><li><b>Provide explicit shutdown hooks</b> for services that own threads or executors.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    
+
+    <div class="card" data-searchable="Testing &amp; operations 
+          
+            Test under contention. Many bugs require “bad luck”; make your tests unlucky on purpose.Instrument wait time. Lock waits and queue waits are your early warning signals.When stu">
+      <div class="card-header">
+        <h3>Testing &amp; operations</h3>
+        <span class="badge danger">rules</span>
+      </div>
+      <div class="card-body">
+        
+          <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.75">
+            <li><b>Test under contention.</b> Many bugs require “bad luck”; make your tests unlucky on purpose.</li><li><b>Instrument wait time.</b> Lock waits and queue waits are your early warning signals.</li><li><b>When stuck, get thread dumps.</b> Diagnose deadlocks and starvation using real execution evidence.</li>
+          </ul>
+        
+      </div>
+      
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <div class="footer"><div class="container">
+    <p>For deeper understanding, open a chapter and run the labs: atomicity, deadlock, happens-before, pool stability, CAS/ABA.</p>
+  </div></div>
+
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>
