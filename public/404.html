@@ -1,20 +1,18 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
     <title>Redirecting…</title>
-    <meta name="robots" content="noindex" />
     <script>
-      // GitHub Pages will serve this file for unknown paths.
-      // We redirect to /?r=<encoded-path> and restore it in index.html.
-      (function () {
-        var redirect = window.location.pathname + window.location.search + window.location.hash;
-        window.location.replace("/?r=" + encodeURIComponent(redirect));
-      })();
+      // GitHub Pages SPA routing: redirect unknown paths to index.html
+      // via a query parameter, which index.html restores before React boots.
+      var path = window.location.pathname + window.location.search + window.location.hash;
+      window.location.replace(
+        window.location.origin + '/?r=' + encodeURIComponent(path)
+      );
     </script>
   </head>
   <body>
-    <noscript>This site requires JavaScript.</noscript>
+    <p>Redirecting&hellip;</p>
   </body>
 </html>
