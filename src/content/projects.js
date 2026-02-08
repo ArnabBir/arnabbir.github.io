@@ -47,6 +47,46 @@ export default [
     kind: "featured",
   },
   {
+    name: "Google Cloud User Auto Provisioning",
+    description:
+      "Automated user provisioning for SAML apps in Google Workspace — changes to user identities in the Admin console are automatically synced to supported third-party cloud applications.",
+    image: "/images/auto-provisioning-screenshot.png",
+    tags: ["Google Cloud", "Identity", "SAML", "Provisioning", "Enterprise"],
+    highlights: [
+      "Add, modify, or delete users in the Admin console and changes propagate automatically to third-party apps.",
+      "Supports up to 100 SAML apps for Business Standard, Business Plus, Frontline, and Enterprise editions.",
+      "Operates on active, suspended, and deleted users with periodic sync cycles.",
+    ],
+    links: [
+      {
+        label: "Documentation",
+        href: "https://support.google.com/a/answer/7681608?hl=en",
+      },
+    ],
+    featured: true,
+    kind: "featured",
+  },
+  {
+    name: "Arkham — Supply Chain Insights Platform (Flipkart)",
+    description:
+      "A real-time supply chain intelligence platform at Flipkart that provides end-to-end visibility into the fulfilment journey — from warehouse to last-mile delivery — enabling proactive decision-making and reducing SLA breaches.",
+    image: "/images/arkham-screenshot.png",
+    tags: ["Supply Chain", "Full Stack", "Data Platform", "Flipkart"],
+    highlights: [
+      "End-to-end fulfilment visibility across warehousing, transportation, and last-mile delivery.",
+      "Proactive alerting and insights to reduce SLA breaches and improve delivery performance.",
+      "Built as the cockpit for Flipkart's supply chain — ensuring passengers within the airport never miss a flight.",
+    ],
+    links: [
+      {
+        label: "Flipkart Tech Blog",
+        href: "https://blog.flipkart.tech/services-fulfilment-cockpit-why-passengers-within-flipkarts-airport-never-miss-a-flight-693855697f45",
+      },
+    ],
+    featured: true,
+    kind: "featured",
+  },
+  {
     name: "Orator — Web Narrator",
     description:
       "A privacy-first browser extension that narrates web pages with natural voices, click-to-seek, sentence highlighting, and speed control. Available on Chrome and Firefox.",
