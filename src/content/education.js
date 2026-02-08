@@ -6,6 +6,7 @@ export default [
     end: "2019",
     logo: "/images/iitkgp.jpg",
     details: ["GPA: 8.67", "Class Rank: 4"],
+    website: "https://www.iitkgp.ac.in/",
     links: [],
   },
 ];

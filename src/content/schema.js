@@ -80,6 +80,7 @@ export const EducationSchema = z.object({
   end: z.string().optional(),
   details: z.array(z.string()).default([]),
   logo: z.string().optional(),
+  website: z.string().optional(),
   links: z
     .array(
       z.object({

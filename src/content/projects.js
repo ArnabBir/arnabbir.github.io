@@ -23,17 +23,28 @@ export default [
     kind: "featured",
   },
   {
-    name: "PortfolioHub",
+    name: "Google Cloud Directory Sync (GCDS)",
     description:
-      "A personal finance command center for net worth, asset allocation, cashflow health, and FIRE planning.",
-    tags: ["React", "Data Viz", "Personal Finance"],
+      "An enterprise synchronization tool used by Google Workspace and Cloud Identity customers worldwide to sync users, groups, org units, contacts, and calendar resources from Active Directory / LDAP to their Google domain.",
+    image: "/images/gcds-screenshot.png",
+    tags: ["Google Cloud", "Identity", "Enterprise", "LDAP", "Active Directory"],
     highlights: [
-      "Insight-rich dashboards with projections and savings diagnostics.",
-      "Import/export workflows plus shareable PDF reports.",
+      "Syncs users, groups, org units, shared contacts, calendar resources, and custom schemas from any LDAP-compliant directory.",
+      "Powers identity lifecycle management for enterprises across Google Workspace, GCP, Android, and Chrome.",
+      "Built analytics pipelines to understand sync reliability, adoption, and usage patterns at scale.",
     ],
-    links: [{ label: "Open app", href: "/portfoliohub" }],
+    links: [
+      {
+        label: "Product page",
+        href: "https://tools.google.com/dlpage/dirsync/",
+      },
+      {
+        label: "Documentation",
+        href: "https://support.google.com/a/topic/2679497",
+      },
+    ],
     featured: true,
-    kind: "lab",
+    kind: "featured",
   },
   {
     name: "Orator — Web Narrator",
@@ -62,6 +73,19 @@ export default [
     ],
     featured: true,
     kind: "featured",
+  },
+  {
+    name: "PortfolioHub",
+    description:
+      "A personal finance command center for net worth, asset allocation, cashflow health, and FIRE planning.",
+    tags: ["React", "Data Viz", "Personal Finance"],
+    highlights: [
+      "Insight-rich dashboards with projections and savings diagnostics.",
+      "Import/export workflows plus shareable PDF reports.",
+    ],
+    links: [{ label: "Open app", href: "/portfoliohub" }],
+    featured: true,
+    kind: "lab",
   },
   {
     name: "HUIM-ACO",

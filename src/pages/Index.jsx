@@ -44,11 +44,11 @@ export default function Index() {
         <Hero />
         <About />
         <Experience />
+        <Education />
         <Projects />
         <Library />
         <Writing />
         <Skills />
-        <Education />
         <Certifications />
         <Contact />
       </main>
