@@ -60,7 +60,7 @@ function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor }) {
 export default function SiteHeader({ onOpenCommand }) {
   const { theme } = useTheme();
   const location = useLocation();
-  const logoSrc = theme === "dark" ? "/images/logo-dark.png" : "/images/logo.png";
+  const isDark = theme === "dark";
   const isHome = location.pathname === "/";
   const hrefFor = (id) => (isHome ? `#${id}` : `/#${id}`);
 
@@ -69,9 +69,9 @@ export default function SiteHeader({ onOpenCommand }) {
       <Container className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3">
           <img
-            src={logoSrc}
+            src="/images/logo.png"
             alt="Logo"
-            className="h-9 w-9 rounded-md ring-1 ring-border"
+            className={`h-9 w-9 rounded-md ring-1 ring-border ${isDark ? "invert" : ""}`}
           />
           <a href="#home" className="font-semibold tracking-tight">
             {siteContent.name}

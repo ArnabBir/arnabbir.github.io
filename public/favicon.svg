@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    :root { --bg: #0f172a; --fg: #f8fafc; }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #f8fafc; --fg: #0f172a; }
+    }
+  </style>
+  <rect width="64" height="64" rx="14" fill="var(--bg)"/>
+  <!-- Outer A -->
+  <path d="M32 8 L52 54 H45 L40.5 42 H23.5 L19 54 H12 Z M26 36 H38 L32 18 Z"
+        fill="none" stroke="var(--fg)" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Inner A (smaller, offset for depth) -->
+  <path d="M32 18 L43 46 H39 L36 38 H28 L25 46 H21 Z M29.5 34 H34.5 L32 26 Z"
+        fill="none" stroke="var(--fg)" stroke-width="1.5" stroke-linejoin="round" opacity="0.5"/>
+</svg>
