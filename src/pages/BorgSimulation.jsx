@@ -250,7 +250,7 @@ export default function BorgSimulation() {
       <div className="max-w-7xl mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* LEFT: Queue & Manual */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
+          <div className="lg:col-span-1 flex flex-col gap-4 lg:max-h-[600px]">
             <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
               <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                 <Terminal size={14} /> Manual Burst
@@ -265,7 +265,7 @@ export default function BorgSimulation() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex-1 overflow-hidden flex flex-col min-h-[300px]">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[320px]">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Pending Queue</h3>
                 <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded text-xs font-mono">{pendingQueue.length}</span>
@@ -301,8 +301,8 @@ export default function BorgSimulation() {
           </div>
 
           {/* RIGHT: Logs */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex-1 flex flex-col overflow-hidden min-h-[300px]">
+          <div className="lg:col-span-1 flex flex-col gap-4 lg:max-h-[600px]">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden max-h-[400px]">
               <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-3 flex items-center gap-2">
                 <Activity size={14} /> System Logs
               </h3>
