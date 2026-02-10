@@ -60,7 +60,7 @@ export default [
         contentPath: "/library/chubby.html",
       },
       { title: "Spanner: Globally Distributed Database", contentPath: "/library/google-whitepapers/spanner" },
-      { title: "Borg: The Cluster Management System" },
+      { title: "Borg: The Cluster Management System", contentPath: "/library/google-whitepapers/borg" },
       { title: "Dremel: Interactive Analysis of Web-Scale Data" },
       { title: "Pregel: Large-Scale Graph Processing" },
       { title: "F1: The Fault-Tolerant Distributed SQL Database" },

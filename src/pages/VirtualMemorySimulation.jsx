@@ -10,7 +10,7 @@ const CONFIG = {
   PAGE_TABLE_SIZE: 64,
 };
 
-const toBin = (num, len) => num.toString(2).padStart(len, "0");
+const toBin = (num, len) => num.toString(2).padStart(len, "0"); 
 const toHex = (num) => "0x" + num.toString(16).toUpperCase().padStart(2, "0");
 
 function ScrollToActive({ idx }) {

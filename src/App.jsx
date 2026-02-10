@@ -11,6 +11,7 @@ import LibraryItem from "./pages/LibraryItem";
 import ProjectDetail from "./pages/ProjectDetail";
 import VirtualMemorySimulation from "./pages/VirtualMemorySimulation";
 import SpannerSimulation from "./pages/SpannerSimulation";
+import BorgSimulation from "./pages/BorgSimulation";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/library" element={<LibraryHome />} />
             <Route path="/library/operating-system/virtual-memory" element={<VirtualMemorySimulation />} />
             <Route path="/library/google-whitepapers/spanner" element={<SpannerSimulation />} />
+            <Route path="/library/google-whitepapers/borg" element={<BorgSimulation />} />
             <Route path="/library/rack/:rackId" element={<LibraryRack />} />
             <Route path="/library/:id" element={<LibraryItem />} />
           </Routes>
