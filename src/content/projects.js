@@ -1,8 +1,8 @@
 export default [
   {
-    name: "Demystifying TStore (PhonePe Tech Blog)",
+    name: "PhonePe Transaction Store (TStore)",
     description:
-      "A two-part series exploring the Transaction Store (TStore) that powers post-payment persistence at PhonePe.",
+    "Transaction Store (TStore) is the transactional data storage and retrieval system that powers post payment experience at PhonePe.",
     image: "/images/tstore2.png",
     tags: ["Distributed Systems", "Reliability", "Payments"],
     highlights: [

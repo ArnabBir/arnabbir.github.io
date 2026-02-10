@@ -36,9 +36,9 @@ export default function About() {
               </CardHeader>
               <CardContent className="text-muted-foreground leading-relaxed">
                 <p>
-                  I’ve worked on high-scale backends in payments and identity. My happy place is the
-                  intersection of performance, correctness, and operability — making sure systems are
-                  fast, safe, observable, and easy to evolve.
+                  I’ve worked on high scale backends in payments, identity, fulfillment and data platforms.
+                  My happy place is the intersection of performance, correctness, and operability,
+                  making sure systems are fast, safe, observable, and easy to evolve.
                 </p>
                 <p className="mt-4">
                   Outside work, I write, mentor, and build small tools that scratch an itch. I’m always

@@ -5,7 +5,7 @@ export default {
   tagline:
     "I build reliable, high throughput systems and I love turning messy problems into clean products.",
   summary:
-    "I’m a backend leaning software engineer who enjoys performance, scale, and operational excellence. I’ve worked across payments and identity, and I care deeply about good APIs, SLOs, and building platforms teams love.",
+    "I’m a backend leaning software engineer who enjoys performance, scale, and operational excellence. I care deeply about good APIs, SLOs, and building platforms teams love.",
   email: "arnabbir@gmail.com",
 
   /**
