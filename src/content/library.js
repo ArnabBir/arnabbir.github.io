@@ -29,7 +29,7 @@ export default [
     id: "mendel",
     title: "Google Mendel: Overlapping Experiment Infrastructure",
     description: "Deep dive into the architecture enabling 10,000+ simultaneous experiments via orthogonal layering, cookie-based diversion, and real-time parameter injection.",
-    category: "Google Whitepapers",
+    category: "Whitepapers",
     tags: ["A/B Testing", "Infrastructure", "Experimentation", "Google"],
     // thumbnail: "/images/mendel-thumb.png", // Optional: Add thumbnail image to public/images/
     contentPath: "/library/mendel.html", // Path to the HTML file (served from public/library/)
@@ -59,9 +59,9 @@ export default [
         title: "The Chubby Lock Service",
         contentPath: "/library/chubby.html",
       },
-      { title: "Spanner: Globally Distributed Database", contentPath: "/library/google-whitepapers/spanner" },
-      { title: "Borg: The Cluster Management System", contentPath: "/library/google-whitepapers/borg" },
-      { title: "Dremel: Interactive Analysis of Web-Scale Data", contentPath: "/library/google-whitepapers/dremel" },
+      { title: "Spanner: Globally Distributed Database", contentPath: "/library/whitepapers/spanner" },
+      { title: "Borg: The Cluster Management System", contentPath: "/library/whitepapers/borg" },
+      { title: "Dremel: Interactive Analysis of Web-Scale Data", contentPath: "/library/whitepapers/dremel" },
       { title: "Pregel: Large-Scale Graph Processing" },
       { title: "F1: The Fault-Tolerant Distributed SQL Database" },
       { title: "Colossus: The Google File System (Next Gen)" },

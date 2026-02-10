@@ -30,9 +30,9 @@ const App = () => (
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/library" element={<LibraryHome />} />
             <Route path="/library/operating-system/virtual-memory" element={<VirtualMemorySimulation />} />
-            <Route path="/library/google-whitepapers/spanner" element={<SpannerSimulation />} />
-            <Route path="/library/google-whitepapers/borg" element={<BorgSimulation />} />
-            <Route path="/library/google-whitepapers/dremel" element={<DremelSimulation />} />
+            <Route path="/library/whitepapers/spanner" element={<SpannerSimulation />} />
+            <Route path="/library/whitepapers/borg" element={<BorgSimulation />} />
+            <Route path="/library/whitepapers/dremel" element={<DremelSimulation />} />
             <Route path="/library/rack/:rackId" element={<LibraryRack />} />
             <Route path="/library/:id" element={<LibraryItem />} />
           </Routes>
