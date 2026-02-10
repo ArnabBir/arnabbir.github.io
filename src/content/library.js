@@ -61,7 +61,7 @@ export default [
       },
       { title: "Spanner: Globally Distributed Database", contentPath: "/library/google-whitepapers/spanner" },
       { title: "Borg: The Cluster Management System", contentPath: "/library/google-whitepapers/borg" },
-      { title: "Dremel: Interactive Analysis of Web-Scale Data" },
+      { title: "Dremel: Interactive Analysis of Web-Scale Data", contentPath: "/library/google-whitepapers/dremel" },
       { title: "Pregel: Large-Scale Graph Processing" },
       { title: "F1: The Fault-Tolerant Distributed SQL Database" },
       { title: "Colossus: The Google File System (Next Gen)" },
