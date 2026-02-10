@@ -330,4 +330,28 @@ export default [
     difficulty: "Advanced",
     readingTime: "12 chapters",
   },
+  {
+    id: "operating-system",
+    title: "Operating System Concepts — Interactive Companion",
+    description:
+      "Interactive explorations of OS fundamentals: virtual memory, paging, TLB, and more. Hands-on simulations to build intuition.",
+    category: "Operating System",
+    tags: ["OS", "Virtual Memory", "Paging", "TLB", "Systems"],
+    contentPath: "/library/operating-system/virtual-memory",
+    date: "2026-02-08",
+    featured: true,
+    highlights: [
+      "Virtual memory simulation with TLB, page table, RAM, and disk",
+      "Step-by-step address resolution and page fault handling",
+      "More chapters coming: scheduling, synchronization, I/O",
+    ],
+    chapters: [
+      {
+        title: "Virtual Memory Simulation",
+        contentPath: "/library/operating-system/virtual-memory",
+      },
+    ],
+    difficulty: "Intermediate",
+    readingTime: "1 chapter",
+  },
 ];

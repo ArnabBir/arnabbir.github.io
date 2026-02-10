@@ -9,6 +9,7 @@ import LibraryHome from "./pages/LibraryHome";
 import LibraryRack from "./pages/LibraryRack";
 import LibraryItem from "./pages/LibraryItem";
 import ProjectDetail from "./pages/ProjectDetail";
+import VirtualMemorySimulation from "./pages/VirtualMemorySimulation";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             ))}
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/library" element={<LibraryHome />} />
+            <Route path="/library/operating-system/virtual-memory" element={<VirtualMemorySimulation />} />
             <Route path="/library/rack/:rackId" element={<LibraryRack />} />
             <Route path="/library/:id" element={<LibraryItem />} />
           </Routes>
