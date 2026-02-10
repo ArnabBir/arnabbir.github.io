@@ -59,7 +59,7 @@ export default [
         title: "The Chubby Lock Service",
         contentPath: "/library/chubby.html",
       },
-      { title: "Spanner: Globally Distributed Database" },
+      { title: "Spanner: Globally Distributed Database", contentPath: "/library/google-whitepapers/spanner" },
       { title: "Borg: The Cluster Management System" },
       { title: "Dremel: Interactive Analysis of Web-Scale Data" },
       { title: "Pregel: Large-Scale Graph Processing" },
