@@ -25,6 +25,8 @@ import {
   Sun,
   Moon,
   Lock,
+  Terminal,
+  Scale
 } from "lucide-react";
 
 // ================================================================
@@ -65,7 +67,6 @@ export default function MyRocksSimulation() {
 
   // --- Helpers ---
   const addLog = (msg, type = "info") => {
-    // Ensure msg is always a string to prevent object rendering errors
     const safeMsg = typeof msg === 'object' ? JSON.stringify(msg) : String(msg);
     setLogs((prev) => [{ msg: safeMsg, type, time: new Date() }, ...prev].slice(0, 50));
   };
@@ -198,12 +199,11 @@ export default function MyRocksSimulation() {
         sequence.push({ target: `l0-${idx}`, msg: `L0 SST[${idx}]: Checking Bloom Filter...` });
         // Bloom Filter Check
         if (sst.bloom.has(key)) {
-            // "True Positive" in this sim (or false positive, but we check data next)
             setStats(s => ({...s, bloomHits: s.bloomHits + 1}));
             const found = sst.data.find(x => x.key === key);
             if (found) {
                 sequence.push({ target: `l0-${idx}`, found: true, val: found.val, msg: "Bloom Passed. Key Found in SST." });
-                return; // Logic breaks here, but visual sequence continues. We handle early exit in runner.
+                return; 
             } else {
                 sequence.push({ target: `l0-${idx}`, msg: "Bloom False Positive. Key not in block." });
             }
@@ -213,7 +213,6 @@ export default function MyRocksSimulation() {
     });
 
     // Step 4: L1 (Binary Search on ranges)
-    // In L1, files are sorted and non-overlapping. We only check files where key is in [min, max]
     const candidates = l1.filter(sst => key >= sst.min && key <= sst.max);
     if (candidates.length === 0) {
          sequence.push({ target: 'l1', msg: `L1: Key ${key} not in any SST range.` });
@@ -250,7 +249,6 @@ export default function MyRocksSimulation() {
               return;
           }
           
-          // If we found it in a previous iteration (handled by logic above but passed to visualizer), stop
           if (i > 0 && seq[i-1].found) return;
 
           i++;
@@ -283,7 +281,6 @@ export default function MyRocksSimulation() {
       addLog("System Reset.");
   };
 
-  // --- Wrap Component in Theme Provider Logic ---
   return (
     <div className={isDarkMode ? "dark" : ""}>
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans selection:bg-blue-500/30">
@@ -532,68 +529,115 @@ export default function MyRocksSimulation() {
           
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive
+              <BookOpen className="w-3.5 h-3.5" /> Engineering Deep Dive
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-              MyRocks: The Architecture
+              MyRocks: The Architecture of Efficiency
             </h2>
             <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Based on Facebook's migration from InnoDB to RocksDB, MyRocks leverages the Log-Structured Merge (LSM) Tree to optimize for Flash storage, reducing space amplification and write amplification.
+              Facing the physical limits of Flash storage, Facebook replaced the ubiquitous InnoDB (B-Tree) with MyRocks (LSM-Tree). This architecture shift reduced storage footprint by 62% while maintaining read latency through aggressive optimization.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-             <MetricCard label="Instance Size" formula="62.3% Reduction" ideal="Vs InnoDB" desc="Compression + Removal of fragmentation." color="emerald" />
-             <MetricCard label="Write Amp" formula="Reduced" ideal="Sequential" desc="Append-only writes are flash-friendly." color="blue" />
-             <MetricCard label="Read CPU" formula="Comparable" ideal="Optimized" desc="Bloom filters mitigate scan overhead." color="indigo" />
-             <MetricCard label="Compaction" formula="Leveled" ideal="Auto" desc="Merges & sorts background files." color="amber" />
+             <MetricCard label="Space Savings" formula="62.3% vs InnoDB" ideal="< 50%" desc="Achieved via superior compression and zero fragmentation." color="emerald" />
+             <MetricCard label="Write Amplification" formula="Sequential I/O" ideal="Low" desc="LSM structure aligns writes, significantly extending SSD lifespan." color="blue" />
+             <MetricCard label="CPU Efficiency" formula="Comparable" ideal="Optimized" desc="Mem-comparable keys and prefix bloom filters offset LSM scan costs." color="indigo" />
+             <MetricCard label="Instance Density" formula="2.5x Increase" ideal="Max" desc="Smaller footprint allows 2x more instances per physical host." color="amber" />
           </div>
 
-          <SectionTitle icon={<Server className="w-5 h-5" />} title="Core Components" />
+          {/* Section: Architecture & Challenges */}
+          <SectionTitle icon={<Server className="w-5 h-5" />} title="The B-Tree vs. LSM-Tree Tradeoff" />
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 mb-16">
+            <div className="grid md:grid-cols-2 gap-12">
+                <div>
+                    <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2"><Database size={18} /> The Problem: InnoDB (B-Tree)</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                        InnoDB relies on B+Trees, which suffer from <strong>index fragmentation</strong> (wasting ~25-30% of page space) and <strong>random writes</strong>. Updating a single row requires rewriting a full 16KB page, causing massive <strong>Write Amplification (WA)</strong> on Flash.
+                    </p>
+                    <ul className="text-sm text-slate-600 dark:text-slate-400 list-disc pl-5 space-y-1">
+                        <li><strong>Fragmentation:</strong> Pages are rarely 100% full.</li>
+                        <li><strong>Double Write Buffer:</strong> Protection against torn pages doubles the I/O.</li>
+                        <li><strong>Compression:</strong> Fixed block sizes (e.g., 8KB) limit compression efficiency.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2"><Layers size={18} /> The Solution: MyRocks (LSM-Tree)</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                        MyRocks (via RocksDB) uses a Log-Structured Merge Tree. Writes are buffered in RAM and flushed sequentially to disk. SSTables are immutable and tightly compressed, eliminating fragmentation.
+                    </p>
+                    <ul className="text-sm text-slate-600 dark:text-slate-400 list-disc pl-5 space-y-1">
+                        <li><strong>Sequential Writes:</strong> Flash-friendly append-only model.</li>
+                        <li><strong>Zero Fragmentation:</strong> SSTables are written perfectly dense.</li>
+                        <li><strong>Better Compression:</strong> No fixed block alignment required for updates.</li>
+                    </ul>
+                </div>
+            </div>
+          </div>
+
+          <SectionTitle icon={<Zap className="w-5 h-5" />} title="Key Optimizations for SQL on RocksDB" />
           <div className="grid md:grid-cols-2 gap-6 mb-16">
              <HwCard 
-                icon={<Cpu className="w-6 h-6" />}
-                title="MemTable"
-                specs={["In-Memory", "Sorted", "SkipList"]}
-                desc="All writes go here first. It's fast (RAM) and sorted. When full, it becomes immutable and flushes to disk as an SST."
-                color="blue"
-             />
-             <HwCard 
-                icon={<HardDrive className="w-6 h-6" />}
-                title="SST (Sorted String Table)"
-                specs={["Immutable", "Disk-Based", "Compressed"]}
-                desc="The basic unit of storage on disk. Once written, it is never modified. Updates are handled by writing new versions of keys with higher sequence numbers."
-                color="emerald"
-             />
-             <HwCard 
                 icon={<FilterIcon className="w-6 h-6" />}
-                title="Bloom Filter"
-                specs={["Probabilistic", "Space-Efficient"]}
-                desc="A bit-array stored in each SST header. It quickly tells us if a key is DEFINITELY NOT in the file, saving an expensive disk read."
+                title="Prefix Bloom Filters"
+                specs={["Range Scans", "Read Optimization"]}
+                desc="Standard Bloom filters only support point lookups (Get). Facebook implemented Prefix Bloom Filters to support range scans (e.g., 'Get all messages for User X'). By hashing a prefix of the key, MyRocks can skip entire SST files for range queries, solving the LSM read penalty."
                 color="indigo"
              />
              <HwCard 
-                icon={<RefreshCw className="w-6 h-6" />}
-                title="Compaction"
-                specs={["Background Process", "Merge Sort"]}
-                desc="To prevent read performance degradation, background threads constantly merge overlapping SSTs from L0 to L1, removing deleted/overwritten keys."
+                icon={<Cpu className="w-6 h-6" />}
+                title="Mem-comparable Keys"
+                specs={["CPU Efficiency", "Serialization"]}
+                desc="RocksDB is a KV store and sorts bytes. MySQL keys (strings, ints) need complex collation. MyRocks encodes keys into a format that preserves MySQL sort order at the byte level. This allows RocksDB to compare keys using fast `memcmp` without deserializing them."
+                color="blue"
+             />
+             <HwCard 
+                icon={<Trash2 className="w-6 h-6" />}
+                title="SingleDelete & DTC"
+                specs={["Tombstone Management", "Space Amp"]}
+                desc="Standard deletes insert a 'Tombstone' marker that wastes space until it sinks to the bottom level. 'SingleDelete' allows tombstones to be dropped immediately if the key is in the same compaction run. Deletion Triggered Compaction (DTC) forces compaction when too many tombstones accumulate."
                 color="amber"
+             />
+             <HwCard 
+                icon={<ArrowRight className="w-6 h-6" />}
+                title="Bulk Loading"
+                specs={["Migration Speed", "Write Stall Prevention"]}
+                desc="Migrating TBs of data via standard INSERTs would overwhelm MemTables and cause stalls. Bulk Loading bypasses the MemTable entirely, generating SST files offline and ingesting them directly into the bottom level of the LSM tree. This made the migration feasible."
+                color="emerald"
              />
           </div>
 
-          <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="The Write Path" />
-          <div className="space-y-4 mb-16">
-             <FlowStep num="1" icon={<Zap size={18} />} title="Write to WAL & MemTable" desc="Data is appended to a Write-Ahead Log (for durability) and inserted into the sorted MemTable (RAM)." color="blue" />
-             <FlowStep num="2" icon={<HardDrive size={18} />} title="Flush to L0" desc="When MemTable fills, it's flushed to Level 0 on disk. L0 files can overlap in key ranges." color="indigo" />
-             <FlowStep num="3" icon={<RefreshCw size={18} />} title="Compaction to L1+" desc="When L0 fills, files are merged into L1. L1 files are strictly sorted and non-overlapping." color="amber" />
+          {/* Section: Migration & Reliability */}
+          <SectionTitle icon={<Scale className="w-5 h-5" />} title="Migration Strategy: Zero Downtime" />
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 mb-16">
+             <div className="space-y-6">
+                <div className="flex gap-4">
+                    <div className="flex-none pt-1"><Terminal className="text-slate-400" size={20} /></div>
+                    <div>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">MyShadow: Shadow Traffic Replay</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            Before migration, Facebook built <strong>MyShadow</strong> to capture production traffic from InnoDB masters and replay it against MyRocks test instances. This verified that MyRocks could handle the real-world query load, concurrency, and latency requirements without crashing or stalling.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex gap-4">
+                    <div className="flex-none pt-1"><CheckCircle2 className="text-emerald-500" size={20} /></div>
+                    <div>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Data Correctness Verification</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            A dual-read tool verified consistency. It read from both InnoDB and MyRocks for millions of queries and compared the results. This caught subtle bugs like collation differences and transaction isolation edge cases (Repeatable Read vs Snapshot Isolation).
+                        </p>
+                    </div>
+                </div>
+             </div>
           </div>
 
           <SectionTitle icon={<Eye className="w-5 h-5" />} title="Simulation Guide" />
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-             <UsageCard step="1" title="Write Data" desc="Click 'Write' to add keys to MemTable. Watch it fill up." color="blue" />
-             <UsageCard step="2" title="Trigger Flush" desc="Fill the MemTable to force a flush to L0. Note the new SST." color="indigo" />
-             <UsageCard step="3" title="Compaction" desc="Fill L0 with 3+ files. Watch them merge into a sorted L1 level." color="amber" />
-             <UsageCard step="4" title="Read Probe" desc="Click 'Read' to see the search path: Mem -> L0 (Bloom) -> L1." color="emerald" />
+             <UsageCard step="1" title="Write Data" desc="Click 'Write' to add keys. Watch them fill the MemTable (RAM). This mimics high-speed ingestion." color="blue" />
+             <UsageCard step="2" title="Trigger Flush" desc="When MemTable fills (4 items), it becomes Immutable and flushes to L0 (Disk). Note: L0 keys can overlap." color="indigo" />
+             <UsageCard step="3" title="Compaction" desc="When L0 fills (3 SSTs), the engine merges them into L1. This sorts keys and removes duplicates/tombstones." color="amber" />
+             <UsageCard step="4" title="Read Probe" desc="Click 'Read'. The engine probes MemTable -> Immutable -> L0 (checking Bloom Filters first) -> L1." color="emerald" />
           </div>
 
         </div>
