@@ -34,7 +34,7 @@ const INITIAL_PARTITIONS = [
 // ================================================================
 //  MAIN COMPONENT
 // ================================================================
-export default function WindowsAzureSotrageSimulation() {
+export default function WindowsAzureStorageSimulation() {
   const { theme, setTheme } = useTheme();
 
   // --- State ---
@@ -281,21 +281,21 @@ export default function WindowsAzureSotrageSimulation() {
             </div>
 
             {/* PARTITION LAYER */}
-            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 bg-white/50 dark:bg-slate-900/30">
-                <div className="flex items-center justify-between mb-4">
+            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 bg-white/50 dark:bg-slate-900/30 flex flex-col h-[350px]">
+                <div className="flex items-center justify-between mb-4 shrink-0">
                     <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-2"><Layers size={14} /> Partition Layer</h3>
                     <div className="text-[10px] bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded font-mono text-slate-600 dark:text-slate-400">Maintains Namespace & Load Balancing</div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-hidden">
                     {servers.map(server => {
                         const sParts = partitions.filter(p => p.serverId === server.id);
                         const loadPct = getServerLoadPct(server.id);
                         const isHot = loadPct > 80;
                         
                         return (
-                        <div key={server.id} className={`bg-white dark:bg-slate-900 border ${isHot ? 'border-amber-400 dark:border-amber-600 shadow-[0_0_15px_rgba(251,191,36,0.2)]' : 'border-slate-200 dark:border-slate-700'} rounded-lg p-3 transition-all duration-300`}>
-                            <div className="flex justify-between items-start mb-3">
+                        <div key={server.id} className={`bg-white dark:bg-slate-900 border ${isHot ? 'border-amber-400 dark:border-amber-600 shadow-[0_0_15px_rgba(251,191,36,0.2)]' : 'border-slate-200 dark:border-slate-700'} rounded-lg p-3 transition-all duration-300 flex flex-col h-full overflow-hidden`}>
+                            <div className="flex justify-between items-start mb-3 shrink-0">
                                 <div className="flex items-center gap-2">
                                     <Server size={14} className={isHot ? 'text-amber-500' : 'text-blue-500'} />
                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{server.id}</span>
@@ -305,7 +305,7 @@ export default function WindowsAzureSotrageSimulation() {
                                 </span>
                             </div>
                             
-                            <div className="space-y-2 min-h-[80px]">
+                            <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-1 min-h-0">
                                 {sParts.length === 0 && <div className="text-[10px] text-slate-400 italic text-center py-4">No Partitions Assigned</div>}
                                 {sParts.map(p => {
                                     const partLoadPct = Math.min(100, (p.load / SPLIT_THRESHOLD) * 100);
