@@ -26,13 +26,13 @@ export default [
     readingTime: `${tlpiMeta.chapterCount} chapters`,
   },
   {
-    id: "mendel",
-    title: "Google Mendel: Overlapping Experiment Infrastructure",
+    id: "whitepapers",
+    title: "Whitepapers",
     description: "Deep dive into the architecture enabling 10,000+ simultaneous experiments via orthogonal layering, cookie-based diversion, and real-time parameter injection.",
     category: "Whitepapers",
     tags: ["A/B Testing", "Infrastructure", "Experimentation", "Google"],
     // thumbnail: "/images/mendel-thumb.png", // Optional: Add thumbnail image to public/images/
-    contentPath: "/library/mendel.html", // Path to the HTML file (served from public/library/)
+    contentPath: "/library/rack/whitepapers", // Path to the HTML file (served from public/library/)
     date: "2024-01-15",
     featured: true,
     highlights: [
@@ -93,7 +93,7 @@ export default [
       { title: "Autopilot: Workload Management" },
       { title: "Inside Google Datacenters & Networking" },
       { title: "SRE Workbook Foundations (Google SRE)" },
-      { title: "Term Frequency Inverse Document Frequency", contentPath: "/library/whitepapers/idf-symbolic-sim" },
+      { title: "Term Frequency Inverse Document Frequency",contentPath: "/library/whitepapers/idf-symbolic-sim" },
     ],
     difficulty: "Advanced",
     readingTime: "15 min",
