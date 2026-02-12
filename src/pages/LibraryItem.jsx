@@ -101,6 +101,11 @@ export default function LibraryItem() {
     // Loading state will be handled by iframe onLoad/onError events
   }, [libraryItem]);
 
+  // Scroll to top when chapter changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [chapterIndex, id]);
+
   if (!libraryItem) {
     return (
       <div className="min-h-screen flex items-center justify-center">
