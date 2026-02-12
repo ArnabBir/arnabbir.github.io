@@ -33,3 +33,4 @@ export { default as VirtualMemorySimulation } from "./VirtualMemorySimulation";
 export { default as WebSearchForAPlanetSimulation } from "./WebSearchForAPlanetSimulation";
 export { default as WindowsAzureStorageSimulation } from "./WindowsAzureStorageSimulation";
 export { default as ZanzibarSimulation } from "./ZanzibarSimulation";
+export { default as IDFSymbolicSim } from "./IDFSymbolicSim";

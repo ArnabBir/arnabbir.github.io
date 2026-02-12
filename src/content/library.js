@@ -93,6 +93,7 @@ export default [
       { title: "Autopilot: Workload Management" },
       { title: "Inside Google Datacenters & Networking" },
       { title: "SRE Workbook Foundations (Google SRE)" },
+      { title: "Term Frequency Inverse Document Frequency", contentPath: "/library/whitepapers/idf-symbolic-sim" },
     ],
     difficulty: "Advanced",
     readingTime: "15 min",

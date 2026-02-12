@@ -22,6 +22,7 @@ import {
   FlumejavaSimulation,
   GoogleSearchAnatomySimulation,
   GorillaSimulation,
+  IDFSymbolicSim,
   MagnetShuffleSimulation,
   MegastoreSimulation,
   MonarchSimulation,
@@ -81,6 +82,8 @@ const SIMULATION_ROUTES = [
   { path: "web-search-for-a-planet", component: WebSearchForAPlanetSimulation },
   { path: "windows-azure-storage", component: WindowsAzureStorageSimulation },
   { path: "zanzibar", component: ZanzibarSimulation },
+  { path: "idf-symbolic-sim", component: IDFSymbolicSim },
+
 ];
 
 const queryClient = new QueryClient();
