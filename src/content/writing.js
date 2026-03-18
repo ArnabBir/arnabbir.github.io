@@ -31,10 +31,19 @@ export default [
   {
     title: "Masking Sequential IDs with ID Obfuscator",
     publication: "Substack",
-    date: "2024",
+    date: "2026",
     tag: "System Design",
     description:
       "Why sequential IDs leak business intelligence, how ID Obfuscator solves enumeration attacks with deterministic transformations, and why it's superior to UUIDs and hash IDs for database indexing.",
     href: "https://arnabbir.substack.com/p/masking-sequential-ids-with-id-obfuscator",
+  },
+  {
+    title: "Hybrid Search Done Right on Elastic",
+    publication: "Substack",
+    date: "2026",
+    tag: "Databases",
+    description:
+      "A comprehensive guide to implementing hybrid search on Elasticsearch, combining full text search with structured queries for optimal performance and relevance.",
+    href: "https://arnabbir.substack.com/p/hybrid-search-done-right-on-elastic",
   },
 ];
