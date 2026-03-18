@@ -101,11 +101,7 @@ export default [
       {
         label: "GitHub",
         href: "https://github.com/ArnabBir/pigeon-releases",
-      },
-      {
-        label: "LinkedIn Post",
-        href: "https://www.linkedin.com/posts/arnabbir_backendengineering-networkengineering-apitesting-activity-7430932503059841024",
-      },
+      }
     ],
     featured: true,
     kind: "featured",
