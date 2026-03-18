@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, TrendingUp, ArrowRight, Filter, Library as LibraryIcon } from "lucide-react";
+import { BookOpen, Clock, TrendingUp, ArrowRight, Library as LibraryIcon } from "lucide-react";
 
 import Container from "@/components/layout/Container";
 import SectionHeading from "@/components/layout/SectionHeading";
@@ -150,36 +150,8 @@ function LibraryCard({ item }) {
   );
 }
 
-function LibraryGrid({ items }) {
-  if (!items || items.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No library items yet. Add them in src/content/library.js</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
-        <LibraryCard key={item.id} item={item} />
-      ))}
-    </div>
-  );
-}
-
 export default function Library() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  
-  const categories = ["All", ...new Set(libraryContent.map((item) => item.category))];
   const featured = libraryContent.filter((item) => item.featured);
-  const allItems = libraryContent;
-  
-  const filteredItems =
-    selectedCategory === "All"
-      ? allItems
-      : allItems.filter((item) => item.category === selectedCategory);
 
   return (
     <section id="library" className="scroll-mt-24 py-16">
@@ -205,7 +177,7 @@ export default function Library() {
           </div>
 
           {featured.length > 0 && (
-            <div className="mt-8 relative px-12 mb-12">
+            <div className="mt-8 relative px-12">
               <Carousel opts={CAROUSEL_OPTS}>
                 <CarouselContent>
                   {featured.map((item) => (
@@ -223,38 +195,33 @@ export default function Library() {
             </div>
           )}
 
-          <div className="mt-8">
-            {categories.length > 1 && (
-              <div className="flex items-center gap-2 flex-wrap mb-6">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                {categories.map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={selectedCategory === cat ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(cat)}
-                    className="text-xs"
-                  >
-                    {cat}
-                  </Button>
-                ))}
-              </div>
-            )}
-            <LibraryGrid items={filteredItems} />
-          </div>
-
-          <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Add new library items in <span className="font-medium">src/content/library.js</span>.
+          <motion.div
+            className="mt-12 rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/30 p-8 sm:p-12 text-center"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+          >
+            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-60" />
+            <h3 className="text-xl font-semibold mb-3">Explore the Complete Library</h3>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Browse through all study materials organized by category, with interactive simulations, detailed guides, and comprehensive resources. Filter by difficulty level and category to find exactly what you need.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild className="gap-2">
+                <Link to="/library">
+                  <LibraryIcon className="h-4 w-4" />
+                  Open Full Library
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="gap-2">
+                <Link to="/library">
+                  Browse by Category
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-            <Button asChild variant="outline" className="gap-2">
-              <Link to="/library">
-                Open full library racks
-                <LibraryIcon className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
+          </motion.div>
         </motion.div>
       </Container>
     </section>
