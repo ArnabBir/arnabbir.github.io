@@ -8,6 +8,7 @@ export default [
     description:
       "A deep dive into TStore’s architecture — datastores, message queues, DR strategy, and security measures.",
     href: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe-chapter-2/",
+    image: "/images/tstore2.png",
   },
   {
     title:
@@ -18,6 +19,7 @@ export default [
     description:
       "An overview of the problem space and why TStore exists — thousands of transactions per second, complex data exchanges, and instant history.",
     href: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe/",
+    image: "/images/tstore1.png",
   },
     {
     title: "Building ID-Obfuscator from Scratch: Masking Sequential Database IDs",
