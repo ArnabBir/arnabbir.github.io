@@ -87,7 +87,27 @@ export default [
     kind: "featured",
   },
   {
-    name: "Orator — Web Narrator",
+    name: "Pigeon | Universal Network Protocol Client",
+    description:
+      "A desktop application that unifies HTTP, GraphQL, WebSocket, SSE, TCP, UDP, MQTT, and Socket.IO into a single developer interface.",
+    image: "/images/pigeon.png",
+    tags: ["Electron", "React", "TypeScript", "Networking", "Developer Tools"],
+    highlights: [
+      "Multi-protocol support: HTTP, GraphQL, WebSocket, SSE, TCP, UDP, MQTT, Socket.IO",
+      "Request authoring, collections with sequential execution, and automatic response analysis",
+      "Privacy-first: All storage is local with zero tracking or telemetry",
+    ],
+    links: [
+      {
+        label: "GitHub",
+        href: "https://github.com/ArnabBir/pigeon-releases",
+      }
+    ],
+    featured: true,
+    kind: "featured",
+  },
+  {
+    name: "Orator | Web Narrator",
     description:
       "A privacy-first browser extension that narrates web pages with natural voices, click-to-seek, sentence highlighting, and speed control. Available on Chrome and Firefox.",
     image: "/images/orator-screenshot.png",
@@ -114,18 +134,34 @@ export default [
     featured: true,
     kind: "featured",
   },
-  {
-    name: "PortfolioHub",
+    {
+    name: "ID Obfuscator",
     description:
-      "A personal finance command center for net worth, asset allocation, cashflow health, and FIRE planning.",
-    tags: ["React", "Data Viz", "Personal Finance"],
+      "A lightweight Java library for deterministic, reversible obfuscation of sequential database IDs using modular arithmetic. Published on Maven Central.",
+    image: "/images/id_obfuscator.png",
+    tags: ["Java", "Security", "Maven Central", "Open Source", "System Design"],
     highlights: [
-      "Insight-rich dashboards with projections and savings diagnostics.",
-      "Import/export workflows plus shareable PDF reports.",
+      "Deterministic, reversible ID transformation using modular multiplicative inverses",
+      "O(1) encode/decode performance with zero external dependencies",
+      "Prevents enumeration attacks and hides business intelligence patterns while maintaining 8-byte longs",
+      "Published on Maven Central with comprehensive overflow-safe arithmetic implementation",
     ],
-    links: [{ label: "Open app", href: "/portfoliohub" }],
+    links: [
+      {
+        label: "GitHub",
+        href: "https://github.com/ArnabBir/id-obfuscator",
+      },
+      {
+        label: "Maven Central",
+        href: "https://central.sonatype.com/search?q=com.arnabbir",
+      },
+      {
+        label: "Blog Series",
+        href: "/blogs",
+      },
+    ],
     featured: true,
-    kind: "lab",
+    kind: "featured",
   },
   {
     name: "HUIM-ACO",
