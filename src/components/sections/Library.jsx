@@ -9,7 +9,6 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Carousel,
   CarouselContent,
@@ -225,39 +224,23 @@ export default function Library() {
           )}
 
           <div className="mt-8">
-            <Tabs defaultValue="all" className="w-full">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <TabsList className="grid w-full sm:w-fit grid-cols-2">
-                  <TabsTrigger value="all">All Items</TabsTrigger>
-                  <TabsTrigger value="featured">Featured</TabsTrigger>
-                </TabsList>
-
-                {categories.length > 1 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
-                    {categories.map((cat) => (
-                      <Button
-                        key={cat}
-                        variant={selectedCategory === cat ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedCategory(cat)}
-                        className="text-xs"
-                      >
-                        {cat}
-                      </Button>
-                    ))}
-                  </div>
-                )}
+            {categories.length > 1 && (
+              <div className="flex items-center gap-2 flex-wrap mb-6">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                {categories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={selectedCategory === cat ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat)}
+                    className="text-xs"
+                  >
+                    {cat}
+                  </Button>
+                ))}
               </div>
-
-              <TabsContent value="all" className="mt-0">
-                <LibraryGrid items={filteredItems} />
-              </TabsContent>
-
-              <TabsContent value="featured" className="mt-0">
-                <LibraryGrid items={featured} />
-              </TabsContent>
-            </Tabs>
+            )}
+            <LibraryGrid items={filteredItems} />
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
