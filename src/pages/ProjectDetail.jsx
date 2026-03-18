@@ -25,7 +25,7 @@ import {
  */
 const PROJECT_PAGES = {
   orator: {
-    title: "Orator — Web Narrator",
+    title: "Orator | Web Narrator",
     subtitle: "Technical architecture and design deep-dive",
     contentPath: "/projects/how_orator_works.html",
     tags: ["Chrome Extension", "Firefox Add-on", "Accessibility", "TTS"],

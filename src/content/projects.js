@@ -87,7 +87,31 @@ export default [
     kind: "featured",
   },
   {
-    name: "Orator — Web Narrator",
+    name: "Pigeon | Universal Network Protocol Client",
+    description:
+      "A desktop application that unifies HTTP, GraphQL, WebSocket, SSE, TCP, UDP, MQTT, and Socket.IO into a single developer interface.",
+    image: "/images/pigeon.png",
+    tags: ["Electron", "React", "TypeScript", "Networking", "Developer Tools"],
+    highlights: [
+      "Multi-protocol support: HTTP, GraphQL, WebSocket, SSE, TCP, UDP, MQTT, Socket.IO",
+      "Request authoring, collections with sequential execution, and automatic response analysis",
+      "Privacy-first: All storage is local with zero tracking or telemetry",
+    ],
+    links: [
+      {
+        label: "GitHub",
+        href: "https://github.com/ArnabBir/pigeon-releases",
+      },
+      {
+        label: "LinkedIn Post",
+        href: "https://www.linkedin.com/posts/arnabbir_backendengineering-networkengineering-apitesting-activity-7430932503059841024",
+      },
+    ],
+    featured: true,
+    kind: "featured",
+  },
+  {
+    name: "Orator | Web Narrator",
     description:
       "A privacy-first browser extension that narrates web pages with natural voices, click-to-seek, sentence highlighting, and speed control. Available on Chrome and Firefox.",
     image: "/images/orator-screenshot.png",
