@@ -10,7 +10,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { libraryContent } from "@/content";
+
+const CAROUSEL_OPTS = {
+  align: "start",
+  loop: false,
+  dragFree: false,
+  containScroll: "trimSnaps",
+};
 
 const difficultyColors = {
   Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -177,11 +191,38 @@ export default function Library() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45 }}
         >
-          <SectionHeading
-            eyebrow="Engineering Library"
-            title="Interactive Study Materials"
-            description="Deep dives into engineering concepts with interactive illustrations, simulations, and visual explanations. Continuously updated with new materials."
-          />
+          <div className="flex items-end justify-between mb-8">
+            <SectionHeading
+              eyebrow="Engineering Library"
+              title="Interactive Study Materials"
+              description="Deep dives into engineering concepts with interactive illustrations, simulations, and visual explanations. Continuously updated with new materials."
+            />
+            <Link
+              to="/library"
+              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors mb-2"
+            >
+              View all <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {featured.length > 0 && (
+            <div className="mt-8 relative px-12 mb-12">
+              <Carousel opts={CAROUSEL_OPTS}>
+                <CarouselContent>
+                  {featured.map((item) => (
+                    <CarouselItem
+                      key={item.id}
+                      className="basis-full md:basis-1/2 lg:basis-1/3"
+                    >
+                      <LibraryCard item={item} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute -left-12" />
+                <CarouselNext className="absolute -right-12" />
+              </Carousel>
+            </div>
+          )}
 
           <div className="mt-8">
             <Tabs defaultValue="all" className="w-full">
@@ -190,7 +231,7 @@ export default function Library() {
                   <TabsTrigger value="all">All Items</TabsTrigger>
                   <TabsTrigger value="featured">Featured</TabsTrigger>
                 </TabsList>
-                
+
                 {categories.length > 1 && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <Filter className="h-4 w-4 text-muted-foreground" />
@@ -212,7 +253,7 @@ export default function Library() {
               <TabsContent value="all" className="mt-0">
                 <LibraryGrid items={filteredItems} />
               </TabsContent>
-              
+
               <TabsContent value="featured" className="mt-0">
                 <LibraryGrid items={featured} />
               </TabsContent>
