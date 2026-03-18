@@ -1,14 +1,5 @@
 export default [
   {
-    title: "Introducing Pigeon: Universal Network Protocol Client",
-    publication: "LinkedIn",
-    date: "2024",
-    tag: "Developer Tools",
-    description:
-      "Announcing Pigeon — a desktop application unifying HTTP, GraphQL, WebSocket, TCP, UDP, MQTT, and Socket.IO for seamless multi-protocol development.",
-    href: "https://www.linkedin.com/posts/arnabbir_backendengineering-networkengineering-apitesting-activity-7430932503059841024",
-  },
-  {
     title:
       "Demystifying TStore: The Backbone of Billions of Transactions at PhonePe (Chapter 2)",
     publication: "PhonePe Tech Blog",
@@ -27,5 +18,23 @@ export default [
     description:
       "An overview of the problem space and why TStore exists — thousands of transactions per second, complex data exchanges, and instant history.",
     href: "https://tech.phonepe.com/demystifying-tstore-the-backbone-of-billions-of-transactions-at-phonepe/",
+  },
+    {
+    title: "Building ID-Obfuscator from Scratch: Masking Sequential Database IDs",
+    publication: "Substack",
+    date: "2024",
+    tag: "Backend Engineering",
+    description:
+      "A deep dive into the mathematical foundation and implementation challenges of reversible ID obfuscation. Explores modular arithmetic, the Extended Euclidean Algorithm, and overflow-safe arithmetic in Java.",
+    href: "https://arnabbir.substack.com/p/building-id-obfuscator-from-scratch",
+  },
+  {
+    title: "Masking Sequential IDs with ID Obfuscator",
+    publication: "Substack",
+    date: "2024",
+    tag: "System Design",
+    description:
+      "Why sequential IDs leak business intelligence, how ID Obfuscator solves enumeration attacks with deterministic transformations, and why it's superior to UUIDs and hash IDs for database indexing.",
+    href: "https://arnabbir.substack.com/p/masking-sequential-ids-with-id-obfuscator",
   },
 ];

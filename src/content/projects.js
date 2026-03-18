@@ -134,18 +134,34 @@ export default [
     featured: true,
     kind: "featured",
   },
-  {
-    name: "PortfolioHub",
+    {
+    name: "ID Obfuscator",
     description:
-      "A personal finance command center for net worth, asset allocation, cashflow health, and FIRE planning.",
-    tags: ["React", "Data Viz", "Personal Finance"],
+      "A lightweight Java library for deterministic, reversible obfuscation of sequential database IDs using modular arithmetic. Published on Maven Central.",
+    image: "/images/id_obfuscator.png",
+    tags: ["Java", "Security", "Maven Central", "Open Source", "System Design"],
     highlights: [
-      "Insight-rich dashboards with projections and savings diagnostics.",
-      "Import/export workflows plus shareable PDF reports.",
+      "Deterministic, reversible ID transformation using modular multiplicative inverses",
+      "O(1) encode/decode performance with zero external dependencies",
+      "Prevents enumeration attacks and hides business intelligence patterns while maintaining 8-byte longs",
+      "Published on Maven Central with comprehensive overflow-safe arithmetic implementation",
     ],
-    links: [{ label: "Open app", href: "/portfoliohub" }],
+    links: [
+      {
+        label: "GitHub",
+        href: "https://github.com/ArnabBir/id-obfuscator",
+      },
+      {
+        label: "Maven Central",
+        href: "https://central.sonatype.com/search?q=com.arnabbir",
+      },
+      {
+        label: "Blog Series",
+        href: "/blogs",
+      },
+    ],
     featured: true,
-    kind: "lab",
+    kind: "featured",
   },
   {
     name: "HUIM-ACO",
