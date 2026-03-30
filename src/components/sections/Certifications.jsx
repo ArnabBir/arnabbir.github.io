@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Award, ArrowRight } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 import Container from "@/components/layout/Container";
 import SectionHeading from "@/components/layout/SectionHeading";
@@ -66,20 +66,12 @@ export default function Certifications() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45 }}
         >
-          <div className="flex items-end justify-between mb-8">
-            <SectionHeading
-              eyebrow="Certifications"
-              title="Proof of practice"
-              description="Short courses and badges demonstrating expertise and continuous learning."
-            />
-            <a
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors mb-2"
-            >
-              View all <ArrowRight className="h-4 w-4" />
-            </a>
-          </div>
+          <SectionHeading
+            eyebrow="Certifications"
+            title="Proof of practice"
+            description="Short courses and credentials demonstrating expertise and continuous learning."
+            className="mb-8"
+          />
 
           {certificationsContent.length > 0 && (
             <div className="mt-8 relative px-12">
@@ -99,24 +91,6 @@ export default function Certifications() {
               </Carousel>
             </div>
           )}
-
-          <motion.div
-            className="mt-12 rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/30 p-8 sm:p-12 text-center"
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-          >
-            <Award className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-60" />
-            <h3 className="text-xl font-semibold mb-3">Keep Growing</h3>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Earn certifications and badges to validate your skills. These credentials showcase your commitment to continuous learning and professional development.
-            </p>
-            <Button variant="outline" className="gap-2">
-              <Award className="h-4 w-4" />
-              Add More Certifications
-            </Button>
-          </motion.div>
         </motion.div>
       </Container>
     </section>

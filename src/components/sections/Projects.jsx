@@ -93,7 +93,7 @@ export default function Projects() {
           <SectionHeading
             eyebrow="Projects"
             title="Things I’ve shipped (and tinkered with)"
-            description="A mix of writing, open-source, and side projects. Add new items in src/content/projects.js."
+            description="A mix of production systems, open-source tools, and side projects across distributed systems, platform engineering, and interactive learning."
           />
 
           <div className="mt-8">

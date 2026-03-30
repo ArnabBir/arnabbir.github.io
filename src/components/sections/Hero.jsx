@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight, Download, MapPin } from "lucide-react";
 
 import Container from "@/components/layout/Container";
 import SocialIcon from "@/components/icons/SocialIcon";
@@ -25,6 +25,15 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55 }}
           >
+            {/* Status indicator */}
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              Open to opportunities
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">Distributed Systems</Badge>
               <Badge variant="secondary">Reliability</Badge>
@@ -32,7 +41,7 @@ export default function Hero() {
             </div>
 
             <h1 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05]">
-              Hi, I’m <span className="text-gradient">{siteContent.name}</span>.
+              Hi, I'm <span className="text-gradient">{siteContent.name}</span>.
             </h1>
             <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
               {siteContent.tagline}
@@ -57,7 +66,7 @@ export default function Hero() {
                 </Button>
               ) : null}
               <Button asChild variant="ghost">
-                <a href="#contact">Let’s talk</a>
+                <a href="#contact">Let's talk</a>
               </Button>
             </div>
 
@@ -94,9 +103,14 @@ export default function Hero() {
                     loading="eager"
                   />
                 </div>
-                <div className="mt-4">
-                  <div className="text-sm font-medium">{siteContent.role}</div>
-                  <div className="text-sm text-muted-foreground">{siteContent.location}</div>
+                <div className="mt-4 flex items-start justify-between gap-2">
+                  <div>
+                    <div className="text-sm font-medium">{siteContent.role}</div>
+                    <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3" />
+                      {siteContent.location}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
