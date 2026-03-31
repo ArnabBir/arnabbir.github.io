@@ -113,4 +113,16 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Focus ring that matches the brand color */
+  .focus-ring {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+/* Smooth page-level scroll anchoring compensation */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    scroll-behavior: smooth;
+  }
 }

@@ -13,6 +13,12 @@ const PRINCIPLES = [
   "Keep it simple — until you can prove you need complexity.",
 ];
 
+const STATS = [
+  { label: "Years of experience", value: "7+" },
+  { label: "Engineers mentored", value: "50+" },
+  { label: "Scale", value: "100M+ TPS" },
+];
+
 export default function About() {
   return (
     <section id="about" className="scroll-mt-24 py-16">
@@ -29,19 +35,29 @@ export default function About() {
             description="I enjoy designing platforms that stay boring in production: predictable latency, clear failure modes, and great developer experience."
           />
 
-          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Stats strip */}
+          <div className="mt-8 grid grid-cols-3 divide-x rounded-lg border bg-muted/30">
+            {STATS.map(({ label, value }) => (
+              <div key={label} className="px-5 py-4 text-center">
+                <div className="text-2xl font-semibold tracking-tight text-gradient">{value}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>What I’m focused on</CardTitle>
+                <CardTitle>What I'm focused on</CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground leading-relaxed">
                 <p>
-                  I’ve worked on high scale backends in payments, identity, fulfillment and data platforms.
-                  My happy place is the intersection of performance, correctness, and operability,
+                  I've worked on high-scale backends in payments, identity, fulfillment, and data platforms.
+                  My happy place is the intersection of performance, correctness, and operability —
                   making sure systems are fast, safe, observable, and easy to evolve.
                 </p>
                 <p className="mt-4">
-                  Outside work, I write, mentor, and build small tools that scratch an itch. I’m always
+                  Outside work, I write, mentor, and build small tools that scratch an itch. I'm always
                   up for conversations around system design, platform strategy, and engineering culture.
                 </p>
               </CardContent>
@@ -54,8 +70,8 @@ export default function About() {
               <CardContent>
                 <ul className="space-y-3">
                   {PRINCIPLES.map((p) => (
-                    <li key={p} className="flex items-start gap-2 text-muted-foreground">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+                    <li key={p} className="flex items-start gap-3 text-muted-foreground">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <span>{p}</span>
                     </li>
                   ))}

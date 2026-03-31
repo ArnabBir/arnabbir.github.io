@@ -199,16 +199,19 @@ export default [
     kind: "open-source",
   },
   {
-    name: "This Website",
+    name: "Apache Pinot Playbook",
     description:
-      "A fast, accessible portfolio built with Vite + React + Tailwind. Content is data-driven so you can keep adding entries.",
-    tags: ["Vite", "React", "Tailwind"],
+      "A comprehensive, hands-on learning guide for Apache Pinot that bridges the gap between scattered documentation and real-world understanding. Covers architecture, schema design, indexing, ingestion, querying, and operations with interactive labs and runnable examples.",
+    image: "/images/pinot.png",
+    tags: ["Apache Pinot", "Real-time Analytics", "OLAP", "Data Engineering", "Streaming"],
     highlights: [
-      "Command palette (Ctrl/⌘ K) for quick navigation.",
-      "Dark mode, responsive layout, and GitHub Pages-friendly routing.",
+      "Chapter-wise documentation from beginner to advanced: architecture, storage, schema design, indexing, ingestion, upserts, and operations.",
+      "Hands-on labs to run concepts locally with Docker Compose and example services.",
+      "Practical examples: schemas, table configs, SQL queries, and observability configurations.",
+      "Visual explanations and diagrams to build mental models for Pinot's distributed query execution.",
     ],
-    links: [{ label: "Source", href: "https://github.com/arnabbir/arnabbir.github.io" }],
-    featured: false,
+    links: [{ label: "GitHub", href: "https://github.com/ArnabBir/apache-pinot-playbook" }],
+    featured: true,
     kind: "featured",
   },
 ];

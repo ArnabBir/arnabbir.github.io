@@ -4,25 +4,39 @@ import { motion } from "framer-motion";
 import Container from "@/components/layout/Container";
 import SectionHeading from "@/components/layout/SectionHeading";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { skillsContent } from "@/content";
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+};
 
 function SkillCard({ group }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{group.category}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2">
-          {group.items.map((s) => (
-            <Badge key={s} variant="secondary">
-              {s}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <motion.div
+      variants={item}
+      className="rounded-lg border bg-card p-5 hover:shadow-md transition-shadow"
+    >
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        {group.category}
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {group.items.map((s) => (
+          <Badge
+            key={s}
+            variant="secondary"
+            className="rounded-md font-normal"
+          >
+            {s}
+          </Badge>
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
@@ -39,14 +53,20 @@ export default function Skills() {
           <SectionHeading
             eyebrow="Skills"
             title="Tools I reach for"
-            description="A snapshot of languages, platforms, and practices. Keep it curated — hiring managers like signal."
+            description="Languages, platforms, and practices — a curated snapshot of my technical toolkit."
           />
 
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {skillsContent.map((g) => (
               <SkillCard key={g.category} group={g} />
             ))}
-          </div>
+          </motion.div>
         </motion.div>
       </Container>
     </section>

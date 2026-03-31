@@ -81,7 +81,7 @@ export default function Education() {
           <SectionHeading
             eyebrow="Education"
             title="Foundations"
-            description="A quick view of my academic background. Add more entries in src/content/education.js."
+            description="Academic background in computer science and engineering that underpins my work in systems and distributed computing."
           />
 
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">

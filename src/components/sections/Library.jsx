@@ -195,33 +195,15 @@ export default function Library() {
             </div>
           )}
 
-          <motion.div
-            className="mt-12 rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/30 p-8 sm:p-12 text-center"
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-          >
-            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-60" />
-            <h3 className="text-xl font-semibold mb-3">Explore the Complete Library</h3>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Browse through all study materials organized by category, with interactive simulations, detailed guides, and comprehensive resources. Filter by difficulty level and category to find exactly what you need.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild className="gap-2">
-                <Link to="/library">
-                  <LibraryIcon className="h-4 w-4" />
-                  Open Full Library
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="gap-2">
-                <Link to="/library">
-                  Browse by Category
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
+          <div className="mt-10 flex justify-center">
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/library">
+                <LibraryIcon className="h-4 w-4" />
+                Browse full library
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </motion.div>
       </Container>
     </section>
