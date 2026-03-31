@@ -3,7 +3,6 @@ import Index from "./pages/Index.jsx";
 import HelloWorld from "./pages/HelloWorld.jsx";
 import HappyBirthday from "./pages/HappyBirthday.jsx";
 import GoodNight from "./pages/GoodNight.jsx";
-import Portfoliohub from "./pages/Portfoliohub.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
@@ -29,10 +28,5 @@ export const navItems = [
     title: "Good Night",
     to: "/good-night",
     page: <GoodNight />,
-  },
-  {
-    title: "PortfolioHub",
-    to: "/portfoliohub",
-    page: <Portfoliohub />,
   }
 ];
