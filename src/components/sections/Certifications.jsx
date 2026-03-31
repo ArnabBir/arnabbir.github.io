@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Award, ArrowRight } from "lucide-react";
 
 import Container from "@/components/layout/Container";
 import SectionHeading from "@/components/layout/SectionHeading";
