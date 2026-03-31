@@ -9,6 +9,7 @@ import LibraryHome from "./pages/LibraryHome";
 import LibraryRack from "./pages/LibraryRack";
 import LibraryItem from "./pages/LibraryItem";
 import ProjectDetail from "./pages/ProjectDetail";
+import AllBlogs from "./pages/AllBlogs";
 import {
   AnycastLoadBalancingSimulation,
   BitcoinSimulation,
@@ -99,6 +100,7 @@ const App = () => (
             {navItems.map(({ to, page }) => (
               <Route key={to} path={to} element={page} />
             ))}
+            <Route path="/blogs" element={<AllBlogs />} />
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/library" element={<LibraryHome />} />
             <Route path="/library/operating-system/virtual-memory" element={<VirtualMemorySimulation />} />

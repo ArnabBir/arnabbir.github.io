@@ -71,6 +71,7 @@ export const WritingSchema = z.object({
   description: z.string().optional(),
   href: z.string().min(1),
   tag: z.string().optional(),
+  image: z.string().optional(),
 });
 
 export const EducationSchema = z.object({
