@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">921</span> (0-based index 920).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>ipc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>IPC</strong></span> <span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>sockets</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 43 — Interprocess Communication Overview
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>IPC lets processes share data and coordinate. Linux offers pipes, FIFOs, message queues, semaphores, shared memory, and sockets — each with different trade-offs in latency, bandwidth, and complexity. The fundamental division is between data-transfer IPC (where the kernel copies bytes between processes) and shared-memory IPC (where processes access the same physical pages directly).</p><p>This chapter surveys every major IPC mechanism, classifies them, and provides a decision framework so you can pick the right one for your use case.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">Data-transfer IPC (pipes, message queues, sockets) involves kernel-mediated copies; shared-memory IPC avoids copies but requires explicit synchronization.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">System V IPC objects persist in the kernel until explicitly removed (IPC_RMID) or reboot — they are not reference-counted like pipes.</div>
 </div><div class="callout tip">
-  <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="k">Tip</div>
+  <div class="v">AF_UNIX sockets are the most versatile local IPC: bidirectional, support fd-passing, datagrams, and integrate with poll/epoll.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li><strong>Data-transfer IPC</strong> (kernel copies data): pipes, FIFOs, message queues (SysV &amp; POSIX), and sockets. The sender writes into kernel buffers; the receiver reads from them. Simple but adds copy overhead.</li><li><strong>Shared-memory IPC</strong> (zero copy): mmap with MAP_SHARED, POSIX shm_open, System V shmget/shmat. Processes map the same physical pages. Fastest for bulk data, but requires explicit synchronization (mutexes, semaphores, futexes).</li><li><strong>Synchronization primitives</strong>: semaphores (SysV semget or POSIX sem_open), mutexes in shared memory (pthread_mutex with PTHREAD_PROCESS_SHARED), futex for low-level locking, eventfd for lightweight signaling.</li><li><strong>POSIX IPC vs System V IPC</strong>: POSIX IPC (mq_open, sem_open, shm_open) uses filesystem-like names ("/myqueue"), has cleaner APIs, and integrates with select/poll via file descriptors. System V IPC (msgget, semget, shmget) uses integer keys from ftok(), has no fd-based interface, but is more widely deployed on legacy systems.</li><li><strong>AF_UNIX sockets</strong> are the most versatile local IPC: bidirectional, support SOCK_STREAM and SOCK_DGRAM, can pass file descriptors (SCM_RIGHTS), and work with epoll. Prefer them for new designs unless you need the simplicity of pipes.</li><li><strong>Decision criteria</strong>: related vs unrelated processes (pipes need fork; FIFOs/sockets/SysV work across unrelated processes), latency requirements (shared memory wins), message boundaries needed (use datagrams or message queues, not byte streams), persistence needed (SysV/POSIX named objects persist; pipes vanish when fds close).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>pipe</td><td>Unidirectional byte stream; anonymous, only between related processes (via fork). Kernel-buffered, reference-counted — gone when all fds close.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe with a filesystem path (mkfifo). Connects unrelated processes. Same byte-stream semantics as pipes.</td></tr><tr><td class='mono'>message queue</td><td>Kernel-managed queue of discrete, typed messages. SysV (msgget) or POSIX (mq_open). Preserves message boundaries.</td></tr><tr><td class='mono'>semaphore</td><td>Counting synchronization primitive. SysV (semget/semop) or POSIX (sem_open/sem_wait). Used to guard shared resources.</td></tr><tr><td class='mono'>shared memory</td><td>Multiple processes map the same physical pages. SysV (shmget/shmat) or POSIX (shm_open + mmap). No kernel copy overhead.</td></tr><tr><td class='mono'>AF_UNIX socket</td><td>Local socket: bidirectional, supports streams/datagrams, fd-passing (SCM_RIGHTS), credentials (SO_PEERCRED). Works with epoll.</td></tr><tr><td class='mono'>POSIX IPC</td><td>Modern IPC APIs: mq_open, sem_open, shm_open. Name-based ("/name"), fd-oriented, cleaner than System V.</td></tr><tr><td class='mono'>System V IPC</td><td>Legacy IPC APIs: msgget, semget, shmget. Key-based (ftok), no fd interface, kernel-persistent until IPC_RMID.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pipe</td><td class='mono'>int pipe(int pipefd[2]);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Unidirectional byte stream; beware of blocking semantics and SIGPIPE on write-end when read-end closed.</td></tr><tr><td class='mono'>socket</td><td class='mono'>int socket(int domain, int type, int protocol);</td><td class='mono muted2'>EAFNOSUPPORT, EPROTONOSUPPORT, EMFILE, ENFILE</td><td>Creates a socket fd. Use SOCK_CLOEXEC / SOCK_NONBLOCK to avoid races.</td></tr><tr><td class='mono'>mmap</td><td class='mono'>void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);</td><td class='mono muted2'>ENOMEM, EACCES, EINVAL, EBADF</td><td>Maps file/anon memory. Page faults happen on first touch; mind MAP_PRIVATE vs MAP_SHARED.</td></tr><tr><td class='mono'>kill</td><td class='mono'>int kill(pid_t pid, int sig);</td><td class='mono muted2'>ESRCH, EINVAL, EPERM</td><td>Send a signal. With pid &lt; 0, targets process groups; with pid=0, current process group.</td></tr>
+    <tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Creates pipe with O_CLOEXEC | O_NONBLOCK atomically. Always prefer over pipe().</td></tr><tr><td class='mono'>socketpair</td><td class='mono'>int socketpair(int domain, int type, int protocol, int sv[2]);</td><td class='mono muted2'>EAFNOSUPPORT, EMFILE</td><td>Creates connected AF_UNIX socket pair. Bidirectional — often better than two pipes.</td></tr><tr><td class='mono'>mq_open</td><td class='mono'>mqd_t mq_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT</td><td>POSIX message queue. Returns fd usable with poll/epoll (via mq_getattr). Visible in /dev/mqueue.</td></tr><tr><td class='mono'>shm_open</td><td class='mono'>int shm_open(const char *name, int oflag, mode_t mode);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT</td><td>POSIX shared memory. Returns fd for mmap. Visible in /dev/shm. shm_unlink removes the name.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: POSIX IPC returns file descriptors that integrate with poll/epoll; System V IPC does not.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Data-transfer vs shared-memory trade-offs</summary>
+  <div class="content"><ul><li>Data-transfer IPC (pipes, sockets, message queues) involves at least two copies: sender→kernel, kernel→receiver. For small messages the overhead is negligible; for large transfers (MB+) it dominates.</li><li>Shared memory eliminates copies but you must synchronize access. A missing memory barrier or lock causes silent corruption — the hardest bugs to find.</li><li>Hybrid approach: use shared memory for data, use a pipe or eventfd for notification ("data is ready"). This combines zero-copy with event-loop integration.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>POSIX IPC vs System V IPC</summary>
+  <div class="content"><ul><li>POSIX IPC names are paths ("/myqueue") visible in /dev/mqueue or /dev/shm. System V IPC keys are integers from ftok() — prone to collisions and harder to debug.</li><li>POSIX IPC objects are reference-counted after unlink (like files): existing users keep access. System V IPC_RMID on a message queue destroys it immediately, possibly losing messages.</li><li>POSIX message queues support mq_notify for async notification (SIGEV_THREAD or SIGEV_SIGNAL). System V message queues have no notification mechanism.</li><li>System V semaphores support atomic operations on multiple semaphores in one semop() call. POSIX semaphores are simpler but only operate on one at a time.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>AF_UNIX sockets as universal IPC</summary>
+  <div class="content"><ul><li>AF_UNIX SOCK_STREAM gives bidirectional reliable byte stream — like TCP but local, with lower overhead.</li><li>AF_UNIX SOCK_DGRAM gives message boundaries without the complexity of message queues. No need for length-prefix framing.</li><li>SCM_RIGHTS ancillary messages let you pass open file descriptors between processes — essential for privilege separation (e.g., passing a bound socket from a privileged parent to an unprivileged child).</li><li>SO_PEERCRED lets you authenticate the peer process (get its PID, UID, GID) without application-level auth.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Choosing IPC: decision checklist</summary>
+  <div class="content"><ul><li>Related processes only? pipe() or socketpair() are simplest — no naming, auto-cleanup on close.</li><li>Unrelated processes? Use AF_UNIX socket (most flexible), FIFO (simplest), or named POSIX IPC objects.</li><li>Need message boundaries? Use SOCK_DGRAM, POSIX mq, or System V msgqueue. Pipes/SOCK_STREAM are byte streams — you must frame yourself.</li><li>Need lowest latency for bulk data? Shared memory + eventfd notification.</li><li>Need to pass file descriptors? Only AF_UNIX sockets support SCM_RIGHTS.</li><li>Need persistence across process restarts? System V IPC objects or POSIX named objects persist until explicit removal.</li></ul></div>
 </details>
         </div>
 
@@ -146,18 +146,31 @@
     <button class="btn small" data-copy="#code_ch43">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Comparison: pipe vs AF_UNIX socket — showing when each is appropriate.
   </div>
-  <pre id="code_ch43"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch43"><code class="mono">// Option A: pipe — simple, unidirectional, related processes
+int pfd[2];
+pipe2(pfd, O_CLOEXEC);           // pfd[0]=read, pfd[1]=write
+if (fork() == 0) {               // child reads
+    close(pfd[1]);
+    read(pfd[0], buf, sizeof(buf));
+    _exit(0);
+}
+close(pfd[0]);                   // parent writes
+write(pfd[1], "hello", 5);
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+// Option B: AF_UNIX socketpair — bidirectional, fd-passing capable
+int sv[2];
+socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
+if (fork() == 0) {               // child: full duplex on sv[1]
+    close(sv[0]);
+    write(sv[1], "request", 7);
+    read(sv[1], buf, sizeof(buf));
+    _exit(0);
+}
+close(sv[1]);                    // parent: full duplex on sv[0]
+read(sv[0], buf, sizeof(buf));
+write(sv[0], "response", 8);</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +179,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Classify your IPC need: stream vs message vs shared memory. Pick the simplest mechanism that fits.</li><li>For shared memory: always pair with explicit synchronization (mutex, semaphore, or atomic + barrier). Document the protocol.</li><li>For named IPC objects (FIFO, POSIX mq/shm, SysV): define who creates, who unlinks, and handle stale objects on startup.</li><li>Prefer POSIX IPC over System V for new code — cleaner API, fd-based, better cleanup semantics.</li><li>Use AF_UNIX sockets as default for local IPC between unrelated processes unless you have a specific reason for alternatives.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Benchmark pipe vs AF_UNIX SOCK_STREAM vs shared memory for transferring 100 MB between two processes. Measure throughput and CPU time.</li><li>Write a program that creates a System V message queue, sends 10 messages, then crashes without calling IPC_RMID. Verify the queue persists with <span class="mono">ipcs</span>. Clean up with <span class="mono">ipcrm</span>.</li><li>Implement fd-passing over AF_UNIX: a parent opens a file, passes the fd to a child via SCM_RIGHTS, and the child reads from it.</li></ul>
           </div>
         </div>
 
@@ -185,52 +198,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Shared memory maps the same physical pages into multiple address spaces — no kernel copy on each transfer. The kernel is only involved at setup (mmap/shmat).">
+  <div class="qp">Q1. Which IPC mechanism avoids kernel-mediated data copying during transfer?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Pipes</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">AF_UNIX sockets</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Shared memory</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Message queues</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="POSIX IPC (mq_open, sem_open, shm_open) returns file descriptors that work with poll/epoll. System V IPC uses integer identifiers that cannot be polled.">
+  <div class="qp">Q2. What advantage does POSIX IPC have over System V IPC for event-driven programs?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">Faster data transfer</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">File-descriptor-based interface works with poll/epoll</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">Larger maximum message size</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">Automatic cleanup on process exit</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="Only AF_UNIX sockets support SCM_RIGHTS ancillary messages, which allow passing open file descriptors between processes.">
+  <div class="qp">Q3. Which IPC mechanism supports passing open file descriptors between processes?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Pipes</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">POSIX message queues</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">System V shared memory</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">AF_UNIX sockets (SCM_RIGHTS)</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +251,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

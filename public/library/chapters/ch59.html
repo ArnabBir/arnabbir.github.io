@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1241</span> (0-based index 1240).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>net</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>TCP/IP</strong></span> <span class="pill"><strong>unix domain</strong></span> <span class="pill"><strong>nonblocking</strong></span> <span class="pill"><strong>epoll</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>TCP client-server</strong></span> <span class="pill"><strong>getaddrinfo</strong></span> <span class="pill"><strong>SO_REUSEADDR</strong></span> <span class="pill"><strong>DNS</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 59 — Sockets: Internet Domains
           </h2>
           <div class="subtitle">
-            <p>Sockets are file descriptors with protocol state. Once you internalize that, networking becomes a composition problem: nonblocking I/O, buffering, backpressure, and state machines. TCP adds its own realities: handshake, retransmissions, congestion control, TIME_WAIT, and half-close behavior.</p><p>This guide highlights server design patterns: accept loops, connection handling strategies, timeouts, and how to observe the system (ss, tcpdump, strace).</p>
+            <p>Internet domain sockets implement TCP/IP networking &mdash; socket()+bind()+listen()+accept() on the server side, socket()+connect() on the client side. This is the concrete API for building networked services.</p><p>getaddrinfo() provides protocol-independent name resolution, replacing the obsolete gethostbyname(). Combined with SO_REUSEADDR and proper error handling, these primitives form the foundation for both iterative and concurrent TCP servers.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Sockets are fds; treat networking as nonblocking I/O + a state machine.</div>
+  <div class="v">Server pattern: socket &rarr; setsockopt(SO_REUSEADDR) &rarr; bind &rarr; listen &rarr; accept loop. Client: socket &rarr; connect &rarr; read/write &rarr; close.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Nonblocking connect returns EINPROGRESS; completion requires poll/epoll + SO_ERROR.</div>
+  <div class="v">Without SO_REUSEADDR before bind(), restarting a server hits EADDRINUSE due to TIME_WAIT sockets from the previous instance.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use ss -antp for states and tcpdump for packets; strace shows errno boundaries.</div>
+  <div class="v">Use getaddrinfo() with AI_PASSIVE for server bind; iterate the result list to support both IPv4 and IPv6. Always call freeaddrinfo().</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A socket is a file descriptor plus protocol state and kernel buffers.</li><li>TCP is a state machine; your application must handle connect/accept/close transitions.</li><li>Nonblocking mode turns I/O into explicit scheduling (EINPROGRESS, EAGAIN, readiness).</li><li>Backpressure is a feature: when buffers fill, stop writing and resume later.</li><li>Server design is about bounding work per connection and isolating slow clients.</li><li>Observe the system: ss/tcpdump/strace tell you the truth about network behavior.</li></ul>
+            <ul><li>Server lifecycle: socket() creates the fd; bind() assigns a local address:port; listen(backlog) marks it passive and sets the accept queue size; accept() blocks until a client connects and returns a new connected fd.</li><li>Client lifecycle: socket() creates the fd; connect() initiates the TCP handshake to the server address:port; on success, read/write on the fd; close() when done.</li><li>getaddrinfo() replaces gethostbyname/getservbyname &mdash; it handles IPv4/IPv6, numeric/hostname, and service name/port lookup in one call. Returns a linked list; try each result until connect/bind succeeds.</li><li>SO_REUSEADDR must be set before bind() &mdash; it allows binding to an address that has sockets in TIME_WAIT, which is essential for server restarts.</li><li>An iterative server handles one client at a time in the accept loop. Simple but blocks other clients during service.</li><li>Concurrent approaches: fork() per connection (isolation, resource-heavy), pthread_create per connection (shared state, lighter), or event-driven with epoll (highest throughput).</li><li>SO_REUSEPORT allows multiple sockets to bind the same address:port &mdash; kernel distributes incoming connections across them for multi-accept scaling.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Socket</td><td>File descriptor with protocol state (TCP/UDP/UNIX) and send/recv buffers.</td></tr><tr><td class='mono'>Listen socket</td><td>Passive socket that queues connection requests; accept() returns connected sockets.</td></tr><tr><td class='mono'>EINPROGRESS</td><td>Nonblocking connect in progress; complete via poll/epoll writability + SO_ERROR.</td></tr><tr><td class='mono'>TIME_WAIT</td><td>TCP state on active close to handle delayed packets; normal and expected.</td></tr><tr><td class='mono'>Backpressure</td><td>Mechanism to stop producers when consumers can&#x27;t keep up (EAGAIN, buffer limits).</td></tr><tr><td class='mono'>epoll</td><td>Readiness notification API; returns ready set instead of scanning all fds.</td></tr></tbody>
+  <tbody><tr><td class='mono'>getaddrinfo</td><td>Protocol-independent DNS + service resolution. Returns addrinfo linked list with sockaddr ready for socket/connect/bind.</td></tr><tr><td class='mono'>freeaddrinfo</td><td>Frees the linked list returned by getaddrinfo(). Must be called to avoid memory leaks.</td></tr><tr><td class='mono'>gai_strerror</td><td>Converts getaddrinfo error codes (EAI_*) to human-readable strings. Use instead of strerror/perror.</td></tr><tr><td class='mono'>SO_REUSEADDR</td><td>Socket option allowing bind() to succeed even if address:port is in TIME_WAIT. Set before bind().</td></tr><tr><td class='mono'>SO_REUSEPORT</td><td>Allows multiple sockets to bind same address:port. Kernel load-balances incoming connections across them.</td></tr><tr><td class='mono'>listen backlog</td><td>Argument to listen() controlling the accept queue size. Kernel may cap it (see /proc/sys/net/core/somaxconn).</td></tr><tr><td class='mono'>accept4</td><td>Like accept() but atomically sets flags (SOCK_CLOEXEC, SOCK_NONBLOCK) on the returned fd. Avoids races.</td></tr></tbody>
 </table>
         </div>
 
@@ -114,11 +114,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>socket</td><td class='mono'>int socket(int domain, int type, int protocol);</td><td class='mono muted2'>EAFNOSUPPORT, EPROTONOSUPPORT, EMFILE, ENFILE</td><td>Creates a socket fd. Use SOCK_CLOEXEC / SOCK_NONBLOCK to avoid races.</td></tr><tr><td class='mono'>bind</td><td class='mono'>int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EADDRINUSE, EACCES, EINVAL</td><td>Associates local address/port. For servers, pair with listen().</td></tr><tr><td class='mono'>listen</td><td class='mono'>int listen(int sockfd, int backlog);</td><td class='mono muted2'>EADDRINUSE, EBADF, EINVAL</td><td>Marks as passive socket. backlog interacts with SYN/accept queues and kernel settings.</td></tr><tr><td class='mono'>accept4</td><td class='mono'>int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, ECONNABORTED</td><td>Accepts connection; use SOCK_CLOEXEC|SOCK_NONBLOCK via accept4 to avoid fd races.</td></tr><tr><td class='mono'>connect</td><td class='mono'>int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EINPROGRESS, ECONNREFUSED, ETIMEDOUT, EHOSTUNREACH</td><td>In nonblocking mode returns EINPROGRESS; use poll/epoll for writability then check SO_ERROR.</td></tr><tr><td class='mono'>send</td><td class='mono'>ssize_t send(int sockfd, const void *buf, size_t len, int flags);</td><td class='mono muted2'>EPIPE, EAGAIN, EINTR</td><td>May be short; handle EAGAIN for nonblocking. SIGPIPE can be suppressed with MSG_NOSIGNAL.</td></tr><tr><td class='mono'>recv</td><td class='mono'>ssize_t recv(int sockfd, void *buf, size_t len, int flags);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>0 indicates orderly shutdown. May be short. Use MSG_WAITALL carefully.</td></tr>
+    <tr><td class='mono'>getaddrinfo</td><td class='mono'>int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);</td><td class='mono muted2'>EAI_AGAIN, EAI_FAIL, EAI_NONAME, EAI_SERVICE</td><td>Set hints.ai_family=AF_UNSPEC for dual-stack. AI_PASSIVE for server bind (node=NULL). Always freeaddrinfo().</td></tr><tr><td class='mono'>setsockopt</td><td class='mono'>int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);</td><td class='mono muted2'>EBADF, EINVAL, ENOPROTOOPT</td><td>SO_REUSEADDR: set int optval=1 before bind(). SO_REUSEPORT: enables multi-socket accept.</td></tr><tr><td class='mono'>bind</td><td class='mono'>int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EADDRINUSE, EACCES, EINVAL</td><td>Assigns local address. EADDRINUSE without SO_REUSEADDR means TIME_WAIT or active socket on that port.</td></tr><tr><td class='mono'>listen</td><td class='mono'>int listen(int sockfd, int backlog);</td><td class='mono muted2'>EADDRINUSE, EBADF</td><td>Marks socket passive. backlog capped by somaxconn. Too small causes SYN drops under load.</td></tr><tr><td class='mono'>accept4</td><td class='mono'>int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, ECONNABORTED, EMFILE</td><td>Returns connected fd. EMFILE means fd limit hit &mdash; close idle connections or raise limit.</td></tr><tr><td class='mono'>connect</td><td class='mono'>int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>ECONNREFUSED, ETIMEDOUT, ENETUNREACH, EINPROGRESS</td><td>ECONNREFUSED: nothing listening. ETIMEDOUT: no response (firewall, host down). EINPROGRESS: nonblocking.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: iterate the getaddrinfo result list and try each address &mdash; the first may be IPv6 on a host without IPv6 connectivity.
           </div>
         </div>
 
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>TCP state machine: what servers actually deal with</summary>
-  <div class="content"><ul><li>connect() initiates handshake (SYN). The server’s listen socket queues connections before accept() returns a connected socket.</li><li>Nonblocking connect returns EINPROGRESS; completion is detected via poll/epoll writability then SO_ERROR.</li><li>Half-close exists: one side can shutdown(SHUT_WR) while still reading. recv()==0 means FIN received.</li><li>TIME_WAIT is normal for active close; reuse needs care (SO_REUSEADDR) and a good understanding of 4-tuples.</li></ul></div>
+  <summary>getaddrinfo pitfalls and best practices</summary>
+  <div class="content"><ul><li>getaddrinfo() can block for DNS resolution (seconds). In event-driven servers, use async DNS (c-ares, getaddrinfo_a) or resolve in a thread pool.</li><li>Always set hints.ai_socktype (SOCK_STREAM or SOCK_DGRAM) &mdash; otherwise getaddrinfo returns duplicate entries for each socket type.</li><li>EAI_AGAIN means temporary DNS failure; retry with backoff. EAI_NONAME means the hostname doesn't exist.</li><li>The returned addrinfo list is heap-allocated; failing to call freeaddrinfo() leaks memory.</li></ul></div>
 </details><details class="accordion">
-  <summary>Backpressure and buffers</summary>
-  <div class="content"><ul><li>The kernel has send/receive buffers. If your app doesn’t read, the peer eventually blocks or drops based on protocol and timeouts.</li><li>Short writes happen; treat EAGAIN as a signal to stop writing and wait for EPOLLOUT.</li><li>Nagle (TCP_NODELAY) and delayed ACKs interact with small writes; batch writes when possible.</li><li>Always set timeouts (connect, read, write, idle) to avoid hanging connections.</li></ul></div>
+  <summary>SO_REUSEADDR and TIME_WAIT</summary>
+  <div class="content"><ul><li>After a TCP connection closes, the side that sends the final FIN enters TIME_WAIT for 2*MSL (~60s). Without SO_REUSEADDR, bind() fails with EADDRINUSE during this window.</li><li>SO_REUSEADDR allows binding over TIME_WAIT sockets but NOT over an actively listening socket on the same port.</li><li>Always set SO_REUSEADDR before bind() on server sockets. This is so universal it should be automatic in your server template.</li><li>For graceful shutdown, close the listen socket first, then drain existing connections, then exit.</li></ul></div>
 </details><details class="accordion">
-  <summary>Server design: scaling patterns</summary>
-  <div class="content"><ul><li>Thread-per-connection is simple but can be memory heavy. Event loops scale when per-connection work is bounded and nonblocking.</li><li>Use accept4 with SOCK_NONBLOCK|SOCK_CLOEXEC to avoid races and simplify setup.</li><li>Consider load shedding: cap accept rate, apply per-IP limits, and bound queues to prevent collapse under overload.</li><li>Measure: accept rate, SYN backlog drops, retransmissions, tail latency, and CPU spent in softirq/network stack.</li></ul></div>
+  <summary>Server accept loop patterns</summary>
+  <div class="content"><ul><li>Iterative: accept() in a loop, handle client, close client fd, loop back to accept. One client at a time &mdash; fine for quick requests.</li><li>Concurrent fork: accept() then fork(). Parent closes client fd, child handles it. Simple isolation but fork() is expensive (copy page tables).</li><li>Concurrent threads: accept() then pthread_create(). Shared address space &mdash; be careful with data races. Thread pool avoids creation overhead.</li><li>Event-driven: single thread with epoll. All fds nonblocking. Highest throughput but complex state management per connection.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>ss -antp gives state and owning process. tcpdump/wireshark reveals handshake and retransmissions.</li><li>strace -f -e trace=network shows socket syscalls and errno (ECONNREFUSED, ETIMEDOUT).</li><li>Check /proc/sys/net/* for kernel tuning and listen backlog limits.</li><li>For high packet rates, perf can show time in tcp_recvmsg, tcp_sendmsg, and softirq handlers.</li></ul></div>
+  <summary>Connection failures and error handling</summary>
+  <div class="content"><ul><li>ECONNREFUSED: the peer host is reachable but nothing is listening on the port. Check server is running and bound to the right address.</li><li>ETIMEDOUT: no response at all. Likely a firewall dropping packets or the host is down. Distinguish from EHOSTUNREACH (ICMP unreachable).</li><li>EMFILE on accept(): process fd limit reached. Options: raise ulimit, close idle connections, or temporarily stop accepting.</li><li>Partial writes on TCP: send/write may return less than requested. Always loop until all bytes are sent or an error occurs.</li></ul></div>
 </details>
         </div>
 
@@ -150,15 +150,31 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch59"><code class="mono">// Nonblocking connect pattern (outline)
-int fd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, 0);
-int rc = connect(fd, (struct sockaddr*)&amp;addr, sizeof(addr));
-if (rc == 0) { /* connected */ }
-else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
-  // wait for writability with poll/epoll
-  // then check SO_ERROR via getsockopt
-} else {
-  // real error (ECONNREFUSED, ETIMEDOUT, ...)
+  <pre id="code_ch59"><code class="mono">// getaddrinfo + TCP client connecting to a server
+#include &lt;sys/socket.h&gt;
+#include &lt;netdb.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+
+int tcp_connect(const char *host, const char *port) {
+    struct addrinfo hints, *res, *rp;
+    memset(&amp;hints, 0, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;    // IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM;  // TCP
+
+    int err = getaddrinfo(host, port, &amp;hints, &amp;res);
+    if (err) { fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(err)); return -1; }
+
+    int fd = -1;
+    for (rp = res; rp; rp = rp-&gt;ai_next) {
+        fd = socket(rp-&gt;ai_family, rp-&gt;ai_socktype | SOCK_CLOEXEC, rp-&gt;ai_protocol);
+        if (fd == -1) continue;
+        if (connect(fd, rp-&gt;ai_addr, rp-&gt;ai_addrlen) == 0) break;  // success
+        close(fd); fd = -1;
+    }
+    freeaddrinfo(res);
+    return fd;  // -1 on failure, valid fd on success
 }</code></pre>
 </div>
 
@@ -168,17 +184,17 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use SOCK_CLOEXEC/SOCK_NONBLOCK and accept4 to avoid races and simplify setup.</li><li>Implement backpressure: bounded buffers, stop writing on EAGAIN, and resume on EPOLLOUT.</li><li>Set timeouts (connect/read/write/idle) and handle half-closes correctly.</li><li>Instrument: connection counts, queue depths, bytes in/out, and tail latencies.</li><li>Use ss/tcpdump/perf for debugging; don’t guess about network states.</li></ul>
+            <ul><li>Always set SO_REUSEADDR before bind() on server sockets to handle TIME_WAIT after restart.</li><li>Use getaddrinfo() with AF_UNSPEC and iterate results &mdash; support both IPv4 and IPv6 transparently.</li><li>Set listen backlog to at least 128 (or SOMAXCONN) for production servers to handle burst connections.</li><li>Use accept4() with SOCK_CLOEXEC|SOCK_NONBLOCK to avoid fd leaks and races.</li><li>Handle partial writes: loop send() until all bytes are written or a real error occurs (not EINTR).</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a TCP echo server with nonblocking sockets, per-connection buffers, and epoll (LT first, then ET).</li><li>Add timeouts: idle timeout and write timeout; close connections cleanly on expiry.</li><li>Capture packets with tcpdump while connecting; map observed handshake to your socket state logs.</li></ul>
+            <ul><li>Build an iterative TCP echo server: bind to port 7777, accept one client at a time, echo back everything received, and close. Test with telnet/nc.</li><li>Modify the server to fork() per connection. Use waitpid(WNOHANG) in a SIGCHLD handler to reap zombies. Verify with ps and multiple concurrent nc clients.</li><li>Remove SO_REUSEADDR, start the server, connect a client, kill the server, and immediately restart. Observe EADDRINUSE. Then add SO_REUSEADDR back and verify the fix.</li></ul>
           </div>
         </div>
 
@@ -187,52 +203,52 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="EINPROGRESS indicates connection is in progress; wait for writability and check SO_ERROR.">
-  <div class="qp">Q1. Nonblocking connect() usually returns:</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="0" data-explain="SO_REUSEADDR allows bind() to succeed even when the address has sockets in TIME_WAIT, which is essential for server restarts.">
+  <div class="qp">Q1. Which socket option prevents EADDRINUSE on server restart?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">0 always</div></div>
+  <div><div style="font-weight:750">SO_REUSEADDR</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EINPROGRESS</div></div>
+  <div><div style="font-weight:750">SO_KEEPALIVE</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 ENOENT</div></div>
+  <div><div style="font-weight:750">TCP_NODELAY</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EBADF</div></div>
+  <div><div style="font-weight:750">SO_LINGER</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="0" data-explain="accept returns a new file descriptor representing the established connection.">
-  <div class="qp">Q2. What does accept() return?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="getaddrinfo() handles both IPv4/IPv6, hostnames, service names, and returns ready-to-use sockaddr structures.">
+  <div class="qp">Q2. Which function provides protocol-independent name resolution?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A new fd for a connected socket</div></div>
+  <div><div style="font-weight:750">gethostbyname()</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A PID</div></div>
+  <div><div style="font-weight:750">inet_pton()</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A thread handle</div></div>
+  <div><div style="font-weight:750">getaddrinfo()</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">An inode</div></div>
+  <div><div style="font-weight:750">getnameinfo()</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="ss can display state and owning process.">
-  <div class="qp">Q3. Which tool shows TCP states with PIDs?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="ECONNREFUSED means the target host received the SYN but nothing is listening on that port &mdash; it sends back a RST.">
+  <div class="qp">Q3. What does ECONNREFUSED from connect() indicate?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ls</div></div>
+  <div><div style="font-weight:750">Network is unreachable</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ss -antp</div></div>
+  <div><div style="font-weight:750">Nothing is listening on the target port</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">cat</div></div>
+  <div><div style="font-weight:750">DNS resolution failed</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">dd</div></div>
+  <div><div style="font-weight:750">The connection timed out</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -240,7 +256,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -280,7 +296,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
       highlight: ["socket", "tcp", "skb", "epoll", "process", "fdtable"]
     });
 TLPIWidgets.mountSocketLab("sock_ch59", {});
-TLPIWidgets.mountStraceParser("str_ch59", {example: "socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP) = 3\nconnect(3, {{sa_family=AF_INET, sin_port=htons(443), sin_addr=...}}, 16) = -1 EINPROGRESS (Operation now in progress)\npoll([{fd=3, events=POLLOUT}], 1, 3000) = 1\ngetsockopt(3, SOL_SOCKET, SO_ERROR, [0], [4]) = 0\n"});
+TLPIWidgets.mountStraceParser("str_ch59", {example: "socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC, IPPROTO_TCP) = 3\nsetsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0\nbind(3, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr(\"0.0.0.0\")}, 16) = 0\nlisten(3, 128) = 0\naccept4(3, {sa_family=AF_INET, sin_port=htons(54321), sin_addr=inet_addr(\"127.0.0.1\")}, [16], SOCK_CLOEXEC) = 4\n"});
   </script>
 </body>
 </html>

@@ -59,17 +59,17 @@
             Chapter 53 — POSIX Semaphores
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>POSIX semaphores come in two flavors &mdash; named (persist in the filesystem, for unrelated processes) and unnamed (placed in shared memory, for threads or related processes). Both provide a simpler API than System V semaphore sets.</p><p>This chapter covers <span class="mono">sem_open</span> for named semaphores, <span class="mono">sem_init</span> for unnamed, the wait/post/trywait/timedwait operations, and key differences between the two forms.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v"><span class="mono">sem_post</span> is one of the few functions that is async-signal-safe &mdash; it can be safely called from a signal handler.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">Unnamed semaphores shared between processes must reside in shared memory (<span class="mono">MAP_SHARED</span>) with <span class="mono">pshared=1</span>. Placing one on the stack or heap and forking does not work.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="v">Named semaphores appear as <span class="mono">/dev/shm/sem.&lt;name&gt;</span> on Linux. Use <span class="mono">sem_getvalue</span> or inspect the file to check the current count.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li><strong>Named semaphores:</strong> <span class="mono">sem_open("/name", O_CREAT, mode, initial_value)</span> creates/opens. <span class="mono">sem_close</span> releases the handle. <span class="mono">sem_unlink</span> removes the name (refcounted: destroyed when last close).</li><li><strong>Unnamed semaphores:</strong> <span class="mono">sem_init(sem, pshared, value)</span> initializes a <span class="mono">sem_t</span> in caller-allocated memory. <span class="mono">pshared=0</span> for threads, <span class="mono">pshared=1</span> for processes (must be in shared memory).</li><li><span class="mono">sem_wait()</span> decrements the counter (P operation). If counter is 0, blocks until another thread/process calls <span class="mono">sem_post</span>.</li><li><span class="mono">sem_post()</span> increments the counter (V operation). Wakes one blocked waiter. <strong>Async-signal-safe</strong> &mdash; can be called from signal handlers.</li><li><span class="mono">sem_trywait()</span> returns EAGAIN immediately if counter is 0. Non-blocking alternative.</li><li><span class="mono">sem_timedwait()</span> blocks until the counter becomes positive or the absolute deadline expires (ETIMEDOUT).</li><li><span class="mono">sem_getvalue()</span> reads the current count. If negative on some implementations, its absolute value indicates the number of waiters (but Linux returns 0 instead of negative).</li><li>Unnamed semaphores between processes: the <span class="mono">sem_t</span> must live in a <span class="mono">MAP_SHARED</span> mmap region. Allocating on stack and forking gives each process a private copy.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>sem_open</td><td>Create/open a named semaphore. Returns <span class="mono">sem_t*</span> (or SEM_FAILED).</td></tr><tr><td class='mono'>sem_init</td><td>Initialize an unnamed semaphore in caller-provided memory.</td></tr><tr><td class='mono'>sem_wait (P)</td><td>Decrement counter; block if zero. The classic "proberen" (test) operation.</td></tr><tr><td class='mono'>sem_post (V)</td><td>Increment counter; wake one waiter. The classic "verhogen" (increment) operation. Async-signal-safe.</td></tr><tr><td class='mono'>sem_trywait</td><td>Non-blocking sem_wait. Returns EAGAIN if counter is zero.</td></tr><tr><td class='mono'>sem_timedwait</td><td>sem_wait with absolute deadline. Returns ETIMEDOUT on expiry.</td></tr><tr><td class='mono'>sem_unlink</td><td>Remove named semaphore from namespace. Destruction deferred until last sem_close.</td></tr><tr><td class='mono'>named vs unnamed</td><td>Named: filesystem-visible, for unrelated processes. Unnamed: in shared memory, for threads or related processes via fork+mmap.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>sem_wait</td><td class='mono'>int sem_wait(sem_t *sem);</td><td class='mono muted2'>EINTR</td><td>Waits (decrements); can be interrupted by signals.</td></tr><tr><td class='mono'>sem_post</td><td class='mono'>int sem_post(sem_t *sem);</td><td class='mono muted2'>EINVAL</td><td>Posts (increments); async-signal-safe on many systems.</td></tr>
+    <tr><td class='mono'>sem_open</td><td class='mono'>sem_t *sem_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL</td><td>Returns SEM_FAILED on error (check with ==, not NULL). With O_CREAT: pass mode + value.</td></tr><tr><td class='mono'>sem_init</td><td class='mono'>int sem_init(sem_t *sem, int pshared, unsigned int value);</td><td class='mono muted2'>EINVAL, ENOSYS</td><td>pshared=1 requires sem_t in shared memory (MAP_SHARED).</td></tr><tr><td class='mono'>sem_wait</td><td class='mono'>int sem_wait(sem_t *sem);</td><td class='mono muted2'>EINTR</td><td>Can be interrupted by signals; check return value and errno.</td></tr><tr><td class='mono'>sem_post</td><td class='mono'>int sem_post(sem_t *sem);</td><td class='mono muted2'>EINVAL, EOVERFLOW</td><td>Async-signal-safe. EOVERFLOW if value would exceed SEM_VALUE_MAX.</td></tr><tr><td class='mono'>sem_trywait</td><td class='mono'>int sem_trywait(sem_t *sem);</td><td class='mono muted2'>EAGAIN</td><td>Non-blocking. Returns EAGAIN if semaphore value is 0.</td></tr><tr><td class='mono'>sem_timedwait</td><td class='mono'>int sem_timedwait(sem_t *sem, const struct timespec *abs_timeout);</td><td class='mono muted2'>ETIMEDOUT, EINTR</td><td>Absolute deadline (CLOCK_REALTIME).</td></tr><tr><td class='mono'>sem_getvalue</td><td class='mono'>int sem_getvalue(sem_t *sem, int *sval);</td><td class='mono muted2'>EINVAL</td><td>On Linux, returns 0 (not negative) when waiters are blocked.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: <span class="mono">sem_post</span> being async-signal-safe makes it useful for signaling from handlers to main loops.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Named vs unnamed: when to use which</summary>
+  <div class="content"><ul><li>Use <strong>named</strong> semaphores when unrelated processes need to coordinate and you want filesystem-visible objects.</li><li>Use <strong>unnamed</strong> semaphores for threads within a single process (<span class="mono">pshared=0</span>) or for related processes sharing a mmap region (<span class="mono">pshared=1</span>).</li><li>Named semaphores have filesystem cleanup overhead (unlink). Unnamed semaphores are destroyed with <span class="mono">sem_destroy</span> and the shared memory region.</li><li>For high-frequency synchronization between threads, unnamed semaphores avoid the overhead of filesystem namespace operations.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>Unnamed semaphore placement</summary>
+  <div class="content"><ul><li>For inter-process use, the <span class="mono">sem_t</span> must be in <span class="mono">MAP_SHARED</span> memory (e.g., via <span class="mono">shm_open + mmap</span> or <span class="mono">mmap(MAP_SHARED|MAP_ANONYMOUS)</span>).</li><li>Common bug: allocating <span class="mono">sem_t</span> on the stack, calling <span class="mono">sem_init(..., 1, ...)</span>, then forking. Each process gets a private copy &mdash; no synchronization occurs.</li><li><span class="mono">sem_destroy</span> must be called before unmapping the shared memory. Using a destroyed semaphore is undefined behavior.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Signal safety and sem_post</summary>
+  <div class="content"><ul><li><span class="mono">sem_post</span> is async-signal-safe. Pattern: signal handler calls <span class="mono">sem_post</span>; main loop calls <span class="mono">sem_wait</span> to wake up and handle the event.</li><li><span class="mono">sem_wait</span> is NOT async-signal-safe. Never call it from a signal handler.</li><li><span class="mono">sem_wait</span> can return EINTR when interrupted by a signal. Always check and retry: <span class="mono">while (sem_wait(&amp;s) == -1 &amp;&amp; errno == EINTR) continue;</span></li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Comparison with System V semaphores</summary>
+  <div class="content"><ul><li>System V semaphores operate on <em>sets</em> of semaphores atomically (semop on multiple semaphores). POSIX has one counter per semaphore.</li><li>System V supports "undo" operations (SEM_UNDO flag) that reverse on process exit. POSIX has no equivalent &mdash; a process dying while holding a semaphore leaves it in a decremented state.</li><li>POSIX semaphores have no built-in deadlock detection or undo. Design your protocol to handle process crashes explicitly.</li><li>POSIX semaphores are generally faster (futex-based on Linux) than System V semaphores (always a syscall).</li></ul></div>
 </details>
         </div>
 
@@ -146,18 +146,33 @@
     <button class="btn small" data-copy="#code_ch53">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Unnamed semaphore for producer/consumer in shared memory between two processes.
   </div>
-  <pre id="code_ch53"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch53"><code class="mono">/* Shared structure in MAP_SHARED memory */
+struct shared {
+    sem_t sem_items;     /* counts available items */
+    sem_t sem_spaces;    /* counts free slots */
+    int   buf[8];
+    int   in, out;
+};
+/* Setup (before fork) */
+struct shared *s = mmap(NULL, sizeof(*s),
+    PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+sem_init(&amp;s-&gt;sem_items,  1, 0);   /* pshared=1, start=0 */
+sem_init(&amp;s-&gt;sem_spaces, 1, 8);   /* 8 free slots */
+s-&gt;in = s-&gt;out = 0;
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+if (fork() == 0) {  /* Consumer */
+    sem_wait(&amp;s-&gt;sem_items);       /* block until item */
+    int val = s-&gt;buf[s-&gt;out % 8];
+    s-&gt;out++;
+    sem_post(&amp;s-&gt;sem_spaces);      /* signal free slot */
+} else {            /* Producer */
+    sem_wait(&amp;s-&gt;sem_spaces);      /* block until space */
+    s-&gt;buf[s-&gt;in % 8] = 42;
+    s-&gt;in++;
+    sem_post(&amp;s-&gt;sem_items);       /* signal new item */
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +181,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Choose named vs unnamed based on process relationship: named for unrelated, unnamed for threads or fork+mmap.</li><li>For unnamed inter-process semaphores, verify the <span class="mono">sem_t</span> is in <span class="mono">MAP_SHARED</span> memory with <span class="mono">pshared=1</span>.</li><li>Handle <span class="mono">sem_wait</span> EINTR: wrap in a retry loop.</li><li>Design for process crash: POSIX semaphores have no SEM_UNDO. Use a watchdog or robust mutex protocol if crash recovery matters.</li><li>Use <span class="mono">sem_timedwait</span> with deadlines to avoid indefinite blocking in production code.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Implement a bounded producer-consumer with unnamed semaphores in <span class="mono">MAP_SHARED|MAP_ANONYMOUS</span> memory. Verify that killing the producer leaves the consumer blocked on <span class="mono">sem_wait</span>.</li><li>Create a named semaphore, use it to synchronize two unrelated programs. Verify the semaphore file appears in <span class="mono">/dev/shm/sem.*</span> and persists after both programs exit (until unlinked).</li><li>Write a signal handler that calls <span class="mono">sem_post</span> to wake a main loop blocked on <span class="mono">sem_wait</span>. Verify this works correctly with SIGTERM.</li></ul>
           </div>
         </div>
 
@@ -185,52 +200,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="For inter-process unnamed semaphores, the sem_t must reside in MAP_SHARED memory (e.g., mmap with MAP_SHARED|MAP_ANONYMOUS or shm_open+mmap). Stack/heap allocation gives each process a private copy after fork.">
+  <div class="qp">Q1. Where must an unnamed semaphore be placed for inter-process use?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">On the stack</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">In heap memory (malloc)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">In MAP_SHARED memory</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">In a global variable</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="sem_post is one of the few POSIX functions guaranteed to be async-signal-safe. This makes it suitable for use in signal handlers to wake up main loops.">
+  <div class="qp">Q2. Which POSIX semaphore operation is async-signal-safe?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">sem_post</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">sem_wait</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">sem_open</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">sem_getvalue</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="POSIX semaphores have no SEM_UNDO equivalent. If a process dies while holding a semaphore (after sem_wait, before sem_post), the count is not restored. System V semaphores support SEM_UNDO for automatic reversal.">
+  <div class="qp">Q3. What happens to a POSIX semaphore if the holding process crashes?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">The kernel automatically increments the counter</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">The semaphore is destroyed</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Other waiters receive an error</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The counter stays decremented (no undo)</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +253,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

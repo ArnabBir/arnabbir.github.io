@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">933</span> (0-based index 932).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>ipc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipe</strong></span> <span class="pill"><strong>pipe2</strong></span> <span class="pill"><strong>FIFO</strong></span> <span class="pill"><strong>PIPE_BUF</strong></span> <span class="pill"><strong>SIGPIPE</strong></span> <span class="pill"><strong>splice</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 44 — Pipes and FIFOs
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>Pipes are the simplest IPC — a unidirectional byte stream between related processes. FIFOs extend this to unrelated processes via filesystem names. Both are stream-oriented (no message boundaries), kernel-buffered, and automatically cleaned up when all file descriptors are closed.</p><p>The key constraints to internalize: PIPE_BUF atomicity for writes, SIGPIPE/EPIPE when readers vanish, and the default 64 KB capacity limit that creates natural backpressure.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">Writes of PIPE_BUF bytes or fewer (4096 on Linux) are atomic — they will never interleave with other writers on the same pipe.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">Writing to a pipe with no readers delivers SIGPIPE (default: terminate) and returns EPIPE. Handle or ignore SIGPIPE in long-running servers.</div>
 </div><div class="callout tip">
-  <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="k">Tip</div>
+  <div class="v">Use pipe2(pfd, O_CLOEXEC | O_NONBLOCK) instead of pipe() + fcntl() to avoid fd-leak races in multithreaded programs.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li><strong>pipe()</strong> creates two file descriptors: pfd[0] for reading, pfd[1] for writing. Data flows in one direction only. For bidirectional communication, use two pipes or a socketpair.</li><li><strong>pipe2(pfd, O_CLOEXEC | O_NONBLOCK)</strong> sets flags atomically at creation — critical for avoiding races where a concurrent fork+exec leaks the pipe fd to a child, or a concurrent thread blocks on a read.</li><li><strong>Write atomicity</strong>: writes &le; PIPE_BUF (4096 bytes on Linux) are guaranteed atomic. Writes &gt; PIPE_BUF may be interleaved with data from other writers. This matters when multiple children write to a shared pipe.</li><li><strong>Pipe capacity</strong>: default 64 KB on Linux (16 pages). Adjustable per-pipe via fcntl(F_SETPIPE_SZ) up to /proc/sys/fs/pipe-max-size. When the pipe is full, write() blocks (or returns EAGAIN with O_NONBLOCK).</li><li><strong>FIFOs (named pipes)</strong>: created with mkfifo(path, mode). They have a filesystem name so unrelated processes can open them. open() on a FIFO blocks until both a reader and writer have opened it (unless O_NONBLOCK).</li><li><strong>SIGPIPE / EPIPE</strong>: writing to a pipe whose read end is closed delivers SIGPIPE to the writer (default action: terminate). If SIGPIPE is blocked or ignored, write() returns -1 with errno=EPIPE. This is how shell pipelines terminate cleanly.</li><li><strong>Pipes are stream-oriented</strong>: no message boundaries. Two writes of 100 bytes may be read as one read of 200 bytes, or 50+150, or any other split. You must frame messages yourself (length prefix, delimiter, or fixed-size records).</li><li><strong>splice() and tee()</strong>: zero-copy data transfer between a pipe and another fd (splice) or between two pipes (tee). Avoids user-space buffer copies for high-throughput scenarios like proxying.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>pipe / pipe2</td><td>System calls to create anonymous pipe. pipe2 adds O_CLOEXEC and O_NONBLOCK flags atomically.</td></tr><tr><td class='mono'>FIFO / mkfifo</td><td>Named pipe created in filesystem. mkfifo(path, mode) creates the special file; open() connects readers/writers.</td></tr><tr><td class='mono'>PIPE_BUF</td><td>Maximum size for atomic writes. 4096 bytes on Linux. Defined in &lt;limits.h&gt;. POSIX minimum is 512.</td></tr><tr><td class='mono'>SIGPIPE / EPIPE</td><td>Signal and errno when writing to a pipe with no readers. SIGPIPE kills by default; EPIPE returned if signal handled/ignored.</td></tr><tr><td class='mono'>F_SETPIPE_SZ</td><td>fcntl command to adjust pipe capacity. Kernel rounds up to power of 2. Max set by /proc/sys/fs/pipe-max-size (default 1 MB).</td></tr><tr><td class='mono'>splice / tee</td><td>Zero-copy data movement: splice moves data between a pipe and an fd; tee duplicates data between two pipes without copying to user space.</td></tr></tbody>
 </table>
         </div>
 
@@ -113,11 +113,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pipe</td><td class='mono'>int pipe(int pipefd[2]);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Unidirectional byte stream; beware of blocking semantics and SIGPIPE on write-end when read-end closed.</td></tr><tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE, EINVAL</td><td>Create pipe with flags like O_CLOEXEC and O_NONBLOCK atomically.</td></tr><tr><td class='mono'>read</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, EFAULT</td><td>Short reads are normal (pipes/sockets/tty). Loop until done; handle EINTR and EAGAIN for nonblocking.</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, EBADF, ENOSPC</td><td>Short writes are normal on pipes/sockets/nonblocking fds. SIGPIPE/EPIPE when peer is gone.</td></tr><tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr>
+    <tr><td class='mono'>pipe</td><td class='mono'>int pipe(int pipefd[2]);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Creates anonymous pipe. pipefd[0]=read, pipefd[1]=write. Prefer pipe2() in new code.</td></tr><tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE, EINVAL</td><td>Atomically sets O_CLOEXEC and/or O_NONBLOCK. Avoids fcntl race window.</td></tr><tr><td class='mono'>mkfifo</td><td class='mono'>int mkfifo(const char *pathname, mode_t mode);</td><td class='mono muted2'>EEXIST, EACCES, ENOENT</td><td>Creates FIFO special file. Does not open it — call open() separately. EEXIST is common; often harmless.</td></tr><tr><td class='mono'>splice</td><td class='mono'>ssize_t splice(int fd_in, off_t *off_in, int fd_out, off_t *off_out, size_t len, unsigned int flags);</td><td class='mono muted2'>EINVAL, EBADF, ENOMEM</td><td>Zero-copy: moves data between pipe and another fd. At least one fd must be a pipe. Use SPLICE_F_NONBLOCK.</td></tr><tr><td class='mono'>tee</td><td class='mono'>ssize_t tee(int fd_in, int fd_out, size_t len, unsigned int flags);</td><td class='mono muted2'>EINVAL, ENOMEM</td><td>Duplicates data between two pipes without consuming it. Useful for logging/tapping a pipeline.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: splice/tee require at least one pipe endpoint. They cannot transfer directly between two regular files or two sockets.
           </div>
         </div>
 
@@ -127,17 +127,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Write atomicity and interleaving</summary>
+  <div class="content"><ul><li>Writes &le; PIPE_BUF (4096) are atomic: the kernel will not interleave them with other writes, even from concurrent processes. This is a POSIX guarantee.</li><li>Writes &gt; PIPE_BUF may be split and interleaved. If two processes each write 8192 bytes, the reader may see: 4096 from A, 4096 from B, 4096 from A, 4096 from B.</li><li>For reliable multi-writer pipes, keep messages &le; PIPE_BUF or use a mutex/lock to serialize writes.</li><li>In O_NONBLOCK mode, a write &le; PIPE_BUF that would block returns EAGAIN (all or nothing). A write &gt; PIPE_BUF may return a short write count.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>SIGPIPE handling in pipelines and servers</summary>
+  <div class="content"><ul><li>SIGPIPE's default action is to terminate the process. This is intentional for shell pipelines: <span class="mono">yes | head -1</span> needs "yes" to die when "head" closes its stdin.</li><li>In servers and daemons, you must handle SIGPIPE. Common approaches: signal(SIGPIPE, SIG_IGN) globally, then check for EPIPE on write(); or use MSG_NOSIGNAL flag with send().</li><li>In multithreaded programs, SIGPIPE is delivered to the thread that called write(). Ignoring it globally is safest.</li><li>When writing a pipeline of child processes, close unused pipe ends promptly — failing to close the write end in the reader prevents it from ever seeing EOF.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Deadlocks and single-process pipes</summary>
+  <div class="content"><ul><li>A single process reading and writing the same pipe can deadlock: if the pipe is full, write blocks; if it's empty, read blocks. No one can make progress.</li><li>Even with fork(), deadlock occurs if both parent and child try to read and write without proper sequencing. Close unused ends immediately after fork.</li><li>Common pattern: parent closes pfd[0] (read end), child closes pfd[1] (write end). Parent writes, child reads. Any other arrangement needs careful analysis.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>FIFO open semantics</summary>
+  <div class="content"><ul><li>Opening a FIFO for reading blocks until a writer opens it (and vice versa), unless O_NONBLOCK is set.</li><li>With O_NONBLOCK: open for reading succeeds immediately (even with no writer). Open for writing fails with ENXIO if no reader has the FIFO open.</li><li>A FIFO can have multiple readers and multiple writers. Data is interleaved — same atomicity rules as pipes (PIPE_BUF).</li><li>Removing the FIFO file (unlink) does not affect existing open file descriptors — they continue working until closed.</li></ul></div>
 </details>
         </div>
 
@@ -147,18 +147,39 @@
     <button class="btn small" data-copy="#code_ch44">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Pipe + fork: parent sends data to child, child reads with short-read handling.
   </div>
-  <pre id="code_ch44"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch44"><code class="mono">// pipe + fork: parent writes, child reads
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/wait.h&gt;
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+int main(void) {
+    int pfd[2];
+    if (pipe2(pfd, O_CLOEXEC) == -1) { perror("pipe2"); return 1; }
+
+    pid_t pid = fork();
+    if (pid == -1) { perror("fork"); return 1; }
+
+    if (pid == 0) {                    // child: read from pipe
+        close(pfd[1]);                 // close unused write end
+        char buf[256];
+        ssize_t n;
+        while ((n = read(pfd[0], buf, sizeof(buf))) &gt; 0)
+            write(STDOUT_FILENO, buf, n);  // echo to stdout
+        if (n == -1) perror("read");
+        close(pfd[0]);
+        _exit(0);
+    }
+    // parent: write to pipe
+    close(pfd[0]);                     // close unused read end
+    const char *msg = "Hello from parent via pipe!\n";
+    write(pfd[1], msg, strlen(msg));
+    close(pfd[1]);                     // EOF for child
+    waitpid(pid, NULL, 0);
+    return 0;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -167,17 +188,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Always use pipe2() with O_CLOEXEC; add O_NONBLOCK for event-loop integration.</li><li>Close unused pipe ends immediately after fork — prevents fd leaks and ensures EOF propagation.</li><li>Handle or ignore SIGPIPE in daemons; check for EPIPE on write().</li><li>Keep multi-writer messages &le; PIPE_BUF (4096) for atomicity, or serialize writes externally.</li><li>Loop on read() to handle short reads; loop on write() to handle short writes on non-blocking pipes.</li><li>Consider splice() for high-throughput proxying to avoid user-space copy overhead.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Create a FIFO with mkfifo. In one terminal, open it for writing; in another, open for reading. Observe blocking behavior. Then try with O_NONBLOCK on each side.</li><li>Write a program with 3 child processes all writing 4097-byte messages to the same pipe. Read from the parent and verify that messages are interleaved (not atomic, since 4097 &gt; PIPE_BUF).</li><li>Use splice() to implement a zero-copy file-to-socket transfer via an intermediate pipe. Compare throughput with a read()+write() loop.</li></ul>
           </div>
         </div>
 
@@ -186,52 +207,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="POSIX guarantees that writes of PIPE_BUF bytes or fewer are atomic — they will not be interleaved with other writes. On Linux, PIPE_BUF is 4096 bytes.">
+  <div class="qp">Q1. What guarantees atomicity for pipe writes?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Writing with O_NONBLOCK flag</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">Keeping write size &le; PIPE_BUF (4096 bytes on Linux)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Using pipe2() instead of pipe()</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Setting the pipe to blocking mode</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="The kernel delivers SIGPIPE to the writing process (default: terminate), and the write() call returns -1 with errno=EPIPE if the signal is handled or ignored.">
+  <div class="qp">Q2. What happens when you write to a pipe with no readers?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">The data is silently discarded</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">write() blocks until a reader opens the pipe</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">SIGPIPE is delivered and write() returns EPIPE</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The kernel buffers it indefinitely</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="PIPE_BUF is the maximum number of bytes that can be written atomically to a pipe. On Linux it is 4096 bytes. Writes larger than this may be interleaved with writes from other processes.">
+  <div class="qp">Q3. What is PIPE_BUF?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">The maximum size for an atomic pipe write (4096 on Linux)</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">The total capacity of a pipe's kernel buffer (64 KB)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">The maximum number of pipes a process can create</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The size of the read buffer allocated by read()</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -239,7 +260,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

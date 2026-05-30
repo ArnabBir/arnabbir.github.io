@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1009</span> (0-based index 1008).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>ipc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>semget</strong></span> <span class="pill"><strong>semop</strong></span> <span class="pill"><strong>semctl</strong></span> <span class="pill"><strong>SEM_UNDO</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 47 — System V Semaphores
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>System V semaphores are kernel-persistent counting semaphores that support atomic operations on sets &mdash; used for multi-resource locking and producer/consumer patterns across processes. Unlike POSIX semaphores, a single System V semaphore object can contain multiple semaphores operated on atomically in a single call.</p><p>The key trade-off: System V semaphores are powerful (atomic multi-semaphore operations, SEM_UNDO for crash safety) but complex (obtuse API, kernel-persistent lifetime requiring explicit cleanup, race conditions around initialization).</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">semop() atomically adjusts one or more semaphores in a set; the kernel blocks or proceeds based on resulting values.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">Semaphore creation and initialization are separate steps &mdash; a race window exists between semget() and semctl(SETVAL).</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="v">Use ipcs -s to list semaphore sets and ipcrm -s to remove them; check ncount/zcount for blocked processes.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li>semget() creates or opens a semaphore set containing N semaphores in one kernel object, identified by a key_t.</li><li>semop() atomically adjusts semaphore values via an array of sembuf structs: {sem_num, sem_op, sem_flg}.</li><li>sem_op &gt; 0: increment value (V / signal / release) &mdash; never blocks.</li><li>sem_op &lt; 0: decrement or block until value &ge; |sem_op| (P / wait / acquire).</li><li>sem_op == 0: wait until semaphore value becomes exactly zero (used for barrier-like patterns).</li><li>SEM_UNDO flag: kernel tracks adjustments per-process and reverses them on exit, preventing deadlock from crashed holders.</li><li>semctl(SETVAL) initializes a single semaphore; semctl(SETALL) initializes entire set &mdash; must be done before first semop().</li><li>Binary semaphore (value 0 or 1) acts as a mutex; counting semaphore (value 0..N) controls access to N identical resources.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>semget</td><td>Creates or opens a System V semaphore set; returns semid.</td></tr><tr><td class='mono'>semop</td><td>Performs atomic operations on one or more semaphores in a set.</td></tr><tr><td class='mono'>semctl</td><td>Control operations: SETVAL (init), GETVAL (read), IPC_RMID (delete), IPC_STAT (query).</td></tr><tr><td class='mono'>sembuf</td><td>Operation descriptor: {sem_num, sem_op, sem_flg} &mdash; identifies which semaphore, the operation, and flags.</td></tr><tr><td class='mono'>SEM_UNDO</td><td>Flag requesting kernel to reverse this process's adjustments on exit; prevents deadlock on crash.</td></tr><tr><td class='mono'>Binary semaphore</td><td>Semaphore with max value 1; used as inter-process mutex (P to lock, V to unlock).</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>semget</td><td class='mono'>int semget(key_t key, int nsems, int semflg);</td><td class='mono muted2'>EACCES, ENOENT, ENOMEM</td><td>Gets/creates SysV semaphore set.</td></tr><tr><td class='mono'>semop</td><td class='mono'>int semop(int semid, struct sembuf *sops, size_t nsops);</td><td class='mono muted2'>EINTR, EAGAIN, EACCES</td><td>Performs semaphore operations atomically; use SEM_UNDO carefully.</td></tr><tr><td class='mono'>semctl</td><td class='mono'>int semctl(int semid, int semnum, int cmd, ...);</td><td class='mono muted2'>EACCES, EINVAL</td><td>Controls SysV semaphores (init, remove, query).</td></tr>
+    <tr><td class='mono'>semget</td><td class='mono'>int semget(key_t key, int nsems, int semflg);</td><td class='mono muted2'>EACCES, ENOENT, EEXIST, ENOMEM</td><td>IPC_CREAT | IPC_EXCL for exclusive creation; nsems ignored when opening existing set.</td></tr><tr><td class='mono'>semop</td><td class='mono'>int semop(int semid, struct sembuf *sops, size_t nsops);</td><td class='mono muted2'>EINTR, EAGAIN, ERANGE</td><td>All ops in sops are atomic; IPC_NOWAIT returns EAGAIN instead of blocking; EINTR on signal.</td></tr><tr><td class='mono'>semtimedop</td><td class='mono'>int semtimedop(int semid, struct sembuf *sops, size_t nsops, const struct timespec *timeout);</td><td class='mono muted2'>EAGAIN (timeout)</td><td>Like semop but with timeout; avoids indefinite blocking.</td></tr><tr><td class='mono'>semctl</td><td class='mono'>int semctl(int semid, int semnum, int cmd, ...);</td><td class='mono muted2'>EACCES, EINVAL, EPERM</td><td>SETVAL/GETVAL for single sem; SETALL/GETALL for entire set; IPC_RMID to destroy.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: semop() with SEM_UNDO adds per-process adjustment tracking &mdash; essential for crash safety but adds kernel overhead.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Initialization race condition</summary>
+  <div class="content"><ul><li>semget(IPC_CREAT) and semctl(SETVAL) are separate calls &mdash; another process can semop() between them on uninitialized values.</li><li>Solution: use IPC_CREAT | IPC_EXCL; the creator initializes, others retry until sem_otime becomes nonzero (indicates first semop completed).</li><li>Alternatively, use a separate flag (file lock or shared memory flag) to coordinate initialization.</li><li>POSIX named semaphores avoid this because sem_open() creates and initializes atomically.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>SEM_UNDO limits and behavior</summary>
+  <div class="content"><ul><li>SEM_UNDO adjustments are tracked per-process per-semaphore; on exit, the kernel applies the reverse adjustment.</li><li>The undo value can overflow SEMVMX (max semaphore value); in that case the kernel silently caps or ignores the undo.</li><li>SEM_UNDO does not work across exec() &mdash; undo adjustments are cleared on exec.</li><li>If multiple threads in a process use SEM_UNDO, the undo is process-wide, not per-thread &mdash; can lead to incorrect adjustments.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Semaphore limits (SEMMNI, SEMMSL, SEMMNS)</summary>
+  <div class="content"><ul><li>SEMMNI: max number of semaphore sets system-wide. SEMMSL: max semaphores per set. SEMMNS: max semaphores system-wide.</li><li>These are tunable via /proc/sys/kernel/sem (four space-separated values: SEMMSL SEMMNS SEMOPM SEMMNI).</li><li>Hitting limits returns ENOSPC from semget(); check ipcs -ls for current limits.</li><li>Leaked semaphore sets (creator exits without IPC_RMID) consume kernel resources indefinitely.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Debugging semaphore issues</summary>
+  <div class="content"><ul><li>ipcs -s shows all semaphore sets with semid, owner, permissions, nsems, and last operation time.</li><li>ipcs -s -i &lt;semid&gt; shows per-semaphore values within a set.</li><li>Check semncnt (processes waiting on sem_op &lt; 0) and semzcnt (waiting on sem_op == 0) via semctl(GETNCNT/GETZCNT).</li><li>strace shows semop/semget/semctl calls with full arguments for debugging hangs.</li></ul></div>
 </details>
         </div>
 
@@ -148,16 +148,36 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch47"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch47"><code class="mono">// Binary semaphore for mutual exclusion between processes
+#include &lt;sys/sem.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+union semun { int val; };
+
+static int sem_lock(int semid) {
+    struct sembuf op = {0, -1, SEM_UNDO};   // P (wait)
+    return semop(semid, &amp;op, 1);
+}
+static int sem_unlock(int semid) {
+    struct sembuf op = {0, +1, SEM_UNDO};   // V (signal)
+    return semop(semid, &amp;op, 1);
+}
+
+int main(void) {
+    int semid = semget(IPC_PRIVATE, 1, 0600);
+    if (semid == -1) { perror("semget"); exit(1); }
+
+    union semun arg = {.val = 1};            // init to 1 (unlocked)
+    semctl(semid, 0, SETVAL, arg);
+
+    sem_lock(semid);
+    printf("critical section (pid %d)\n", getpid());
+    sem_unlock(semid);
+
+    semctl(semid, 0, IPC_RMID);              // cleanup
+    return 0;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +186,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Always use SEM_UNDO for lock operations so the kernel releases on process crash.</li><li>Handle EINTR from semop() &mdash; signals interrupt blocking waits; retry in a loop.</li><li>Use semtimedop() instead of semop() to avoid indefinite hangs.</li><li>Define clear ownership: one process creates + initializes + destroys with IPC_RMID.</li><li>Clean up stale semaphore sets on startup (check sem_otime == 0 for uninitialized sets).</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Implement a counting semaphore that limits concurrent access to 3 slots; fork 10 children and observe serialization.</li><li>Demonstrate the initialization race: two processes semget() + semctl() without IPC_EXCL; observe the bug and fix it.</li><li>Write a program that crashes while holding a semaphore; verify SEM_UNDO releases it vs. without SEM_UNDO (deadlock).</li></ul>
           </div>
         </div>
 
@@ -185,52 +205,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="SEM_UNDO tells the kernel to track per-process adjustments and reverse them on exit, preventing a crashed process from leaving a semaphore permanently decremented.">
+  <div class="qp">Q1. What does the SEM_UNDO flag do?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Makes semop() nonblocking</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">Deletes the semaphore set on exit</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Kernel reverses this process's adjustments on exit</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Initializes the semaphore to zero</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="sem_op < 0 is the P (wait/acquire) operation; it decrements the semaphore or blocks if the value would go negative.">
+  <div class="qp">Q2. In a sembuf, a negative sem_op value means:</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">Signal / release (V operation)</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Wait / acquire (P operation)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">Wait for semaphore to reach zero</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">Error &mdash; sem_op must be positive</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="semget() creates/opens the set but does NOT initialize values. semctl(SETVAL) must be called separately, creating a race window where another process could call semop() on uninitialized semaphores.">
+  <div class="qp">Q3. Why is there an initialization race with System V semaphores?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">semop() initializes values automatically</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">The kernel always initializes to 1</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">semget() and semctl() are the same call</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Creation (semget) and initialization (semctl) are separate non-atomic steps</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +258,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

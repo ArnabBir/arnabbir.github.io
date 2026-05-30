@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">383</span> (0-based index 382).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>fs</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>inode/dentry</strong></span> <span class="pill"><strong>permissions</strong></span> <span class="pill"><strong>links</strong></span> <span class="pill"><strong>inotify</strong></span> <span class="pill"><strong>locking</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>hard links</strong></span> <span class="pill"><strong>symlinks</strong></span> <span class="pill"><strong>directories</strong></span> <span class="pill"><strong>nftw</strong></span> <span class="pill"><strong>realpath</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 18 — Directories and Links
           </h2>
           <div class="subtitle">
-            <p>A filesystem is a set of kernel data structures that make bytes durable and names meaningful. The critical mental model is inode/dentry/mount: inodes store metadata, dentries cache name lookups, and mounts connect filesystems into a single namespace. Most “weird” file bugs (permissions, symlinks, stale paths, rename atomicity) become predictable once you can picture this model.</p><p>Production file work is also about *consistency* and *events*: how and when metadata updates are visible, how notification APIs behave under load (inotify), and how to do atomic updates safely (write-temp + fsync + rename).</p>
+            <p>Directories are just files that map names to inode numbers. A hard link is simply another name pointing to the same inode -- the file's link count tracks how many names reference it. A symbolic link is a separate inode whose data is a pathname string, providing indirection that can cross filesystem boundaries but can also dangle. Understanding this name-to-inode mapping is essential for safe path traversal, atomic file replacement, and recursive directory walking.</p><p>This chapter covers creating and removing directories (mkdir/rmdir), iterating directory contents (opendir/readdir), walking directory trees (nftw), and resolving symlinks to canonical paths (realpath). Each of these operations interacts with the kernel's dentry layer and has specific atomicity and race-condition implications.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Names resolve via dentries; metadata lives in inodes; mounts define the namespace.</div>
+  <div class="v">A directory entry is a name-to-inode mapping. Hard links share an inode; symlinks store a path string in their own inode.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">TOCTOU path races: stat/access then open can be exploited; prefer openat/fstat.</div>
+  <div class="v">Hard links cannot cross filesystem boundaries (EXDEV). Symlinks can dangle or form loops (ELOOP).</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use ls -li/stat/mount + strace to observe actual operations and errno.</div>
+  <div class="v">Use ls -li to see inode numbers and link counts. Use readlink -f to resolve symlink chains.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Names are cached dentries; data is referenced by inodes; mounts glue namespaces.</li><li>Prefer fd-based operations to avoid TOCTOU path races (openat/fstatat).</li><li>rename within the same filesystem is atomic — a key building block for safe updates.</li><li>Symlinks are paths; hard links are additional names for the same inode.</li><li>inotify is best-effort: overflow can happen; resync state when it does.</li><li>Locking is advisory unless enforced by protocol; design coordination explicitly.</li></ul>
+            <ul><li>A directory entry (dentry) is a name&#8594;inode mapping. The directory file itself is a list of these mappings.</li><li>A hard link is another directory entry pointing to the same inode. The inode's link count (st_nlink) tracks how many names reference it. When the last hard link is removed (and no open fds remain), the kernel frees the inode and its data blocks.</li><li>A symlink is a special inode that stores a target path string. The kernel follows it transparently during path resolution, but the target may not exist (dangling) or may loop (ELOOP after too many hops).</li><li>"." and ".." are real hard links maintained by the kernel. This is why st_nlink for an empty directory is 2 (the directory's own entry in its parent, plus "." inside it).</li><li>mkdir and rmdir are atomic operations. rmdir fails with ENOTEMPTY if the directory has entries other than "." and "..".</li><li>opendir/readdir iterate directory contents without providing a snapshot -- concurrent modifications can cause entries to appear twice or be missed.</li><li>nftw (file tree walk) recursively traverses directory trees, calling a user callback per entry. It handles symlinks, depth-first/breadth-first, and crossing mount points via flags.</li><li>rename() is atomic within a single filesystem -- the target appears to change instantaneously. Cross-filesystem rename fails with EXDEV.</li><li>realpath() resolves all symlinks, ".", and ".." components to produce a canonical absolute path. Beware of TOCTOU: the resolved path may become stale immediately.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Inode</td><td>File metadata object; multiple names (hard links) can reference the same inode.</td></tr><tr><td class='mono'>Dentry</td><td>Directory entry cache mapping names to inodes; accelerates path resolution.</td></tr><tr><td class='mono'>Mount</td><td>Attach filesystem instance into namespace; mount options affect permissions and semantics.</td></tr><tr><td class='mono'>Rename atomicity</td><td>rename within same filesystem is atomic; used for safe updates.</td></tr><tr><td class='mono'>xattrs</td><td>Extended attributes (user.*, security.*) for metadata beyond POSIX fields.</td></tr><tr><td class='mono'>inotify</td><td>File event notification API; best-effort and can overflow under load.</td></tr></tbody>
+  <tbody><tr><td class='mono'>Hard link</td><td>An additional directory entry pointing to an existing inode. Cannot cross filesystems. Increases st_nlink.</td></tr><tr><td class='mono'>Symbolic link</td><td>A separate inode whose content is a target path string. Can cross filesystems, but may dangle.</td></tr><tr><td class='mono'>Link count (st_nlink)</td><td>Number of hard links referencing an inode. File is reclaimable when this reaches 0 and no open fds remain.</td></tr><tr><td class='mono'>Directory entry (dentry)</td><td>A name-to-inode mapping inside a directory. The kernel caches these for fast lookup.</td></tr><tr><td class='mono'>opendir / readdir</td><td>POSIX API to open a directory stream and iterate entries. Not snapshot-safe under concurrent modification.</td></tr><tr><td class='mono'>nftw</td><td>Recursive file tree walk. Calls user function per entry with control over symlink following and depth.</td></tr><tr><td class='mono'>realpath</td><td>Resolves a path to its canonical absolute form, expanding all symlinks and removing . / .. components.</td></tr></tbody>
 </table>
         </div>
 
@@ -113,11 +113,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>opendir</td><td class='mono'>DIR *opendir(const char *name);</td><td class='mono muted2'>ENOENT, ENOTDIR, EACCES</td><td>Use readdir() to iterate; beware of non-atomic directory snapshots under concurrent mutation.</td></tr><tr><td class='mono'>readdir</td><td class='mono'>struct dirent *readdir(DIR *dirp);</td><td class='mono muted2'>—</td><td>Returns next entry; NULL at end. Thread-safety depends on separate DIR* per thread.</td></tr><tr><td class='mono'>link</td><td class='mono'>int link(const char *oldpath, const char *newpath);</td><td class='mono muted2'>EXDEV, EEXIST, EPERM</td><td>Creates hard link to same inode (same filesystem).</td></tr><tr><td class='mono'>symlink</td><td class='mono'>int symlink(const char *target, const char *linkpath);</td><td class='mono muted2'>EEXIST, ENOSPC, EACCES</td><td>Symlink is its own inode containing target path; link target may be dangling.</td></tr><tr><td class='mono'>readlink</td><td class='mono'>ssize_t readlink(const char *path, char *buf, size_t bufsiz);</td><td class='mono muted2'>EINVAL, ENOENT, EACCES</td><td>Does not null-terminate; check returned length.</td></tr><tr><td class='mono'>rename</td><td class='mono'>int rename(const char *oldpath, const char *newpath);</td><td class='mono muted2'>EXDEV, ENOTEMPTY, EACCES</td><td>Atomic within same filesystem. Cross-device requires copy+fsync+rename pattern.</td></tr>
+    <tr><td class='mono'>link</td><td class='mono'>int link(const char *oldpath, const char *newpath);</td><td class='mono muted2'>EXDEV, EEXIST, EPERM</td><td>Creates hard link. Fails with EXDEV across filesystems. Some filesystems disallow hard links to directories.</td></tr><tr><td class='mono'>unlink</td><td class='mono'>int unlink(const char *pathname);</td><td class='mono muted2'>ENOENT, EACCES, EISDIR</td><td>Removes a directory entry and decrements link count. File data freed when link count reaches 0 and no open fds.</td></tr><tr><td class='mono'>symlink</td><td class='mono'>int symlink(const char *target, const char *linkpath);</td><td class='mono muted2'>EEXIST, ENOSPC, EACCES</td><td>Creates symlink inode containing target string. Target is not validated at creation time.</td></tr><tr><td class='mono'>readlink</td><td class='mono'>ssize_t readlink(const char *path, char *buf, size_t bufsiz);</td><td class='mono muted2'>EINVAL, ENOENT</td><td>Reads symlink target. Does NOT null-terminate the buffer; always check returned byte count.</td></tr><tr><td class='mono'>mkdir</td><td class='mono'>int mkdir(const char *pathname, mode_t mode);</td><td class='mono muted2'>EEXIST, ENOENT, EACCES</td><td>Creates directory atomically. mode is modified by process umask.</td></tr><tr><td class='mono'>rmdir</td><td class='mono'>int rmdir(const char *pathname);</td><td class='mono muted2'>ENOTEMPTY, ENOENT, EBUSY</td><td>Removes empty directory only. Fails with ENOTEMPTY if entries beyond . and .. exist.</td></tr><tr><td class='mono'>opendir</td><td class='mono'>DIR *opendir(const char *name);</td><td class='mono muted2'>ENOENT, ENOTDIR, EACCES</td><td>Opens directory stream for readdir iteration. Must be closed with closedir().</td></tr><tr><td class='mono'>readdir</td><td class='mono'>struct dirent *readdir(DIR *dirp);</td><td class='mono muted2'>EBADF</td><td>Returns next entry or NULL at end. Not snapshot-safe; concurrent changes may cause duplicates/misses.</td></tr><tr><td class='mono'>nftw</td><td class='mono'>int nftw(const char *dirpath, fn, int nopenfd, int flags);</td><td class='mono muted2'>EACCES, ENOENT</td><td>Recursive walk. FTW_PHYS avoids following symlinks. nopenfd limits simultaneous open fds.</td></tr><tr><td class='mono'>rename</td><td class='mono'>int rename(const char *oldpath, const char *newpath);</td><td class='mono muted2'>EXDEV, ENOTEMPTY, EACCES</td><td>Atomic within same filesystem. Cross-device fails with EXDEV; must copy+unlink instead.</td></tr><tr><td class='mono'>realpath</td><td class='mono'>char *realpath(const char *path, char *resolved);</td><td class='mono muted2'>ENOENT, EACCES, ELOOP</td><td>Resolves all symlinks, . and .. to canonical absolute path. Subject to TOCTOU.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: use linkat/symlinkat/renameat for fd-relative operations to avoid path races.
           </div>
         </div>
 
@@ -127,17 +127,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Path resolution and races (TOCTOU)</summary>
-  <div class="content"><ul><li>Path traversal consults dentries and inodes; symlinks can redirect traversal mid-way.</li><li>TOCTOU bugs happen when you check (stat/access) then use (open) with a path that can change between calls.</li><li>Prefer openat/fstatat and operate on fds rather than paths after opening.</li><li>For atomic updates: write temp, fsync file, fsync directory, rename.</li></ul></div>
+  <summary>Hard link restrictions and behavior</summary>
+  <div class="content"><ul><li>Hard links cannot cross filesystem boundaries -- link() returns EXDEV. This is because inode numbers are only unique within a filesystem.</li><li>Most Linux filesystems prohibit hard links to directories (EPERM) to prevent cycles in the directory graph. Only the kernel creates ".." entries.</li><li>Removing the last hard link (unlink) does not immediately free data if any process holds an open fd. The inode persists until the last fd is closed.</li><li>st_nlink for a directory counts its own "." entry plus all ".." entries in immediate subdirectories, plus the entry in its parent.</li></ul></div>
 </details><details class="accordion">
-  <summary>Permissions and metadata semantics</summary>
-  <div class="content"><ul><li>Permissions are a combination of mode bits, ownership, ACLs, mount options, and capabilities.</li><li>chmod/chown can fail with EPERM/EACCES; on network filesystems semantics can be surprising.</li><li>Extended attributes and ACLs add layers; they can affect tools and security policies (SELinux).</li><li>Hard links share the same inode; symlinks are separate inodes containing a path string.</li></ul></div>
+  <summary>Symlink pitfalls</summary>
+  <div class="content"><ul><li>Dangling symlinks: the target path does not exist. open() fails with ENOENT but lstat() succeeds (it examines the symlink inode itself).</li><li>Symlink loops: A points to B, B points to A. The kernel detects this after SYMLOOP_MAX hops and returns ELOOP.</li><li>Symlinks are followed transparently by most syscalls. Use lstat/lchown/O_NOFOLLOW to operate on the symlink itself.</li><li>Relative symlink targets are resolved relative to the directory containing the symlink, not the current working directory.</li></ul></div>
 </details><details class="accordion">
-  <summary>Notifications and consistency</summary>
-  <div class="content"><ul><li>inotify provides best-effort events; under load you can overflow queues and must resync state.</li><li>rename is atomic within a filesystem; watchers may see MOVED_FROM/MOVED_TO.</li><li>Directory iteration is not a snapshot; concurrent mutation can cause duplicates or missing entries.</li><li>Use fsync/dirfsync patterns when durability matters (databases, config updates).</li></ul></div>
+  <summary>Directory reading under concurrent modification</summary>
+  <div class="content"><ul><li>readdir does not provide a snapshot. Files created or deleted during iteration may or may not appear.</li><li>POSIX guarantees that readdir will not return an entry that was never present, but entries may be duplicated or skipped under concurrent mutation.</li><li>For safety, collect all entries first (into a list), then operate on them after closedir().</li><li>rewinddir() restarts iteration from the beginning but still provides no snapshot guarantee.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use ls -li to inspect inode numbers and link counts. Use stat for timestamps and mode.</li><li>Inspect mount options and filesystem type (mount, /proc/mounts).</li><li>Use strace to see openat/stat/fcntl and actual errno codes.</li><li>For locking issues: look at fcntl locks behavior and remember locks are advisory unless enforced by protocol.</li></ul></div>
+  <summary>rename atomicity and realpath TOCTOU</summary>
+  <div class="content"><ul><li>rename() is atomic only within the same filesystem. It atomically replaces the target name if it already exists.</li><li>Cross-filesystem rename returns EXDEV. You must implement copy + fsync + rename-within-target-fs manually.</li><li>realpath() resolves the path at call time. By the time you use the result, symlinks or directories may have changed (TOCTOU).</li><li>For security-sensitive code, prefer opening with O_NOFOLLOW and using fstat on the fd rather than trusting realpath output.</li></ul></div>
 </details>
         </div>
 
@@ -149,15 +149,39 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch18"><code class="mono">// Atomic file replace pattern (outline)
-int fd = open(&quot;conf.tmp&quot;, O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644);
-write_all(fd, buf, len);
-fsync(fd);
-close(fd);
-rename(&quot;conf.tmp&quot;, &quot;conf&quot;);
-int dfd = open(&quot;.&quot;, O_RDONLY|O_DIRECTORY|O_CLOEXEC);
-fsync(dfd);
-close(dfd);</code></pre>
+  <pre id="code_ch18"><code class="mono">// Safe directory listing with opendir/readdir/closedir
+void list_dir(const char *path) {
+    DIR *dp = opendir(path);
+    if (!dp) { perror(&quot;opendir&quot;); return; }
+    struct dirent *ep;
+    errno = 0;
+    while ((ep = readdir(dp)) != NULL) {
+        if (ep-&gt;d_name[0] == '.' &amp;&amp;
+            (ep-&gt;d_name[1] == '\0' ||
+             (ep-&gt;d_name[1] == '.' &amp;&amp; ep-&gt;d_name[2] == '\0')))
+            continue;  // skip &quot;.&quot; and &quot;..&quot;
+        printf(&quot;%s (ino %lu)\n&quot;, ep-&gt;d_name, (unsigned long)ep-&gt;d_ino);
+    }
+    if (errno) perror(&quot;readdir&quot;);
+    closedir(dp);
+}
+
+// Atomic file replace via rename
+int atomic_replace(const char *dst, const void *buf, size_t len) {
+    char tmp[PATH_MAX];
+    snprintf(tmp, sizeof(tmp), &quot;%s.tmp.XXXXXX&quot;, dst);
+    int fd = mkstemp(tmp);
+    if (fd &lt; 0) return -1;
+    if (write(fd, buf, len) != (ssize_t)len) goto fail;
+    if (fsync(fd) &lt; 0) goto fail;
+    close(fd);
+    if (rename(tmp, dst) &lt; 0) { unlink(tmp); return -1; }
+    int dfd = open(&quot;.&quot;, O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+    if (dfd &gt;= 0) { fsync(dfd); close(dfd); }
+    return 0;
+fail:
+    close(fd); unlink(tmp); return -1;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +190,17 @@ close(dfd);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use *at() APIs and fd-relative operations to reduce path races.</li><li>For atomic updates: write temp → fsync file → rename → fsync directory.</li><li>Handle symlinks deliberately (O_NOFOLLOW, fstat) when security matters.</li><li>Design for inotify overflow: treat it as a hint and resync state.</li><li>Don’t assume network filesystems behave like local ext4; test semantics you depend on.</li></ul>
+            <ul><li>Always skip "." and ".." when iterating directories with readdir.</li><li>Use linkat/symlinkat/renameat for fd-relative operations to avoid TOCTOU path races.</li><li>For atomic file updates: write to temp (mkstemp) -> fsync file -> rename over target -> fsync directory.</li><li>Handle EXDEV from rename() gracefully: fall back to copy + fsync + rename within the target filesystem.</li><li>When walking trees with nftw, use FTW_PHYS to avoid following symlinks into unexpected locations.</li><li>Use lstat (not stat) when you need to detect symlinks rather than follow them.</li><li>Close DIR* streams promptly -- each holds an fd and memory.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement atomic file replace (write temp + fsync + rename + fsync directory). Test with power-loss simulation (kill -9).</li><li>Create hard link and symlink; show differences in inode numbers and behavior when target is removed.</li><li>Build an inotify-based watcher and handle overflow by resyncing directory state.</li></ul>
+            <ul><li>Create a file, hard-link it to a second name, and symlink it to a third. Use ls -li to observe inode numbers and link counts. Remove the original name and verify the hard link still works while the symlink dangles.</li><li>Write a program that uses opendir/readdir to list a directory, printing each entry's name and inode number. Test what happens if another process creates and deletes files during iteration.</li><li>Implement the atomic file replace pattern (mkstemp + write + fsync + rename + fsync directory). Verify correctness by killing the process at each step and checking file integrity.</li><li>Use nftw to recursively walk a directory tree and print the total size of all regular files, handling symlinks with FTW_PHYS.</li></ul>
           </div>
         </div>
 
@@ -185,52 +209,52 @@ close(dfd);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Hard links reference inodes by number, and inode numbers are only unique within a single filesystem. The kernel returns EXDEV if you try to link() across filesystems.">
+  <div class="qp">Q1. Can hard links cross filesystem boundaries?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Yes, hard links work across any filesystem</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">No, link() returns EXDEV across filesystems</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Only if both filesystems are ext4</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Only root can create cross-filesystem hard links</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="When the last hard link is removed (st_nlink reaches 0), the kernel marks the inode for deletion. However, if any process still holds an open file descriptor, the data persists until that fd is closed. Only then are the data blocks freed.">
+  <div class="qp">Q2. What happens when the last hard link to a file is removed?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">The file data is deleted immediately regardless of open fds</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Nothing happens until reboot</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">The inode is freed when link count is 0 and no open fds remain</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The file becomes a symlink</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="rename() within the same filesystem is atomic at the VFS level: the old name is removed and the new name points to the inode in a single indivisible operation. Other processes see either the old file or the new file at the target name, never a partial state. This only works within a single filesystem; cross-device rename returns EXDEV.">
+  <div class="qp">Q3. How does rename() provide atomicity?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">It uses file locking internally</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">It atomically swaps directory entries within the same filesystem</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">It copies data then deletes the original</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">It is not actually atomic</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +262,7 @@ close(dfd);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -277,7 +301,7 @@ close(dfd);</code></pre>
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",
       highlight: ["inode", "dentry", "mount", "pagecache", "file", "fdtable"]
     });
-TLPIWidgets.mountStraceParser("str_ch18", {example: "openat(AT_FDCWD, \"conf.tmp\", O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644) = 3\nwrite(3, \"k=v\\n\", 4) = 4\nfsync(3) = 0\nclose(3) = 0\nrename(\"conf.tmp\", \"conf\") = 0\n"});
+TLPIWidgets.mountStraceParser("str_ch18", {example: "link(\"data.txt\", \"data_backup.txt\") = 0\nsymlink(\"data.txt\", \"data_link\") = 0\nmkdir(\"subdir\", 0755) = 0\nopenat(AT_FDCWD, \"subdir\", O_RDONLY|O_DIRECTORY) = 3\ngetdents64(3, [{d_ino=123, d_name=\".\"}, {d_ino=100, d_name=\"..\"}], 512) = 48\nclose(3) = 0\nrename(\"conf.tmp\", \"conf\") = 0\n"});
   </script>
 </body>
 </html>

@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">675</span> (0-based index 674).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>threads</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pthreads</strong></span> <span class="pill"><strong>mutex</strong></span> <span class="pill"><strong>condvar</strong></span> <span class="pill"><strong>cancellation</strong></span> <span class="pill"><strong>TLS</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>mutex</strong></span> <span class="pill"><strong>condvar</strong></span> <span class="pill"><strong>rwlock</strong></span> <span class="pill"><strong>barrier</strong></span> <span class="pill"><strong>futex</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 30 — Threads: Thread Synchronization
           </h2>
           <div class="subtitle">
-            <p>Threads share an address space but execute independently. That sounds simple until you deal with memory visibility, lock ordering, cancellation, thread-local state, and resource lifetime. The pthreads API is a toolset; correctness comes from disciplined invariants and a debugging mindset.</p><p>This guide emphasizes race-free patterns: ownership, immutability, critical sections, condition variables with while-loops, and safe shutdown (cancellation points + cleanup handlers).</p>
+            <p>Shared mutable state requires synchronization. Mutexes protect invariants by providing mutual exclusion over critical sections. Condition variables coordinate producers and consumers by allowing threads to wait for a predicate to become true. Read-write locks optimize read-heavy workloads by allowing concurrent readers.</p><p>The core discipline: always pair lock/unlock, always check condition variable predicates in a while loop (spurious wakeups are permitted by POSIX), and measure contention before adding complexity.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Shared memory requires synchronization; data races are undefined behavior.</div>
+  <div class="v">A mutex protects a data invariant, not a code region. Every access to the protected data must hold the same mutex.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Condition variables require a predicate loop to avoid lost/spurious wakeups.</div>
+  <div class="v">Condition variables must be checked with a while loop, not if. Spurious wakeups are allowed by POSIX and happen in practice.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use TSan in tests; perf can reveal contention in futex waits.</div>
+  <div class="v">Use PTHREAD_MUTEX_ERRORCHECK to catch double-locks and wrong-thread unlocks during development.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Threads share memory; races are bugs unless synchronized (mutex/atomics).</li><li>A mutex protects an invariant; keep critical sections small and consistent.</li><li>Condition variables wait for predicates; always check predicate in a loop.</li><li>Cancellation and shutdown need cleanup handlers and ownership discipline.</li><li>Thread-local state can hide complexity; document lifetime and destructors.</li><li>Measure contention: futex waits and context switches indicate scalability limits.</li></ul>
+            <ul><li>A mutex provides mutual exclusion: only one thread can hold it at a time, defining a critical section where shared state can be safely modified.</li><li>Always pair lock/unlock. In C++ use RAII (lock_guard); in C, ensure every code path (including error paths) unlocks.</li><li>A condition variable lets a thread sleep until a predicate becomes true. The pattern is: lock mutex, while(!predicate) cond_wait, do work, unlock mutex.</li><li>Spurious wakeups are allowed -- the kernel may wake a thread without a corresponding signal/broadcast. The while loop handles this.</li><li>pthread_rwlock allows multiple concurrent readers OR one exclusive writer. Useful for read-heavy data structures, but can starve writers depending on implementation.</li><li>pthread_barrier synchronizes N threads at a rendezvous point: all must arrive before any can proceed.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Mutex</td><td>Mutual exclusion lock protecting shared state; defines critical sections.</td></tr><tr><td class='mono'>Condvar</td><td>Condition variable for waiting on a predicate; requires mutex + while-loop.</td></tr><tr><td class='mono'>TLS</td><td>Thread-local storage: per-thread variables and destructor semantics.</td></tr><tr><td class='mono'>Futex</td><td>Kernel primitive underlying many pthread locks; contention shows as futex waits.</td></tr><tr><td class='mono'>Cancellation</td><td>Cooperative thread termination via cancellation points and cleanup handlers.</td></tr><tr><td class='mono'>Data race</td><td>Undefined behavior when unsynchronized concurrent access occurs (one write).</td></tr></tbody>
+  <tbody><tr><td class='mono'>pthread_mutex_t</td><td>Mutual exclusion lock. Initialize with PTHREAD_MUTEX_INITIALIZER or pthread_mutex_init().</td></tr><tr><td class='mono'>PTHREAD_MUTEX_ERRORCHECK</td><td>Mutex type that returns errors on double-lock, wrong-thread unlock. Use during development.</td></tr><tr><td class='mono'>pthread_cond_t</td><td>Condition variable. Always used with a mutex and a predicate checked in a while loop.</td></tr><tr><td class='mono'>pthread_rwlock_t</td><td>Read-write lock: concurrent readers or exclusive writer. Beware of writer starvation.</td></tr><tr><td class='mono'>pthread_barrier_t</td><td>Synchronization barrier: blocks until N threads arrive, then releases all simultaneously.</td></tr><tr><td class='mono'>Futex</td><td>Fast userspace mutex: kernel primitive underlying pthread_mutex. Contention shows as futex() syscalls in strace.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pthread_mutex_lock</td><td class='mono'>int pthread_mutex_lock(pthread_mutex_t *mutex);</td><td class='mono muted2'>EINVAL, EDEADLK</td><td>Blocks until acquired. Use error-checking mutexes for debugging; watch for lock ordering.</td></tr><tr><td class='mono'>pthread_mutex_unlock</td><td class='mono'>int pthread_mutex_unlock(pthread_mutex_t *mutex);</td><td class='mono muted2'>EINVAL, EPERM</td><td>Unlocks; only the owner may unlock (undefined for normal mutex; EPERM for error-checking).</td></tr><tr><td class='mono'>pthread_cond_wait</td><td class='mono'>int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);</td><td class='mono muted2'>EINVAL</td><td>Atomically releases mutex and waits; always use in a while-loop to handle spurious wakeups.</td></tr>
+    <tr><td class='mono'>pthread_mutex_lock</td><td class='mono'>int pthread_mutex_lock(pthread_mutex_t *mutex);</td><td class='mono muted2'>EINVAL, EDEADLK</td><td>Blocks until acquired. EDEADLK only with ERRORCHECK type. Normal mutex deadlocks silently on double-lock.</td></tr><tr><td class='mono'>pthread_mutex_unlock</td><td class='mono'>int pthread_mutex_unlock(pthread_mutex_t *mutex);</td><td class='mono muted2'>EINVAL, EPERM</td><td>Only the owner may unlock. EPERM with ERRORCHECK if wrong thread unlocks.</td></tr><tr><td class='mono'>pthread_cond_wait</td><td class='mono'>int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);</td><td class='mono muted2'>EINVAL</td><td>Atomically releases mutex and waits. Re-acquires mutex before returning. Always use in while loop.</td></tr><tr><td class='mono'>pthread_cond_signal</td><td class='mono'>int pthread_cond_signal(pthread_cond_t *cond);</td><td class='mono muted2'>EINVAL</td><td>Wakes at least one waiting thread. Use broadcast when multiple threads may need to re-check.</td></tr><tr><td class='mono'>pthread_rwlock_rdlock</td><td class='mono'>int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);</td><td class='mono muted2'>EINVAL, EDEADLK</td><td>Acquires read lock; multiple readers can hold simultaneously.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: use pthread_mutex_timedlock to avoid indefinite blocking; use clock_gettime(CLOCK_REALTIME) for the abstime argument.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Correctness model: data races are bugs</summary>
-  <div class="content"><ul><li>If two threads access the same memory and at least one is a write, you need synchronization (mutex/atomic).</li><li>Thread safety is broader than locks: includes signal safety, cancellation safety, and lifetime management.</li><li>Condition variables require a predicate and a loop. Spurious wakeups are allowed; missed wakeups happen without correct locking.</li><li>Prefer ownership/immutability when possible: it eliminates entire classes of races.</li></ul></div>
+  <summary>Mutex correctness</summary>
+  <div class="content"><ul><li>A normal (default) mutex deadlocks if the same thread locks it twice. Use PTHREAD_MUTEX_ERRORCHECK to get EDEADLK instead.</li><li>Unlocking a mutex from a thread that does not own it is undefined for normal mutexes. ERRORCHECK returns EPERM.</li><li>Destroying a locked mutex is undefined behavior. Ensure all threads have released the lock before calling pthread_mutex_destroy.</li><li>Lock ordering: if you need multiple mutexes, always acquire them in a consistent global order to prevent deadlocks.</li></ul></div>
 </details><details class="accordion">
-  <summary>Cancellation and cleanup</summary>
-  <div class="content"><ul><li>Cancellation is cooperative: threads stop at cancellation points depending on type/state.</li><li>Always pair cancellation with cleanup handlers (pthread_cleanup_push/pop) so locks and resources are released.</li><li>Design shutdown protocols: stop accepting work, drain queues, signal workers, join, then free shared state.</li><li>Avoid mixing fork() with threads unless you exec immediately; it is a common source of deadlocks.</li></ul></div>
+  <summary>Condition variable subtleties</summary>
+  <div class="content"><ul><li>pthread_cond_signal wakes at least one waiter; pthread_cond_broadcast wakes all. Use broadcast when the predicate may satisfy multiple waiters.</li><li>Signaling without holding the mutex can cause lost wakeups: thread checks predicate (false), context switch, producer sets predicate + signals, consumer then waits forever.</li><li>The mutex associated with a condvar must remain the same for all waiters. Mixing mutexes on the same condvar is undefined.</li><li>pthread_cond_timedwait uses an absolute time (struct timespec), not a relative timeout. Clock must match the condvar's clock attribute.</li></ul></div>
 </details><details class="accordion">
-  <summary>Performance notes</summary>
-  <div class="content"><ul><li>Lock contention shows up as CPU in futex waits and high context switches. Reduce critical section size and improve locality.</li><li>Reader-writer locks can starve writers or readers depending on implementation; measure before choosing.</li><li>Per-thread storage is useful but can hide memory bloat and complicate teardown. Document ownership clearly.</li><li>Prefer epoll/event loops for I/O concurrency; use threads for CPU-bound parallelism when work units are coarse enough.</li></ul></div>
+  <summary>Read-write lock and barrier pitfalls</summary>
+  <div class="content"><ul><li>Read-write locks can starve writers if readers arrive continuously. The POSIX spec does not mandate fairness -- measure your implementation.</li><li>Upgrading a read lock to a write lock is not supported by POSIX. You must release the read lock first, which creates a TOCTOU window.</li><li>pthread_barrier_wait returns PTHREAD_BARRIER_SERIAL_THREAD to exactly one thread -- use this to designate a "leader" for post-barrier work.</li><li>Reusing a barrier requires all threads to have returned from the previous wait. Destroying and re-initializing while threads are still inside is undefined.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use thread sanitizers (TSan) for race detection in tests.</li><li>gdb/rr can inspect thread stacks; `info threads` and `thread apply all bt` are core moves.</li><li>Look at /proc/&lt;pid&gt;/task for per-thread stats.</li><li>perf can attribute time to futex and lock contention hot spots.</li></ul></div>
+  <summary>Performance and contention</summary>
+  <div class="content"><ul><li>Lock contention manifests as futex() syscalls in strace and high context-switch rates in /proc/PID/status.</li><li>Keep critical sections short: do all computation outside the lock, then lock-modify-unlock.</li><li>Consider per-CPU or per-thread data structures to eliminate contention entirely for hot paths.</li><li>Spin locks (pthread_spinlock_t) are only useful for very short critical sections on multicore systems where threads do not get preempted.</li></ul></div>
 </details>
         </div>
 
@@ -146,27 +146,33 @@
     <button class="btn small" data-copy="#code_ch30">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Mutex + condition variable producer/consumer pattern.
   </div>
-  <pre id="code_ch30"><code class="mono">// Condition variable pattern: predicate + while loop
-pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  cv = PTHREAD_COND_INITIALIZER;
-int ready = 0;
+  <pre id="code_ch30"><code class="mono">// Producer/consumer with mutex + condvar
+#include &lt;pthread.h&gt;
+#include &lt;stdio.h&gt;
 
-void *worker(void *arg){
-  pthread_mutex_lock(&amp;m);
-  while(!ready) pthread_cond_wait(&amp;cv, &amp;m);
-  pthread_mutex_unlock(&amp;m);
-  return NULL;
+#define QMAX 8
+static int queue[QMAX], head, tail, count;
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  not_empty = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t  not_full  = PTHREAD_COND_INITIALIZER;
+
+void enqueue(int val){
+  pthread_mutex_lock(&amp;mtx);
+  while(count == QMAX) pthread_cond_wait(&amp;not_full, &amp;mtx);
+  queue[tail] = val; tail = (tail+1) % QMAX; count++;
+  pthread_cond_signal(&amp;not_empty);
+  pthread_mutex_unlock(&amp;mtx);
 }
 
-int main(){
-  pthread_t t; pthread_create(&amp;t, NULL, worker, NULL);
-  pthread_mutex_lock(&amp;m);
-  ready = 1;
-  pthread_cond_broadcast(&amp;cv);
-  pthread_mutex_unlock(&amp;m);
-  pthread_join(t, NULL);
+int dequeue(void){
+  pthread_mutex_lock(&amp;mtx);
+  while(count == 0) pthread_cond_wait(&amp;not_empty, &amp;mtx);
+  int val = queue[head]; head = (head+1) % QMAX; count--;
+  pthread_cond_signal(&amp;not_full);
+  pthread_mutex_unlock(&amp;mtx);
+  return val;
 }</code></pre>
 </div>
 
@@ -176,17 +182,17 @@ int main(){
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Define ownership of shared data; protect mutable shared state with mutexes or atomics.</li><li>Use condition variables with a predicate in a while-loop; handle spurious wakeups.</li><li>Avoid global locks in hot paths; minimize critical sections and lock contention.</li><li>Design clean shutdown and ensure all locks/resources are released on cancellation/error.</li><li>Use sanitizers in CI (TSan/ASan) and keep reproducers small.</li></ul>
+            <ul><li>Document which mutex protects which data. Every shared mutable field should have a comment naming its lock.</li><li>Use PTHREAD_MUTEX_ERRORCHECK in debug/test builds to catch double-locks and wrong-thread unlocks.</li><li>Always check condvar predicates in a while loop -- never if.</li><li>Establish a global lock ordering and document it. Use lock-order checking tools (e.g., Helgrind, TSan) in CI.</li><li>Prefer pthread_cond_broadcast over pthread_cond_signal unless you are certain exactly one waiter should wake.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a bounded work queue with a mutex + condition variable; prove no lost wakeups (predicate loop).</li><li>Introduce a deliberate race and catch it with ThreadSanitizer in a test build.</li><li>Build a graceful shutdown: stop producers, wake workers, join threads, free resources.</li></ul>
+            <ul><li>Implement a bounded producer/consumer queue. Verify with TSan that no data races exist. Test with more producers than consumers and vice versa.</li><li>Create a deadlock by locking two mutexes in opposite order from two threads. Then fix it by enforcing a consistent lock order.</li><li>Use a pthread_barrier to synchronize N worker threads: each does setup, waits at the barrier, then proceeds. Verify all threads start work simultaneously.</li></ul>
           </div>
         </div>
 
@@ -195,52 +201,52 @@ int main(){
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Spurious wakeups are permitted by POSIX. Using 'if' instead of 'while' means the predicate might be false when the thread resumes, leading to bugs.">
+  <div class="qp">Q1. Why must pthread_cond_wait be called inside a while loop?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">To handle EINTR from signals</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">To retry if the mutex is contested</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Because spurious wakeups can occur and the predicate must be re-checked</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Because cond_wait can return an error</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="A normal (default) mutex deadlocks if the owning thread locks it again. Use PTHREAD_MUTEX_ERRORCHECK or PTHREAD_MUTEX_RECURSIVE to handle this.">
+  <div class="qp">Q2. What happens if a thread locks a normal (default) mutex it already holds?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">Deadlock (the thread blocks forever)</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">The lock count is incremented (recursive)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">EDEADLK is returned</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The second lock is silently ignored</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="pthread_cond_broadcast wakes all waiting threads; signal wakes at least one. Use broadcast when multiple waiters may need to re-evaluate.">
+  <div class="qp">Q3. When should you prefer pthread_cond_broadcast over pthread_cond_signal?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Always, signal is deprecated</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">When multiple threads may need to re-check their predicates</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Never, broadcast is slower</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Only with read-write locks</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +254,7 @@ int main(){
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

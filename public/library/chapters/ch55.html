@@ -23,8 +23,8 @@
         <span class="pill"><strong data-theme-badge>Dark</strong><span class="muted2">•</span><span class="muted">Theme</span></span>
         <button class="btn small" data-theme-toggle>Toggle</button>
         <a class="btn small ghost" href="../index.html">Index</a>
-        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/⌘+←)">Prev</a>
-        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/⌘+→)">Next</a>
+        <a class="btn small" data-prev disabled href="#" title="Previous (Ctrl/&amp;#8984;+&larr;)">Prev</a>
+        <a class="btn small primary" data-next disabled href="#" title="Next (Ctrl/&amp;#8984;+&rarr;)">Next</a>
       </div>
     </div>
     <div class="progress" id="scrollProgress"></div>
@@ -35,7 +35,7 @@
       <aside class="sidebar">
         <div class="glass pad">
           <div class="section-title">Chapters</div>
-          <input class="input" id="navSearch" placeholder="Search (press /)…"/>
+          <input class="input" id="navSearch" placeholder="Search (press /)..."/>
           <div id="navList" class="navlist"></div>
         </div>
 
@@ -59,17 +59,17 @@
             Chapter 55 — File Locking
           </h2>
           <div class="subtitle">
-            <p>A filesystem is a set of kernel data structures that make bytes durable and names meaningful. The critical mental model is inode/dentry/mount: inodes store metadata, dentries cache name lookups, and mounts connect filesystems into a single namespace. Most “weird” file bugs (permissions, symlinks, stale paths, rename atomicity) become predictable once you can picture this model.</p><p>Production file work is also about *consistency* and *events*: how and when metadata updates are visible, how notification APIs behave under load (inotify), and how to do atomic updates safely (write-temp + fsync + rename).</p>
+            <p>File locking coordinates concurrent access to files &mdash; advisory locks rely on cooperation between processes, while mandatory locks (mostly deprecated) are enforced by the kernel. Choose <span class="mono">flock</span> for whole-file locking and <span class="mono">fcntl</span> for byte-range locking.</p><p>This chapter covers <span class="mono">flock</span>, <span class="mono">fcntl</span> record locks (F_SETLK/F_SETLKW), <span class="mono">lockf</span>, the critical differences in lock ownership semantics, OFD locks, mandatory locking, and deadlock detection.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Names resolve via dentries; metadata lives in inodes; mounts define the namespace.</div>
+  <div class="v"><span class="mono">flock</span> locks are tied to the open file description (OFD) &mdash; shared across <span class="mono">dup</span> and <span class="mono">fork</span>. <span class="mono">fcntl</span> locks are tied to (pid, inode) &mdash; released when ANY fd to that file is closed by that process.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">TOCTOU path races: stat/access then open can be exploited; prefer openat/fstat.</div>
+  <div class="v"><span class="mono">fcntl</span> locks have surprising close semantics: closing ANY file descriptor referring to the same inode releases ALL locks held by that process on that file, even from different <span class="mono">open</span> calls.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use ls -li/stat/mount + strace to observe actual operations and errno.</div>
+  <div class="v">Inspect active locks via <span class="mono">/proc/locks</span>. Each line shows lock type, process, inode, and byte range.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Names are cached dentries; data is referenced by inodes; mounts glue namespaces.</li><li>Prefer fd-based operations to avoid TOCTOU path races (openat/fstatat).</li><li>rename within the same filesystem is atomic — a key building block for safe updates.</li><li>Symlinks are paths; hard links are additional names for the same inode.</li><li>inotify is best-effort: overflow can happen; resync state when it does.</li><li>Locking is advisory unless enforced by protocol; design coordination explicitly.</li></ul>
+            <ul><li><strong>flock()</strong> operates on open file descriptions (OFDs). Locks are shared across <span class="mono">dup()</span> and inherited across <span class="mono">fork()</span>. Closing the last fd referencing the OFD releases the lock. Simple whole-file advisory lock.</li><li><strong>fcntl()</strong> F_SETLK/F_SETLKW operates on (pid, inode, byte-range). Supports read locks (F_RDLCK, shared) and write locks (F_WRLCK, exclusive). F_SETLKW blocks until the lock is available.</li><li><strong>Critical fcntl gotcha:</strong> locks are released when ANY close of that file by that process occurs. If you open the same file twice and lock via fd1, closing fd2 releases the lock. This breaks library code that opens files independently.</li><li><strong>lockf()</strong> is a simplified wrapper around fcntl &mdash; same semantics, fewer options. Locks from current position to <span class="mono">len</span> bytes.</li><li><strong>Advisory locks:</strong> the kernel does not enforce them. All processes must cooperate by checking locks before access. This is the standard model.</li><li><strong>Mandatory locks</strong> (mount -o mand + chmod g+s,-x): kernel enforces locks on read/write. Mostly deprecated and removed in Linux 5.15+. Avoid in new code.</li><li><strong>Deadlock detection:</strong> the kernel detects deadlocks for fcntl locks and returns EDEADLK from F_SETLKW. flock does not have kernel-level deadlock detection.</li><li><strong>OFD locks</strong> (F_OFD_SETLK/F_OFD_SETLKW, Linux 3.15+): fix the close semantics of fcntl locks. Tied to the open file description (like flock) but support byte ranges. Preferred for new code needing byte-range locks.</li></ul>
           </div>
           <hr class="sep"/>
-          <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
+          <div class="muted2 small" style="margin-bottom:10px">Key terms &amp; kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Inode</td><td>File metadata object; multiple names (hard links) can reference the same inode.</td></tr><tr><td class='mono'>Dentry</td><td>Directory entry cache mapping names to inodes; accelerates path resolution.</td></tr><tr><td class='mono'>Mount</td><td>Attach filesystem instance into namespace; mount options affect permissions and semantics.</td></tr><tr><td class='mono'>Rename atomicity</td><td>rename within same filesystem is atomic; used for safe updates.</td></tr><tr><td class='mono'>xattrs</td><td>Extended attributes (user.*, security.*) for metadata beyond POSIX fields.</td></tr><tr><td class='mono'>inotify</td><td>File event notification API; best-effort and can overflow under load.</td></tr></tbody>
+  <tbody><tr><td class='mono'>flock</td><td>BSD-style whole-file advisory lock. Tied to open file description (shared across dup/fork).</td></tr><tr><td class='mono'>fcntl F_SETLK</td><td>POSIX record lock (byte-range). Non-blocking; returns EAGAIN/EACCES if locked.</td></tr><tr><td class='mono'>fcntl F_SETLKW</td><td>Blocking variant of F_SETLK. Waits until lock is available. Kernel detects deadlocks (EDEADLK).</td></tr><tr><td class='mono'>F_RDLCK / F_WRLCK</td><td>Read (shared) and write (exclusive) lock types for fcntl.</td></tr><tr><td class='mono'>lockf</td><td>Simplified fcntl wrapper. F_LOCK (blocking), F_TLOCK (try), F_ULOCK (unlock), F_TEST (test).</td></tr><tr><td class='mono'>OFD locks</td><td>F_OFD_SETLK/F_OFD_SETLKW (Linux 3.15+). Byte-range locks with OFD ownership &mdash; fixes fcntl close semantics.</td></tr><tr><td class='mono'>advisory vs mandatory</td><td>Advisory: processes must cooperate. Mandatory: kernel enforces (deprecated/removed).</td></tr><tr><td class='mono'>/proc/locks</td><td>Shows all active file locks system-wide with type, owner pid, inode, and range.</td></tr></tbody>
 </table>
         </div>
 
@@ -113,31 +113,31 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr><tr><td class='mono'>flock</td><td class='mono'>int flock(int fd, int operation);</td><td class='mono muted2'>EBADF, EINTR</td><td>BSD-style advisory locks; separate from fcntl locks in semantics.</td></tr><tr><td class='mono'>lockf</td><td class='mono'>int lockf(int fd, int cmd, off_t len);</td><td class='mono muted2'>EACCES, EAGAIN, EINTR</td><td>Simplified fcntl locking wrapper; advisory.</td></tr>
+    <tr><td class='mono'>flock</td><td class='mono'>int flock(int fd, int operation);</td><td class='mono muted2'>EBADF, EINTR, EWOULDBLOCK</td><td>LOCK_SH (shared), LOCK_EX (exclusive), LOCK_UN (unlock). Add LOCK_NB for non-blocking.</td></tr><tr><td class='mono'>fcntl F_SETLK</td><td class='mono'>fcntl(fd, F_SETLK, &amp;flock);</td><td class='mono muted2'>EACCES, EAGAIN, EBADF</td><td>Non-blocking. struct flock: l_type, l_whence, l_start, l_len (0 = to EOF).</td></tr><tr><td class='mono'>fcntl F_SETLKW</td><td class='mono'>fcntl(fd, F_SETLKW, &amp;flock);</td><td class='mono muted2'>EDEADLK, EINTR</td><td>Blocking. Returns EDEADLK if kernel detects deadlock cycle.</td></tr><tr><td class='mono'>fcntl F_GETLK</td><td class='mono'>fcntl(fd, F_GETLK, &amp;flock);</td><td class='mono muted2'>EBADF</td><td>Tests if lock would conflict. Sets l_type=F_UNLCK if no conflict, else fills in conflicting lock info.</td></tr><tr><td class='mono'>lockf</td><td class='mono'>int lockf(int fd, int cmd, off_t len);</td><td class='mono muted2'>EACCES, EAGAIN, EDEADLK</td><td>F_LOCK, F_TLOCK, F_ULOCK, F_TEST. Wrapper around fcntl.</td></tr><tr><td class='mono'>F_OFD_SETLK</td><td class='mono'>fcntl(fd, F_OFD_SETLK, &amp;flock);</td><td class='mono muted2'>EAGAIN, EINVAL</td><td>Linux 3.15+. l_pid must be 0. OFD ownership semantics.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: inspect <span class="mono">/proc/locks</span> to see active locks with owner PID, inode, and byte range.
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
-          <h3 class="section" data-toc="Edge cases & invariants">Edge cases & invariants</h3>
+          <h3 class="section" data-toc="Edge cases & invariants">Edge cases &amp; invariants</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Path resolution and races (TOCTOU)</summary>
-  <div class="content"><ul><li>Path traversal consults dentries and inodes; symlinks can redirect traversal mid-way.</li><li>TOCTOU bugs happen when you check (stat/access) then use (open) with a path that can change between calls.</li><li>Prefer openat/fstatat and operate on fds rather than paths after opening.</li><li>For atomic updates: write temp, fsync file, fsync directory, rename.</li></ul></div>
+  <summary>fcntl lock release on ANY close</summary>
+  <div class="content"><ul><li>If process P opens file F as fd3 and fd7 (two separate <span class="mono">open</span> calls), locks via fd3, then closes fd7 &mdash; the lock on fd3 is released. This is because fcntl locks are keyed by (pid, inode), not by fd.</li><li>This breaks library code: if a library opens a file for its own purposes and your code has a lock on the same file, the library closing its fd releases your lock.</li><li>OFD locks (F_OFD_SETLK) fix this: locks are tied to the open file description, not (pid, inode). Closing one fd does not affect locks held via a different OFD.</li><li>Rule: if you use fcntl locks, ensure only one code path opens/closes a given file in the process.</li></ul></div>
 </details><details class="accordion">
-  <summary>Permissions and metadata semantics</summary>
-  <div class="content"><ul><li>Permissions are a combination of mode bits, ownership, ACLs, mount options, and capabilities.</li><li>chmod/chown can fail with EPERM/EACCES; on network filesystems semantics can be surprising.</li><li>Extended attributes and ACLs add layers; they can affect tools and security policies (SELinux).</li><li>Hard links share the same inode; symlinks are separate inodes containing a path string.</li></ul></div>
+  <summary>flock across fork and dup</summary>
+  <div class="content"><ul><li><span class="mono">flock</span> locks are on the open file description (kernel struct file). <span class="mono">dup()</span> shares the OFD, so both fds share the lock.</li><li>After <span class="mono">fork()</span>, parent and child share the OFD &mdash; both hold the same lock. Either can unlock it, affecting the other.</li><li>Separate <span class="mono">open()</span> calls create separate OFDs. Two processes opening the same file independently have independent flock locks.</li><li><span class="mono">flock</span> is not reliable across NFS on many implementations. Use fcntl locks for NFS (NFSv4 supports them).</li></ul></div>
 </details><details class="accordion">
-  <summary>Notifications and consistency</summary>
-  <div class="content"><ul><li>inotify provides best-effort events; under load you can overflow queues and must resync state.</li><li>rename is atomic within a filesystem; watchers may see MOVED_FROM/MOVED_TO.</li><li>Directory iteration is not a snapshot; concurrent mutation can cause duplicates or missing entries.</li><li>Use fsync/dirfsync patterns when durability matters (databases, config updates).</li></ul></div>
+  <summary>Deadlock detection</summary>
+  <div class="content"><ul><li>The kernel performs deadlock detection for fcntl F_SETLKW: if process A waits for a lock held by B, and B waits for a lock held by A, F_SETLKW returns EDEADLK (for one of them).</li><li>Detection works for simple cycles but may not catch complex multi-resource deadlocks involving non-lock waits.</li><li><span class="mono">flock</span> has NO kernel deadlock detection. Two processes can deadlock indefinitely on flock.</li><li>OFD locks (F_OFD_SETLKW) also lack deadlock detection since locks are not tied to PIDs.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use ls -li to inspect inode numbers and link counts. Use stat for timestamps and mode.</li><li>Inspect mount options and filesystem type (mount, /proc/mounts).</li><li>Use strace to see openat/stat/fcntl and actual errno codes.</li><li>For locking issues: look at fcntl locks behavior and remember locks are advisory unless enforced by protocol.</li></ul></div>
+  <summary>Mandatory locking (deprecated)</summary>
+  <div class="content"><ul><li>Mandatory locking required: mount with <span class="mono">-o mand</span>, and file with set-group-ID bit on and group-execute off (<span class="mono">chmod g+s,g-x</span>).</li><li>When active, the kernel blocks or errors on <span class="mono">read()</span>/<span class="mono">write()</span> to locked byte ranges, even if the process didn't check locks.</li><li>Removed from Linux 5.15+ (CONFIG_MANDATORY_FILE_LOCKING dropped). Do not use in new code.</li><li>It was also unreliable: races existed between lock check and I/O, and not all filesystems supported it.</li></ul></div>
 </details>
         </div>
 
@@ -147,17 +147,35 @@
     <button class="btn small" data-copy="#code_ch55">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    flock-based PID file lock and fcntl byte-range lock pattern.
   </div>
-  <pre id="code_ch55"><code class="mono">// Atomic file replace pattern (outline)
-int fd = open(&quot;conf.tmp&quot;, O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644);
-write_all(fd, buf, len);
-fsync(fd);
-close(fd);
-rename(&quot;conf.tmp&quot;, &quot;conf&quot;);
-int dfd = open(&quot;.&quot;, O_RDONLY|O_DIRECTORY|O_CLOEXEC);
-fsync(dfd);
-close(dfd);</code></pre>
+  <pre id="code_ch55"><code class="mono">/* --- flock: PID file for single-instance daemon --- */
+int fd = open(&quot;/var/run/myapp.pid&quot;, O_CREAT|O_RDWR, 0644);
+if (flock(fd, LOCK_EX | LOCK_NB) == -1) {
+    if (errno == EWOULDBLOCK)
+        die(&quot;another instance is running&quot;);
+    die(&quot;flock: %s&quot;, strerror(errno));
+}
+ftruncate(fd, 0);
+dprintf(fd, &quot;%d\n&quot;, getpid());
+/* keep fd open for lifetime of process */
+
+/* --- fcntl: byte-range lock on a database file --- */
+struct flock fl = {
+    .l_type   = F_WRLCK,       /* exclusive write lock */
+    .l_whence = SEEK_SET,
+    .l_start  = record_offset,
+    .l_len    = record_size,   /* 0 = lock to EOF */
+};
+if (fcntl(db_fd, F_SETLKW, &amp;fl) == -1) {
+    if (errno == EDEADLK)
+        handle_deadlock();
+    else
+        die(&quot;fcntl lock: %s&quot;, strerror(errno));
+}
+/* ... update record ... */
+fl.l_type = F_UNLCK;
+fcntl(db_fd, F_SETLK, &amp;fl);   /* unlock */</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +184,17 @@ close(dfd);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use *at() APIs and fd-relative operations to reduce path races.</li><li>For atomic updates: write temp → fsync file → rename → fsync directory.</li><li>Handle symlinks deliberately (O_NOFOLLOW, fstat) when security matters.</li><li>Design for inotify overflow: treat it as a hint and resync state.</li><li>Don’t assume network filesystems behave like local ext4; test semantics you depend on.</li></ul>
+            <ul><li>Use <span class="mono">flock</span> for simple whole-file locking (PID files, single-instance daemons).</li><li>Use <span class="mono">fcntl</span> or OFD locks for byte-range locking (database records, concurrent file updates).</li><li>Be aware of fcntl's close-releases-all semantics. Prefer OFD locks (F_OFD_SETLK) on Linux 3.15+ for robust byte-range locking.</li><li>Handle EDEADLK from F_SETLKW: implement retry or abort logic.</li><li>Do not rely on mandatory locking &mdash; it is deprecated and removed in modern kernels.</li><li>Test locking behavior on your target filesystem (NFS, FUSE, etc.) &mdash; semantics vary.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement atomic file replace (write temp + fsync + rename + fsync directory). Test with power-loss simulation (kill -9).</li><li>Create hard link and symlink; show differences in inode numbers and behavior when target is removed.</li><li>Build an inotify-based watcher and handle overflow by resyncing directory state.</li></ul>
+            <ul><li>Implement a PID-file daemon guard using <span class="mono">flock(LOCK_EX|LOCK_NB)</span>. Start two instances and verify the second exits with an error.</li><li>Demonstrate the fcntl close-releases-all bug: open a file twice, lock via fd1, close fd2, and show the lock is gone (check <span class="mono">/proc/locks</span>). Then fix with OFD locks.</li><li>Create two processes that each hold one fcntl lock and try to acquire the other's lock with F_SETLKW. Observe EDEADLK and handle it gracefully.</li></ul>
           </div>
         </div>
 
@@ -185,52 +203,52 @@ close(dfd);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="fcntl locks are keyed by (pid, inode). Closing ANY fd referring to the same inode releases ALL fcntl locks held by that process on that file, regardless of which fd was used to acquire the lock.">
+  <div class="qp">Q1. What happens when a process closes one fd to a file while holding an fcntl lock via a different fd to the same file?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Nothing &mdash; only closing the locking fd releases the lock</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">The close fails with EBUSY</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">The lock is released</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">The lock is downgraded to shared</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="flock locks are tied to the open file description (kernel struct file). dup() shares the OFD, and fork() inherits it. Separate open() calls create independent OFDs with independent locks.">
+  <div class="qp">Q2. After fork(), what happens to a flock lock held by the parent?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">The child gets an independent copy of the lock</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Parent and child share the same lock (same OFD)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">The lock is released in the child</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The child must re-acquire the lock</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="The kernel detects deadlock cycles for fcntl F_SETLKW and returns EDEADLK to one of the processes. flock and OFD locks do not have kernel deadlock detection.">
+  <div class="qp">Q3. Which lock type has kernel-level deadlock detection?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">flock</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">OFD locks (F_OFD_SETLKW)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">lockf with F_TEST</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">fcntl F_SETLKW</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +256,7 @@ close(dfd);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -277,7 +295,7 @@ close(dfd);</code></pre>
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",
       highlight: ["inode", "dentry", "mount", "pagecache", "file", "fdtable"]
     });
-TLPIWidgets.mountStraceParser("str_ch55", {example: "openat(AT_FDCWD, \"conf.tmp\", O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644) = 3\nwrite(3, \"k=v\\n\", 4) = 4\nfsync(3) = 0\nclose(3) = 0\nrename(\"conf.tmp\", \"conf\") = 0\n"});
+TLPIWidgets.mountStraceParser("str_ch55", {example: "flock(3, LOCK_EX|LOCK_NB) = 0\nfcntl(4, F_SETLKW, {l_type=F_WRLCK, l_whence=SEEK_SET, l_start=0, l_len=4096}) = 0\nfcntl(4, F_SETLK, {l_type=F_UNLCK, l_whence=SEEK_SET, l_start=0, l_len=4096}) = 0\n"});
   </script>
 </body>
 </html>

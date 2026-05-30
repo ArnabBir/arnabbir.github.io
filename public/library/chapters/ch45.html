@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">965</span> (0-based index 964).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>ipc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>System V IPC</strong></span> <span class="pill"><strong>ftok</strong></span> <span class="pill"><strong>IPC_CREAT</strong></span> <span class="pill"><strong>ipcs</strong></span> <span class="pill"><strong>ipcrm</strong></span> <span class="pill"><strong>ipc_perm</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 45 — Introduction to System V IPC
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>System V IPC provides kernel-persistent objects — message queues, semaphores, and shared memory segments — identified by integer keys. The API is older and less clean than POSIX IPC, but remains widespread in legacy codebases and is fully supported by modern kernels.</p><p>All three System V IPC types share a common framework: ftok() generates keys, *get() creates or opens objects, *ctl() controls them, and *op() performs operations. Understanding this common pattern makes learning all three straightforward.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">System V IPC objects persist in the kernel until explicitly removed with IPC_RMID or until the system reboots. They are not reference-counted.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">ftok() can produce collisions: two different paths with the same inode number and proj_id yield the same key. Always check for EEXIST.</div>
 </div><div class="callout tip">
-  <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="k">Tip</div>
+  <div class="v">Use ipcs to list all System V IPC objects and ipcrm to remove orphaned ones. Check /proc/sysvipc/* for detailed kernel state.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li><strong>Common pattern across all three types</strong>: msgget/semget/shmget create or open an object; msgctl/semctl/shmctl query or modify metadata (permissions, limits, IPC_RMID); msgsnd+msgrcv / semop / shmat+shmdt perform the actual IPC operation.</li><li><strong>key_t from ftok(pathname, proj_id)</strong>: converts a filesystem path + 8-bit project ID into an integer key. The key identifies the IPC object across unrelated processes. ftok uses the file's inode number and device — it does not read the file contents.</li><li><strong>IPC_CREAT</strong>: flag passed to *get(). Creates the object if it doesn't exist. If it exists, opens it. Combined with IPC_EXCL, it fails with EEXIST if the object already exists — useful for ensuring you are the creator.</li><li><strong>IPC_PRIVATE (key=0)</strong>: creates a private object not associated with any key. Only accessible by processes that inherit the identifier (via fork). Useful for parent-child IPC without name collisions.</li><li><strong>Permissions</strong>: each IPC object has a struct ipc_perm with uid, gid, and mode bits (similar to files but no execute bit). Checked on each operation. Set at creation time; modifiable via *ctl(IPC_SET).</li><li><strong>Kernel persistence</strong>: unlike pipes (which vanish when fds close), System V IPC objects live until IPC_RMID or reboot. A crashed process leaves orphaned objects. Always plan cleanup: startup scripts, atexit handlers, or cron jobs running ipcrm.</li><li><strong>Resource limits</strong>: controlled via /proc/sys/kernel/msgmax, msgmnb, msgmni (message queues), semmsl, semmns, semmni (semaphores), shmmax, shmall, shmmni (shared memory). Hitting limits returns ENOSPC or ENOMEM.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>key_t</td><td>Integer type used to identify System V IPC objects. Generated by ftok() or set to IPC_PRIVATE for unnamed objects.</td></tr><tr><td class='mono'>ftok</td><td>ftok(path, proj_id) generates a key from a file's inode + device number + proj_id byte. Collision risk if inode numbers collide.</td></tr><tr><td class='mono'>IPC_CREAT</td><td>Flag: create the IPC object if it does not exist. ORed with permission bits in the *get() call.</td></tr><tr><td class='mono'>IPC_EXCL</td><td>Flag: used with IPC_CREAT to fail (EEXIST) if the object already exists. Ensures exclusive creation.</td></tr><tr><td class='mono'>IPC_RMID</td><td>Command for *ctl(): marks the IPC object for deletion. For shm, actual removal deferred until last shmdt. For msg/sem, immediate.</td></tr><tr><td class='mono'>IPC_PRIVATE</td><td>Special key (value 0): always creates a new, unnamed object. Only shareable via fork inheritance of the ID.</td></tr><tr><td class='mono'>ipcs / ipcrm</td><td>Shell utilities. ipcs lists IPC objects (ipcs -q queues, -s sems, -m shm). ipcrm removes by ID or key.</td></tr><tr><td class='mono'>ipc_perm</td><td>Kernel struct storing owner UID/GID, creator UID/GID, and permission mode bits for each IPC object.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>ftok</td><td class='mono'>key_t ftok(const char *pathname, int proj_id);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Generates System V IPC key; collisions possible, not secure.</td></tr><tr><td class='mono'>msgget</td><td class='mono'>int msgget(key_t key, int msgflg);</td><td class='mono muted2'>EACCES, ENOENT, ENOMEM</td><td>Gets/creates SysV message queue.</td></tr><tr><td class='mono'>semget</td><td class='mono'>int semget(key_t key, int nsems, int semflg);</td><td class='mono muted2'>EACCES, ENOENT, ENOMEM</td><td>Gets/creates SysV semaphore set.</td></tr><tr><td class='mono'>shmget</td><td class='mono'>int shmget(key_t key, size_t size, int shmflg);</td><td class='mono muted2'>EACCES, ENOENT, ENOMEM</td><td>Gets/creates SysV shared memory segment.</td></tr>
+    <tr><td class='mono'>ftok</td><td class='mono'>key_t ftok(const char *pathname, int proj_id);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Generates key from file inode + device + proj_id (low 8 bits). File must exist and be stat-able. Collisions possible.</td></tr><tr><td class='mono'>msgget</td><td class='mono'>int msgget(key_t key, int msgflg);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT, ENOSPC</td><td>Creates/opens SysV message queue. Returns msqid. ENOSPC when kernel limit on queues reached.</td></tr><tr><td class='mono'>semget</td><td class='mono'>int semget(key_t key, int nsems, int semflg);</td><td class='mono muted2'>EACCES, EEXIST, EINVAL, ENOSPC</td><td>Creates/opens SysV semaphore set with nsems semaphores. nsems must match existing set on open.</td></tr><tr><td class='mono'>shmget</td><td class='mono'>int shmget(key_t key, size_t size, int shmflg);</td><td class='mono muted2'>EACCES, EEXIST, EINVAL, ENOMEM</td><td>Creates/opens shared memory segment. size rounded up to page boundary. EINVAL if size mismatch on existing.</td></tr><tr><td class='mono'>msgctl / semctl / shmctl</td><td class='mono'>int *ctl(int id, int cmd, ...);</td><td class='mono muted2'>EPERM, EINVAL, EIDRM</td><td>IPC_STAT reads info, IPC_SET changes perms, IPC_RMID removes. EIDRM if already removed.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: always check /proc/sys/kernel/msg*, sem*, shm* for current limits before hitting mysterious ENOSPC/ENOMEM.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>ftok collisions and key generation</summary>
+  <div class="content"><ul><li>ftok() uses the file's st_ino (inode) and st_dev (device) plus proj_id. If two files on the same device have the same inode number (unlikely but possible after file deletion and recreation), ftok returns the same key.</li><li>If the file is deleted and recreated, its inode may change — causing ftok to return a different key. Existing IPC objects become orphaned.</li><li>proj_id is truncated to 8 bits. Only values 1-255 are useful. 0 is technically valid but discouraged (some implementations handle it poorly).</li><li>Alternative: use IPC_PRIVATE to avoid key collisions entirely, sharing the ID via fork or a side channel (file, environment variable).</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>Orphaned IPC objects after crashes</summary>
+  <div class="content"><ul><li>If a process crashes without calling IPC_RMID, the IPC object remains in the kernel indefinitely. This is the most common operational problem with System V IPC.</li><li>Use <span class="mono">ipcs</span> to list orphaned objects. Automate cleanup: check for stale objects on application startup or via a cron job.</li><li>For shared memory, IPC_RMID marks the segment for deletion but it persists until the last process calls shmdt(). For message queues and semaphores, IPC_RMID destroys immediately — pending operations get EIDRM.</li><li>Resource limits (msgmni, semmni, shmmni) cap the total number of objects system-wide. Orphaned objects eat into these limits.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Permissions and security</summary>
+  <div class="content"><ul><li>IPC permissions are checked like file permissions (read/write for owner, group, other) but there is no execute bit.</li><li>The creator (cuid/cgid) and owner (uid/gid) are tracked separately. Only the creator, owner, or root can call IPC_RMID or IPC_SET.</li><li>System V IPC has no pathname-based access control (unlike POSIX IPC in /dev/mqueue or /dev/shm). Security depends entirely on the permission bits and UID/GID matching.</li><li>In containerized environments, IPC namespaces (CLONE_NEWIPC) isolate System V IPC objects between containers.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Resource limits tuning</summary>
+  <div class="content"><ul><li>Message queues: msgmax (max message size, default 8192), msgmnb (max bytes per queue, default 16384), msgmni (max queues, default 32000).</li><li>Semaphores: semmsl (max sems per set, default 32000), semmns (max sems system-wide), semmni (max sets, default 32000).</li><li>Shared memory: shmmax (max segment size, default varies), shmall (max total pages), shmmni (max segments, default 4096).</li><li>Tune via sysctl or writing to /proc/sys/kernel/*. Changes take effect immediately for new objects.</li></ul></div>
 </details>
         </div>
 
@@ -146,18 +146,35 @@
     <button class="btn small" data-copy="#code_ch45">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    ftok + msgget pattern with proper error handling and cleanup.
   </div>
-  <pre id="code_ch45"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch45"><code class="mono">// System V IPC: create or open a message queue
+#include &lt;sys/msg.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+int main(void) {
+    // Generate key from a well-known path + project ID
+    key_t key = ftok("/tmp/myapp", 'A');  // proj_id = 'A' (65)
+    if (key == -1) { perror("ftok"); exit(1); }
+
+    // Create queue (fail if exists) with rw-rw---- perms
+    int qid = msgget(key, IPC_CREAT | IPC_EXCL | 0660);
+    if (qid == -1) {
+        if (errno == EEXIST) {
+            qid = msgget(key, 0);        // open existing
+            if (qid == -1) { perror("msgget open"); exit(1); }
+        } else { perror("msgget create"); exit(1); }
+    }
+    printf("queue id = %d\n", qid);
+
+    // ... use the queue (msgsnd / msgrcv) ...
+
+    // Cleanup: remove the queue
+    if (msgctl(qid, IPC_RMID, NULL) == -1)
+        perror("msgctl IPC_RMID");
+    return 0;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +183,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Always plan IPC object cleanup: atexit handler, signal handler, or startup cleanup routine that removes stale objects.</li><li>Use IPC_CREAT | IPC_EXCL for the creator process; just IPC_CREAT (or 0) for clients that attach.</li><li>Set restrictive permissions (0600 or 0660) and verify with ipcs -p to check creator/owner PIDs.</li><li>Monitor resource limits: check /proc/sys/kernel/msg*, sem*, shm* and tune before deployment.</li><li>Prefer POSIX IPC (mq_open, sem_open, shm_open) for new projects — cleaner API, fd-based, better cleanup semantics.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Write a program that calls ftok() on the same file with different proj_id values. Verify the keys differ. Then delete and recreate the file and observe the key change.</li><li>Create a message queue, semaphore set, and shared memory segment. List them with <span class="mono">ipcs</span>. Kill the creating process without cleanup. Verify they persist. Remove with <span class="mono">ipcrm</span>.</li><li>Write a startup routine that checks for stale IPC objects (by key) and removes them idempotently before creating fresh ones.</li></ul>
           </div>
         </div>
 
@@ -185,52 +202,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="ftok() uses the file's inode number, device number, and the low 8 bits of proj_id to generate a key. It does not read the file contents or use the filename itself.">
+  <div class="qp">Q1. What does ftok() use to generate a System V IPC key?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">The file contents and a hash function</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">The filename string and process PID</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">The file's inode number, device number, and proj_id</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">A random number seeded by the file path</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="System V IPC objects live in the kernel until explicitly removed with IPC_RMID (via *ctl()) or until the system reboots. They are not reference-counted and not cleaned up on process exit.">
+  <div class="qp">Q2. When are System V IPC objects removed from the kernel?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">When the creating process exits</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">When IPC_RMID is called or the system reboots</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">When all attached processes detach</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">After a configurable timeout expires</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="IPC_CREAT | IPC_EXCL together ensure exclusive creation: the *get() call fails with EEXIST if the object already exists. This lets you distinguish the creator from later clients.">
+  <div class="qp">Q3. What does IPC_CREAT | IPC_EXCL do in a *get() call?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Creates the object and gives exclusive access to the caller</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">Opens an existing object or creates if missing</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Creates the object with a lock preventing concurrent access</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Creates if absent; fails with EEXIST if already exists</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +255,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

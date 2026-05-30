@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">211</span> (0-based index 210).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>sys</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>/proc</strong></span> <span class="pill"><strong>time</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>setuid</strong></span> <span class="pill"><strong>credentials</strong></span> <span class="pill"><strong>privileges</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,33 +59,33 @@
             Chapter 09 — Process Credentials
           </h2>
           <div class="subtitle">
-            <p>“System information” chapters are about the operating context: identities (uid/gid), time, resource limits, and introspection. These APIs are where portability surprises and security boundaries show up in real programs.</p><p>Production workflows depend on observability: /proc, rlimits, uname/sysinfo, and careful error messages that carry enough context to debug failures in the field.</p>
+            <p>Process credentials determine <strong>what</strong> a process can do — the real/effective/saved UID/GID triple, privilege escalation via setuid binaries, and the art of dropping privileges safely.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Effective IDs + rlimits shape what your process can do.</div>
+  <div class="v">Permission checks use the effective UID/GID; the real UID identifies who actually started the process.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">sysconf can return -1 for both error and &#x27;unlimited&#x27;—check errno.</div>
+  <div class="v">Dropping privileges with seteuid(getuid()) is reversible; use setresuid() or setuid() (when euid==0) for permanent drop.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use /proc and prlimit/ulimit to inspect limits and runtime state.</div>
+  <div class="v">cat /proc/PID/status | grep -i uid shows Real, Effective, Saved, and FS UIDs on a single line.</div>
 </div></div>
         </div>
 
         <div class="glass pad-lg">
           <h3 class="section" data-toc="Mental model">Mental model</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world credential and privilege issues.
           </div>
           <div class="prose">
-            <ul><li>Environment matters: ids, groups, rlimits, and time sources change behavior.</li><li>Effective IDs control permissions; supplementary groups expand access.</li><li>rlimits cap resources and often cause production failures (too many open files).</li><li>/proc is a live API for debugging: fds, maps, status, and more.</li><li>Clock selection matters: monotonic for intervals, realtime for timestamps only.</li><li>Make errors actionable by logging context and current limits.</li></ul>
+            <ul><li>Every process carries <strong>three UIDs</strong> (real, effective, saved) and <strong>three GIDs</strong> — the effective IDs are what the kernel checks for permissions.</li><li>The <strong>set-user-ID bit</strong> on an executable causes exec() to set the process's effective UID to the file's owner UID, enabling controlled privilege escalation.</li><li>Permission checks for file access, signal delivery, and IPC all use the <strong>effective UID</strong> (euid), not the real UID.</li><li><code>setresuid()</code> gives atomic control over all three UIDs in one call — essential for correct, race-free privilege dropping.</li><li>Supplementary group IDs are checked alongside the effective GID during file access — a process can belong to multiple groups simultaneously.</li><li>Since Linux 2.6.26, <strong>capabilities</strong> offer finer-grained privilege than the all-or-nothing root model — prefer capabilities over full setuid-root where possible.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>UID/GID</td><td>User/group IDs controlling permission checks and access control decisions.</td></tr><tr><td class='mono'>rlimit</td><td>Resource limit preventing runaway usage (open files, memory, CPU).</td></tr><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing live kernel process state and system info.</td></tr><tr><td class='mono'>Clock</td><td>Time source (realtime vs monotonic) used for measurement and deadlines.</td></tr><tr><td class='mono'>errno</td><td>Thread-local error indicator set by failing syscalls.</td></tr><tr><td class='mono'>Capability</td><td>Fine-grained privilege bit; alternative to full root for some operations.</td></tr></tbody>
+  <tbody><tr><td class='mono'>ruid</td><td>Real user ID — identifies the user who originally started the process. Unchanged by setuid exec.</td></tr><tr><td class='mono'>euid</td><td>Effective user ID — used by the kernel for permission checks (file access, signals, IPC).</td></tr><tr><td class='mono'>suid</td><td>Saved set-user-ID — copy of euid made at exec time, allowing temporary privilege drop and later restoration.</td></tr><tr><td class='mono'>setresuid()</td><td>Atomically sets real, effective, and saved UIDs in a single call. The safest API for privilege manipulation.</td></tr><tr><td class='mono'>setuid bit</td><td>File permission bit (mode 04000) causing exec() to set euid to the file owner, enabling privilege escalation.</td></tr><tr><td class='mono'>capabilities</td><td>Per-thread privilege bits (e.g. CAP_NET_BIND_SERVICE) replacing the monolithic root model since Linux 2.6.26.</td></tr><tr><td class='mono'>supplementary groups</td><td>Additional group memberships beyond the primary GID; all checked during file permission evaluation.</td></tr><tr><td class='mono'>fs_uid</td><td>Linux-specific UID used only for filesystem permission checks. Normally shadows euid; rarely set independently.</td></tr></tbody>
 </table>
         </div>
 
@@ -100,7 +100,7 @@
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="API quick reference">API quick reference</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            A compact map of the APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
+            A compact map of the credential APIs and their sharp edges. Always verify details with <span class="mono">man 2/3</span>.
           </div>
           <table class="table">
   <thead>
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>setuid</td><td class='mono'>int setuid(uid_t uid);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Changes real/effective/saved uid (rules vary); security-critical—drop privileges early and permanently if possible.</td></tr><tr><td class='mono'>seteuid</td><td class='mono'>int seteuid(uid_t euid);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Sets effective UID (without changing real UID in some cases); security-sensitive.</td></tr><tr><td class='mono'>setgid</td><td class='mono'>int setgid(gid_t gid);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Sets process group IDs depending on privilege; used for privilege dropping.</td></tr><tr><td class='mono'>setresuid</td><td class='mono'>int setresuid(uid_t ruid, uid_t euid, uid_t suid);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Sets real/effective/saved UIDs; useful for permanent drop.</td></tr>
+    <tr><td class='mono'>getuid / geteuid</td><td class='mono'>uid_t getuid(void); uid_t geteuid(void);</td><td class='mono muted2'>—</td><td>Always succeed. Return real and effective UIDs respectively.</td></tr><tr><td class='mono'>setuid</td><td class='mono'>int setuid(uid_t uid);</td><td class='mono muted2'>EPERM</td><td>If euid==0, sets all three (ruid, euid, suid) — permanent drop. If unprivileged, can only set euid to ruid or suid.</td></tr><tr><td class='mono'>seteuid</td><td class='mono'>int seteuid(uid_t euid);</td><td class='mono muted2'>EPERM</td><td>Sets effective UID only. Unprivileged: can set to ruid or suid. Reversible — NOT a permanent drop.</td></tr><tr><td class='mono'>setreuid</td><td class='mono'>int setreuid(uid_t ruid, uid_t euid);</td><td class='mono muted2'>EPERM</td><td>Sets real and effective UIDs. If ruid is set (not -1), saved-set-uid is also set to the new euid.</td></tr><tr><td class='mono'>setresuid</td><td class='mono'>int setresuid(uid_t r, uid_t e, uid_t s);</td><td class='mono muted2'>EPERM</td><td>Atomically sets all three UIDs. Pass -1 for any to leave unchanged. Preferred for secure privilege manipulation.</td></tr><tr><td class='mono'>setgid / setegid</td><td class='mono'>int setgid(gid_t gid); int setegid(gid_t egid);</td><td class='mono muted2'>EPERM</td><td>GID equivalents. Always drop group privileges before user privileges to avoid losing permission to change groups.</td></tr><tr><td class='mono'>getgroups</td><td class='mono'>int getgroups(int size, gid_t list[]);</td><td class='mono muted2'>EINVAL</td><td>Returns supplementary group list. Size 0 returns count without filling array.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: always drop GID privileges before UID privileges — once you lose root euid, you cannot change groups.
           </div>
         </div>
 
@@ -126,14 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Identity and credentials</summary>
-  <div class="content"><ul><li>Linux tracks multiple UIDs/GIDs: real, effective, and saved. The effective IDs control permission checks.</li><li>Supplementary groups widen access; group lookup APIs are often non-thread-safe unless *_r variants are used.</li><li>Environment variables can be part of the trust boundary — especially for privileged programs.</li><li>Always log IDs and key environment for debugging authz failures in production.</li></ul></div>
+  <summary>Permanent vs temporary privilege drop</summary>
+  <div class="content"><ul><li><code>seteuid(getuid())</code> drops privileges temporarily — euid changes but suid retains the privileged UID, allowing restoration via <code>seteuid(saved_uid)</code>.</li><li>For permanent drop, use <code>setresuid(getuid(), getuid(), getuid())</code> to overwrite all three, eliminating any path back to privilege.</li><li>When euid==0, <code>setuid(newuid)</code> also does a permanent drop (sets all three). But when euid!=0 it only sets euid — the semantics are asymmetric and dangerous.</li><li>After dropping, always verify with <code>getresuid()</code> that all three are set correctly — a failed drop is a critical vulnerability.</li></ul></div>
 </details><details class="accordion">
-  <summary>Resource limits and introspection</summary>
-  <div class="content"><ul><li>rlimits cap resources like open files and address space. Many production incidents are simply RLIMIT_NOFILE too low.</li><li>sysconf/pathconf query system limits. Be careful: some return -1 for “no limit” and also on error (check errno).</li><li>/proc is a live view of kernel state: fd links, maps, status, and cgroup placement.</li><li>Time APIs: choose CLOCK_MONOTONIC for measuring intervals; realtime can jump due to NTP/time adjustments.</li></ul></div>
+  <summary>Setuid-root vs capabilities</summary>
+  <div class="content"><ul><li>A setuid-root binary gives full root privileges — any vulnerability in the binary is a full system compromise.</li><li>Linux capabilities (CAP_NET_BIND_SERVICE, CAP_DAC_OVERRIDE, etc.) allow granting only specific privileges without full root.</li><li>File capabilities (<code>setcap</code>) can be set on executables as an alternative to the setuid bit entirely.</li><li>Capability-aware programs should use <code>cap_set_proc()</code> and drop unneeded capabilities immediately after use.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>First confirm effective IDs (id -a, /proc/&lt;pid&gt;/status).</li><li>Inspect rlimits (ulimit -a, prlimit).</li><li>Use /proc for process-specific insight; it’s often faster than adding logs.</li><li>For time bugs, log clock source, timeouts, and monotonic deltas.</li></ul></div>
+  <summary>The fsuid anomaly</summary>
+  <div class="content"><ul><li>Linux has a fourth UID: <code>fsuid</code>. It is used exclusively for filesystem permission checks (open, stat, etc.).</li><li>Normally fsuid tracks euid automatically — if you set euid, fsuid follows. You almost never need to set it independently.</li><li><code>setfsuid()</code> exists for NFS servers that need to assume a client's identity for file access without changing euid for signal delivery checks.</li><li>The return value of setfsuid() is the <em>previous</em> fsuid, not a success/error indicator — unique among set*uid calls.</li></ul></div>
+</details><details class="accordion">
+  <summary>Exec of setuid from setgid process</summary>
+  <div class="content"><ul><li>When a setuid binary is exec'd, only the effective UID changes — the effective GID is unaffected unless the binary also has the setgid bit.</li><li>Supplementary groups are inherited across exec and are not affected by setuid/setgid bits on the file.</li><li>A process can simultaneously have elevated euid (from setuid) and elevated egid (from setgid) — both must be dropped.</li><li>Order matters: drop group privileges first, then user privileges. Reversing this order may leave you unable to drop groups.</li></ul></div>
 </details>
         </div>
 
@@ -143,31 +146,59 @@
     <button class="btn small" data-copy="#code_ch09">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Permanent privilege drop with verification. This is the pattern every setuid program should use.
   </div>
-  <pre id="code_ch09"><code class="mono">// Inspect rlimits (outline)
-struct rlimit rl;
-getrlimit(RLIMIT_NOFILE, &amp;rl);
-fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur, (long)rl.rlim_max);</code></pre>
+  <pre id="code_ch09"><code class="mono">// Permanent privilege drop using setresuid + verification
+#define _GNU_SOURCE
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+void drop_privileges_permanently(void) {
+    uid_t ruid = getuid();   // who really started us
+
+    // Drop group privs first (while we still have root euid)
+    if (setresgid(ruid, ruid, ruid) == -1) {
+        perror(&quot;setresgid&quot;);
+        _exit(EXIT_FAILURE);
+    }
+    // Now drop user privs — permanent, all three UIDs
+    if (setresuid(ruid, ruid, ruid) == -1) {
+        perror(&quot;setresuid&quot;);
+        _exit(EXIT_FAILURE);
+    }
+    // Verify: paranoia is correct here
+    uid_t r, e, s;
+    if (getresuid(&amp;r, &amp;e, &amp;s) == -1 ||
+        r != ruid || e != ruid || s != ruid) {
+        fprintf(stderr, &quot;privilege drop verification failed!\n&quot;);
+        _exit(EXIT_FAILURE);
+    }
+    // Confirm we cannot regain privilege
+    if (setresuid(0, 0, 0) != -1) {
+        fprintf(stderr, &quot;CRITICAL: regained root after drop!\n&quot;);
+        _exit(EXIT_FAILURE);
+    }
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Production checklist">Production checklist</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+            If you are shipping code that manipulates credentials, satisfy each item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Log effective IDs, rlimits, and key environment at startup for debuggability.</li><li>Use CLOCK_MONOTONIC for timeouts; never rely on realtime for deadlines.</li><li>Handle “unlimited” returns from sysconf/pathconf correctly (check errno).</li><li>Treat /proc as the source of truth for runtime state; build tooling around it.</li><li>Make errors actionable: include which resource, which limit, and current values.</li></ul>
+            <ul><li>Drop group privileges before user privileges — once euid is unprivileged, you lose the ability to change groups.</li><li>After any privilege drop, verify all three UIDs/GIDs with getresuid()/getresgid() and confirm regain fails.</li><li>Prefer capabilities over setuid-root; use <code>setcap</code> to grant only the specific capabilities needed.</li><li>Clear dangerous environment variables (LD_PRELOAD, LD_LIBRARY_PATH) in setuid programs before doing anything else.</li><li>Log the real UID at startup for audit trails — the effective UID shows what you can do, the real UID shows who you are.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+            <ul><li>Write a setuid-root program that opens a privileged resource, drops privileges permanently, then attempts to reopen — confirm it fails.</li><li>Use <code>strace -e trace=setresuid,setresgid,setuid,seteuid</code> on passwd(1) to observe its privilege transitions during a password change.</li><li>Compare <code>setuid(getuid())</code> vs <code>seteuid(getuid())</code> when euid==0: use getresuid() to show which is permanent and which is reversible.</li></ul>
           </div>
         </div>
 
@@ -176,52 +207,52 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="The kernel checks the effective UID (euid) for permission decisions, not the real UID. The real UID identifies who started the process.">
+  <div class="qp">Q1. Which UID does the kernel use for permission checks on file access?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Real UID</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">Saved set-user-ID</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Effective UID</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Login UID</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="seteuid() only changes the effective UID and leaves the saved UID intact, so the process can later restore euid from suid. For permanent drop, use setresuid() to overwrite all three.">
+  <div class="qp">Q2. Why is seteuid(getuid()) NOT a permanent privilege drop?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">It fails silently</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">The saved-set-uid still holds the privileged UID</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">The real UID overrides it</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The kernel ignores seteuid calls</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="Group privileges must be dropped first. Once the effective UID is no longer root, the process loses the ability to change group IDs, leaving elevated group privileges in place.">
+  <div class="qp">Q3. When dropping both UID and GID privileges, which must you drop first?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">GID first, then UID</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">UID first, then GID</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Order does not matter</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Drop both simultaneously with a single call</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -229,7 +260,7 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

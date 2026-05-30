@@ -59,17 +59,17 @@
             Chapter 52 — POSIX Message Queues
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>POSIX message queues offer priority-ordered message delivery with async notification &mdash; cleaner than System V, with better integration into event-driven architectures. Each message has discrete boundaries (not a byte stream) and an unsigned priority that determines receive order.</p><p>This chapter covers <span class="mono">mq_open</span>, sending and receiving with priorities, queue attributes (<span class="mono">mq_attr</span>), async notification via <span class="mono">mq_notify</span>, and timed operations for deadline-aware designs.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v"><span class="mono">mq_receive</span> always returns the highest-priority message first. Within the same priority, messages are delivered FIFO.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">The receive buffer must be at least <span class="mono">mq_attr.mq_msgsize</span> bytes, or <span class="mono">mq_receive</span> fails with EMSGSIZE. Check attributes after open.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="v"><span class="mono">cat /dev/mqueue/&lt;name&gt;</span> shows <span class="mono">QSIZE</span> (total bytes), <span class="mono">NOTIFY</span> (registered PID), <span class="mono">SIGNO</span>, and current/max messages.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li><span class="mono">mq_open(name, flags, mode, attr)</span> creates or opens a queue. The <span class="mono">attr</span> parameter sets <span class="mono">mq_maxmsg</span> (max messages in queue) and <span class="mono">mq_msgsize</span> (max bytes per message) at creation time &mdash; cannot be changed later.</li><li><span class="mono">mq_send(mqd, buf, len, priority)</span> enqueues a message. Higher priority number = delivered first. Blocks when queue is full (unless <span class="mono">O_NONBLOCK</span>).</li><li><span class="mono">mq_receive(mqd, buf, len, &amp;prio)</span> dequeues the highest-priority message. The buffer must be &ge; <span class="mono">mq_msgsize</span> or the call fails with EMSGSIZE.</li><li><span class="mono">mq_notify(mqd, sigevent)</span> registers for async notification when a message arrives on an empty queue. Only one process can register at a time. Notification fires once &mdash; must re-register after each delivery.</li><li><span class="mono">mq_timedreceive</span>/<span class="mono">mq_timedsend</span> accept an absolute <span class="mono">struct timespec</span> deadline &mdash; useful for avoiding indefinite blocking.</li><li>Messages have boundaries: each send/receive is one complete message, unlike pipe byte streams.</li><li>Backed by <span class="mono">/dev/mqueue</span> filesystem. Queue descriptors are NOT regular fds &mdash; <span class="mono">select</span>/<span class="mono">poll</span>/<span class="mono">epoll</span> support is Linux-specific (via <span class="mono">mq_getattr</span> returning an fd on some kernels).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>mq_open</td><td>Open/create a POSIX message queue. Returns <span class="mono">mqd_t</span> descriptor.</td></tr><tr><td class='mono'>mq_send</td><td>Enqueue a message with a priority. Blocks if full (without O_NONBLOCK).</td></tr><tr><td class='mono'>mq_receive</td><td>Dequeue the highest-priority message. Blocks if empty (without O_NONBLOCK).</td></tr><tr><td class='mono'>mq_notify</td><td>Register for one-shot async notification (signal or thread) when a message arrives on an empty queue.</td></tr><tr><td class='mono'>mq_attr</td><td>Structure holding <span class="mono">mq_flags</span>, <span class="mono">mq_maxmsg</span>, <span class="mono">mq_msgsize</span>, <span class="mono">mq_curmsgs</span>.</td></tr><tr><td class='mono'>msg_prio</td><td>Unsigned integer priority. Higher values are dequeued first.</td></tr><tr><td class='mono'>/dev/mqueue</td><td>Virtual filesystem showing live queues; cat a file to see stats.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>mq_send</td><td class='mono'>int mq_send(mqd_t mqdes, const char *msg_ptr, size_t msg_len, unsigned msg_prio);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>Sends to POSIX message queue; may block.</td></tr><tr><td class='mono'>mq_receive</td><td class='mono'>ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned *msg_prio);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>Receives from POSIX message queue.</td></tr><tr><td class='mono'>mq_notify</td><td class='mono'>int mq_notify(mqd_t mqdes, const struct sigevent *sevp);</td><td class='mono muted2'>EBUSY, EINVAL</td><td>Registers async notification when a message arrives.</td></tr>
+    <tr><td class='mono'>mq_open</td><td class='mono'>mqd_t mq_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, EINVAL, ENFILE, ENAMETOOLONG</td><td>With O_CREAT: pass mode_t + mq_attr*. mq_maxmsg limited by <span class="mono">/proc/sys/fs/mqueue/msg_max</span>.</td></tr><tr><td class='mono'>mq_send</td><td class='mono'>int mq_send(mqd_t mqdes, const char *msg_ptr, size_t msg_len, unsigned msg_prio);</td><td class='mono muted2'>EAGAIN, EINTR, EMSGSIZE</td><td>msg_len must be &le; mq_msgsize. Blocks when queue full unless O_NONBLOCK.</td></tr><tr><td class='mono'>mq_receive</td><td class='mono'>ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned *msg_prio);</td><td class='mono muted2'>EAGAIN, EINTR, EMSGSIZE</td><td>msg_len must be &ge; mq_msgsize or fails with EMSGSIZE.</td></tr><tr><td class='mono'>mq_notify</td><td class='mono'>int mq_notify(mqd_t mqdes, const struct sigevent *sevp);</td><td class='mono muted2'>EBUSY, EINVAL</td><td>One-shot; only one process per queue. Pass NULL to deregister.</td></tr><tr><td class='mono'>mq_timedreceive</td><td class='mono'>ssize_t mq_timedreceive(mqd_t, char*, size_t, unsigned*, const struct timespec*);</td><td class='mono muted2'>ETIMEDOUT, EINTR</td><td>Absolute deadline (CLOCK_REALTIME). Returns ETIMEDOUT on expiry.</td></tr><tr><td class='mono'>mq_getattr / mq_setattr</td><td class='mono'>int mq_getattr(mqd_t mqdes, struct mq_attr *attr);</td><td class='mono muted2'>EBADF</td><td>mq_setattr can only change mq_flags (O_NONBLOCK). Cannot resize queue.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: check <span class="mono">/proc/sys/fs/mqueue/msg_max</span> and <span class="mono">msgsize_max</span> for system limits on queue creation.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Buffer sizing pitfall</summary>
+  <div class="content"><ul><li><span class="mono">mq_receive</span> requires a buffer &ge; <span class="mono">mq_msgsize</span> (the queue's max message size), NOT the actual message length. This catches many first-time users.</li><li>Always call <span class="mono">mq_getattr</span> after open to discover the actual <span class="mono">mq_msgsize</span>, then allocate accordingly.</li><li>The default <span class="mono">mq_msgsize</span> (if attr is NULL on creation) is system-defined &mdash; often 8192 bytes on Linux.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>mq_notify semantics</summary>
+  <div class="content"><ul><li>Notification fires only when a message arrives on a previously empty queue &mdash; not on every message.</li><li>After notification fires, you must re-register before the next drain-to-empty cycle.</li><li>Only one process can be registered per queue at a time. A second <span class="mono">mq_notify</span> returns EBUSY.</li><li>With <span class="mono">SIGEV_THREAD</span>: the kernel spawns a thread for the callback. Be careful with thread safety and re-registration timing.</li><li>Best pattern: in the notification callback, drain all messages (loop until EAGAIN), then re-register.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Priority ordering</summary>
+  <div class="content"><ul><li>Higher numeric priority = dequeued first. Priority 10 is delivered before priority 1.</li><li>Within the same priority, messages are FIFO.</li><li>Maximum priority is at least 31 (<span class="mono">MQ_PRIO_MAX - 1</span>); on Linux typically 32767.</li><li>If you don't need priorities, use 0 for all messages &mdash; the queue becomes a simple FIFO.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Timed operations and deadlines</summary>
+  <div class="content"><ul><li><span class="mono">mq_timedreceive</span>/<span class="mono">mq_timedsend</span> use absolute <span class="mono">struct timespec</span> values (CLOCK_REALTIME).</li><li>Calculate deadline as: <span class="mono">clock_gettime(CLOCK_REALTIME, &amp;ts); ts.tv_sec += timeout;</span></li><li>Returns ETIMEDOUT if the deadline passes. Returns EINTR if interrupted by a signal.</li><li>Be aware of clock adjustments (NTP, settimeofday) affecting CLOCK_REALTIME deadlines.</li></ul></div>
 </details>
         </div>
 
@@ -146,18 +146,35 @@
     <button class="btn small" data-copy="#code_ch52">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Producer-consumer with priorities and mq_notify thread callback.
   </div>
-  <pre id="code_ch52"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch52"><code class="mono">/* Producer: send messages with priorities */
+struct mq_attr attr = { .mq_maxmsg = 10, .mq_msgsize = 256 };
+mqd_t mq = mq_open(&quot;/work&quot;, O_CREAT|O_WRONLY, 0600, &amp;attr);
+mq_send(mq, &quot;low-pri task&quot;,  12, 1);   /* priority 1 */
+mq_send(mq, &quot;high-pri task&quot;, 13, 10);  /* priority 10 */
+mq_close(mq);
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+/* Consumer: receive (highest priority first) */
+mqd_t mq = mq_open(&quot;/work&quot;, O_RDONLY);
+struct mq_attr a; mq_getattr(mq, &amp;a);
+char buf[a.mq_msgsize];
+unsigned prio;
+ssize_t n = mq_receive(mq, buf, sizeof(buf), &amp;prio);
+/* buf = &quot;high-pri task&quot;, prio = 10 (delivered first) */
+
+/* Async notification with thread callback */
+static void on_msg(union sigval sv) {
+    mqd_t mq = *(mqd_t *)sv.sival_ptr;
+    struct mq_attr a; mq_getattr(mq, &amp;a);
+    char buf[a.mq_msgsize]; unsigned p;
+    while (mq_receive(mq, buf, sizeof(buf), &amp;p) &gt; 0)
+        process(buf, p);            /* drain all */
+    struct sigevent sev = { .sigev_notify = SIGEV_THREAD,
+        .sigev_notify_function = on_msg,
+        .sigev_value.sival_ptr = sv.sival_ptr };
+    mq_notify(mq, &amp;sev);           /* re-register */
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +183,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Set <span class="mono">mq_maxmsg</span> and <span class="mono">mq_msgsize</span> explicitly at creation &mdash; don't rely on defaults.</li><li>Always allocate receive buffers to <span class="mono">mq_msgsize</span> (from <span class="mono">mq_getattr</span>), not the expected message size.</li><li>Use <span class="mono">mq_timedsend</span>/<span class="mono">mq_timedreceive</span> with deadlines to avoid indefinite blocking.</li><li>If using <span class="mono">mq_notify</span>: drain all messages in the callback, then re-register before returning.</li><li>Call <span class="mono">mq_unlink</span> during cleanup; design idempotent startup that unlinks stale queues.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Write a producer that sends messages at priorities 0, 5, 10. Write a consumer that receives them and verify the order is 10, 5, 0.</li><li>Implement <span class="mono">mq_notify</span> with <span class="mono">SIGEV_THREAD</span>. Send messages from another process and verify the callback fires. Test what happens if you forget to re-register.</li><li>Fill a queue to capacity and observe <span class="mono">mq_send</span> behavior with and without <span class="mono">O_NONBLOCK</span>. Use <span class="mono">cat /dev/mqueue/&lt;name&gt;</span> to watch <span class="mono">mq_curmsgs</span>.</li></ul>
           </div>
         </div>
 
@@ -185,52 +202,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="mq_receive requires a buffer at least as large as mq_msgsize (the queue's configured maximum), not the actual message length. This is a common source of EMSGSIZE errors.">
+  <div class="qp">Q1. Why does mq_receive fail with EMSGSIZE even though the message is small?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">The message was too large to send</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">The queue is full</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">The receive buffer is smaller than mq_msgsize</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">The priority is invalid</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="mq_notify fires only once, when a message arrives on an empty queue. You must re-register in the callback to receive future notifications.">
+  <div class="qp">Q2. How often does mq_notify fire?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">On every message arrival</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Once, when a message arrives on an empty queue</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">Periodically at a configurable interval</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">Continuously until deregistered</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="Higher numeric priority = dequeued first. Priority 10 messages are always returned before priority 1 messages.">
+  <div class="qp">Q3. If a queue has messages at priorities 1, 5, and 10, which is received first?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Priority 1 (lowest first)</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">Priority 5 (middle)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Whichever was sent first</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Priority 10 (highest first)</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +255,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

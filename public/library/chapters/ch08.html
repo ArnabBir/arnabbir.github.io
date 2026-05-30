@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">197</span> (0-based index 196).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>sys</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>/proc</strong></span> <span class="pill"><strong>time</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>/etc/passwd</strong></span> <span class="pill"><strong>/etc/shadow</strong></span> <span class="pill"><strong>NSS</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 08 — Users and Groups
           </h2>
           <div class="subtitle">
-            <p>“System information” chapters are about the operating context: identities (uid/gid), time, resource limits, and introspection. These APIs are where portability surprises and security boundaries show up in real programs.</p><p>Production workflows depend on observability: /proc, rlimits, uname/sysinfo, and careful error messages that carry enough context to debug failures in the field.</p>
+            <p>Identity management in Linux — how the kernel maps UIDs to names, password storage and hashing, NSS (Name Service Switch), and safe credential lookup patterns. The kernel operates entirely on integer UIDs/GIDs; translating between names and numbers is a user-space concern handled by NSS and the passwd/group databases.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Effective IDs + rlimits shape what your process can do.</div>
+  <div class="v">The kernel only knows UIDs/GIDs as integers; name&#x2192;UID mapping is purely user-space (NSS).</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">sysconf can return -1 for both error and &#x27;unlimited&#x27;—check errno.</div>
+  <div class="v">getpwnam/getpwuid return pointers to static buffers — not thread-safe; use the _r variants in any multithreaded code.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use /proc and prlimit/ulimit to inspect limits and runtime state.</div>
+  <div class="v">id(1), groups(1), and getent passwd/group query the actual NSS sources — use them to verify what your process will see.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Environment matters: ids, groups, rlimits, and time sources change behavior.</li><li>Effective IDs control permissions; supplementary groups expand access.</li><li>rlimits cap resources and often cause production failures (too many open files).</li><li>/proc is a live API for debugging: fds, maps, status, and more.</li><li>Clock selection matters: monotonic for intervals, realtime for timestamps only.</li><li>Make errors actionable by logging context and current limits.</li></ul>
+            <ul><li><strong>UIDs and GIDs are kernel-level integers.</strong> Every permission check, file ownership test, and signal delivery uses raw numeric IDs — never strings.</li><li><strong>Names are a user-space convention resolved via NSS.</strong> The Name Service Switch (/etc/nsswitch.conf) determines where lookups go: local files, LDAP, SSSD, NIS, etc.</li><li><strong>/etc/passwd has a fixed 7-field format:</strong> <code>login:x:uid:gid:gecos:home:shell</code>. The <code>x</code> in the password field means "look in /etc/shadow".</li><li><strong>The shadow file separates password hashes from the world-readable passwd file.</strong> Only root (or shadow group) can read /etc/shadow, preventing offline brute-force by unprivileged users.</li><li><strong>Supplementary groups extend the primary GID.</strong> A process can belong to up to NGROUPS_MAX groups (typically 65536 on Linux); all are checked during permission evaluation.</li><li><strong>NSS plugins (files, ldap, sss) control where lookups go.</strong> Ordering in nsswitch.conf matters — a slow or failing LDAP backend can stall getpwnam() for every login.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>UID/GID</td><td>User/group IDs controlling permission checks and access control decisions.</td></tr><tr><td class='mono'>rlimit</td><td>Resource limit preventing runaway usage (open files, memory, CPU).</td></tr><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing live kernel process state and system info.</td></tr><tr><td class='mono'>Clock</td><td>Time source (realtime vs monotonic) used for measurement and deadlines.</td></tr><tr><td class='mono'>errno</td><td>Thread-local error indicator set by failing syscalls.</td></tr><tr><td class='mono'>Capability</td><td>Fine-grained privilege bit; alternative to full root for some operations.</td></tr></tbody>
+  <tbody><tr><td class='mono'>UID</td><td>User ID — 32-bit unsigned integer identifying a user to the kernel. Stored in process credentials and inode metadata.</td></tr><tr><td class='mono'>GID</td><td>Group ID — 32-bit unsigned integer for group membership. Primary GID comes from /etc/passwd; supplementary GIDs from /etc/group.</td></tr><tr><td class='mono'>/etc/passwd</td><td>World-readable user database (7 colon-separated fields). Does not contain actual password hashes on modern systems.</td></tr><tr><td class='mono'>/etc/shadow</td><td>Root-readable file storing password hashes, aging info, and account expiry. Keyed by username.</td></tr><tr><td class='mono'>NSS</td><td>Name Service Switch — glibc framework that dispatches getpw*/getgr* calls to configured backends (files, LDAP, SSSD).</td></tr><tr><td class='mono'>getpwnam_r</td><td>Thread-safe reentrant version of getpwnam(). Caller supplies the buffer; no static data races.</td></tr><tr><td class='mono'>crypt(3)</td><td>One-way password hashing function. Supports multiple algorithms via prefix ($6$ = SHA-512, $y$ = yescrypt).</td></tr><tr><td class='mono'>Supplementary groups</td><td>Additional GIDs beyond the primary GID. Set via initgroups()/setgroups(); checked by the kernel on every access() and open().</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>getuid</td><td class='mono'>uid_t getuid(void);</td><td class='mono muted2'>—</td><td>Returns real user ID.</td></tr><tr><td class='mono'>getgid</td><td class='mono'>gid_t getgid(void);</td><td class='mono muted2'>—</td><td>Returns real group ID.</td></tr><tr><td class='mono'>getpwnam</td><td class='mono'>struct passwd *getpwnam(const char *name);</td><td class='mono muted2'>—</td><td>User DB lookup; not thread-safe unless using getpwnam_r().</td></tr><tr><td class='mono'>getgrnam</td><td class='mono'>struct group *getgrnam(const char *name);</td><td class='mono muted2'>—</td><td>Group DB lookup; not thread-safe unless using getgrnam_r().</td></tr>
+    <tr><td class='mono'>getpwnam</td><td class='mono'>struct passwd *getpwnam(const char *name);</td><td class='mono muted2'>ENOENT, ENOMEM</td><td>Returns static buffer — not thread-safe. Returns NULL on not-found (errno unchanged) or error (errno set).</td></tr><tr><td class='mono'>getpwnam_r</td><td class='mono'>int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result);</td><td class='mono muted2'>ERANGE, ENOENT</td><td>Thread-safe reentrant variant. Retry with larger buffer on ERANGE.</td></tr><tr><td class='mono'>getpwuid</td><td class='mono'>struct passwd *getpwuid(uid_t uid);</td><td class='mono muted2'>—</td><td>Lookup by numeric UID. Same static-buffer caveat as getpwnam.</td></tr><tr><td class='mono'>getgrnam</td><td class='mono'>struct group *getgrnam(const char *name);</td><td class='mono muted2'>—</td><td>Group DB lookup; not thread-safe unless using getgrnam_r().</td></tr><tr><td class='mono'>getgrgid</td><td class='mono'>struct group *getgrgid(gid_t gid);</td><td class='mono muted2'>—</td><td>Group lookup by numeric GID. Same static-buffer issue.</td></tr><tr><td class='mono'>crypt</td><td class='mono'>char *crypt(const char *key, const char *salt);</td><td class='mono muted2'>ENOSYS, EINVAL</td><td>One-way hash. Salt prefix selects algorithm ($6$ = SHA-512). Link with -lcrypt.</td></tr><tr><td class='mono'>getgrouplist</td><td class='mono'>int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);</td><td class='mono muted2'>—</td><td>Retrieves all supplementary groups for a user. Returns -1 if buffer too small (ngroups updated).</td></tr><tr><td class='mono'>initgroups</td><td class='mono'>int initgroups(const char *user, gid_t group);</td><td class='mono muted2'>EPERM, ENOMEM</td><td>Sets supplementary group list for current process. Requires CAP_SETGID.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: distinguish "not found" (NULL return, errno unchanged) from "error" (NULL return, errno set) for getpw*/getgr* functions.
           </div>
         </div>
 
@@ -126,14 +126,14 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Identity and credentials</summary>
-  <div class="content"><ul><li>Linux tracks multiple UIDs/GIDs: real, effective, and saved. The effective IDs control permission checks.</li><li>Supplementary groups widen access; group lookup APIs are often non-thread-safe unless *_r variants are used.</li><li>Environment variables can be part of the trust boundary — especially for privileged programs.</li><li>Always log IDs and key environment for debugging authz failures in production.</li></ul></div>
+  <summary>Thread safety of passwd/group functions</summary>
+  <div class="content"><ul><li>getpwnam(), getpwuid(), getgrnam(), getgrgid() all return pointers to a single static struct — a second call from any thread overwrites the previous result.</li><li>Even in single-threaded code, calling getpwnam() inside a loop where you also call getgrnam() can corrupt the first result since they may share internal buffers.</li><li>Always use the _r (reentrant) variants in libraries and multithreaded programs. Start with sysconf(_SC_GETPW_R_SIZE_MAX) for initial buffer size, and retry on ERANGE.</li><li>setpwent()/getpwent()/endpwent() for iteration are inherently non-reentrant — serialize access or use fgetpwent_r() on a private FILE*.</li></ul></div>
 </details><details class="accordion">
-  <summary>Resource limits and introspection</summary>
-  <div class="content"><ul><li>rlimits cap resources like open files and address space. Many production incidents are simply RLIMIT_NOFILE too low.</li><li>sysconf/pathconf query system limits. Be careful: some return -1 for “no limit” and also on error (check errno).</li><li>/proc is a live view of kernel state: fd links, maps, status, and cgroup placement.</li><li>Time APIs: choose CLOCK_MONOTONIC for measuring intervals; realtime can jump due to NTP/time adjustments.</li></ul></div>
+  <summary>NSS ordering and failures</summary>
+  <div class="content"><ul><li>nsswitch.conf controls lookup order: <code>passwd: files sss ldap</code>. Each source is tried in order until a definitive answer is found.</li><li>Action items like [NOTFOUND=return] or [UNAVAIL=continue] control fallback behavior — misconfiguration here causes silent lookup failures.</li><li>A hung LDAP/SSSD backend blocks getpwnam() — this can stall login, sudo, and any daemon doing user lookups. Set timeouts in SSSD/nslcd config.</li><li>NSS modules are loaded as shared libraries into the calling process. A buggy NSS module can crash your application.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>First confirm effective IDs (id -a, /proc/&lt;pid&gt;/status).</li><li>Inspect rlimits (ulimit -a, prlimit).</li><li>Use /proc for process-specific insight; it’s often faster than adding logs.</li><li>For time bugs, log clock source, timeouts, and monotonic deltas.</li></ul></div>
+  <summary>UID overflow and sentinel values</summary>
+  <div class="content"><ul><li>Linux UIDs are 32-bit (0 to 4294967294). UID 65534 is conventionally "nobody" — used by NFS and the kernel when no valid mapping exists.</li><li>Some legacy systems and protocols (NFSv2) only support 16-bit UIDs (0–65535). Files owned by UIDs &gt;65535 appear as "nobody" on these systems.</li><li>UID 0 is always root — this is hardcoded in the kernel, not configurable via NSS.</li><li>(uid_t)-1 (== 4294967295) is reserved as an error sentinel by setuid/setgid and should never be assigned to a real user.</li><li>The "nobody" user (65534) and "nogroup" group (65534) are kernel fallback values — do not use them for application service accounts.</li></ul></div>
 </details>
         </div>
 
@@ -143,12 +143,53 @@
     <button class="btn small" data-copy="#code_ch08">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Thread-safe user lookup with getpwnam_r and supplementary group enumeration.
   </div>
-  <pre id="code_ch08"><code class="mono">// Inspect rlimits (outline)
-struct rlimit rl;
-getrlimit(RLIMIT_NOFILE, &amp;rl);
-fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur, (long)rl.rlim_max);</code></pre>
+  <pre id="code_ch08"><code class="mono">/* ch08: Thread-safe user lookup + supplementary group check */
+#include &lt;pwd.h&gt;
+#include &lt;grp.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+
+/* Lookup user by name — reentrant, safe for threads */
+int lookup_user(const char *name) {
+    struct passwd pwd, *result;
+    long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufsize == -1) bufsize = 16384;   /* fallback */
+
+    char *buf = malloc((size_t)bufsize);
+    if (!buf) { perror("malloc"); return -1; }
+
+    int s;
+    while ((s = getpwnam_r(name, &amp;pwd, buf, (size_t)bufsize, &amp;result)) == ERANGE) {
+        bufsize *= 2;
+        char *nb = realloc(buf, (size_t)bufsize);
+        if (!nb) { free(buf); perror("realloc"); return -1; }
+        buf = nb;
+    }
+    if (s != 0)      { errno = s; perror("getpwnam_r"); free(buf); return -1; }
+    if (!result)      { fprintf(stderr, "user '%s' not found\n", name); free(buf); return -1; }
+
+    printf("user=%s  uid=%u  gid=%u  home=%s  shell=%s\n",
+           pwd.pw_name, pwd.pw_uid, pwd.pw_gid, pwd.pw_dir, pwd.pw_shell);
+
+    /* Enumerate supplementary groups */
+    int ngroups = 32;
+    gid_t *groups = malloc(sizeof(gid_t) * (size_t)ngroups);
+    if (getgrouplist(name, pwd.pw_gid, groups, &amp;ngroups) == -1) {
+        groups = realloc(groups, sizeof(gid_t) * (size_t)ngroups);
+        getgrouplist(name, pwd.pw_gid, groups, &amp;ngroups);
+    }
+    printf("supplementary groups (%d):", ngroups);
+    for (int i = 0; i &lt; ngroups; i++) printf(" %u", groups[i]);
+    putchar('\n');
+
+    free(groups);
+    free(buf);
+    return 0;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -157,17 +198,17 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Log effective IDs, rlimits, and key environment at startup for debuggability.</li><li>Use CLOCK_MONOTONIC for timeouts; never rely on realtime for deadlines.</li><li>Handle “unlimited” returns from sysconf/pathconf correctly (check errno).</li><li>Treat /proc as the source of truth for runtime state; build tooling around it.</li><li>Make errors actionable: include which resource, which limit, and current values.</li></ul>
+            <ul><li>Use getpwnam_r / getgrnam_r (never the non-reentrant versions) in any multithreaded or library code.</li><li>Handle ERANGE from _r functions by retrying with a larger buffer — do not assume sysconf gives a sufficient size.</li><li>Distinguish "not found" (result == NULL, return == 0) from "error" (return != 0) in getpwnam_r results.</li><li>Never hardcode UID/GID values — resolve at runtime via NSS. Exception: UID 0 is always root.</li><li>Verify NSS configuration (nsswitch.conf) and set timeouts on remote backends (LDAP/SSSD) to avoid stalling user lookups.</li><li>Use crypt() with strong salt prefixes ($6$ for SHA-512 or $y$ for yescrypt) — never MD5 ($1$) or DES.</li><li>Log the resolved UID/GID at process startup for debuggability in production incidents.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+            <ul><li>Write a C program that calls getpwnam_r for the current user and prints all 7 passwd fields. Run it under strace and confirm it opens /etc/passwd (or contacts SSSD).</li><li>Demonstrate the static-buffer bug: call getpwnam("root"), save the pointer, call getpwnam("nobody"), then print the first pointer's pw_name. Explain the result.</li><li>Use <code>getent passwd</code> and <code>getent group</code> to enumerate all NSS-visible users/groups. Compare with raw <code>cat /etc/passwd</code> — note any entries from LDAP/SSSD that only appear via getent.</li><li>Write a program that calls getgrouplist() for a user and prints all supplementary group names (resolve each GID via getgrgid_r).</li><li>Modify /etc/nsswitch.conf (in a VM) to put a nonexistent source first (<code>passwd: notreal files</code>). Observe login behavior and strace output.</li></ul>
           </div>
         </div>
 
@@ -176,52 +217,68 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="The kernel uses only integer UIDs/GIDs for all permission checks. Name-to-UID mapping happens entirely in user-space via the NSS framework.">
+  <div class="qp">Q1. How does the kernel identify users during permission checks?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">By looking up /etc/passwd on each syscall</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">By username string stored in the process descriptor</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">By numeric UID/GID integers in the process credentials</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">By querying NSS via a kernel thread</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="getpwnam() returns a pointer to a static buffer that is overwritten on every call. Only the _r variant uses caller-supplied storage and is safe for concurrent use.">
+  <div class="qp">Q2. Why is getpwnam() unsafe in multithreaded programs?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">It acquires a global mutex that causes deadlocks</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">It returns a pointer to a static buffer overwritten by subsequent calls</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">It opens /etc/passwd without O_CLOEXEC</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">It uses signals internally that interfere with other threads</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="The password field 'x' in /etc/passwd means the actual hash is stored in /etc/shadow, which is readable only by root. This prevents unprivileged users from obtaining hashes for offline attacks.">
+  <div class="qp">Q3. What does the 'x' in the password field of /etc/passwd signify?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">The account is locked and cannot log in</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">The password is empty (no authentication required)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">The password is stored in an LDAP directory</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The password hash is in /etc/shadow instead</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="0" data-explain="ERANGE from getpwnam_r means the supplied buffer was too small. The correct response is to increase the buffer size and retry the call.">
+  <div class="qp">Q4. What should you do when getpwnam_r returns ERANGE?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Increase the buffer size and retry</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Fall back to getpwnam()</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Report user not found</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">Abort the program</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -229,7 +286,7 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

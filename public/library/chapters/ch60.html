@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1283</span> (0-based index 1282).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>net</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>TCP/IP</strong></span> <span class="pill"><strong>unix domain</strong></span> <span class="pill"><strong>nonblocking</strong></span> <span class="pill"><strong>epoll</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>server architecture</strong></span> <span class="pill"><strong>pre-forked</strong></span> <span class="pill"><strong>event-driven</strong></span> <span class="pill"><strong>inetd</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 60 — Sockets: Server Design
           </h2>
           <div class="subtitle">
-            <p>Sockets are file descriptors with protocol state. Once you internalize that, networking becomes a composition problem: nonblocking I/O, buffering, backpressure, and state machines. TCP adds its own realities: handshake, retransmissions, congestion control, TIME_WAIT, and half-close behavior.</p><p>This guide highlights server design patterns: accept loops, connection handling strategies, timeouts, and how to observe the system (ss, tcpdump, strace).</p>
+            <p>Server architecture determines scalability &mdash; from simple iterative servers to fork-per-connection, thread pools, and event-driven designs. The choice depends on connection lifetime, concurrency requirements, and resource constraints.</p><p>This chapter surveys the spectrum: iterative (one client at a time), fork-per-connection (isolation), thread-per-connection (shared state), pre-forked/pre-threaded pools (amortized creation cost), event-driven with epoll (maximum throughput), and the inetd super-server pattern. Modern production servers often use a hybrid: event loop for I/O multiplexing plus a thread pool for blocking operations.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Sockets are fds; treat networking as nonblocking I/O + a state machine.</div>
+  <div class="v">Server design is about bounding work per connection, isolating failures, and choosing the right concurrency model for the workload profile.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Nonblocking connect returns EINPROGRESS; completion requires poll/epoll + SO_ERROR.</div>
+  <div class="v">Pre-forked servers with a shared listen socket cause "thundering herd" &mdash; all workers wake on one connection. SO_REUSEPORT gives each worker its own accept queue.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use ss -antp for states and tcpdump for packets; strace shows errno boundaries.</div>
+  <div class="v">Measure accept latency, connections/sec, and per-worker CPU. Use ss -s for socket statistics and /proc/net/sockstat for kernel queue depths.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A socket is a file descriptor plus protocol state and kernel buffers.</li><li>TCP is a state machine; your application must handle connect/accept/close transitions.</li><li>Nonblocking mode turns I/O into explicit scheduling (EINPROGRESS, EAGAIN, readiness).</li><li>Backpressure is a feature: when buffers fill, stop writing and resume later.</li><li>Server design is about bounding work per connection and isolating slow clients.</li><li>Observe the system: ss/tcpdump/strace tell you the truth about network behavior.</li></ul>
+            <ul><li>Iterative server: one client at a time in a simple accept-handle-close loop. Adequate for fast requests (DNS, time services) but blocks all other clients during processing.</li><li>Fork-per-connection: accept() then fork(). Child handles the client, parent continues accepting. Strong isolation (crash in child doesn't affect others) but expensive (fork copies page tables, ~ms per connection).</li><li>Thread-per-connection: accept() then pthread_create(). Cheaper than fork (shared address space) but requires careful synchronization. Thread stack memory limits scalability (~8MB default stack * 10K threads = 80GB).</li><li>Pre-forked / pre-threaded: create a pool of N workers at startup; each calls accept() in a loop. Avoids per-connection creation overhead. Thundering herd problem: use SO_REUSEPORT so each worker has its own accept queue.</li><li>Event-driven: single thread (or few threads) using epoll to multiplex all connections. O(k) where k = ready fds. Highest throughput for I/O-bound workloads but requires all operations to be nonblocking &mdash; complex state machines per connection.</li><li>inetd super-server: listens on multiple ports defined in /etc/inetd.conf. On connection, forks and exec's the appropriate service binary with socket on stdin/stdout. Simple deployment but high per-connection overhead.</li><li>Hybrid: event loop for I/O multiplexing + thread pool for CPU-intensive or blocking operations (disk I/O, DNS resolution). This is what nginx, Node.js libuv, and most modern servers use.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Socket</td><td>File descriptor with protocol state (TCP/UDP/UNIX) and send/recv buffers.</td></tr><tr><td class='mono'>Listen socket</td><td>Passive socket that queues connection requests; accept() returns connected sockets.</td></tr><tr><td class='mono'>EINPROGRESS</td><td>Nonblocking connect in progress; complete via poll/epoll writability + SO_ERROR.</td></tr><tr><td class='mono'>TIME_WAIT</td><td>TCP state on active close to handle delayed packets; normal and expected.</td></tr><tr><td class='mono'>Backpressure</td><td>Mechanism to stop producers when consumers can&#x27;t keep up (EAGAIN, buffer limits).</td></tr><tr><td class='mono'>epoll</td><td>Readiness notification API; returns ready set instead of scanning all fds.</td></tr></tbody>
+  <tbody><tr><td class='mono'>Iterative server</td><td>Handles one client at a time. Simple, no concurrency. Suitable only for very fast request-response patterns.</td></tr><tr><td class='mono'>Concurrent server</td><td>Handles multiple clients simultaneously via fork, threads, or event-driven multiplexing.</td></tr><tr><td class='mono'>Pre-forked pool</td><td>N worker processes created at startup, each calling accept(). Avoids fork() overhead per connection. Use SO_REUSEPORT.</td></tr><tr><td class='mono'>Event-driven</td><td>Single-thread epoll loop multiplexing all connections. All I/O nonblocking. Maximum throughput, complex state management.</td></tr><tr><td class='mono'>epoll</td><td>Linux I/O readiness API. O(k) for k ready fds. Supports level-triggered (LT) and edge-triggered (ET) modes.</td></tr><tr><td class='mono'>Thread pool</td><td>Fixed set of worker threads processing tasks from a queue. Bounds resource usage and amortizes creation cost.</td></tr><tr><td class='mono'>inetd</td><td>Super-server daemon that listens on configured ports and spawns service programs on demand. Configured via /etc/inetd.conf.</td></tr><tr><td class='mono'>SO_REUSEPORT</td><td>Allows multiple sockets to bind the same port. Kernel distributes connections across them, solving thundering herd.</td></tr></tbody>
 </table>
         </div>
 
@@ -115,11 +115,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>accept4</td><td class='mono'>int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, ECONNABORTED</td><td>Accepts connection; use SOCK_CLOEXEC|SOCK_NONBLOCK via accept4 to avoid fd races.</td></tr><tr><td class='mono'>epoll_create1</td><td class='mono'>int epoll_create1(int flags);</td><td class='mono muted2'>EINVAL, EMFILE, ENFILE, ENOMEM</td><td>Creates epoll instance fd. Use EPOLL_CLOEXEC.</td></tr><tr><td class='mono'>epoll_ctl</td><td class='mono'>int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);</td><td class='mono muted2'>EBADF, EEXIST, ENOENT, EINVAL</td><td>Adds/modifies/deletes interest list. Edge-triggered requires draining until EAGAIN.</td></tr><tr><td class='mono'>epoll_wait</td><td class='mono'>int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Returns ready events (O(k)). Handle EINTR; use timeout for periodic housekeeping.</td></tr><tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr><tr><td class='mono'>socket</td><td class='mono'>int socket(int domain, int type, int protocol);</td><td class='mono muted2'>EAFNOSUPPORT, EPROTONOSUPPORT, EMFILE, ENFILE</td><td>Creates a socket fd. Use SOCK_CLOEXEC / SOCK_NONBLOCK to avoid races.</td></tr>
+    <tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Creates child process. Returns 0 in child, child PID in parent. Child inherits all fds &mdash; close listen socket in child, client fd in parent.</td></tr><tr><td class='mono'>accept4</td><td class='mono'>int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, ECONNABORTED, EMFILE</td><td>Atomically set SOCK_CLOEXEC|SOCK_NONBLOCK. EMFILE: fd limit &mdash; temporarily stop accepting.</td></tr><tr><td class='mono'>epoll_create1</td><td class='mono'>int epoll_create1(int flags);</td><td class='mono muted2'>EMFILE, ENFILE, ENOMEM</td><td>Creates epoll instance. Use EPOLL_CLOEXEC flag. Returns an fd that must be closed.</td></tr><tr><td class='mono'>epoll_ctl</td><td class='mono'>int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);</td><td class='mono muted2'>EBADF, EEXIST, ENOENT</td><td>EPOLL_CTL_ADD/MOD/DEL. Edge-triggered (EPOLLET) requires draining fd until EAGAIN.</td></tr><tr><td class='mono'>epoll_wait</td><td class='mono'>int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);</td><td class='mono muted2'>EINTR</td><td>Returns count of ready fds. timeout=-1 blocks indefinitely; 0 returns immediately (poll).</td></tr><tr><td class='mono'>setsockopt</td><td class='mono'>int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);</td><td class='mono muted2'>ENOPROTOOPT, EINVAL</td><td>SO_REUSEPORT: per-socket accept queue. SO_REUSEADDR: bind over TIME_WAIT.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: in pre-forked servers, each worker should have its own epoll instance; sharing epoll across processes is possible but rarely beneficial.
           </div>
         </div>
 
@@ -129,17 +129,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>TCP state machine: what servers actually deal with</summary>
-  <div class="content"><ul><li>connect() initiates handshake (SYN). The server’s listen socket queues connections before accept() returns a connected socket.</li><li>Nonblocking connect returns EINPROGRESS; completion is detected via poll/epoll writability then SO_ERROR.</li><li>Half-close exists: one side can shutdown(SHUT_WR) while still reading. recv()==0 means FIN received.</li><li>TIME_WAIT is normal for active close; reuse needs care (SO_REUSEADDR) and a good understanding of 4-tuples.</li></ul></div>
+  <summary>Fork-per-connection: zombie processes and fd leaks</summary>
+  <div class="content"><ul><li>After fork(), the parent must close the client fd (it has its own copy). The child must close the listen fd. Failing to close leaks fds and prevents port release.</li><li>Child processes that exit become zombies until the parent calls waitpid(). Use SIGCHLD handler with waitpid(-1, NULL, WNOHANG) in a loop to reap all finished children.</li><li>Alternatively, double-fork (fork, child forks again, first child exits) to orphan the grandchild to init/systemd, avoiding zombie management entirely.</li><li>Under heavy load, fork() can fail with EAGAIN if process limits are hit. Have a fallback: reject the connection or serve it in the parent.</li></ul></div>
 </details><details class="accordion">
-  <summary>Backpressure and buffers</summary>
-  <div class="content"><ul><li>The kernel has send/receive buffers. If your app doesn’t read, the peer eventually blocks or drops based on protocol and timeouts.</li><li>Short writes happen; treat EAGAIN as a signal to stop writing and wait for EPOLLOUT.</li><li>Nagle (TCP_NODELAY) and delayed ACKs interact with small writes; batch writes when possible.</li><li>Always set timeouts (connect, read, write, idle) to avoid hanging connections.</li></ul></div>
+  <summary>Thundering herd and SO_REUSEPORT</summary>
+  <div class="content"><ul><li>Classic pre-fork: all workers share one listen socket and block on accept(). When a connection arrives, all workers wake up but only one wins &mdash; the rest waste CPU.</li><li>SO_REUSEPORT (Linux 3.9+): each worker binds its own socket to the same port. Kernel distributes connections to individual accept queues &mdash; no contention, no thundering herd.</li><li>With SO_REUSEPORT, worker death means its queued connections are lost (RST). Use EPOLLEXCLUSIVE (Linux 4.5+) as a lighter alternative that wakes only one waiter.</li><li>Balance worker count: too few leaves CPU idle; too many causes context-switch overhead. N = CPU cores is a good starting point for CPU-bound work.</li></ul></div>
 </details><details class="accordion">
-  <summary>Server design: scaling patterns</summary>
-  <div class="content"><ul><li>Thread-per-connection is simple but can be memory heavy. Event loops scale when per-connection work is bounded and nonblocking.</li><li>Use accept4 with SOCK_NONBLOCK|SOCK_CLOEXEC to avoid races and simplify setup.</li><li>Consider load shedding: cap accept rate, apply per-IP limits, and bound queues to prevent collapse under overload.</li><li>Measure: accept rate, SYN backlog drops, retransmissions, tail latency, and CPU spent in softirq/network stack.</li></ul></div>
+  <summary>Event-driven: edge-triggered vs level-triggered epoll</summary>
+  <div class="content"><ul><li>Level-triggered (default): epoll_wait reports a fd as ready as long as the condition holds. Simpler but may cause redundant wakeups if you don't fully drain the fd.</li><li>Edge-triggered (EPOLLET): epoll_wait reports only on state transitions (not-ready &rarr; ready). You MUST read/write until EAGAIN or you'll miss events permanently.</li><li>With ET, forgetting to drain means the fd is never reported again until a new event arrives. This manifests as "stuck" connections &mdash; hard to debug.</li><li>EPOLLONESHOT: fires only once; must re-arm with epoll_ctl(MOD) after handling. Useful for thread-pool dispatching to avoid two threads handling the same fd.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>ss -antp gives state and owning process. tcpdump/wireshark reveals handshake and retransmissions.</li><li>strace -f -e trace=network shows socket syscalls and errno (ECONNREFUSED, ETIMEDOUT).</li><li>Check /proc/sys/net/* for kernel tuning and listen backlog limits.</li><li>For high packet rates, perf can show time in tcp_recvmsg, tcp_sendmsg, and softirq handlers.</li></ul></div>
+  <summary>inetd and systemd socket activation</summary>
+  <div class="content"><ul><li>inetd reads /etc/inetd.conf, opens listen sockets for all configured services, and select()/poll() on them. On connection, fork+exec the service binary with the socket as fd 0/1.</li><li>Advantage: no listen/bind/accept code in the service binary. Disadvantage: fork+exec overhead per connection; unsuitable for high-rate services.</li><li>systemd socket activation is the modern equivalent: systemd holds the listen socket, starts the service on first connection, passes the fd via SD_LISTEN_FDS_START.</li><li>Socket activation enables on-demand service startup and zero-downtime restarts (systemd holds the listen socket during service restart).</li></ul></div>
 </details>
         </div>
 
@@ -151,15 +151,36 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch60"><code class="mono">// Nonblocking connect pattern (outline)
-int fd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, 0);
-int rc = connect(fd, (struct sockaddr*)&amp;addr, sizeof(addr));
-if (rc == 0) { /* connected */ }
-else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
-  // wait for writability with poll/epoll
-  // then check SO_ERROR via getsockopt
-} else {
-  // real error (ECONNREFUSED, ETIMEDOUT, ...)
+  <pre id="code_ch60"><code class="mono">// Pre-forked server skeleton with SO_REUSEPORT
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+#define WORKERS 4
+#define PORT    8080
+
+void worker_loop(void) {
+    int lfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+    int on = 1;
+    setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &amp;on, sizeof(on));
+    setsockopt(lfd, SOL_SOCKET, SO_REUSEPORT, &amp;on, sizeof(on));
+    struct sockaddr_in addr = { .sin_family=AF_INET,
+        .sin_port=htons(PORT), .sin_addr.s_addr=htonl(INADDR_ANY) };
+    bind(lfd, (struct sockaddr*)&amp;addr, sizeof(addr));
+    listen(lfd, 128);
+    for (;;) {
+        int cfd = accept4(lfd, NULL, NULL, SOCK_CLOEXEC);
+        if (cfd &lt; 0) continue;
+        // handle client on cfd (read/write/close)
+        close(cfd);
+    }
+}
+int main(void) {
+    for (int i = 1; i &lt; WORKERS; i++)
+        if (fork() == 0) { worker_loop(); exit(0); }
+    worker_loop();  // parent is also a worker
 }</code></pre>
 </div>
 
@@ -169,17 +190,17 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use SOCK_CLOEXEC/SOCK_NONBLOCK and accept4 to avoid races and simplify setup.</li><li>Implement backpressure: bounded buffers, stop writing on EAGAIN, and resume on EPOLLOUT.</li><li>Set timeouts (connect/read/write/idle) and handle half-closes correctly.</li><li>Instrument: connection counts, queue depths, bytes in/out, and tail latencies.</li><li>Use ss/tcpdump/perf for debugging; don’t guess about network states.</li></ul>
+            <ul><li>Choose concurrency model based on workload: event-driven for many idle connections, thread-pool for CPU-bound, pre-forked for isolation.</li><li>Use SO_REUSEPORT for pre-forked/pre-threaded servers to eliminate thundering herd and accept queue contention.</li><li>In fork-per-connection servers, install a SIGCHLD handler that reaps all zombies with waitpid(-1, NULL, WNOHANG) in a loop.</li><li>For event-driven servers, use edge-triggered epoll only if you guarantee draining until EAGAIN; otherwise prefer level-triggered.</li><li>Implement graceful shutdown: stop accepting, drain in-flight requests, then exit. Use signalfd or a self-pipe to integrate signal handling with the event loop.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a TCP echo server with nonblocking sockets, per-connection buffers, and epoll (LT first, then ET).</li><li>Add timeouts: idle timeout and write timeout; close connections cleanly on expiry.</li><li>Capture packets with tcpdump while connecting; map observed handshake to your socket state logs.</li></ul>
+            <ul><li>Implement a pre-forked echo server with 4 workers using SO_REUSEPORT. Benchmark with wrk or ab and compare throughput to a single-process iterative server.</li><li>Build an event-driven echo server with epoll (level-triggered first, then convert to edge-triggered). Verify correct behavior by sending large messages that require multiple read() calls.</li><li>Write an inetd-style launcher: read a config file mapping port to binary, listen on each port, fork+exec the binary on connection with the socket as stdin/stdout.</li></ul>
           </div>
         </div>
 
@@ -188,52 +209,52 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="EINPROGRESS indicates connection is in progress; wait for writability and check SO_ERROR.">
-  <div class="qp">Q1. Nonblocking connect() usually returns:</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="3" data-explain="SO_REUSEPORT gives each worker its own accept queue, eliminating the thundering herd problem where all workers wake for one connection.">
+  <div class="qp">Q1. Which socket option solves thundering herd in pre-forked servers?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">0 always</div></div>
+  <div><div style="font-weight:750">SO_REUSEADDR</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EINPROGRESS</div></div>
+  <div><div style="font-weight:750">TCP_NODELAY</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 ENOENT</div></div>
+  <div><div style="font-weight:750">SO_KEEPALIVE</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EBADF</div></div>
+  <div><div style="font-weight:750">SO_REUSEPORT</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="0" data-explain="accept returns a new file descriptor representing the established connection.">
-  <div class="qp">Q2. What does accept() return?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="Edge-triggered epoll only fires on state transitions. If you don't read until EAGAIN, the fd won't be reported again until new data arrives.">
+  <div class="qp">Q2. What happens if you don't drain a fd to EAGAIN with edge-triggered epoll?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A new fd for a connected socket</div></div>
+  <div><div style="font-weight:750">epoll_wait returns an error</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A PID</div></div>
+  <div><div style="font-weight:750">The fd is automatically closed</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A thread handle</div></div>
+  <div><div style="font-weight:750">The fd may never be reported ready again</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">An inode</div></div>
+  <div><div style="font-weight:750">The kernel drains it for you</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="ss can display state and owning process.">
-  <div class="qp">Q3. Which tool shows TCP states with PIDs?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="inetd is a super-server that listens on multiple ports and spawns the appropriate service binary (fork+exec) when a connection arrives.">
+  <div class="qp">Q3. What is the role of inetd?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ls</div></div>
+  <div><div style="font-weight:750">Super-server that spawns services on demand per connection</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ss -antp</div></div>
+  <div><div style="font-weight:750">A DNS resolver daemon</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">cat</div></div>
+  <div><div style="font-weight:750">A firewall configuration tool</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">dd</div></div>
+  <div><div style="font-weight:750">A thread pool library</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -241,7 +262,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -282,7 +303,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
     });
 TLPIWidgets.mountSocketLab("sock_ch60", {});
 TLPIWidgets.mountEpollLab("ep_ch60", {N: 2000, k: 20});
-TLPIWidgets.mountStraceParser("str_ch60", {example: "socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP) = 3\nconnect(3, {{sa_family=AF_INET, sin_port=htons(443), sin_addr=...}}, 16) = -1 EINPROGRESS (Operation now in progress)\npoll([{fd=3, events=POLLOUT}], 1, 3000) = 1\ngetsockopt(3, SOL_SOCKET, SO_ERROR, [0], [4]) = 0\n"});
+TLPIWidgets.mountStraceParser("str_ch60", {example: "socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC, IPPROTO_TCP) = 3\nsetsockopt(3, SOL_SOCKET, SO_REUSEPORT, [1], 4) = 0\nsetsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0\nbind(3, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr(\"0.0.0.0\")}, 16) = 0\nlisten(3, 128) = 0\nclone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD) = 1234\naccept4(3, {sa_family=AF_INET, sin_port=htons(54321)}, [16], SOCK_CLOEXEC) = 4\n"});
   </script>
 </body>
 </html>

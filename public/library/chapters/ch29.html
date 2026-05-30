@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">661</span> (0-based index 660).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>threads</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pthreads</strong></span> <span class="pill"><strong>mutex</strong></span> <span class="pill"><strong>condvar</strong></span> <span class="pill"><strong>cancellation</strong></span> <span class="pill"><strong>TLS</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pthread_create</strong></span> <span class="pill"><strong>pthread_join</strong></span> <span class="pill"><strong>CLONE_VM</strong></span> <span class="pill"><strong>TID</strong></span> <span class="pill"><strong>thread stack</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 29 — Threads: Introduction
           </h2>
           <div class="subtitle">
-            <p>Threads share an address space but execute independently. That sounds simple until you deal with memory visibility, lock ordering, cancellation, thread-local state, and resource lifetime. The pthreads API is a toolset; correctness comes from disciplined invariants and a debugging mindset.</p><p>This guide emphasizes race-free patterns: ownership, immutability, critical sections, condition variables with while-loops, and safe shutdown (cancellation points + cleanup handlers).</p>
+            <p>Threads share the address space within a process -- cheaper than fork but sharing means synchronization is mandatory. A thread is essentially a kernel task created with CLONE_VM that shares the parent's heap, globals, file descriptors, and credentials while maintaining its own stack, TID, errno, and signal mask.</p><p>This chapter covers the lifecycle: pthread_create spawns a thread, pthread_join reaps it, and pthread_detach lets it clean up autonomously. Understanding what is shared vs. private is the foundation for every subsequent threads chapter.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Shared memory requires synchronization; data races are undefined behavior.</div>
+  <div class="v">Threads share heap, globals, and file descriptors; each thread has its own stack, TID, errno, and signal mask.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Condition variables require a predicate loop to avoid lost/spurious wakeups.</div>
+  <div class="v">If the main thread calls return from main(), the process exits (calls exit()), terminating all threads -- use pthread_exit() instead to let other threads continue.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use TSan in tests; perf can reveal contention in futex waits.</div>
+  <div class="v">Use /proc/PID/task/ to enumerate thread TIDs; gdb's "info threads" lists all threads in the process.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Threads share memory; races are bugs unless synchronized (mutex/atomics).</li><li>A mutex protects an invariant; keep critical sections small and consistent.</li><li>Condition variables wait for predicates; always check predicate in a loop.</li><li>Cancellation and shutdown need cleanup handlers and ownership discipline.</li><li>Thread-local state can hide complexity; document lifetime and destructors.</li><li>Measure contention: futex waits and context switches indicate scalability limits.</li></ul>
+            <ul><li>A thread is a kernel schedulable entity (task_struct) that shares the address space via CLONE_VM -- it is not a separate process.</li><li>pthread_create spawns a new thread; it returns 0 on success and an error number (not -1) on failure -- always check the return value.</li><li>pthread_join is to threads what waitpid is to child processes: it blocks until the target thread terminates and retrieves its return value.</li><li>Each thread has its own stack (default ~8 MB), TID (gettid()), errno (thread-local macro), and signal mask.</li><li>Shared between threads: heap memory (malloc), global/static variables, file descriptors, process ID, credentials (UID/GID), and working directory.</li><li>Detached threads (pthread_detach) release their resources automatically on termination -- they cannot be joined.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Mutex</td><td>Mutual exclusion lock protecting shared state; defines critical sections.</td></tr><tr><td class='mono'>Condvar</td><td>Condition variable for waiting on a predicate; requires mutex + while-loop.</td></tr><tr><td class='mono'>TLS</td><td>Thread-local storage: per-thread variables and destructor semantics.</td></tr><tr><td class='mono'>Futex</td><td>Kernel primitive underlying many pthread locks; contention shows as futex waits.</td></tr><tr><td class='mono'>Cancellation</td><td>Cooperative thread termination via cancellation points and cleanup handlers.</td></tr><tr><td class='mono'>Data race</td><td>Undefined behavior when unsynchronized concurrent access occurs (one write).</td></tr></tbody>
+  <tbody><tr><td class='mono'>pthread_t</td><td>Opaque thread identifier returned by pthread_create; used with join/detach/cancel.</td></tr><tr><td class='mono'>pthread_create</td><td>Creates a new thread executing start_routine(arg) in the same address space.</td></tr><tr><td class='mono'>pthread_join</td><td>Blocks caller until target thread terminates; retrieves exit value. Join exactly once.</td></tr><tr><td class='mono'>pthread_detach</td><td>Marks a thread as detached so resources are freed on termination without joining.</td></tr><tr><td class='mono'>CLONE_VM</td><td>clone() flag: child shares parent's virtual memory -- the kernel mechanism behind threads.</td></tr><tr><td class='mono'>TID</td><td>Thread ID (gettid()); unique per thread, visible in /proc/PID/task/TID.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pthread_create</td><td class='mono'>int pthread_create(pthread_t *thr, const pthread_attr_t *attr, void *(*start)(void*), void *arg);</td><td class='mono muted2'>EAGAIN, EINVAL</td><td>Creates a thread in same process. Beware of default stack size and thread naming for debuggability.</td></tr><tr><td class='mono'>pthread_join</td><td class='mono'>int pthread_join(pthread_t thread, void **retval);</td><td class='mono muted2'>EINVAL, ESRCH, EDEADLK</td><td>Joins a joinable thread; join exactly once. Detached threads cannot be joined.</td></tr>
+    <tr><td class='mono'>pthread_create</td><td class='mono'>int pthread_create(pthread_t *thr, const pthread_attr_t *attr, void *(*start)(void*), void *arg);</td><td class='mono muted2'>EAGAIN, EINVAL</td><td>Returns error number directly (not -1). EAGAIN means resource limit (RLIMIT_NPROC or kernel max). Pass data via arg, not globals.</td></tr><tr><td class='mono'>pthread_join</td><td class='mono'>int pthread_join(pthread_t thread, void **retval);</td><td class='mono muted2'>EINVAL, ESRCH, EDEADLK</td><td>Blocks until thread exits. EDEADLK if thread tries to join itself. Cannot join a detached thread.</td></tr><tr><td class='mono'>pthread_detach</td><td class='mono'>int pthread_detach(pthread_t thread);</td><td class='mono muted2'>EINVAL, ESRCH</td><td>Once detached, cannot be joined. Resources freed automatically on exit.</td></tr><tr><td class='mono'>pthread_exit</td><td class='mono'>void pthread_exit(void *retval);</td><td class='mono muted2'>--</td><td>Terminates calling thread only. If called from main, other threads keep running. Do not return a pointer to a local variable.</td></tr><tr><td class='mono'>pthread_self</td><td class='mono'>pthread_t pthread_self(void);</td><td class='mono muted2'>--</td><td>Returns the pthread_t of the calling thread. Compare with pthread_equal(), not ==.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: pthread functions return error numbers directly -- do not check errno. Use <span class="mono">strerror(ret)</span> to decode.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Correctness model: data races are bugs</summary>
-  <div class="content"><ul><li>If two threads access the same memory and at least one is a write, you need synchronization (mutex/atomic).</li><li>Thread safety is broader than locks: includes signal safety, cancellation safety, and lifetime management.</li><li>Condition variables require a predicate and a loop. Spurious wakeups are allowed; missed wakeups happen without correct locking.</li><li>Prefer ownership/immutability when possible: it eliminates entire classes of races.</li></ul></div>
+  <summary>Thread creation pitfalls</summary>
+  <div class="content"><ul><li>Passing a pointer to a loop variable as arg is a classic race: by the time the thread reads it, the loop may have advanced. Allocate per-thread data or cast to (void*)(intptr_t)i.</li><li>pthread_create can fail with EAGAIN if you hit RLIMIT_NPROC or the system-wide thread limit (/proc/sys/kernel/threads-max). Always check the return value.</li><li>Thread attributes (stack size, detach state, scheduling) default to sensible values; only customize when you understand the tradeoff.</li><li>Creating thousands of threads with default 8 MB stacks can exhaust virtual address space on 32-bit systems.</li></ul></div>
 </details><details class="accordion">
-  <summary>Cancellation and cleanup</summary>
-  <div class="content"><ul><li>Cancellation is cooperative: threads stop at cancellation points depending on type/state.</li><li>Always pair cancellation with cleanup handlers (pthread_cleanup_push/pop) so locks and resources are released.</li><li>Design shutdown protocols: stop accepting work, drain queues, signal workers, join, then free shared state.</li><li>Avoid mixing fork() with threads unless you exec immediately; it is a common source of deadlocks.</li></ul></div>
+  <summary>Joining and detaching</summary>
+  <div class="content"><ul><li>Every joinable thread must be joined exactly once, or you leak resources (similar to zombie processes).</li><li>A detached thread cannot be joined -- calling pthread_join on it yields EINVAL.</li><li>Joining a thread that has already been joined is undefined behavior.</li><li>If main() returns without joining or detaching threads, exit() is called and all threads are killed immediately.</li></ul></div>
 </details><details class="accordion">
-  <summary>Performance notes</summary>
-  <div class="content"><ul><li>Lock contention shows up as CPU in futex waits and high context switches. Reduce critical section size and improve locality.</li><li>Reader-writer locks can starve writers or readers depending on implementation; measure before choosing.</li><li>Per-thread storage is useful but can hide memory bloat and complicate teardown. Document ownership clearly.</li><li>Prefer epoll/event loops for I/O concurrency; use threads for CPU-bound parallelism when work units are coarse enough.</li></ul></div>
+  <summary>Shared vs. private state</summary>
+  <div class="content"><ul><li>Heap, globals, static locals, and file descriptors are shared -- concurrent access without synchronization is a data race (undefined behavior).</li><li>Stack variables are private to each thread (each thread gets its own stack).</li><li>errno is thread-local (macro expanding to a per-thread location) so it is safe to check after a failed call.</li><li>The signal mask is per-thread (pthread_sigmask), but signal dispositions (handlers) are process-wide.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use thread sanitizers (TSan) for race detection in tests.</li><li>gdb/rr can inspect thread stacks; `info threads` and `thread apply all bt` are core moves.</li><li>Look at /proc/&lt;pid&gt;/task for per-thread stats.</li><li>perf can attribute time to futex and lock contention hot spots.</li></ul></div>
+  <summary>Thread termination</summary>
+  <div class="content"><ul><li>A thread terminates by: returning from start_routine, calling pthread_exit(), being cancelled, or any thread calling exit()/_exit().</li><li>Do not return a pointer to a stack-local variable from a thread -- the stack is freed on thread exit.</li><li>If the main thread calls pthread_exit() instead of return/exit(), the process continues until all other threads finish.</li><li>Calling exit() from any thread terminates the entire process.</li></ul></div>
 </details>
         </div>
 
@@ -146,27 +146,34 @@
     <button class="btn small" data-copy="#code_ch29">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    pthread_create + join pattern with error checking.
   </div>
-  <pre id="code_ch29"><code class="mono">// Condition variable pattern: predicate + while loop
-pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  cv = PTHREAD_COND_INITIALIZER;
-int ready = 0;
+  <pre id="code_ch29"><code class="mono">// Thread creation and joining with error checking
+#include &lt;pthread.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
 
 void *worker(void *arg){
-  pthread_mutex_lock(&amp;m);
-  while(!ready) pthread_cond_wait(&amp;cv, &amp;m);
-  pthread_mutex_unlock(&amp;m);
-  return NULL;
+  int id = (int)(intptr_t)arg;        // safe cast from void*
+  printf("thread %d running (tid=%ld)\n", id, (long)gettid());
+  return (void*)(intptr_t)(id * 10);   // return value
 }
 
-int main(){
-  pthread_t t; pthread_create(&amp;t, NULL, worker, NULL);
-  pthread_mutex_lock(&amp;m);
-  ready = 1;
-  pthread_cond_broadcast(&amp;cv);
-  pthread_mutex_unlock(&amp;m);
-  pthread_join(t, NULL);
+int main(void){
+  enum { N = 4 };
+  pthread_t thr[N];
+  for(int i = 0; i &lt; N; i++){
+    int s = pthread_create(&amp;thr[i], NULL, worker,
+                           (void*)(intptr_t)i);
+    if(s != 0){ fprintf(stderr,"create: %s\n",strerror(s)); exit(1); }
+  }
+  for(int i = 0; i &lt; N; i++){
+    void *res;
+    int s = pthread_join(thr[i], &amp;res);
+    if(s != 0){ fprintf(stderr,"join: %s\n",strerror(s)); exit(1); }
+    printf("thread %d returned %ld\n", i, (long)(intptr_t)res);
+  }
 }</code></pre>
 </div>
 
@@ -176,17 +183,17 @@ int main(){
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Define ownership of shared data; protect mutable shared state with mutexes or atomics.</li><li>Use condition variables with a predicate in a while-loop; handle spurious wakeups.</li><li>Avoid global locks in hot paths; minimize critical sections and lock contention.</li><li>Design clean shutdown and ensure all locks/resources are released on cancellation/error.</li><li>Use sanitizers in CI (TSan/ASan) and keep reproducers small.</li></ul>
+            <ul><li>Always check pthread_create return value; handle EAGAIN gracefully (back off, log, retry).</li><li>Join every joinable thread exactly once, or detach threads that should self-clean.</li><li>Never pass pointers to stack locals across thread boundaries unless the creating thread outlives the child.</li><li>Use pthread_exit() in main if you want other threads to keep running after main's work is done.</li><li>Set thread names (pthread_setname_np) for debuggability in gdb and /proc/PID/task/TID/comm.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a bounded work queue with a mutex + condition variable; prove no lost wakeups (predicate loop).</li><li>Introduce a deliberate race and catch it with ThreadSanitizer in a test build.</li><li>Build a graceful shutdown: stop producers, wake workers, join threads, free resources.</li></ul>
+            <ul><li>Create 8 threads, each printing its TID (gettid()) and pthread_self(). Verify TIDs are unique but all share the same PID (getpid()).</li><li>Demonstrate the "dangling pointer to loop variable" bug: pass &amp;i to each thread and observe the race. Fix it using (void*)(intptr_t)i.</li><li>Call pthread_exit(NULL) from main instead of return 0. Observe that child threads continue to run.</li></ul>
           </div>
         </div>
 
@@ -195,52 +202,52 @@ int main(){
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Threads share heap, globals, and file descriptors. Each thread has its own stack.">
+  <div class="qp">Q1. Which resource is NOT shared between threads in the same process?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Heap memory</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">File descriptors</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Stack</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Global variables</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="pthread_create returns 0 on success or an error number directly -- it does not set errno or return -1.">
+  <div class="qp">Q2. How does pthread_create indicate failure?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">Returns -1 and sets errno</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Returns a positive error number directly</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">Throws an exception</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">Sets a global error flag</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="If main returns, exit() is called which terminates all threads. Use pthread_exit() in main to let other threads continue.">
+  <div class="qp">Q3. What happens if the main thread returns from main() while other threads are still running?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Other threads keep running indefinitely</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">Other threads become detached</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Other threads are paused</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The entire process terminates (exit() is called)</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +255,7 @@ int main(){
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

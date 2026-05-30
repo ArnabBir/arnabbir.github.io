@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1041</span> (0-based index 1040).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>ipc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>shmget</strong></span> <span class="pill"><strong>shmat</strong></span> <span class="pill"><strong>shmdt</strong></span> <span class="pill"><strong>shmctl</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 48 — System V Shared Memory
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>System V shared memory is the fastest IPC mechanism &mdash; data is mapped directly into multiple process address spaces with no kernel copy on read or write. The trade-off: you must handle synchronization yourself, typically with semaphores.</p><p>Once attached, shared memory behaves like regular memory (pointer arithmetic, structs, arrays). The kernel only intervenes during creation, attachment, detachment, and removal &mdash; actual data access is pure user-space memory operations at RAM speed.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">Shared memory segments persist in the kernel until explicitly removed with IPC_RMID, even after the creator exits.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">No built-in synchronization &mdash; concurrent reads/writes without semaphores or mutexes cause data races and corruption.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="v">ipcs -m shows segments with size, nattch (attached process count), and status; ipcrm -m removes leaked segments.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li>shmget() creates a shared memory segment (size rounded up to PAGE_SIZE); returns shmid.</li><li>shmat() maps the segment into the calling process's address space; returns a pointer you use like malloc'd memory.</li><li>shmdt() unmaps the segment from the process; the segment still exists in the kernel.</li><li>shmctl(IPC_RMID) marks the segment for deletion; it is actually destroyed when the last process detaches (nattch drops to 0).</li><li>No kernel involvement during reads/writes &mdash; this is what makes shared memory the fastest IPC.</li><li>You MUST synchronize access with semaphores, mutexes in shared memory (PTHREAD_PROCESS_SHARED), or other mechanisms.</li><li>SHM_RDONLY flag on shmat() prevents writes; useful for read-only consumers.</li><li>Segments persist across process lifetimes &mdash; leaked segments consume kernel memory until reboot or ipcrm.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>shmget</td><td>Creates or opens a shared memory segment identified by key_t; returns shmid.</td></tr><tr><td class='mono'>shmat</td><td>Attaches segment to process address space; returns pointer for direct memory access.</td></tr><tr><td class='mono'>shmdt</td><td>Detaches segment from process; decrements nattch count.</td></tr><tr><td class='mono'>shmctl</td><td>Control: IPC_RMID marks for deletion, IPC_STAT queries metadata (size, nattch, permissions).</td></tr><tr><td class='mono'>nattch</td><td>Number of processes currently attached to the segment; deletion waits until this reaches 0.</td></tr><tr><td class='mono'>PAGE_SIZE</td><td>Segment size is rounded up to kernel page size (typically 4096); partial pages waste memory.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>shmget</td><td class='mono'>int shmget(key_t key, size_t size, int shmflg);</td><td class='mono muted2'>EACCES, ENOENT, ENOMEM</td><td>Gets/creates SysV shared memory segment.</td></tr><tr><td class='mono'>shmat</td><td class='mono'>void *shmat(int shmid, const void *shmaddr, int shmflg);</td><td class='mono muted2'>EACCES, EINVAL, ENOMEM</td><td>Attaches SysV shared memory to address space.</td></tr><tr><td class='mono'>shmdt</td><td class='mono'>int shmdt(const void *shmaddr);</td><td class='mono muted2'>EINVAL</td><td>Detaches SysV shared memory mapping.</td></tr>
+    <tr><td class='mono'>shmget</td><td class='mono'>int shmget(key_t key, size_t size, int shmflg);</td><td class='mono muted2'>EACCES, ENOENT, EEXIST, ENOMEM</td><td>IPC_CREAT | IPC_EXCL for exclusive; size rounded to PAGE_SIZE; IPC_PRIVATE for anonymous.</td></tr><tr><td class='mono'>shmat</td><td class='mono'>void *shmat(int shmid, const void *shmaddr, int shmflg);</td><td class='mono muted2'>EACCES, EINVAL, ENOMEM</td><td>Pass NULL for shmaddr (kernel chooses); SHM_RDONLY for read-only; returns (void *)-1 on error.</td></tr><tr><td class='mono'>shmdt</td><td class='mono'>int shmdt(const void *shmaddr);</td><td class='mono muted2'>EINVAL</td><td>Detaches only; does NOT delete segment. Pointer becomes invalid after this call.</td></tr><tr><td class='mono'>shmctl</td><td class='mono'>int shmctl(int shmid, int cmd, struct shmid_ds *buf);</td><td class='mono muted2'>EINVAL, EPERM</td><td>IPC_RMID: mark for deletion (destroyed when nattch==0); IPC_STAT: read metadata into buf.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: always check shmat() return against (void *)-1, not NULL &mdash; address 0 is a valid (though unlikely) mapping address.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Segment lifecycle and IPC_RMID</summary>
+  <div class="content"><ul><li>IPC_RMID marks the segment for deletion but does not immediately free it &mdash; the kernel waits until nattch drops to 0.</li><li>After IPC_RMID, new shmat() calls fail; only already-attached processes can still use the segment.</li><li>If the creator crashes without IPC_RMID, the segment leaks permanently (visible in ipcs -m).</li><li>Always call shmctl(IPC_RMID) immediately after all processes have attached &mdash; this ensures cleanup even if processes crash later.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>Synchronization requirements</summary>
+  <div class="content"><ul><li>Shared memory has zero built-in synchronization. Two processes writing the same offset simultaneously cause data corruption.</li><li>Use System V semaphores (ch47), POSIX semaphores, or a pthread mutex with PTHREAD_PROCESS_SHARED attribute.</li><li>For lock-free patterns, use C11 atomics (__atomic builtins) and memory barriers &mdash; but only if you deeply understand the memory model.</li><li>Even read-only consumers need synchronization if the data structure is being updated (partial reads of multi-field structs).</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Size, alignment, and addressing</summary>
+  <div class="content"><ul><li>shmget() rounds size up to PAGE_SIZE; requesting 100 bytes allocates 4096 bytes.</li><li>shmat() with shmaddr==NULL lets the kernel choose the virtual address &mdash; always prefer this for portability.</li><li>The returned pointer can be used with structs, but beware: different processes may compile with different struct padding. Use fixed-layout types.</li><li>Across fork(), the child inherits all attached segments at the same addresses &mdash; both parent and child access the same physical pages.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Debugging shared memory issues</summary>
+  <div class="content"><ul><li>ipcs -m lists all segments: key, shmid, owner, perms, bytes, nattch, and status.</li><li>Check /proc/&lt;pid&gt;/maps for SysV shm entries (shown as /SYSV&lt;key&gt;).</li><li>A segment with nattch==0 and no IPC_RMID pending is leaked &mdash; remove with ipcrm -m &lt;shmid&gt;.</li><li>For data corruption, add a magic number or checksum to the shared structure and validate on each access.</li></ul></div>
 </details>
         </div>
 
@@ -148,16 +148,45 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch48"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch48"><code class="mono">// Shared memory + semaphore for producer-consumer
+#include &lt;sys/shm.h&gt;
+#include &lt;sys/sem.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdlib.h&gt;
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+union semun { int val; };
+
+int main(void) {
+    // Create shared memory (1 page)
+    int shmid = shmget(IPC_PRIVATE, 4096, IPC_CREAT | 0600);
+    char *shm = shmat(shmid, NULL, 0);
+
+    // Create binary semaphore (initially 0 = consumer waits)
+    int semid = semget(IPC_PRIVATE, 1, IPC_CREAT | 0600);
+    union semun arg = {.val = 0};
+    semctl(semid, 0, SETVAL, arg);
+
+    if (fork() == 0) {
+        // Child = consumer: wait for data
+        struct sembuf wait = {0, -1, 0};
+        semop(semid, &amp;wait, 1);
+        printf("child read: %s\n", shm);
+        shmdt(shm);
+        exit(0);
+    }
+    // Parent = producer: write then signal
+    strcpy(shm, "hello from producer");
+    struct sembuf post = {0, +1, 0};
+    semop(semid, &amp;post, 1);
+    wait(NULL);
+
+    shmdt(shm);
+    shmctl(shmid, IPC_RMID, NULL);
+    semctl(semid, 0, IPC_RMID);
+    return 0;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +195,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Always pair shared memory with explicit synchronization (semaphores, mutexes, atomics).</li><li>Call shmctl(IPC_RMID) as early as possible &mdash; ideally right after all processes attach.</li><li>Check shmat() return against (void *)-1, not NULL.</li><li>Use fixed-layout data types in shared memory to avoid struct padding mismatches across compilers.</li><li>Monitor for leaked segments: add startup cleanup that removes stale segments by known key values.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Build a shared-memory ring buffer between two processes with a semaphore pair (slots-available + items-available).</li><li>Demonstrate data corruption: two writers to the same shared memory without synchronization; add a semaphore and verify correctness.</li><li>Write a monitoring tool that reads IPC_STAT for all segments and reports leaked ones (nattch==0, still alive).</li></ul>
           </div>
         </div>
 
@@ -185,52 +214,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="IPC_RMID marks the segment for deletion but actual destruction is deferred until nattch reaches 0 (all processes detach).">
+  <div class="qp">Q1. When does a shared memory segment actually get freed?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Immediately when shmctl(IPC_RMID) is called</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">When the creator process exits</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">When IPC_RMID is set AND the last process detaches</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">At the next garbage collection cycle</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="Shared memory has no kernel-mediated data transfer. Once attached, reads and writes are direct memory operations at RAM speed with no system calls.">
+  <div class="qp">Q2. Why is shared memory the fastest IPC?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">No kernel copy &mdash; processes access the same physical pages directly</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">The kernel optimizes data transfer with DMA</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">It uses hardware acceleration</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">It compresses data automatically</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="shmat() returns (void *)-1 on error, not NULL. Checking against NULL misses errors because address 0 is theoretically a valid mapping address.">
+  <div class="qp">Q3. What does shmat() return on failure?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">NULL</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">0</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">-1 (int)</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">(void *)-1</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +267,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

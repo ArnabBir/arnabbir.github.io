@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">523</span> (0-based index 522).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>timers</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>clocks</strong></span> <span class="pill"><strong>timeouts</strong></span> <span class="pill"><strong>POSIX timers</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>timerfd</strong></span> <span class="pill"><strong>nanosleep</strong></span> <span class="pill"><strong>POSIX timers</strong></span> <span class="pill"><strong>setitimer</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 23 — Timers and Sleeping
           </h2>
           <div class="subtitle">
-            <p>Time in operating systems is not a single thing. There are multiple clocks (realtime vs monotonic), multiple timer mechanisms (interval timers, POSIX timers, timerfd), and subtle interactions with signals and scheduling. The main production skill is choosing the correct clock and designing for jitter and interruptions.</p><p>This chapter guide is built around practical scheduling: deadlines, timeouts, backoff, and the reality that sleep is “at least” not “exactly”.</p>
+            <p>Timers and sleeping are signal-adjacent — interval timers deliver SIGALRM, POSIX timers offer flexible notification, and timerfd integrates deadline-driven logic into event loops.</p><p>The evolution of Linux timer APIs reflects a shift from signal-based notification (setitimer, alarm) toward fd-based integration (timerfd). Modern servers should use timerfd_create with epoll for periodic tasks and timeouts, reserving POSIX timer_create for cases requiring thread notification or overrun counting.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Timeout correctness requires monotonic clocks and deadline-preserving retries.</div>
+  <div class="v">clock_nanosleep with TIMER_ABSTIME avoids cumulative drift in periodic tasks.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Sleep is not precise; load and signals introduce jitter and EINTR.</div>
+  <div class="v">nanosleep is interrupted by signals (EINTR); the remaining time output may have rounding errors.</div>
 </div><div class="callout tip">
-  <div class="k">Debugging</div>
-  <div class="v">Log monotonic deltas and use strace to observe nanosleep/timer syscalls.</div>
+  <div class="k">Best practice</div>
+  <div class="v">Use timerfd_create + epoll for server timeouts; avoids signals and integrates with the event loop.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Time is a family of clocks. Pick monotonic for intervals to avoid jumps.</li><li>Treat sleep as &#x27;at least&#x27; — scheduling introduces delay and jitter.</li><li>Timeout logic should preserve deadlines across EINTR and retries.</li><li>Signals are one delivery mechanism; fd-based timers integrate better with event loops.</li><li>Timer storms under load are real; coalesce and bound work.</li><li>Always log monotonic deltas for debugging time-related incidents.</li></ul>
+            <ul><li>setitimer delivers SIGALRM (ITIMER_REAL), SIGVTALRM (ITIMER_VIRTUAL), or SIGPROF (ITIMER_PROF) at intervals. It is deprecated — only one timer per type per process.</li><li>POSIX timer_create + timer_settime offers: choice of clock (CLOCK_MONOTONIC recommended), signal OR thread notification (via sigevent), and overrun counting (timer_getoverrun).</li><li>nanosleep suspends the calling thread; if interrupted by a signal, it returns -1/EINTR and writes remaining time to the second argument.</li><li>clock_nanosleep with TIMER_ABSTIME sleeps until an absolute deadline, avoiding cumulative drift from repeated relative sleeps.</li><li>timerfd_create returns a file descriptor that becomes readable when the timer expires; integrates directly with epoll/poll (best for servers).</li><li>Sleep granularity depends on kernel CONFIG_HZ (typically 1ms on modern kernels) and timer slack (kernel may delay wakeup to batch interrupts for power savings).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>CLOCK_MONOTONIC</td><td>Monotonic clock for intervals/timeouts; not affected by wall-clock changes.</td></tr><tr><td class='mono'>CLOCK_REALTIME</td><td>Wall clock time; can jump due to NTP/admin changes.</td></tr><tr><td class='mono'>Timer</td><td>Kernel object that fires at deadlines; can notify via signal, fd, or thread.</td></tr><tr><td class='mono'>Jitter</td><td>Variability in timer firing time due to scheduling and load.</td></tr><tr><td class='mono'>Deadline</td><td>Absolute time by which work must happen; better than repeated relative sleeps.</td></tr><tr><td class='mono'>EINTR</td><td>Interruptions by signals can affect sleep syscalls; design retry logic.</td></tr></tbody>
+  <tbody><tr><td class='mono'>setitimer</td><td>Legacy per-process interval timer; delivers signal on expiration. One per timer type.</td></tr><tr><td class='mono'>timer_create</td><td>POSIX timer API; supports multiple timers, clock selection, and thread/signal notification.</td></tr><tr><td class='mono'>timer_settime</td><td>Arms or disarms a POSIX timer; supports one-shot and periodic (it_interval) modes.</td></tr><tr><td class='mono'>nanosleep</td><td>Relative sleep with nanosecond resolution; subject to EINTR and scheduling jitter.</td></tr><tr><td class='mono'>clock_nanosleep</td><td>Sleep on a specific clock; TIMER_ABSTIME flag enables absolute deadline sleeping.</td></tr><tr><td class='mono'>timerfd_create</td><td>Creates a timer as a file descriptor; readable when expired. Integrates with epoll.</td></tr><tr><td class='mono'>timerfd_settime</td><td>Arms the timerfd; supports TFD_TIMER_ABSTIME and TFD_TIMER_CANCEL_ON_SET.</td></tr><tr><td class='mono'>TIMER_ABSTIME</td><td>Flag for absolute time specification; eliminates drift from repeated relative sleeps.</td></tr></tbody>
 </table>
         </div>
 
@@ -113,11 +113,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>nanosleep</td><td class='mono'>int nanosleep(const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>High-resolution sleep; interrupted by signals returning EINTR and remaining time.</td></tr><tr><td class='mono'>timer_create</td><td class='mono'>int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid);</td><td class='mono muted2'>EAGAIN, EINVAL, ENOMEM</td><td>POSIX timers can deliver signals or notify via threads; choose CLOCK_MONOTONIC for intervals.</td></tr><tr><td class='mono'>kill</td><td class='mono'>int kill(pid_t pid, int sig);</td><td class='mono muted2'>ESRCH, EINVAL, EPERM</td><td>Send a signal. With pid &lt; 0, targets process groups; with pid=0, current process group.</td></tr>
+    <tr><td class='mono'>timerfd_create</td><td class='mono'>int timerfd_create(int clockid, int flags);</td><td class='mono muted2'>EINVAL, EMFILE, ENOMEM</td><td>Creates timer fd. Use CLOCK_MONOTONIC and TFD_NONBLOCK | TFD_CLOEXEC flags.</td></tr><tr><td class='mono'>timerfd_settime</td><td class='mono'>int timerfd_settime(int fd, int flags, const struct itimerspec *new, struct itimerspec *old);</td><td class='mono muted2'>EINVAL, EBADF</td><td>Arms timer. TFD_TIMER_ABSTIME for absolute deadlines. Reading fd returns uint64_t overrun count.</td></tr><tr><td class='mono'>timer_create</td><td class='mono'>int timer_create(clockid_t clockid, struct sigevent *sevp, timer_t *timerid);</td><td class='mono muted2'>EAGAIN, EINVAL, ENOMEM</td><td>POSIX timer; sevp controls notification (SIGEV_SIGNAL, SIGEV_THREAD, SIGEV_NONE).</td></tr><tr><td class='mono'>clock_nanosleep</td><td class='mono'>int clock_nanosleep(clockid_t clk, int flags, const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Sleep on specified clock. With TIMER_ABSTIME, rem is unused and drift is eliminated.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: reading a timerfd returns a uint64_t containing the number of expirations since last read (overrun count).
           </div>
         </div>
 
@@ -127,11 +127,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing clocks correctly</summary>
-  <div class="content"><ul><li>CLOCK_REALTIME can jump (NTP, admin changes). Don’t use it for timeouts or measuring durations.</li><li>CLOCK_MONOTONIC is steady for intervals and deadlines; combine with absolute timeouts for correctness under delays.</li><li>If you need CPU time, use CLOCK_PROCESS_CPUTIME_ID or CLOCK_THREAD_CPUTIME_ID.</li><li>Always log both realtime and monotonic deltas in debugging to catch clock jumps.</li></ul></div>
+  <summary>nanosleep + EINTR + remaining time</summary>
+  <div class="content"><ul><li>When nanosleep is interrupted by a signal, it returns -1 with errno=EINTR and writes the remaining time to the rem argument.</li><li>The remaining time may be slightly rounded (kernel tick granularity); do not assume exact precision.</li><li>A naive retry loop using rem accumulates rounding error. For precision, use clock_nanosleep with TIMER_ABSTIME instead.</li><li>If rem is NULL and EINTR occurs, you lose track of how much sleep remains.</li></ul></div>
 </details><details class="accordion">
-  <summary>Timer delivery strategies</summary>
-  <div class="content"><ul><li>Signals are traditional but can complicate handler safety and EINTR semantics.</li><li>timerfd/signalfd integrate timers/signals into fd-based event loops cleanly.</li><li>For multi-threaded servers, consider a dedicated timer wheel or scheduler thread to avoid per-connection timers.</li><li>Beware of timer storms under overload; coalesce and backoff.</li></ul></div>
+  <summary>Timer overruns (timer_getoverrun)</summary>
+  <div class="content"><ul><li>If a POSIX timer expires multiple times before the signal is delivered (e.g., handler was blocked), overruns accumulate.</li><li>timer_getoverrun() returns the overrun count for the most recent signal delivery; it does NOT accumulate across multiple deliveries.</li><li>For timerfd, reading the fd returns the total overrun count as a uint64_t; this is simpler and more reliable.</li><li>Overruns indicate the application cannot keep up with the timer rate; consider increasing the interval or shedding load.</li></ul></div>
+</details><details class="accordion">
+  <summary>timerfd and TFD_TIMER_CANCEL_ON_SET</summary>
+  <div class="content"><ul><li>If using CLOCK_REALTIME with timerfd, an NTP or admin clock adjustment can silently shift your deadline.</li><li>TFD_TIMER_CANCEL_ON_SET causes the timerfd to return an error (readable with an ECANCELED-like indication) when the clock is discontinuously set.</li><li>This allows the application to detect the clock change and recalculate deadlines rather than firing at the wrong time.</li><li>Best practice: use CLOCK_MONOTONIC for interval timers to avoid this class of issues entirely.</li></ul></div>
+</details><details class="accordion">
+  <summary>Absolute vs relative timers and clock discontinuities</summary>
+  <div class="content"><ul><li>Relative timers (default): "fire in 5 seconds". Safe with CLOCK_MONOTONIC but drift if used in a retry loop.</li><li>Absolute timers (TIMER_ABSTIME / TFD_TIMER_ABSTIME): "fire at time T". No drift, but vulnerable to clock adjustments on CLOCK_REALTIME.</li><li>For periodic tasks: compute next absolute deadline on CLOCK_MONOTONIC, arm with TIMER_ABSTIME. This gives both drift-free operation and immunity to wall-clock changes.</li><li>sleep()/usleep() are POSIX wrappers with coarser guarantees; prefer clock_nanosleep for production code.</li></ul></div>
 </details>
         </div>
 
@@ -143,8 +149,35 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch23"><code class="mono">// See man pages for the core APIs of this chapter.
-</code></pre>
+  <pre id="code_ch23"><code class="mono">// timerfd_create + epoll for periodic tasks
+#include &lt;sys/timerfd.h&gt;
+#include &lt;sys/epoll.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;unistd.h&gt;
+
+void periodic_loop(int interval_ms) {
+    int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+    struct itimerspec its = {
+        .it_interval = { interval_ms / 1000, (interval_ms % 1000) * 1000000L },
+        .it_value    = { interval_ms / 1000, (interval_ms % 1000) * 1000000L }
+    };
+    timerfd_settime(tfd, 0, &amp;its, NULL);
+
+    int epfd = epoll_create1(EPOLL_CLOEXEC);
+    struct epoll_event ev = { .events = EPOLLIN, .data.fd = tfd };
+    epoll_ctl(epfd, EPOLL_CTL_ADD, tfd, &amp;ev);
+
+    for (;;) {
+        struct epoll_event events[4];
+        int n = epoll_wait(epfd, events, 4, -1);
+        for (int i = 0; i &lt; n; i++) {
+            uint64_t expirations;
+            read(events[i].data.fd, &amp;expirations, sizeof(expirations));
+            // expirations &gt; 1 means we missed ticks (overrun)
+            do_periodic_work();
+        }
+    }
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -153,17 +186,17 @@
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use CLOCK_MONOTONIC for timeouts and interval measurement; realtime can jump.</li><li>Design timeouts as deadlines, not repeated sleeps (avoid drift).</li><li>Expect EINTR and jitter; write retry logic that preserves deadlines.</li><li>Avoid per-connection timers at huge scale; use timer wheels/coalescing strategies.</li><li>Test under NTP adjustments and heavy load to validate behavior.</li></ul>
+            <ul><li>Use CLOCK_MONOTONIC for all interval and timeout timers; reserve CLOCK_REALTIME for wall-clock display only.</li><li>Prefer timerfd for event-loop servers; it avoids signal handler complexity and integrates with epoll.</li><li>Use TIMER_ABSTIME / TFD_TIMER_ABSTIME for periodic tasks to eliminate cumulative drift.</li><li>Always handle EINTR from nanosleep/clock_nanosleep; recompute remaining time from a deadline, not from the rem output.</li><li>Monitor overrun counts (timerfd read value or timer_getoverrun); sustained overruns indicate capacity problems.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+            <ul><li>Compare drift: write a loop using nanosleep(50ms) vs clock_nanosleep(TIMER_ABSTIME) over 100 iterations; measure total elapsed time.</li><li>Create a timerfd with 10ms interval, add artificial 25ms work in the handler, and observe the overrun count returned by read().</li><li>Use strace to observe timerfd_settime and epoll_wait interactions; verify that the timer fires within expected jitter bounds.</li></ul>
           </div>
         </div>
 
@@ -172,52 +205,52 @@
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="TIMER_ABSTIME sleeps until an absolute deadline; repeated relative sleeps accumulate scheduling jitter as drift.">
+  <div class="qp">Q1. How does clock_nanosleep with TIMER_ABSTIME prevent drift?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">It uses a faster clock</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">It disables signal interruption</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">It sleeps to an absolute deadline, not a relative duration</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">It adjusts the system clock</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="Reading a timerfd returns uint64_t with the number of times the timer expired since the last read.">
+  <div class="qp">Q2. What does reading a timerfd return?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">The current time</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">A signal number</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">The remaining time until next expiration</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">A uint64_t count of expirations since last read</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="setitimer is limited to one timer per type (REAL/VIRTUAL/PROF) per process; POSIX timers and timerfd have no such limit.">
+  <div class="qp">Q3. Why is setitimer considered deprecated?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Only one timer per type per process; inflexible notification</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">It does not work on modern kernels</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">It requires root privileges</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">It only supports millisecond resolution</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -225,7 +258,7 @@
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

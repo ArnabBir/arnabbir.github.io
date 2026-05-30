@@ -59,17 +59,17 @@
             Chapter 51 — Introduction to POSIX IPC
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>POSIX IPC offers a cleaner API than System V &mdash; objects have filesystem-like names (<span class="mono">/name</span>), are reference-counted, and integrate better with standard UNIX operations. Three mechanisms share this design: message queues (<span class="mono">mq_*</span>), semaphores (<span class="mono">sem_*</span>), and shared memory (<span class="mono">shm_*</span>).</p><p>This chapter covers the common design principles: naming conventions, the create/open/unlink lifecycle, reference-counting semantics, and how POSIX IPC compares to the older System V equivalents.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">POSIX IPC names start with <span class="mono">/</span> and contain no other slashes. Objects persist until explicitly unlinked, and are destroyed when the last reference closes.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">Unlinking removes the name but not the object &mdash; existing descriptors remain valid until closed. Forgetting to unlink leaks objects across reboots (on tmpfs, until reboot).</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="v">Inspect <span class="mono">/dev/shm</span> and <span class="mono">/dev/mqueue</span> to see live POSIX IPC objects. Use <span class="mono">ls -la</span> to check permissions and ownership.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li>Three POSIX IPC types: message queues (<span class="mono">mq_*</span>), semaphores (<span class="mono">sem_*</span>), shared memory (<span class="mono">shm_*</span>). Each follows the same open/close/unlink pattern.</li><li>Names must start with <span class="mono">/</span> and contain no further path separators (e.g., <span class="mono">/myqueue</span> is valid; <span class="mono">/my/queue</span> is not, though Linux may accept it).</li><li>Objects persist in the kernel until <span class="mono">*_unlink()</span> is called. Unlinking marks the name for removal; actual destruction happens when the last reference (descriptor or mapping) is closed.</li><li>Backed by tmpfs virtual filesystems: <span class="mono">/dev/shm</span> for shared memory, <span class="mono">/dev/mqueue</span> for message queues. Named semaphores live under <span class="mono">/dev/shm</span> (as <span class="mono">sem.&lt;name&gt;</span> on Linux).</li><li>Permissions model uses standard UNIX mode bits (owner/group/other) &mdash; simpler than System V's <span class="mono">ipc_perm</span> structure.</li><li>POSIX IPC is generally preferred over System V for new code: cleaner API, no numeric key generation (<span class="mono">ftok</span>), filesystem-visible objects, and reference-counted cleanup.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>shm_open</td><td>Creates or opens a POSIX shared memory object; returns an fd suitable for mmap.</td></tr><tr><td class='mono'>mq_open</td><td>Creates or opens a POSIX message queue; returns an mqd_t descriptor.</td></tr><tr><td class='mono'>sem_open</td><td>Creates or opens a named POSIX semaphore; returns a <span class="mono">sem_t*</span> pointer.</td></tr><tr><td class='mono'>*_unlink</td><td>Removes the IPC object name from the namespace; object is destroyed when last reference closes.</td></tr><tr><td class='mono'>/dev/shm</td><td>tmpfs mount where POSIX shared memory objects and named semaphores appear as files.</td></tr><tr><td class='mono'>/dev/mqueue</td><td>Special filesystem where POSIX message queues appear; <span class="mono">cat</span> a file to see queue stats.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>shm_open</td><td class='mono'>int shm_open(const char *name, int oflag, mode_t mode);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL</td><td>POSIX shared memory object in /dev/shm (typically).</td></tr><tr><td class='mono'>mq_open</td><td class='mono'>mqd_t mq_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL</td><td>POSIX message queue open/create.</td></tr><tr><td class='mono'>sem_open</td><td class='mono'>sem_t *sem_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL</td><td>Named POSIX semaphore open/create.</td></tr>
+    <tr><td class='mono'>shm_open</td><td class='mono'>int shm_open(const char *name, int oflag, mode_t mode);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL</td><td>Returns fd for POSIX shm object. Link with <span class="mono">-lrt</span>.</td></tr><tr><td class='mono'>shm_unlink</td><td class='mono'>int shm_unlink(const char *name);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Removes name; object destroyed when last fd/mapping closes.</td></tr><tr><td class='mono'>mq_open</td><td class='mono'>mqd_t mq_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL, ENAMETOOLONG</td><td>Optional <span class="mono">mode_t</span> and <span class="mono">struct mq_attr*</span> when creating.</td></tr><tr><td class='mono'>mq_unlink</td><td class='mono'>int mq_unlink(const char *name);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Name removed immediately; queue persists until last mq_close.</td></tr><tr><td class='mono'>sem_open</td><td class='mono'>sem_t *sem_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, ENOENT, EINVAL</td><td>Returns SEM_FAILED on error (not NULL). Optional mode + initial value.</td></tr><tr><td class='mono'>sem_unlink</td><td class='mono'>int sem_unlink(const char *name);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Name removed; semaphore destroyed when last sem_close.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: always check return values &mdash; <span class="mono">sem_open</span> returns <span class="mono">SEM_FAILED</span>, not NULL.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>POSIX vs System V IPC</summary>
+  <div class="content"><ul><li>System V uses numeric keys (via <span class="mono">ftok</span>) &mdash; fragile and prone to collisions. POSIX uses readable <span class="mono">/name</span> strings.</li><li>System V objects are removed with <span class="mono">IPC_RMID</span> &mdash; immediate destruction even if processes are attached (for shm, mapping stays valid but object is gone). POSIX uses reference-counted unlink.</li><li>System V semaphores support atomic operations on sets of semaphores. POSIX semaphores are simpler: one counter, one wait/post.</li><li>System V IPC limits are system-wide and configured via <span class="mono">/proc/sys/kernel/msg*</span>, <span class="mono">sem*</span>, <span class="mono">shm*</span>. POSIX limits are per <span class="mono">/proc/sys/fs/mqueue/*</span> and filesystem size for shm.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>Naming rules and portability</summary>
+  <div class="content"><ul><li>POSIX requires names to start with <span class="mono">/</span>. Some systems (Linux) accept further slashes; for portability use only <span class="mono">/simplename</span>.</li><li>Maximum name length is <span class="mono">NAME_MAX</span> (typically 255). Some systems limit to fewer characters.</li><li>Names are global to the system (within a namespace). Use prefixes to avoid collisions between applications.</li><li>On Linux, named semaphores appear as <span class="mono">/dev/shm/sem.&lt;name&gt;</span>; directly deleting the file is equivalent to <span class="mono">sem_unlink</span>.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Reference counting and cleanup</summary>
+  <div class="content"><ul><li>Unlink removes the name from the namespace immediately. New opens will fail with ENOENT.</li><li>The underlying object survives until all descriptors/mappings are closed. This is analogous to unlinking a file while it is open.</li><li>If a process crashes without unlinking, the object persists (visible in <span class="mono">/dev/shm</span> or <span class="mono">/dev/mqueue</span>). Design startup cleanup.</li><li>For shared memory: even after <span class="mono">shm_unlink</span>, existing mmap regions remain valid. The kernel frees pages when the last <span class="mono">munmap</span> occurs.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Debugging POSIX IPC</summary>
+  <div class="content"><ul><li><span class="mono">ls -la /dev/shm/</span> shows shared memory objects and named semaphores with permissions and sizes.</li><li><span class="mono">cat /dev/mqueue/&lt;name&gt;</span> shows queue attributes: max messages, message size, current count.</li><li><span class="mono">strace -e trace=mq_open,shm_open,sem_open</span> traces IPC creation/opening.</li><li>System V objects still need <span class="mono">ipcs</span>/<span class="mono">ipcrm</span>. POSIX objects use standard filesystem tools.</li></ul></div>
 </details>
         </div>
 
@@ -146,18 +146,25 @@
     <button class="btn small" data-copy="#code_ch51">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Comparison: POSIX vs System V shared memory setup. POSIX is fewer lines, uses filesystem names, and integrates with standard fd operations.
   </div>
-  <pre id="code_ch51"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch51"><code class="mono">/* --- POSIX shared memory (preferred) --- */
+int fd = shm_open(&quot;/myshm&quot;, O_CREAT | O_RDWR, 0600);
+ftruncate(fd, 4096);
+void *p = mmap(NULL, 4096, PROT_READ|PROT_WRITE,
+               MAP_SHARED, fd, 0);
+close(fd);                 /* mapping stays valid */
+/* use *p ... */
+munmap(p, 4096);
+shm_unlink(&quot;/myshm&quot;);     /* remove when done */
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+/* --- System V shared memory (legacy) --- */
+key_t key = ftok(&quot;/tmp/tok&quot;, 'A');   /* fragile! */
+int id = shmget(key, 4096, IPC_CREAT | 0600);
+void *q = shmat(id, NULL, 0);
+/* use *q ... */
+shmdt(q);
+shmctl(id, IPC_RMID, NULL);  /* immediate destroy */</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +173,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Use POSIX IPC over System V for new code &mdash; cleaner naming, reference-counted cleanup, standard permissions.</li><li>Always call <span class="mono">*_unlink()</span> when the object is no longer needed; design idempotent startup cleanup for crash recovery.</li><li>Use a naming convention with application prefix (e.g., <span class="mono">/myapp_shm_region1</span>) to avoid collisions.</li><li>Set restrictive permissions (0600/0660) and verify with <span class="mono">ls -la /dev/shm</span>.</li><li>Link with <span class="mono">-lrt</span> (for shm_open/mq_open) and <span class="mono">-lpthread</span> (for sem_*) as needed.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Create a POSIX shared memory object, write data from one process, read from another. Verify the object appears in <span class="mono">/dev/shm</span> and disappears after unlink + last close.</li><li>Create a named semaphore and a message queue. Inspect them in <span class="mono">/dev/shm</span> and <span class="mono">/dev/mqueue</span>. Kill the creating process and verify the objects persist. Clean them up manually.</li><li>Write a program that opens a POSIX shm object, unlinks it immediately, then continues to use the mapping. Prove the mapping remains valid after unlink.</li></ul>
           </div>
         </div>
 
@@ -185,52 +192,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="POSIX IPC names must start with / and contain no further slashes (for portability). Example: /myqueue is valid.">
+  <div class="qp">Q1. Which is a valid POSIX IPC name?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">myqueue</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">/my/queue</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">/myqueue</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">./myqueue</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="Unlinking removes the name immediately, but the object persists until all references (descriptors, mappings) are closed. This is reference-counted destruction.">
+  <div class="qp">Q2. What happens when you call shm_unlink() while a process still has the object mapped?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">The mapping is immediately invalidated</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">The name is removed but the mapping remains valid</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">The call fails with EBUSY</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The process receives SIGSEGV</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="System V uses ftok() to generate numeric keys from a pathname + project ID. POSIX uses simple /name strings, which is more readable and less error-prone.">
+  <div class="qp">Q3. How does System V IPC identify objects?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Numeric keys generated by ftok()</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">Filesystem paths starting with /</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">UUIDs</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Process IDs</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +245,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

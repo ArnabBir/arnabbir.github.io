@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">981</span> (0-based index 980).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>ipc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pipes</strong></span> <span class="pill"><strong>message queues</strong></span> <span class="pill"><strong>shared memory</strong></span> <span class="pill"><strong>semaphores</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>msgget</strong></span> <span class="pill"><strong>msgsnd</strong></span> <span class="pill"><strong>msgrcv</strong></span> <span class="pill"><strong>mtype</strong></span> <span class="pill"><strong>IPC_NOWAIT</strong></span> <span class="pill"><strong>MSGMAX</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 46 — System V Message Queues
           </h2>
           <div class="subtitle">
-            <p>Interprocess communication is about moving data and coordination across process boundaries. Linux offers a spectrum: pipes (byte streams), message queues (framed messages), shared memory (fastest data path), and semaphores (coordination). Each comes with trade-offs in buffering, lifetime, naming, and failure semantics.</p><p>This guide is practical: when to pick which IPC, how to avoid deadlocks and leaks, and how to integrate IPC into an event loop (nonblocking + poll/epoll).</p>
+            <p>System V message queues provide typed message passing — each message has a long mtype field enabling selective receipt. This makes client-server multiplexing possible on a single queue: the server reads requests by one type, and each client reads responses by its own unique type (typically its PID).</p><p>Unlike pipes, message queues preserve message boundaries and support priority-like retrieval via the type field. However, they lack file-descriptor-based interfaces, making integration with poll/epoll impossible.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">IPC objects have lifetimes; many outlive processes unless explicitly removed.</div>
+  <div class="v">Each message starts with a long mtype (&gt; 0). The mtype enables selective receive: msgrcv can filter by exact type, any type, or lowest type up to a bound.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Blocking calls can deadlock. Prefer timeouts or nonblocking + poll/epoll.</div>
+  <div class="v">Queue limits (MSGMAX per message, MSGMNB total bytes) can cause msgsnd to block indefinitely or return EAGAIN. Always check and tune limits.</div>
 </div><div class="callout tip">
-  <div class="k">Debugging</div>
-  <div class="v">Inspect kernel objects (ipcs, /dev/shm, /dev/mqueue) and trace syscalls.</div>
+  <div class="k">Tip</div>
+  <div class="v">Client-server pattern: server reads type=1 (requests), clients read type=own_pid (responses). One queue handles bidirectional multiplexed communication.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>IPC is about data movement + coordination. Choose the primitive that matches semantics.</li><li>Streams (pipes) are great for linear flows; message queues for framed messages.</li><li>Shared memory gives throughput but requires careful synchronization and cleanup.</li><li>Blocking calls can deadlock; timeouts/nonblocking + epoll keep systems responsive.</li><li>Kernel objects can outlive processes: define ownership and deletion strategy.</li><li>Observe queue depth and latency; overload shows up there first.</li></ul>
+            <ul><li><strong>msgget(key, flags)</strong> creates or opens a message queue, returning an integer msqid. Use IPC_CREAT | 0660 to create with permissions; use 0 to open existing.</li><li><strong>Message structure</strong>: every message must start with <span class="mono">long mtype</span> (must be &gt; 0), followed by your payload data. The kernel uses mtype for routing but does not interpret the payload.</li><li><strong>msgsnd(qid, &amp;msg, size, flags)</strong>: sends a message. <span class="mono">size</span> is the payload size (excluding the mtype long). If the queue is full (total bytes &ge; MSGMNB), msgsnd blocks unless IPC_NOWAIT is set (returns EAGAIN).</li><li><strong>msgrcv(qid, &amp;msg, size, type, flags)</strong>: receives a message. The <span class="mono">type</span> argument controls filtering: type=0 reads the first message (FIFO); type&gt;0 reads the first message with exactly that mtype; type&lt;0 reads the message with the lowest mtype &le; |type| (priority queue behavior).</li><li><strong>Queue limits</strong>: MSGMAX is the maximum size of a single message (default 8192 bytes). MSGMNB is the maximum total bytes in one queue (default 16384). MSGMNI is the maximum number of queues system-wide. Tunable via /proc/sys/kernel/msg*.</li><li><strong>Client-server multiplexing</strong>: a common pattern uses one queue for both directions. Clients send requests with mtype=1 (or a server-known type). Each client embeds its PID in the message body. The server reads type=1 requests, processes them, and sends responses with mtype=client_pid. Each client calls msgrcv with type=getpid(), receiving only its own responses.</li><li><strong>msgctl(qid, IPC_RMID, NULL)</strong> destroys the queue immediately. All blocked msgsnd/msgrcv calls return with errno=EIDRM. Any messages remaining in the queue are lost.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Pipe</td><td>Unidirectional byte stream between processes; supports backpressure via blocking/EAGAIN.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe in filesystem; opens connect readers/writers.</td></tr><tr><td class='mono'>Message queue</td><td>Kernel-managed queue of discrete messages; can be SysV or POSIX.</td></tr><tr><td class='mono'>Shared memory</td><td>Mapping shared between processes; fastest but requires explicit synchronization.</td></tr><tr><td class='mono'>Semaphore</td><td>Coordination primitive (counting); SysV or POSIX named/unnamed.</td></tr><tr><td class='mono'>Cleanup</td><td>IPC objects can outlive processes; define ownership and deletion strategy.</td></tr></tbody>
+  <tbody><tr><td class='mono'>msgget</td><td>Creates or opens a System V message queue. Returns msqid (integer identifier, not a file descriptor).</td></tr><tr><td class='mono'>msgsnd</td><td>Sends a message to the queue. Message must start with long mtype &gt; 0. Blocks if queue full (unless IPC_NOWAIT).</td></tr><tr><td class='mono'>msgrcv</td><td>Receives a message. Type argument filters: 0=any, &gt;0=exact match, &lt;0=lowest type &le; |type|.</td></tr><tr><td class='mono'>struct msgbuf</td><td>User-defined message structure. Must begin with <span class="mono">long mtype;</span> followed by arbitrary data (char mtext[...]).</td></tr><tr><td class='mono'>mtype</td><td>Message type field (&gt; 0). Used by msgrcv for selective receive. Enables multiplexing and priority ordering.</td></tr><tr><td class='mono'>IPC_NOWAIT</td><td>Flag for msgsnd/msgrcv: return EAGAIN instead of blocking when queue is full (send) or empty/no match (receive).</td></tr><tr><td class='mono'>MSGMAX</td><td>Maximum size of a single message payload (default 8192 bytes on Linux). Tunable via /proc/sys/kernel/msgmax.</td></tr><tr><td class='mono'>MSGMNB</td><td>Maximum total bytes of all messages in one queue (default 16384). Tunable via /proc/sys/kernel/msgmnb.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>msgsnd</td><td class='mono'>int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);</td><td class='mono muted2'>EAGAIN, EINTR, EACCES</td><td>Sends SysV message; may block if queue full unless IPC_NOWAIT.</td></tr><tr><td class='mono'>msgrcv</td><td class='mono'>ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);</td><td class='mono muted2'>EINTR, EAGAIN, EACCES</td><td>Receives SysV message; filtering by type.</td></tr>
+    <tr><td class='mono'>msgget</td><td class='mono'>int msgget(key_t key, int msgflg);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT, ENOSPC</td><td>Creates/opens queue. IPC_CREAT to create. Returns msqid. ENOSPC if kernel limit (MSGMNI) reached.</td></tr><tr><td class='mono'>msgsnd</td><td class='mono'>int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);</td><td class='mono muted2'>EAGAIN, EINTR, EACCES, EINVAL, EIDRM</td><td>msgsz = payload size (excluding mtype). EINVAL if mtype &le; 0. EAGAIN with IPC_NOWAIT when full.</td></tr><tr><td class='mono'>msgrcv</td><td class='mono'>ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);</td><td class='mono muted2'>EINTR, EAGAIN, E2BIG, EIDRM</td><td>E2BIG if message larger than msgsz (use MSG_NOERROR to truncate). Returns payload size on success.</td></tr><tr><td class='mono'>msgctl</td><td class='mono'>int msgctl(int msqid, int cmd, struct msqid_ds *buf);</td><td class='mono muted2'>EPERM, EINVAL, EIDRM</td><td>IPC_STAT reads queue info (msg count, limits). IPC_SET changes perms/limits. IPC_RMID destroys queue.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: use msgctl(IPC_STAT) to check msg_qnum (message count) and msg_qbytes (current queue size) for monitoring.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Choosing the right IPC</summary>
-  <div class="content"><ul><li>Pipes/FIFOs are simplest for linear streams and shell-style composition.</li><li>Message queues give framing + priorities; good when you need discrete messages with bounded sizes.</li><li>Shared memory is fastest for bulk data but requires explicit synchronization (semaphores/mutexes) and careful lifetime management.</li><li>System V vs POSIX IPC differ in naming and cleanup behavior; choose based on your operational constraints.</li></ul></div>
+  <summary>Queue full: blocking vs non-blocking</summary>
+  <div class="content"><ul><li>When total bytes in queue reach MSGMNB, msgsnd() blocks by default. The process sleeps until space is available or the queue is destroyed (EIDRM).</li><li>With IPC_NOWAIT, msgsnd returns -1 with errno=EAGAIN immediately. Use this for non-blocking designs, but you must implement your own retry/backoff logic.</li><li>A single large message can also be rejected if it exceeds MSGMAX — this returns EINVAL regardless of available space.</li><li>EINTR is returned if msgsnd/msgrcv is interrupted by a signal while blocked. Always retry on EINTR.</li></ul></div>
 </details><details class="accordion">
-  <summary>Lifetime and cleanup (avoid leaks)</summary>
-  <div class="content"><ul><li>Kernel objects outlive processes in some IPC systems (SysV queues/semaphores/shm). Leaks become operational incidents.</li><li>Always define ownership: who creates, who removes (IPC_RMID / unlink), and what happens on crash.</li><li>Design idempotent cleanup on startup (remove stale objects).</li><li>Use permissions and namespaces to isolate IPC objects between tenants/services.</li></ul></div>
+  <summary>Client-server multiplexing with message types</summary>
+  <div class="content"><ul><li>Pattern: server reads type=1 requests. Each request includes the client's PID. Server sends response with mtype=client_pid.</li><li>Each client does msgrcv(qid, &amp;msg, size, getpid(), 0) — receiving only messages addressed to it.</li><li>Risk: if a client crashes without reading its response, that message remains in the queue consuming MSGMNB space.</li><li>Mitigation: server can set a timeout or periodically clean up unclaimed messages. Or use MSG_NOERROR and bound message sizes tightly.</li></ul></div>
 </details><details class="accordion">
-  <summary>Blocking, deadlocks, and backpressure</summary>
-  <div class="content"><ul><li>Blocking IPC calls can deadlock if both sides wait. Use timeouts or nonblocking + poll/epoll integration.</li><li>Bound queues to enforce backpressure. Unbounded buffering moves the problem to RAM and causes collapse under load.</li><li>For shared memory, never rely on “it usually works”; use explicit barriers/atomics or mutexes for correctness.</li><li>Test failure modes: peer crash, partial writes, and restart sequences.</li></ul></div>
+  <summary>Message size limits and E2BIG</summary>
+  <div class="content"><ul><li>If a message in the queue is larger than the msgsz argument to msgrcv(), the call fails with E2BIG by default.</li><li>The MSG_NOERROR flag tells msgrcv to truncate the message silently to msgsz bytes instead of failing. The excess data is lost.</li><li>MSGMAX (default 8192) limits individual message payload size at send time. Increase via /proc/sys/kernel/msgmax if needed.</li><li>Design messages with fixed or bounded sizes to avoid E2BIG surprises. Include a size field in your protocol header.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>For pipes/sockets, strace and /proc/&lt;pid&gt;/fd are your first line of truth.</li><li>For SysV IPC, use ipcs/ipcrm tools to inspect and clean up.</li><li>For POSIX mqueue/shm, check /dev/mqueue and /dev/shm; naming and permissions matter.</li><li>Measure queue depths and latency. Hidden buffering is a frequent cause of tail latency spikes.</li></ul></div>
+  <summary>Priority inversion with negative type selection</summary>
+  <div class="content"><ul><li>msgrcv with type &lt; 0 selects the message with the lowest mtype &le; |type|. This enables priority-queue semantics: lower mtype = higher priority.</li><li>Risk: if many low-type (high-priority) messages arrive continuously, higher-type (lower-priority) messages may starve and never be received.</li><li>Mitigation: bound the range of mtype values. Periodically drain all types. Or use separate queues for different priority levels.</li><li>With type=0, messages are received in FIFO order regardless of mtype — simplest but no prioritization.</li></ul></div>
 </details>
         </div>
 
@@ -146,18 +146,46 @@
     <button class="btn small" data-copy="#code_ch46">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Client-server pattern using message types for request/response routing on a single queue.
   </div>
-  <pre id="code_ch46"><code class="mono">// Pipe IPC with framing (length prefix)
-uint32_t len = htonl(payload_len);
-write_all(wfd, &amp;len, sizeof(len));
-write_all(wfd, payload, payload_len);
+  <pre id="code_ch46"><code class="mono">// System V message queue: client-server with type-based routing
+#include &lt;sys/msg.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
 
-// receiver:
-uint32_t n;
-read_all(rfd, &amp;n, sizeof(n));
-n = ntohl(n);
-read_all(rfd, buf, n);</code></pre>
+struct req_msg {
+    long mtype;           // must be 1 (server reads type=1)
+    pid_t client_pid;     // for routing response back
+    char  body[128];
+};
+struct resp_msg {
+    long mtype;           // set to client_pid
+    char body[128];
+};
+
+// --- Server side ---
+void server(int qid) {
+    struct req_msg req;
+    struct resp_msg resp;
+    while (msgrcv(qid, &amp;req, sizeof(req)-sizeof(long), 1, 0) &gt; 0) {
+        printf("server: got '%s' from pid %d\n", req.body, req.client_pid);
+        resp.mtype = req.client_pid;   // route to this client
+        snprintf(resp.body, sizeof(resp.body), "ACK: %s", req.body);
+        msgsnd(qid, &amp;resp, sizeof(resp)-sizeof(long), 0);
+    }
+}
+
+// --- Client side ---
+void client(int qid) {
+    struct req_msg req = { .mtype = 1, .client_pid = getpid() };
+    strncpy(req.body, "hello", sizeof(req.body));
+    msgsnd(qid, &amp;req, sizeof(req)-sizeof(long), 0);
+
+    struct resp_msg resp;
+    msgrcv(qid, &amp;resp, sizeof(resp)-sizeof(long), getpid(), 0);
+    printf("client %d: got '%s'\n", getpid(), resp.body);
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -166,17 +194,17 @@ read_all(rfd, buf, n);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Pick IPC type based on semantics: stream vs message vs shared memory.</li><li>Define lifetime/cleanup and test crash recovery paths.</li><li>Bound queues and buffer sizes to enforce backpressure.</li><li>Integrate with poll/epoll and prefer nonblocking I/O for responsiveness.</li><li>Instrument latency and queue depth; these are leading indicators of overload.</li></ul>
+            <ul><li>Always check msgsnd/msgrcv return values; handle EINTR (retry), EAGAIN (backoff), EIDRM (queue destroyed), and E2BIG (message too large).</li><li>Set mtype &gt; 0 on every message. mtype &le; 0 causes msgsnd to fail with EINVAL.</li><li>Tune MSGMAX and MSGMNB (/proc/sys/kernel/msg*) to match your workload. Default limits are small (8 KB / 16 KB).</li><li>In client-server patterns, handle client crashes: unclaimed response messages leak queue space. Implement a timeout or cleanup sweep.</li><li>Always call msgctl(IPC_RMID) on shutdown. Use atexit() or signal handlers for crash resilience. Monitor with ipcs -q.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Build a parent/child protocol over pipes: framed messages with length prefix + CRC; handle partial I/O.</li><li>Build shared-memory ring buffer with a semaphore for producer/consumer coordination.</li><li>Compare SysV and POSIX message queues for priority + notification behavior.</li></ul>
+            <ul><li>Implement the client-server pattern above with fork(): one server child and 3 client children. Verify each client receives only its own response by checking mtype == getpid().</li><li>Fill a message queue to MSGMNB, then try msgsnd with and without IPC_NOWAIT. Observe blocking vs EAGAIN behavior.</li><li>Use msgrcv with negative type values to implement priority ordering. Send messages with mtype 1, 5, 3, 2 and verify they are received in order 1, 2, 3, 5 when using type=-5.</li></ul>
           </div>
         </div>
 
@@ -185,52 +213,52 @@ read_all(rfd, buf, n);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="When msgrcv is called with type > 0, it returns the first message whose mtype exactly matches the specified value. This enables selective receive — each client reads only messages addressed to it.">
+  <div class="qp">Q1. What does msgrcv do when the type argument is greater than 0?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Returns the first message in FIFO order</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">Returns the message with the lowest mtype</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">Returns the first message with mtype exactly matching the argument</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Returns all messages with mtype greater than the argument</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="When the queue's total bytes reach MSGMNB, msgsnd blocks by default. With IPC_NOWAIT flag, it returns -1 with errno=EAGAIN instead of blocking.">
+  <div class="qp">Q2. What happens when msgsnd is called on a full queue (without IPC_NOWAIT)?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">The oldest message is discarded to make room</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">msgsnd blocks until space becomes available</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">msgsnd returns immediately with ENOSPC</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">The queue is automatically expanded</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="When msgrcv is called with a negative type value, it selects the first message with the lowest mtype that is less than or equal to the absolute value of the type argument. This provides priority-queue behavior where lower mtype = higher priority.">
+  <div class="qp">Q3. How does msgrcv behave with a negative type argument (e.g., type = -5)?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Returns an error (negative type is invalid)</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">Returns messages in reverse FIFO order</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">Returns the message with the highest mtype</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">Returns the message with the lowest mtype &le; 5</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -238,7 +266,7 @@ read_all(rfd, buf, n);</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

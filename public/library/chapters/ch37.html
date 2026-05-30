@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">811</span> (0-based index 810).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>proc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fork/exec</strong></span> <span class="pill"><strong>zombies</strong></span> <span class="pill"><strong>pid namespaces</strong></span> <span class="pill"><strong>scheduling</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>daemonize</strong></span> <span class="pill"><strong>syslog</strong></span> <span class="pill"><strong>PID file</strong></span> <span class="pill"><strong>systemd</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 37 — Daemons
           </h2>
           <div class="subtitle">
-            <p>Processes are isolated execution contexts with their own PID, address space, credentials, and resource tables. The kernel keeps a surprisingly rich *process state machine*: runnable, sleeping, stopped, zombie, and more. Understanding how a process *moves* through states is the key to debugging leaks, zombies, and deadlocks.</p><p>In practice, process control is about composing a small set of primitives (fork/exec/wait, signals, pipes, dup2, setpgid/setsid) into reliable patterns: supervisors, daemons, pipelines, sandboxes, and service managers.</p>
+            <p>Daemons are long-running background processes — no controlling terminal, proper signal handling, single-instance enforcement via PID files, and logging via syslog.</p><p>Traditional daemon creation involves a careful sequence of fork, setsid, and fd management. Modern systems (systemd) simplify this dramatically, but understanding the mechanics remains critical for debugging and portability.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">fork clones, exec overlays, wait reaps. PID persists across exec.</div>
+  <div class="v">A properly daemonized process has no controlling terminal, runs in /, and logs via syslog or journald.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Zombies accumulate if you never reap children (waitpid).</div>
+  <div class="v">PID file race conditions: checking existence then writing is not atomic. Use flock() on the PID file instead.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Check /proc/&lt;pid&gt;/status for state, signals, and children; use strace -f.</div>
+  <div class="v">systemctl status shows PID, memory, logs; journalctl -u &lt;service&gt; for full daemon output.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A process is a task_struct plus resources (mm, files, cred, signals).</li><li>fork() clones structure; execve() replaces image; wait*() reaps termination status.</li><li>Copy-on-write makes fork cheap until you write; memory behavior changes with workload.</li><li>Signals are the asynchronous control plane for process trees (SIGCHLD, shutdown).</li><li>Job control uses sessions + process groups + controlling terminals; signals target groups.</li><li>In multithreaded code, fork is a sharp edge: exec quickly or use posix_spawn.</li></ul>
+            <ul><li>Traditional daemon recipe: fork → parent exits → child calls setsid() → fork again → close all fds → redirect stdin/stdout/stderr to /dev/null → chdir("/") → write PID file.</li><li>The double-fork ensures the daemon cannot accidentally reacquire a controlling terminal (it's not a session leader).</li><li>Modern approach: let systemd handle daemonization. Use Type=simple (main process is the service) or Type=notify (service signals readiness via sd_notify).</li><li>Syslog provides structured logging: facility (LOG_DAEMON, LOG_LOCAL0-7) + priority (LOG_ERR, LOG_INFO, LOG_DEBUG). openlog() sets identity and options.</li><li>Single-instance enforcement: open PID file → flock(LOCK_EX|LOCK_NB) → write PID. If flock fails, another instance is running.</li><li>Signal handling conventions: SIGHUP = reload configuration; SIGTERM = graceful shutdown; SIGUSR1/2 = application-specific (rotate logs, dump state).</li><li>sd_notify(0, "READY=1") tells systemd the service is ready to accept connections (Type=notify).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>task_struct</td><td>Kernel structure representing a task (process or thread) with scheduling + state.</td></tr><tr><td class='mono'>PID</td><td>Process identifier; can be recycled; stable across exec but not across fork.</td></tr><tr><td class='mono'>Zombie</td><td>Exited process whose exit status is retained until reaped by wait*().</td></tr><tr><td class='mono'>Copy-on-write</td><td>fork() shares pages until a write triggers duplication; makes fork cheap.</td></tr><tr><td class='mono'>Session</td><td>Collection of process groups; setsid() creates new session and detaches from controlling tty.</td></tr><tr><td class='mono'>Process group</td><td>Used for job control and signal delivery to related processes.</td></tr></tbody>
+  <tbody><tr><td class='mono'>Daemon</td><td>Long-running background process with no controlling terminal, typically started at boot.</td></tr><tr><td class='mono'>syslog</td><td>System logging facility; messages have facility + priority; routed by syslogd/journald.</td></tr><tr><td class='mono'>openlog</td><td>Sets syslog identity string, option flags (LOG_PID, LOG_NDELAY), and default facility.</td></tr><tr><td class='mono'>PID file</td><td>File (e.g., /var/run/foo.pid) containing daemon's PID; used for single-instance and signal delivery.</td></tr><tr><td class='mono'>flock</td><td>Advisory file lock; LOCK_EX|LOCK_NB for non-blocking exclusive lock on PID file.</td></tr><tr><td class='mono'>sd_notify</td><td>systemd notification protocol; daemon signals readiness, status, watchdog keep-alive.</td></tr><tr><td class='mono'>Type=forking</td><td>systemd expects traditional double-fork; tracks PID from PIDFile= or by guessing main PID.</td></tr><tr><td class='mono'>Type=simple</td><td>systemd tracks the exec'd process directly; no forking needed. Preferred for new services.</td></tr></tbody>
 </table>
         </div>
 
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>setsid</td><td class='mono'>pid_t setsid(void);</td><td class='mono muted2'>EPERM</td><td>Creates new session, detaches from controlling terminal; used by daemons.</td></tr><tr><td class='mono'>umask</td><td class='mono'>mode_t umask(mode_t mask);</td><td class='mono muted2'>—</td><td>Sets file mode creation mask; affects open(..., O_CREAT) and mkdir.</td></tr><tr><td class='mono'>chdir</td><td class='mono'>int chdir(const char *path);</td><td class='mono muted2'>ENOENT, ENOTDIR, EACCES</td><td>Changes current working directory.</td></tr>
+    <tr><td class='mono'>openlog</td><td class='mono'>void openlog(const char *ident, int option, int facility);</td><td class='mono muted2'>—</td><td>Sets identity prefix, LOG_PID/LOG_NDELAY options, facility like LOG_DAEMON.</td></tr><tr><td class='mono'>syslog</td><td class='mono'>void syslog(int priority, const char *format, ...);</td><td class='mono muted2'>—</td><td>Sends message to syslog daemon; priority = facility | level (e.g., LOG_ERR).</td></tr><tr><td class='mono'>closelog</td><td class='mono'>void closelog(void);</td><td class='mono muted2'>—</td><td>Closes syslog connection; optional (closed on process exit anyway).</td></tr><tr><td class='mono'>flock</td><td class='mono'>int flock(int fd, int operation);</td><td class='mono muted2'>EWOULDBLOCK, EINTR</td><td>LOCK_EX|LOCK_NB for non-blocking exclusive lock; EWOULDBLOCK = already locked.</td></tr><tr><td class='mono'>daemon</td><td class='mono'>int daemon(int nochdir, int noclose);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>glibc helper (deprecated on some systems); does fork+setsid. Prefer manual or systemd.</td></tr><tr><td class='mono'>sd_notify</td><td class='mono'>int sd_notify(int unset_environment, const char *state);</td><td class='mono muted2'>—</td><td>"READY=1", "STOPPING=1", "WATCHDOG=1" — systemd notification protocol.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Fork/exec/wait: the production pattern</summary>
-  <div class="content"><ul><li>fork() clones the process (copy-on-write). execve() replaces the program image. waitpid() reaps the exit status.</li><li>The PID stays the same across exec. File descriptors survive exec unless marked close-on-exec (FD_CLOEXEC / O_CLOEXEC).</li><li>In multi-threaded parents, after fork() only async-signal-safe functions are safe before exec/_exit.</li><li>Zombies exist because the kernel must retain exit status until the parent collects it. If you forget to wait, zombies accumulate.</li></ul></div>
+  <summary>PID file race conditions</summary>
+  <div class="content"><ul><li>Never use "check if file exists → create": between check and create, another instance can start (TOCTOU race).</li><li>Correct pattern: open(O_CREAT|O_WRONLY) → flock(LOCK_EX|LOCK_NB) → ftruncate → write PID. If flock fails, exit.</li><li>The lock is automatically released when the process exits (even on crash) because flock is tied to the open file description.</li><li>Don't unlink the PID file on shutdown — the flock approach doesn't need it, and unlinking creates a new race window.</li></ul></div>
 </details><details class="accordion">
-  <summary>Signals and job control interactions</summary>
-  <div class="content"><ul><li>SIGCHLD is how the kernel tells a parent that a child changed state. Always write robust SIGCHLD handling or a wait loop.</li><li>Process groups and sessions matter for terminals: Ctrl-C sends SIGINT to the foreground process group.</li><li>Stopping/continuing (SIGTSTP/SIGCONT) creates state transitions you must handle in shells and supervisors.</li><li>Avoid sending signals by PID alone in long-lived systems; PIDs can be recycled. Consider pidfds (newer kernels) when available.</li></ul></div>
+  <summary>systemd vs traditional daemonization</summary>
+  <div class="content"><ul><li>Type=forking: systemd expects the main process to fork and exit; it reads PIDFile= to find the daemon PID. Fragile and error-prone.</li><li>Type=simple: systemd considers the exec'd process as the main PID. No forking needed. Readiness is assumed at exec time.</li><li>Type=notify: like simple, but the daemon calls sd_notify(0, "READY=1") when actually ready. Best for services with initialization phases.</li><li>If your daemon does traditional double-fork under systemd Type=simple, systemd will think it crashed (main PID exited). Don't mix patterns.</li></ul></div>
 </details><details class="accordion">
-  <summary>Scheduling and priorities — practical view</summary>
-  <div class="content"><ul><li>nice/priority influence the scheduler, but do not replace correct design. CPU-bound work needs backpressure and sometimes isolation.</li><li>Real-time policies (SCHED_FIFO/RR) can starve the system. Only use with strict limits and watchdogs.</li><li>Affinity and cgroups are often a better lever for performance isolation than priority tweaks.</li><li>Measure: CPU usage, context switches, run queue length, and tail latency — then decide.</li></ul></div>
+  <summary>Syslog and log rotation</summary>
+  <div class="content"><ul><li>syslog() is thread-safe but can block if the syslog socket buffer is full (especially with LOG_NDELAY).</li><li>Traditional log rotation: logrotate renames the file, then sends SIGHUP to syslogd to reopen. Daemon's own log files need similar handling.</li><li>With journald, syslog() messages go to the journal; use journalctl --identifier=&lt;ident&gt; to filter.</li><li>LOG_PERROR option additionally prints to stderr — useful during development but not in production daemons (stderr is /dev/null).</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use ps/top/htop for state; look for Z (zombie), D (uninterruptible sleep), or stopped tasks.</li><li>Inspect /proc/&lt;pid&gt;/status (state, threads, signals), /proc/&lt;pid&gt;/cmdline, and /proc/&lt;pid&gt;/fd.</li><li>strace -f for process trees; add -e trace=process for fork/exec/wait focus.</li><li>For elusive deadlocks, capture stack traces (gdb, pstack) and correlate with futex waits.</li></ul></div>
+  <summary>Signal handling in daemons</summary>
+  <div class="content"><ul><li>SIGHUP convention: reload configuration files without restart. Use a flag variable set in the handler, checked in the main loop.</li><li>SIGTERM: initiate graceful shutdown. Finish current requests, close connections, flush buffers, then exit.</li><li>Avoid doing real work in signal handlers — only set flags or write to a self-pipe/signalfd. Handler context is restrictive (async-signal-safe only).</li><li>With systemd, TimeoutStopSec= defines how long to wait after SIGTERM before sending SIGKILL. Default is 90s.</li></ul></div>
 </details>
         </div>
 
@@ -150,24 +150,41 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch37"><code class="mono">// Minimal pipeline: producer | consumer
-int p[2];
-pipe2(p, O_CLOEXEC);
+  <pre id="code_ch37"><code class="mono">// Traditional daemonize + syslog + PID file locking
+#include &lt;fcntl.h&gt;
+#include &lt;syslog.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/file.h&gt;
+#include &lt;stdio.h&gt;
 
-if (fork() == 0) { // producer
-  dup2(p[1], STDOUT_FILENO);
-  close(p[0]); close(p[1]);
-  execlp(&quot;printf&quot;, &quot;printf&quot;, &quot;hello\n&quot;, (char*)NULL);
-  _exit(127);
+static int lock_pidfile(const char *path) {
+    int fd = open(path, O_CREAT | O_WRONLY, 0644);
+    if (fd &lt; 0) return -1;
+    if (flock(fd, LOCK_EX | LOCK_NB) &lt; 0) return -1;
+    ftruncate(fd, 0);
+    dprintf(fd, &quot;%d\n&quot;, getpid());
+    return fd;  // keep open to hold lock
 }
-if (fork() == 0) { // consumer
-  dup2(p[0], STDIN_FILENO);
-  close(p[0]); close(p[1]);
-  execlp(&quot;wc&quot;, &quot;wc&quot;, &quot;-l&quot;, (char*)NULL);
-  _exit(127);
-}
-close(p[0]); close(p[1]);
-while (wait(NULL) &gt; 0) {}</code></pre>
+
+void daemonize_and_run(void) {
+    if (fork() &gt; 0) _exit(0);
+    setsid();
+    if (fork() &gt; 0) _exit(0);
+
+    chdir(&quot;/&quot;);
+    close(0); close(1); close(2);
+    open(&quot;/dev/null&quot;, O_RDONLY);
+    open(&quot;/dev/null&quot;, O_WRONLY);
+    open(&quot;/dev/null&quot;, O_WRONLY);
+
+    openlog(&quot;mydaemon&quot;, LOG_PID | LOG_NDELAY, LOG_DAEMON);
+    if (lock_pidfile(&quot;/var/run/mydaemon.pid&quot;) &lt; 0) {
+        syslog(LOG_ERR, &quot;already running or pidfile error&quot;);
+        _exit(1);
+    }
+    syslog(LOG_INFO, &quot;started successfully&quot;);
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -176,17 +193,17 @@ while (wait(NULL) &gt; 0) {}</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use fork+exec with close-on-exec hygiene; avoid leaking fds into children.</li><li>Reap children reliably (waitpid loop, SIGCHLD handling) to avoid zombie buildup.</li><li>Make shutdown explicit: define signals, timeouts, and escalation (TERM → KILL).</li><li>Treat fork in multithreaded programs as dangerous: exec ASAP; use posix_spawn if appropriate.</li><li>Prefer structured supervisors (systemd) when available; integrate with service managers rather than reinventing.</li></ul>
+            <ul><li>Use flock-based PID files for single-instance enforcement — never rely on file existence checks alone.</li><li>Handle SIGHUP for config reload and SIGTERM for graceful shutdown; use signalfd or self-pipe for safe handler dispatch.</li><li>For systemd services, prefer Type=notify with sd_notify("READY=1") over traditional forking daemons.</li><li>Log startup, shutdown, config reload, and errors via syslog with appropriate priority levels (LOG_ERR vs LOG_INFO).</li><li>Set appropriate resource limits, umask, and working directory at daemon startup — don't inherit random values from the launcher.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Write a tiny supervisor: fork worker, restart on crash, exponential backoff, and SIGTERM shutdown.</li><li>Create a pipeline (producer | consumer) using pipe(), fork(), dup2(), execve(). Verify with strace -f.</li><li>Implement a &#x27;timeout&#x27; wrapper: run a command and kill it if it exceeds a deadline.</li></ul>
+            <ul><li>Implement a complete daemon with PID file locking, SIGHUP config reload, SIGTERM shutdown, and syslog logging. Verify single-instance behavior.</li><li>Write a systemd unit file (Type=notify) for a simple service; implement sd_notify readiness and watchdog keep-alive.</li><li>Demonstrate the PID file race condition: write a script that rapidly starts two instances using existence-check logic, then fix it with flock.</li></ul>
           </div>
         </div>
 
@@ -195,52 +212,52 @@ while (wait(NULL) &gt; 0) {}</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="waitpid collects termination status and releases kernel resources for the exited child.">
-  <div class="qp">Q1. What does waitpid() do?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="3" data-explain="The traditional daemon recipe is: fork (parent exits) → setsid (new session) → fork again (prevent terminal reacquisition) → close fds → redirect stdio → chdir.">
+  <div class="qp">Q1. What is the correct first step in traditional daemonization?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Starts a process</div></div>
+  <div><div style="font-weight:750">Call setsid()</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reaps a child and returns its status</div></div>
+  <div><div style="font-weight:750">Close all file descriptors</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Sends a signal</div></div>
+  <div><div style="font-weight:750">Write the PID file</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Allocates memory</div></div>
+  <div><div style="font-weight:750">fork() and have the parent exit</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="2" data-explain="Use _exit in the child on exec failure to avoid flushing shared stdio buffers.">
-  <div class="qp">Q2. A common safe pattern in the child after fork() is:</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="flock() is tied to the open file description and automatically released on process exit (even crashes). This avoids stale PID file problems that plague existence-based checks.">
+  <div class="qp">Q2. Why use flock() on a PID file instead of checking if the file exists?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">printf then exit()</div></div>
+  <div><div style="font-weight:750">flock is faster</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">malloc then exec()</div></div>
+  <div><div style="font-weight:750">flock is atomic and auto-released on crash; existence check has TOCTOU races</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">_exit() on exec failure</div></div>
+  <div><div style="font-weight:750">flock works across NFS</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">pthread_mutex_lock()</div></div>
+  <div><div style="font-weight:750">File existence checks require root</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="Children inherit file descriptors (refcounted); PID is new.">
-  <div class="qp">Q3. Which entity is inherited across fork()?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="SIGHUP is the conventional signal for daemons to reload their configuration files without restarting. The handler sets a flag, and the main loop re-reads config.">
+  <div class="qp">Q3. What is the conventional meaning of SIGHUP for a daemon?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">PID</div></div>
+  <div><div style="font-weight:750">Terminate immediately</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Open file descriptors</div></div>
+  <div><div style="font-weight:750">Dump core for debugging</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Thread IDs</div></div>
+  <div><div style="font-weight:750">Reload configuration</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">None</div></div>
+  <div><div style="font-weight:750">Increase log verbosity</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +265,7 @@ while (wait(NULL) &gt; 0) {}</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -288,7 +305,7 @@ while (wait(NULL) &gt; 0) {}</code></pre>
       highlight: ["process", "thread", "scheduler", "signal", "fdtable", "cred", "tty"]
     });
 TLPIWidgets.mountProcLab("proc_ch37", {});
-TLPIWidgets.mountStraceParser("str_ch37", {example: "fork() = 2001\n[pid 2001] execve(\"/usr/bin/true\", [\"true\"], 0x7ffd...) = 0\nwait4(2001, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 2001\n"});
+TLPIWidgets.mountStraceParser("str_ch37", {example: "fork() = 3001\nsetsid() = 3001\nfork() = 3002\nopen(\"/dev/null\", O_RDONLY) = 0\nopenlog(\"mydaemon\", LOG_PID|LOG_NDELAY, LOG_DAEMON)\nflock(4, LOCK_EX|LOCK_NB) = 0\n"});
   </script>
 </body>
 </html>

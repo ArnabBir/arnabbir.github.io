@@ -41,9 +41,9 @@
 
         <div class="glass pad" style="margin-top:12px">
           <div class="section-title">Chapter metadata</div>
-          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">635</span> (0-based index 634).</div>
+          <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">653</span> (0-based index 652).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>proc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fork/exec</strong></span> <span class="pill"><strong>zombies</strong></span> <span class="pill"><strong>pid namespaces</strong></span> <span class="pill"><strong>scheduling</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>system()</strong></span> <span class="pill"><strong>popen/pclose</strong></span> <span class="pill"><strong>clone()</strong></span> <span class="pill"><strong>namespaces</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 28 — Process Creation and Program Execution in More Detail
           </h2>
           <div class="subtitle">
-            <p>Processes are isolated execution contexts with their own PID, address space, credentials, and resource tables. The kernel keeps a surprisingly rich *process state machine*: runnable, sleeping, stopped, zombie, and more. Understanding how a process *moves* through states is the key to debugging leaks, zombies, and deadlocks.</p><p>In practice, process control is about composing a small set of primitives (fork/exec/wait, signals, pipes, dup2, setpgid/setsid) into reliable patterns: supervisors, daemons, pipelines, sandboxes, and service managers.</p>
+            <p>Beyond fork+exec — system() for shell commands, popen() for bidirectional pipe+exec, clone() for fine-grained task creation (the foundation of both threads and containers), and process accounting for auditing resource usage.</p><p>These higher-level and lower-level interfaces bracket the fork/exec primitives: system() is dangerously convenient, while clone() gives you scalpel-level control over what parent and child share.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">fork clones, exec overlays, wait reaps. PID persists across exec.</div>
+  <div class="v">system() = fork + exec("/bin/sh", "-c", cmd) + waitpid. popen() = pipe + fork + exec + fdopen. clone() = fork with selective sharing.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Zombies accumulate if you never reap children (waitpid).</div>
+  <div class="v">system() passes strings to /bin/sh — shell injection via unsanitized input is trivial. Never use with user-controlled data.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Check /proc/&lt;pid&gt;/status for state, signals, and children; use strace -f.</div>
+  <div class="v">Use strace -f to trace system()/popen() — you'll see the fork, exec of /bin/sh, and the actual command execution underneath.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A process is a task_struct plus resources (mm, files, cred, signals).</li><li>fork() clones structure; execve() replaces image; wait*() reaps termination status.</li><li>Copy-on-write makes fork cheap until you write; memory behavior changes with workload.</li><li>Signals are the asynchronous control plane for process trees (SIGCHLD, shutdown).</li><li>Job control uses sessions + process groups + controlling terminals; signals target groups.</li><li>In multithreaded code, fork is a sharp edge: exec quickly or use posix_spawn.</li></ul>
+            <ul><li><code>system(cmd)</code> = fork + exec("/bin/sh", "-c", cmd) + waitpid. Convenient but dangerous: shell metacharacters are interpreted, signals must be handled carefully.</li><li>system() blocks SIGCHLD and ignores SIGINT/SIGQUIT in the parent during execution (per POSIX). This interacts poorly with custom SIGCHLD handlers.</li><li><code>popen(cmd, mode)</code> = pipe + fork + exec("/bin/sh", "-c", cmd) with one end wrapped in a FILE*. Mode "r" reads child stdout; "w" writes to child stdin.</li><li><code>pclose(fp)</code> closes the pipe and calls waitpid — you MUST use pclose (not fclose) to avoid zombie leaks and get the exit status.</li><li><code>clone(fn, stack, flags, arg)</code> is the Linux-specific syscall underlying both fork (SIGCHLD only) and pthread_create (CLONE_VM|CLONE_FILES|...).</li><li>clone flags select what to share: CLONE_VM (address space), CLONE_FILES (fd table), CLONE_NEWNS (mount namespace), CLONE_NEWPID (PID namespace), etc.</li><li><code>unshare(flags)</code> is the post-creation version: dissociate the calling process from specified shared resources without forking.</li><li>CLONE_NEWPID creates a PID namespace — the first process inside is PID 1 and must handle orphan reaping (like init).</li><li>Process accounting (acct(2)) writes a record per terminated process: CPU time, memory high-water, command name. Useful for auditing and billing.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>task_struct</td><td>Kernel structure representing a task (process or thread) with scheduling + state.</td></tr><tr><td class='mono'>PID</td><td>Process identifier; can be recycled; stable across exec but not across fork.</td></tr><tr><td class='mono'>Zombie</td><td>Exited process whose exit status is retained until reaped by wait*().</td></tr><tr><td class='mono'>Copy-on-write</td><td>fork() shares pages until a write triggers duplication; makes fork cheap.</td></tr><tr><td class='mono'>Session</td><td>Collection of process groups; setsid() creates new session and detaches from controlling tty.</td></tr><tr><td class='mono'>Process group</td><td>Used for job control and signal delivery to related processes.</td></tr></tbody>
+  <tbody><tr><td class='mono'>system()</td><td>Libc: fork+exec shell+wait. Convenient but vulnerable to shell injection.</td></tr><tr><td class='mono'>popen/pclose</td><td>Libc: pipe+fork+exec shell with FILE* interface. pclose reaps the child.</td></tr><tr><td class='mono'>clone</td><td>Linux syscall: create task with fine-grained resource sharing (threads, containers).</td></tr><tr><td class='mono'>unshare</td><td>Dissociate calling process from shared namespaces/resources without forking.</td></tr><tr><td class='mono'>CLONE_NEWNS</td><td>Create new mount namespace — basis for filesystem isolation in containers.</td></tr><tr><td class='mono'>CLONE_NEWPID</td><td>Create new PID namespace — processes inside see their own PID 1.</td></tr><tr><td class='mono'>process accounting</td><td>Kernel writes per-process resource usage record on termination (acct(2)).</td></tr></tbody>
 </table>
         </div>
 
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr><tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>posix_spawn</td><td class='mono'>int posix_spawn(pid_t *pid, const char *path, const posix_spawn_file_actions_t *fa, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[]);</td><td class='mono muted2'>EINVAL, ENOMEM</td><td>Fork+exec with controlled actions; can be more efficient on some systems.</td></tr><tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr>
+    <tr><td class='mono'>system</td><td class='mono'>int system(const char *command);</td><td class='mono muted2'>—</td><td>Returns shell exit status (use WEXITSTATUS). Returns -1 on fork failure. NULL arg tests shell availability.</td></tr><tr><td class='mono'>popen</td><td class='mono'>FILE *popen(const char *command, const char *type);</td><td class='mono muted2'>ENOMEM, EMFILE</td><td>Type "r" reads stdout, "w" writes stdin. Returns NULL on failure. Stream is fully buffered.</td></tr><tr><td class='mono'>pclose</td><td class='mono'>int pclose(FILE *stream);</td><td class='mono muted2'>ECHILD</td><td>Closes pipe, waits for child, returns wait status. MUST use instead of fclose.</td></tr><tr><td class='mono'>clone</td><td class='mono'>int clone(int (*fn)(void*), void *stack, int flags, void *arg, ...);</td><td class='mono muted2'>ENOMEM, EINVAL, EPERM</td><td>Low-level: specify sharing flags. Used by pthread_create and container runtimes internally.</td></tr><tr><td class='mono'>unshare</td><td class='mono'>int unshare(int flags);</td><td class='mono muted2'>ENOMEM, EPERM</td><td>Dissociate from namespace. CLONE_NEWNS requires CAP_SYS_ADMIN (or user namespace).</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Fork/exec/wait: the production pattern</summary>
-  <div class="content"><ul><li>fork() clones the process (copy-on-write). execve() replaces the program image. waitpid() reaps the exit status.</li><li>The PID stays the same across exec. File descriptors survive exec unless marked close-on-exec (FD_CLOEXEC / O_CLOEXEC).</li><li>In multi-threaded parents, after fork() only async-signal-safe functions are safe before exec/_exit.</li><li>Zombies exist because the kernel must retain exit status until the parent collects it. If you forget to wait, zombies accumulate.</li></ul></div>
+  <summary>Shell injection via system()</summary>
+  <div class="content"><ul><li><code>system("grep " + user_input + " /etc/passwd")</code> — if user_input is "; rm -rf /", you execute arbitrary commands.</li><li>system() invokes /bin/sh -c, so all shell metacharacters (;, |, &amp;, $, `, etc.) are interpreted.</li><li>Fix: never pass unsanitized input to system(). Use fork+execvp with an explicit argv array instead.</li><li>If you must use system(), validate input against a strict allowlist (alphanumeric only) and quote arguments.</li></ul></div>
 </details><details class="accordion">
-  <summary>Signals and job control interactions</summary>
-  <div class="content"><ul><li>SIGCHLD is how the kernel tells a parent that a child changed state. Always write robust SIGCHLD handling or a wait loop.</li><li>Process groups and sessions matter for terminals: Ctrl-C sends SIGINT to the foreground process group.</li><li>Stopping/continuing (SIGTSTP/SIGCONT) creates state transitions you must handle in shells and supervisors.</li><li>Avoid sending signals by PID alone in long-lived systems; PIDs can be recycled. Consider pidfds (newer kernels) when available.</li></ul></div>
+  <summary>system() and SIGCHLD handler interaction</summary>
+  <div class="content"><ul><li>POSIX requires system() to block SIGCHLD during execution. If you have a SIGCHLD handler, it won't fire for the system() child.</li><li>But: if your SIGCHLD handler calls waitpid(-1, ...), it can accidentally reap system()'s child before system() does, causing system() to return -1/ECHILD.</li><li>Fix: use waitpid with a specific PID in your handler, or avoid mixing system() with SIGCHLD handlers.</li><li>Better: avoid system() entirely in programs that manage child processes.</li></ul></div>
 </details><details class="accordion">
-  <summary>Scheduling and priorities — practical view</summary>
-  <div class="content"><ul><li>nice/priority influence the scheduler, but do not replace correct design. CPU-bound work needs backpressure and sometimes isolation.</li><li>Real-time policies (SCHED_FIFO/RR) can starve the system. Only use with strict limits and watchdogs.</li><li>Affinity and cgroups are often a better lever for performance isolation than priority tweaks.</li><li>Measure: CPU usage, context switches, run queue length, and tail latency — then decide.</li></ul></div>
+  <summary>popen and SIGPIPE</summary>
+  <div class="content"><ul><li>If you popen("cmd", "w") and the child exits early, writing to the FILE* generates SIGPIPE (default: terminate).</li><li>Handle or ignore SIGPIPE if using popen in write mode: <code>signal(SIGPIPE, SIG_IGN)</code> and check write/fflush errors.</li><li>popen streams are fully buffered — data may not reach the child until you fflush() or pclose().</li><li>pclose() returns the child's wait status; check it for errors (the command may have failed silently).</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use ps/top/htop for state; look for Z (zombie), D (uninterruptible sleep), or stopped tasks.</li><li>Inspect /proc/&lt;pid&gt;/status (state, threads, signals), /proc/&lt;pid&gt;/cmdline, and /proc/&lt;pid&gt;/fd.</li><li>strace -f for process trees; add -e trace=process for fork/exec/wait focus.</li><li>For elusive deadlocks, capture stack traces (gdb, pstack) and correlate with futex waits.</li></ul></div>
+  <summary>clone with CLONE_NEWPID — PID 1 responsibilities</summary>
+  <div class="content"><ul><li>The first process in a new PID namespace becomes PID 1 inside that namespace. It has special responsibilities.</li><li>If PID 1 in a namespace dies, all other processes in the namespace are killed with SIGKILL.</li><li>PID 1 must reap orphaned children (just like system init). Failing to do so creates zombies inside the namespace.</li><li>Container runtimes (Docker, runc) often use tini or dumb-init as PID 1 to handle signal forwarding and reaping.</li></ul></div>
 </details>
         </div>
 
@@ -150,24 +150,38 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch28"><code class="mono">// Minimal pipeline: producer | consumer
-int p[2];
-pipe2(p, O_CLOEXEC);
+  <pre id="code_ch28"><code class="mono">// Safe command execution (avoiding system() injection) + popen pattern
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;unistd.h&gt;
 
-if (fork() == 0) { // producer
-  dup2(p[1], STDOUT_FILENO);
-  close(p[0]); close(p[1]);
-  execlp(&quot;printf&quot;, &quot;printf&quot;, &quot;hello\n&quot;, (char*)NULL);
-  _exit(127);
+// SAFE: explicit argv, no shell interpretation
+int run_safe(const char *prog, const char *arg) {
+    pid_t pid = fork();
+    if (pid == 0) {
+        execlp(prog, prog, arg, (char*)NULL);
+        _exit(127);
+    }
+    int status;
+    waitpid(pid, &amp;status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 }
-if (fork() == 0) { // consumer
-  dup2(p[0], STDIN_FILENO);
-  close(p[0]); close(p[1]);
-  execlp(&quot;wc&quot;, &quot;wc&quot;, &quot;-l&quot;, (char*)NULL);
-  _exit(127);
-}
-close(p[0]); close(p[1]);
-while (wait(NULL) &gt; 0) {}</code></pre>
+
+// popen pattern: read command output into buffer
+char *capture_output(const char *cmd) {
+    FILE *fp = popen(cmd, &quot;r&quot;);
+    if (!fp) return NULL;
+    char *buf = NULL; size_t len = 0;
+    ssize_t n = getline(&amp;buf, &amp;len, fp);
+    int status = pclose(fp);  // MUST use pclose, not fclose
+    if (n &lt; 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        free(buf); return NULL;
+    }
+    buf[strcspn(buf, &quot;\n&quot;)] = &#x27;\0&#x27;;  // strip trailing newline
+    return buf;  // caller must free()
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -176,17 +190,17 @@ while (wait(NULL) &gt; 0) {}</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use fork+exec with close-on-exec hygiene; avoid leaking fds into children.</li><li>Reap children reliably (waitpid loop, SIGCHLD handling) to avoid zombie buildup.</li><li>Make shutdown explicit: define signals, timeouts, and escalation (TERM → KILL).</li><li>Treat fork in multithreaded programs as dangerous: exec ASAP; use posix_spawn if appropriate.</li><li>Prefer structured supervisors (systemd) when available; integrate with service managers rather than reinventing.</li></ul>
+            <ul><li>Never pass untrusted input to system() or popen(). Use fork+execvp with explicit argv for user-controlled commands.</li><li>Always use pclose() (not fclose()) with popen streams to reap the child and get the exit status.</li><li>Handle SIGPIPE when using popen in write mode — the child may exit before you finish writing.</li><li>If using clone() for namespaces, ensure PID 1 in the namespace handles reaping and signal forwarding.</li><li>Prefer posix_spawn() over system() when you need convenience but don't need shell interpretation.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Write a tiny supervisor: fork worker, restart on crash, exponential backoff, and SIGTERM shutdown.</li><li>Create a pipeline (producer | consumer) using pipe(), fork(), dup2(), execve(). Verify with strace -f.</li><li>Implement a &#x27;timeout&#x27; wrapper: run a command and kill it if it exceeds a deadline.</li></ul>
+            <ul><li>Demonstrate shell injection: write a program using system() and show how a semicolon in user input executes arbitrary commands. Then rewrite safely with fork+execvp.</li><li>Implement a simplified popen/pclose from scratch using pipe(), fork(), dup2(), and fdopen(). Verify it works with "ls -la".</li><li>Use unshare(CLONE_NEWPID) + fork to create a PID namespace. Show that the child sees itself as PID 1 by reading /proc/self/status.</li></ul>
           </div>
         </div>
 
@@ -195,52 +209,52 @@ while (wait(NULL) &gt; 0) {}</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="waitpid collects termination status and releases kernel resources for the exited child.">
-  <div class="qp">Q1. What does waitpid() do?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="3" data-explain="system() passes the command string to /bin/sh -c, which interprets all shell metacharacters. Unsanitized input can inject arbitrary commands.">
+  <div class="qp">Q1. Why is system() dangerous with user input?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Starts a process</div></div>
+  <div><div style="font-weight:750">It runs too slowly</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reaps a child and returns its status</div></div>
+  <div><div style="font-weight:750">It cannot return exit status</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Sends a signal</div></div>
+  <div><div style="font-weight:750">It only works on Linux</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Allocates memory</div></div>
+  <div><div style="font-weight:750">Shell metacharacters enable command injection</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="2" data-explain="Use _exit in the child on exec failure to avoid flushing shared stdio buffers.">
-  <div class="qp">Q2. A common safe pattern in the child after fork() is:</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="pclose() closes the pipe AND calls waitpid to reap the child. Using fclose() would leave a zombie and lose the exit status.">
+  <div class="qp">Q2. Why must you use pclose() instead of fclose() with popen streams?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">printf then exit()</div></div>
+  <div><div style="font-weight:750">fclose() would corrupt the file</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">malloc then exec()</div></div>
+  <div><div style="font-weight:750">pclose() also reaps the child process (waitpid)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">_exit() on exec failure</div></div>
+  <div><div style="font-weight:750">fclose() is not thread-safe</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">pthread_mutex_lock()</div></div>
+  <div><div style="font-weight:750">pclose() is faster</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="Children inherit file descriptors (refcounted); PID is new.">
-  <div class="qp">Q3. Which entity is inherited across fork()?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="clone() accepts flags that specify exactly what to share (VM, files, namespaces). This is the foundation for both pthreads (CLONE_VM) and containers (CLONE_NEW*).">
+  <div class="qp">Q3. What makes clone() more powerful than fork()?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">PID</div></div>
+  <div><div style="font-weight:750">clone() is faster</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Open file descriptors</div></div>
+  <div><div style="font-weight:750">clone() works on all operating systems</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Thread IDs</div></div>
+  <div><div style="font-weight:750">clone() lets you choose exactly which resources to share via flags</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">None</div></div>
+  <div><div style="font-weight:750">clone() doesn't require exec afterwards</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +262,7 @@ while (wait(NULL) &gt; 0) {}</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -288,7 +302,7 @@ while (wait(NULL) &gt; 0) {}</code></pre>
       highlight: ["process", "thread", "scheduler", "signal", "fdtable", "cred", "tty"]
     });
 TLPIWidgets.mountProcLab("proc_ch28", {});
-TLPIWidgets.mountStraceParser("str_ch28", {example: "fork() = 2001\n[pid 2001] execve(\"/usr/bin/true\", [\"true\"], 0x7ffd...) = 0\nwait4(2001, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 2001\n"});
+TLPIWidgets.mountStraceParser("str_ch28", {example: "clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD) = 4567\n[pid 4567] execve(\"/bin/sh\", [\"sh\", \"-c\", \"echo hello\"], ...) = 0\n[pid 4567] write(1, \"hello\\n\", 6) = 6\nwait4(4567, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 4567\n"});
   </script>
 </body>
 </html>

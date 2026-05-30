@@ -42,8 +42,8 @@
         <div class="glass pad" style="margin-top:12px">
           <div class="section-title">Appendix metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1469</span> (0-based index 1468).</div>
-          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>misc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>linux</strong></span> <span class="pill"><strong>systems</strong></span></div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>practice</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>error handling</strong></span> <span class="pill"><strong>EINTR</strong></span> <span class="pill"><strong>defensive coding</strong></span> <span class="pill"><strong>strace</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -58,27 +58,27 @@
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
             Appendix F — Solutions to Selected Exercises
           </h2>
-          <div class="subtitle"><p>This companion intentionally does not reproduce TLPI’s exercise text or solutions verbatim. However, you can still use it as a framework to *arrive* at solutions in a rigorous way.</p><p>This appendix gives you a repeatable workflow for solving systems exercises: define invariants, build a minimal reproducer, add instrumentation, test failure modes, and validate with strace.</p></div>
+          <div class="subtitle"><p>Solution patterns for selected exercises -- not complete answers, but the key insights and approaches. The real learning is in implementing and debugging. Every exercise answer shares a common shape: check every return value, handle EINTR, test edge cases, and verify with strace.</p><p>This appendix provides reusable code patterns (write_all, error wrappers, EINTR retry loops) and a methodology for approaching systems exercises: implement first, then compare; measure before optimizing; code defensively.</p></div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Build a mental model of kernel objects and their relationships.</div>
+  <div class="v">Check every return value. An unchecked syscall failure is a latent bug waiting for production.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Assuming happy-path semantics in systems code leads to fragile behavior.</div>
+  <div class="v">Assuming happy-path semantics: read() can return short, write() can return short, signals can interrupt anything.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Measure and observe with strace, /proc, and perf.</div>
+  <div class="v">Use strace to verify your implementation matches expectations; use ulimit to test resource exhaustion paths.</div>
 </div></div>
         </div>
 
         <div class="glass pad-lg">
           <h3 class="section" data-toc="Key concepts">Key concepts</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Use these as a cross-chapter index: the same kernel objects reappear everywhere.
+            Patterns and principles that appear in every well-written solution.
           </div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Invariants</td><td>Rules that must always hold; use them to reason about correctness.</td></tr><tr><td class='mono'>Observability</td><td>Ability to understand state from outside via logs, traces, /proc, and metrics.</td></tr></tbody>
+  <tbody><tr><td class='mono'>Error handling pattern</td><td>Check return value; if -1, inspect errno; print context (path, fd, flags); decide: retry, abort, or degrade.</td></tr><tr><td class='mono'>EINTR retry loop</td><td>Wrap blocking syscalls in a loop that retries on EINTR; signals can interrupt read, write, accept, etc.</td></tr><tr><td class='mono'>Defensive programming</td><td>Assume every syscall can fail; validate inputs; handle partial I/O; close fds on all exit paths.</td></tr><tr><td class='mono'>strace verification</td><td>Run your solution under strace -f -tt -T to confirm syscall sequences and errno handling match intent.</td></tr><tr><td class='mono'>Test reproducibility</td><td>Use ulimit, signal injection (kill -USR1), and fault injection to create reproducible failure scenarios.</td></tr></tbody>
 </table>
         </div>
 
@@ -95,24 +95,24 @@
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Deep dive">Deep dive</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Practical panels: tools, workflows, and invariants worth memorizing.
+            Practical panels: solution methodology, common patterns, and testing strategies.
           </div>
           <details class="accordion">
-  <summary>A repeatable solution workflow</summary>
-  <div class="content"><ul><li>Restate the problem as explicit invariants: inputs, outputs, and allowed failure modes.</li><li>Identify the kernel objects involved (processes, fds, signals, sockets, memory mappings).</li><li>Implement the simplest correct version first (even if slow).</li><li>Add tests for edge cases: EINTR, EAGAIN, partial I/O, and resource exhaustion.</li><li>Use strace to validate syscall sequences and errno handling.</li></ul></div>
+  <summary>Solution methodology</summary>
+  <div class="content"><ul><li>Implement first, then compare with reference solutions. The learning is in the struggle, not the answer.</li><li>Start with the simplest correct version -- no optimizations, no clever tricks. Get it right, then make it fast.</li><li>Focus on error handling and edge cases: what happens on EOF? On EINTR? On EAGAIN? On disk full?</li><li>Use strace to verify that your syscall sequences match expectations. Unexpected syscalls reveal bugs.</li><li>Measure before optimizing: use time, perf stat, or strace -c to find actual bottlenecks.</li></ul></div>
 </details><details class="accordion">
-  <summary>What “good” looks like</summary>
-  <div class="content"><ul><li>Clear error messages that include context (paths, flags, sizes).</li><li>Resource hygiene: close fds, free memory, handle exec failure paths.</li><li>Deterministic behavior under signals and concurrent events.</li><li>Performance awareness: avoid O(N) scans in event loops when N is large.</li></ul></div>
+  <summary>The write_all pattern</summary>
+  <div class="content"><ul><li>write() can return fewer bytes than requested (short write), especially on pipes, sockets, and nonblocking fds.</li><li>write_all() loops until all bytes are written, handling EINTR (retry) and short writes (advance buffer pointer).</li><li>This pattern is so common it should be a utility function in every systems project.</li><li>The same pattern applies to read: read_all() loops until the buffer is full or EOF is reached.</li></ul></div>
 </details><details class="accordion">
-  <summary>Suggested extensions</summary>
-  <div class="content"><ul><li>After correctness, add nonblocking mode + epoll integration where appropriate.</li><li>Add metrics: counts, latencies, and failure rates.</li><li>Document portability assumptions (Linux vs POSIX).</li><li>Write a README describing how to reproduce and debug.</li></ul></div>
+  <summary>Testing strategies</summary>
+  <div class="content"><ul><li>Use ulimit -n 10 to force fd exhaustion and test EMFILE handling.</li><li>Send signals during blocking operations: kill -USR1 &lt;pid&gt; to trigger EINTR paths.</li><li>Use strace -e fault=write:error=ENOSPC to simulate disk-full conditions without filling a disk.</li><li>Write deterministic test cases: fixed input, expected output, compare with diff.</li><li>Test with /dev/full (always returns ENOSPC on write) and /dev/zero (infinite zeros on read).</li></ul></div>
 </details>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="API quick reference">API quick reference</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            APIs you’ll likely use while working through these topics.
+            APIs that appear most frequently in exercise solutions.
           </div>
           <table class="table">
   <thead>
@@ -124,7 +124,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>read</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, EFAULT</td><td>Short reads are normal (pipes/sockets/tty). Loop until done; handle EINTR and EAGAIN for nonblocking.</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, EBADF, ENOSPC</td><td>Short writes are normal on pipes/sockets/nonblocking fds. SIGPIPE/EPIPE when peer is gone.</td></tr><tr><td class='mono'>poll</td><td class='mono'>int poll(struct pollfd *fds, nfds_t nfds, int timeout);</td><td class='mono muted2'>EINTR, EINVAL</td><td>O(N) scan; no FD_SETSIZE bitset limit but still linear.</td></tr><tr><td class='mono'>epoll_wait</td><td class='mono'>int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Returns ready events (O(k)). Handle EINTR; use timeout for periodic housekeeping.</td></tr><tr><td class='mono'>errno</td><td class='mono'>extern int errno; (thread-local)</td><td class='mono muted2'>—</td><td>Thread-local error indicator set by failing syscalls/libc wrappers; read immediately after failure.</td></tr><tr><td class='mono'>perror</td><td class='mono'>void perror(const char *s);</td><td class='mono muted2'>—</td><td>Prints s + error message for current errno to stderr.</td></tr>
+    <tr><td class='mono'>read</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF</td><td>Short reads are normal. Loop until done or EOF (return 0).</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, ENOSPC</td><td>Short writes are normal. Use write_all pattern.</td></tr><tr><td class='mono'>close</td><td class='mono'>int close(int fd);</td><td class='mono muted2'>EBADF, EIO</td><td>Always close fds on all exit paths. Check return for EIO on NFS.</td></tr><tr><td class='mono'>perror</td><td class='mono'>void perror(const char *s);</td><td class='mono muted2'>--</td><td>Quick error reporting; include context in s (e.g., perror("open /etc/hosts")).</td></tr><tr><td class='mono'>errno</td><td class='mono'>extern int errno; (thread-local)</td><td class='mono muted2'>--</td><td>Read immediately after failure. Save to local variable if calling other functions before using.</td></tr>
   </tbody>
 </table>
         </div>
@@ -135,64 +135,78 @@
             <button class="btn small" data-copy="#code_appF">Copy</button>
           </div>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Appendix snippets emphasize workflow and instrumentation.
+            Common patterns used in solutions: write_all and error wrapper.
           </div>
-          <pre id="code_appF"><code class="mono">// Exercise-solver template: skeleton for robust syscall loops
-for (;;) {
-  ssize_t n = read(fd, buf, sizeof(buf));
-  if (n &gt; 0) { /* process */ continue; }
-  if (n == 0) break; // EOF
-  if (errno == EINTR) continue;
-  if (errno == EAGAIN) { /* wait with poll/epoll */ continue; }
-  perror(&quot;read&quot;); break;
-}</code></pre>
+          <pre id="code_appF"><code class="mono">/* write_all: handle short writes and EINTR */
+ssize_t write_all(int fd, const void *buf, size_t len) {
+    const char *p = buf;
+    while (len &gt; 0) {
+        ssize_t n = write(fd, p, len);
+        if (n &gt; 0)          { p += n; len -= n; continue; }
+        if (errno == EINTR)  { continue; }
+        return -1;  /* real error */
+    }
+    return p - (const char *)buf;
+}
+
+/* err_exit: print context + errno message and exit */
+void err_exit(const char *msg) {
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
+
+/* Usage in exercise solutions */
+int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644);
+if (fd == -1) err_exit(&quot;open&quot;);
+if (write_all(fd, data, data_len) == -1) err_exit(&quot;write&quot;);
+if (close(fd) == -1) err_exit(&quot;close&quot;);</code></pre>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Production checklist">Production checklist</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Checklists are how you stop repeating incidents.
+            Discipline that separates correct solutions from fragile ones.
           </div>
-          <div class="prose"><ul><li>Extract invariants, design for failure modes, and validate with strace + tests.</li></ul></div>
+          <div class="prose"><ul><li>Check every return value -- read, write, close, dup2, fork, exec. No exceptions.</li><li>Handle EINTR in every blocking syscall with a retry loop.</li><li>Use write_all/read_all wrappers for all bulk I/O to handle short transfers.</li><li>Test with resource limits (ulimit), signal injection (kill), and fault injection (strace -e fault=).</li><li>Verify with strace -f -tt -T that syscall sequences match your mental model.</li></ul></div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Quiz">Quiz</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">Quick self-check.</div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Invariants and kernel objects guide design and make debugging systematic.">
-  <div class="qp">Q1. A good first step in solving a systems exercise is:</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="write() can return fewer bytes than requested; write_all loops until all bytes are written.">
+  <div class="qp">Q1. Why do you need a write_all wrapper?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Optimize immediately</div></div>
+  <div><div style="font-weight:750">write() is deprecated</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Define invariants and kernel objects</div></div>
+  <div><div style="font-weight:750">write() can return short; you must loop to write all bytes</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore errors</div></div>
+  <div><div style="font-weight:750">write() doesn't set errno</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Write 1000 lines first</div></div>
+  <div><div style="font-weight:750">write() always writes everything</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="These are the common real-world edge cases for robust I/O.">
-  <div class="qp">Q2. Which failure modes should you test early for I/O problems?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="EINTR means a signal interrupted the syscall; the correct response is to retry the call.">
+  <div class="qp">Q2. What should you do when read() returns -1 with errno==EINTR?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only success path</div></div>
+  <div><div style="font-weight:750">Exit the program</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">EINTR/EAGAIN/partial I/O</div></div>
+  <div><div style="font-weight:750">Return EOF</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only ENOENT</div></div>
+  <div><div style="font-weight:750">Retry the read</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">None</div></div>
+  <div><div style="font-weight:750">Close the fd</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="strace makes the kernel boundary visible so you can validate assumptions.">
-  <div class="qp">Q3. Why use strace while solving exercises?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="strace shows actual syscall sequences and errno values, letting you verify your implementation matches expectations.">
+  <div class="qp">Q3. Why use strace to verify exercise solutions?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
   <div><div style="font-weight:750">It compiles code</div></div>
@@ -212,7 +226,7 @@ for (;;) {
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

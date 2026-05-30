@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">699</span> (0-based index 698).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>threads</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pthreads</strong></span> <span class="pill"><strong>mutex</strong></span> <span class="pill"><strong>condvar</strong></span> <span class="pill"><strong>cancellation</strong></span> <span class="pill"><strong>TLS</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>thread-safe</strong></span> <span class="pill"><strong>reentrant</strong></span> <span class="pill"><strong>pthread_key</strong></span> <span class="pill"><strong>__thread</strong></span> <span class="pill"><strong>_r variants</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 31 — Threads: Thread Safety and Per-Thread Storage
           </h2>
           <div class="subtitle">
-            <p>Threads share an address space but execute independently. That sounds simple until you deal with memory visibility, lock ordering, cancellation, thread-local state, and resource lifetime. The pthreads API is a toolset; correctness comes from disciplined invariants and a debugging mindset.</p><p>This guide emphasizes race-free patterns: ownership, immutability, critical sections, condition variables with while-loops, and safe shutdown (cancellation points + cleanup handlers).</p>
+            <p>Thread safety means a function can be called concurrently from multiple threads without corrupting shared data. The #1 source of thread-unsafety in legacy C code is functions that use static internal buffers (strtok, ctime, gethostbyname). This chapter covers making code thread-safe and two mechanisms for per-thread storage.</p><p>Reentrant functions are a stronger guarantee: safe even when called from a signal handler that interrupted the same function. The _r variants (strtok_r, localtime_r) are the standard solution. For custom per-thread state, use pthread_key (destructor support) or the simpler __thread keyword.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Shared memory requires synchronization; data races are undefined behavior.</div>
+  <div class="v">Thread-safe means no shared mutable state without synchronization. Reentrant is stricter: safe even from signal handlers interrupting the same function.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Condition variables require a predicate loop to avoid lost/spurious wakeups.</div>
+  <div class="v">Functions like strtok, ctime, and gethostbyname use internal static buffers and are NOT thread-safe. Always use the _r variants in threaded code.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use TSan in tests; perf can reveal contention in futex waits.</div>
+  <div class="v">grep your codebase for non-_r libc calls (strtok, asctime, readdir without _r). Each is a latent thread-safety bug.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Threads share memory; races are bugs unless synchronized (mutex/atomics).</li><li>A mutex protects an invariant; keep critical sections small and consistent.</li><li>Condition variables wait for predicates; always check predicate in a loop.</li><li>Cancellation and shutdown need cleanup handlers and ownership discipline.</li><li>Thread-local state can hide complexity; document lifetime and destructors.</li><li>Measure contention: futex waits and context switches indicate scalability limits.</li></ul>
+            <ul><li>Thread-safe: function can be called from multiple threads concurrently without data corruption. Achieved via mutexes, atomics, or eliminating shared mutable state.</li><li>Reentrant: function is safe even when re-entered from a signal handler. Reentrant implies thread-safe, but thread-safe does not imply reentrant (a function using a mutex is thread-safe but not reentrant from a signal handler).</li><li>Static buffers are the #1 thread-safety problem in classic C libraries. Functions like strtok, ctime, getpwnam return pointers to internal static storage that is overwritten on the next call.</li><li>The _r variants (strtok_r, localtime_r, getpwnam_r) take a caller-supplied buffer, making them thread-safe and reentrant.</li><li>pthread_key_create + pthread_setspecific: the POSIX API for thread-specific data. A destructor function is called with the value when the thread exits.</li><li>__thread (or _Thread_local in C11): simpler thread-local storage. Each thread gets its own copy of the variable. No destructor support.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Mutex</td><td>Mutual exclusion lock protecting shared state; defines critical sections.</td></tr><tr><td class='mono'>Condvar</td><td>Condition variable for waiting on a predicate; requires mutex + while-loop.</td></tr><tr><td class='mono'>TLS</td><td>Thread-local storage: per-thread variables and destructor semantics.</td></tr><tr><td class='mono'>Futex</td><td>Kernel primitive underlying many pthread locks; contention shows as futex waits.</td></tr><tr><td class='mono'>Cancellation</td><td>Cooperative thread termination via cancellation points and cleanup handlers.</td></tr><tr><td class='mono'>Data race</td><td>Undefined behavior when unsynchronized concurrent access occurs (one write).</td></tr></tbody>
+  <tbody><tr><td class='mono'>Thread-safe</td><td>Safe for concurrent calls from multiple threads. No unprotected shared mutable state.</td></tr><tr><td class='mono'>Reentrant</td><td>Safe for re-entry from signal handlers. Stronger than thread-safe. Uses no static/global state or locks.</td></tr><tr><td class='mono'>pthread_key_t</td><td>Key for thread-specific data. Created once (pthread_key_create), set/get per thread. Supports destructors.</td></tr><tr><td class='mono'>__thread</td><td>GCC/C11 keyword for thread-local storage. Each thread gets its own instance. Simpler than pthread_key but no destructor.</td></tr><tr><td class='mono'>_r variants</td><td>Reentrant versions of libc functions: strtok_r, localtime_r, readdir_r, getpwnam_r, etc.</td></tr><tr><td class='mono'>pthread_once</td><td>Ensures one-time initialization across all threads. Avoids double-init races.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pthread_key_create</td><td class='mono'>int pthread_key_create(pthread_key_t *key, void (*destructor)(void*));</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Thread-specific data (TLS) keys; destructor runs on thread exit.</td></tr><tr><td class='mono'>pthread_once</td><td class='mono'>int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));</td><td class='mono muted2'>EINVAL</td><td>One-time initialization; avoids double-init races.</td></tr>
+    <tr><td class='mono'>pthread_key_create</td><td class='mono'>int pthread_key_create(pthread_key_t *key, void (*destructor)(void*));</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Creates a TSD key. Destructor runs on thread exit if value is non-NULL. Limited to PTHREAD_KEYS_MAX keys.</td></tr><tr><td class='mono'>pthread_setspecific</td><td class='mono'>int pthread_setspecific(pthread_key_t key, const void *value);</td><td class='mono muted2'>EINVAL, ENOMEM</td><td>Sets the calling thread's value for key. Each thread has an independent slot.</td></tr><tr><td class='mono'>pthread_getspecific</td><td class='mono'>void *pthread_getspecific(pthread_key_t key);</td><td class='mono muted2'>--</td><td>Returns the calling thread's value for key, or NULL if never set.</td></tr><tr><td class='mono'>pthread_once</td><td class='mono'>int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));</td><td class='mono muted2'>EINVAL</td><td>Guarantees init_routine runs exactly once across all threads. Thread-safe initialization.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: prefer __thread for simple per-thread counters/caches. Use pthread_key when you need a destructor to free resources on thread exit.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Correctness model: data races are bugs</summary>
-  <div class="content"><ul><li>If two threads access the same memory and at least one is a write, you need synchronization (mutex/atomic).</li><li>Thread safety is broader than locks: includes signal safety, cancellation safety, and lifetime management.</li><li>Condition variables require a predicate and a loop. Spurious wakeups are allowed; missed wakeups happen without correct locking.</li><li>Prefer ownership/immutability when possible: it eliminates entire classes of races.</li></ul></div>
+  <summary>Thread-safety vs. reentrancy</summary>
+  <div class="content"><ul><li>A function that uses a mutex is thread-safe but NOT reentrant: if a signal handler calls it while the mutex is held, it deadlocks.</li><li>Reentrant functions use only local variables and caller-supplied buffers. They never touch global/static state.</li><li>errno is thread-safe (it's a per-thread macro in modern libc) but you must read it immediately after a failed call before any other function overwrites it.</li><li>Even "read-only" access to shared data is unsafe if another thread writes concurrently -- this is a data race.</li></ul></div>
 </details><details class="accordion">
-  <summary>Cancellation and cleanup</summary>
-  <div class="content"><ul><li>Cancellation is cooperative: threads stop at cancellation points depending on type/state.</li><li>Always pair cancellation with cleanup handlers (pthread_cleanup_push/pop) so locks and resources are released.</li><li>Design shutdown protocols: stop accepting work, drain queues, signal workers, join, then free shared state.</li><li>Avoid mixing fork() with threads unless you exec immediately; it is a common source of deadlocks.</li></ul></div>
+  <summary>pthread_key pitfalls</summary>
+  <div class="content"><ul><li>PTHREAD_KEYS_MAX limits the number of keys (typically 1024). Libraries that each create keys can exhaust this limit.</li><li>The destructor is called only if the thread's value for that key is non-NULL at thread exit. It is NOT called if the thread calls _exit() or exit().</li><li>Destructors may be called multiple times (up to PTHREAD_DESTRUCTOR_ITERATIONS) if a destructor sets another key's value to non-NULL.</li><li>Use pthread_once to create keys lazily and safely. Without it, two threads racing to create the same key is a bug.</li></ul></div>
 </details><details class="accordion">
-  <summary>Performance notes</summary>
-  <div class="content"><ul><li>Lock contention shows up as CPU in futex waits and high context switches. Reduce critical section size and improve locality.</li><li>Reader-writer locks can starve writers or readers depending on implementation; measure before choosing.</li><li>Per-thread storage is useful but can hide memory bloat and complicate teardown. Document ownership clearly.</li><li>Prefer epoll/event loops for I/O concurrency; use threads for CPU-bound parallelism when work units are coarse enough.</li></ul></div>
+  <summary>__thread limitations</summary>
+  <div class="content"><ul><li>__thread variables must have static storage duration. You cannot apply __thread to automatic (stack) variables.</li><li>__thread does not support destructors. If the variable points to heap memory, you must free it manually before thread exit.</li><li>__thread is faster than pthread_getspecific (no function call, just a segment-register offset) but less portable to non-GCC compilers.</li><li>In C11, use _Thread_local instead of __thread for standard compliance.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use thread sanitizers (TSan) for race detection in tests.</li><li>gdb/rr can inspect thread stacks; `info threads` and `thread apply all bt` are core moves.</li><li>Look at /proc/&lt;pid&gt;/task for per-thread stats.</li><li>perf can attribute time to futex and lock contention hot spots.</li></ul></div>
+  <summary>Common non-thread-safe functions</summary>
+  <div class="content"><ul><li>strtok (use strtok_r), ctime/asctime (use ctime_r/asctime_r), localtime (use localtime_r).</li><li>gethostbyname/gethostbyaddr (use getaddrinfo/getnameinfo instead).</li><li>readdir (use readdir_r, though it is deprecated in glibc 2.24+ because readdir is now thread-safe per-directory).</li><li>getpwnam/getpwuid (use getpwnam_r/getpwuid_r with a caller-supplied buffer).</li></ul></div>
 </details>
         </div>
 
@@ -146,27 +146,36 @@
     <button class="btn small" data-copy="#code_ch31">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    pthread_key usage vs __thread comparison.
   </div>
-  <pre id="code_ch31"><code class="mono">// Condition variable pattern: predicate + while loop
-pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  cv = PTHREAD_COND_INITIALIZER;
-int ready = 0;
+  <pre id="code_ch31"><code class="mono">// Thread-specific data with pthread_key
+#include &lt;pthread.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
-void *worker(void *arg){
-  pthread_mutex_lock(&amp;m);
-  while(!ready) pthread_cond_wait(&amp;cv, &amp;m);
-  pthread_mutex_unlock(&amp;m);
-  return NULL;
+static pthread_key_t buf_key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+static void free_buf(void *ptr){ free(ptr); }
+static void make_key(void){ pthread_key_create(&amp;buf_key, free_buf); }
+
+char *get_thread_buf(size_t sz){
+  pthread_once(&amp;key_once, make_key);
+  char *buf = pthread_getspecific(buf_key);
+  if(!buf){ buf = malloc(sz); pthread_setspecific(buf_key, buf); }
+  return buf;
 }
 
-int main(){
-  pthread_t t; pthread_create(&amp;t, NULL, worker, NULL);
-  pthread_mutex_lock(&amp;m);
-  ready = 1;
-  pthread_cond_broadcast(&amp;cv);
-  pthread_mutex_unlock(&amp;m);
-  pthread_join(t, NULL);
+// Simpler alternative: __thread (no destructor)
+static __thread int call_count = 0;
+
+void *worker(void *arg){
+  call_count++;                       // each thread has its own copy
+  char *buf = get_thread_buf(256);    // per-thread buffer, freed on exit
+  snprintf(buf, 256, "thread %ld: calls=%d",
+           (long)pthread_self(), call_count);
+  puts(buf);
+  return NULL;
 }</code></pre>
 </div>
 
@@ -176,17 +185,17 @@ int main(){
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Define ownership of shared data; protect mutable shared state with mutexes or atomics.</li><li>Use condition variables with a predicate in a while-loop; handle spurious wakeups.</li><li>Avoid global locks in hot paths; minimize critical sections and lock contention.</li><li>Design clean shutdown and ensure all locks/resources are released on cancellation/error.</li><li>Use sanitizers in CI (TSan/ASan) and keep reproducers small.</li></ul>
+            <ul><li>Audit all libc calls for non-_r variants. Replace strtok with strtok_r, localtime with localtime_r, etc.</li><li>Document thread-safety guarantees for every public function in your library.</li><li>Use pthread_once for lazy one-time initialization of shared resources (keys, singletons, config).</li><li>Prefer __thread for simple per-thread counters and caches. Use pthread_key only when you need destructor-based cleanup.</li><li>Verify with TSan that no data races exist in your thread-safe wrappers.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a bounded work queue with a mutex + condition variable; prove no lost wakeups (predicate loop).</li><li>Introduce a deliberate race and catch it with ThreadSanitizer in a test build.</li><li>Build a graceful shutdown: stop producers, wake workers, join threads, free resources.</li></ul>
+            <ul><li>Write a thread-safe wrapper around strtok using strtok_r and a per-thread saveptr via __thread. Test with 4 threads parsing different strings concurrently.</li><li>Create a pthread_key with a destructor that frees malloc'd memory. Verify (with valgrind) that no memory leaks occur when threads exit.</li><li>Demonstrate the difference between thread-safe and reentrant: write a function using a mutex, call it from a signal handler, and observe the deadlock.</li></ul>
           </div>
         </div>
 
@@ -195,52 +204,52 @@ int main(){
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Reentrant functions use no shared state (no static buffers, no locks) and are safe even when interrupted by a signal handler that calls the same function.">
+  <div class="qp">Q1. What makes a function reentrant?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">It uses a mutex to protect shared state</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">It uses only local variables and caller-supplied buffers, no static/global state</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">It is declared with the volatile keyword</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">It is compiled with -pthread</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="pthread_key supports destructor functions that are called automatically when a thread exits. __thread does not.">
+  <div class="qp">Q2. What is the main advantage of pthread_key over __thread?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">pthread_key is faster</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">pthread_key uses less memory</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">pthread_key supports destructor functions for automatic cleanup on thread exit</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">pthread_key works in single-threaded programs</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="strtok uses an internal static pointer that is shared across all calls. Two threads calling strtok concurrently corrupt each other's parse state.">
+  <div class="qp">Q3. Why is strtok() not thread-safe?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">It stores parsing state in an internal static variable</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">It modifies errno</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">It calls malloc internally</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">It uses signals internally</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +257,7 @@ int main(){
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

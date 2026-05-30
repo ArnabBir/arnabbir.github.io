@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">861</span> (0-based index 860).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>sys</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>/proc</strong></span> <span class="pill"><strong>time</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>utmp</strong></span> <span class="pill"><strong>wtmp</strong></span> <span class="pill"><strong>lastlog</strong></span> <span class="pill"><strong>session tracking</strong></span> <span class="pill"><strong>who/last</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 40 — Login Accounting
           </h2>
           <div class="subtitle">
-            <p>“System information” chapters are about the operating context: identities (uid/gid), time, resource limits, and introspection. These APIs are where portability surprises and security boundaries show up in real programs.</p><p>Production workflows depend on observability: /proc, rlimits, uname/sysinfo, and careful error messages that carry enough context to debug failures in the field.</p>
+            <p>Login accounting tracks who logged in, when, and from where. The utmp file records current active sessions, wtmp accumulates the full login/logout history, and lastlog stores the most recent login for each user. Together they form the observability backbone for multi-user systems.</p><p>Programs like login, sshd, and terminal emulators are responsible for writing utmp/wtmp entries on session start and clearing them on logout. Commands like who, w, and last consume these databases to report session state.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Effective IDs + rlimits shape what your process can do.</div>
+  <div class="v">Every login creates a utmp entry keyed by ut_line (terminal); logout must clear that same entry or stale sessions appear.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">sysconf can return -1 for both error and &#x27;unlimited&#x27;—check errno.</div>
+  <div class="v">If a program crashes without writing a DEAD_PROCESS record, utmp shows a ghost session — who reports a user that isn't actually logged in.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use /proc and prlimit/ulimit to inspect limits and runtime state.</div>
+  <div class="v">Use utmpdump /var/run/utmp to inspect raw records; last -f /var/log/wtmp to trace historical sessions.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Environment matters: ids, groups, rlimits, and time sources change behavior.</li><li>Effective IDs control permissions; supplementary groups expand access.</li><li>rlimits cap resources and often cause production failures (too many open files).</li><li>/proc is a live API for debugging: fds, maps, status, and more.</li><li>Clock selection matters: monotonic for intervals, realtime for timestamps only.</li><li>Make errors actionable by logging context and current limits.</li></ul>
+            <ul><li>utmp records current sessions (/var/run/utmp) — each entry corresponds to one active login, keyed by ut_line (the terminal device).</li><li>wtmp (/var/log/wtmp) is an append-only log of all login and logout events; it grows indefinitely unless rotated.</li><li>lastlog (/var/log/lastlog) is a fixed-size file indexed by UID, storing only the most recent login time, terminal, and remote host per user.</li><li>getutxent() iterates through utmp entries sequentially; setutxent() rewinds; endutxent() closes.</li><li>pututxline() writes or updates an entry — it searches for a matching ut_line slot before appending.</li><li>Login programs write USER_PROCESS; logout writes DEAD_PROCESS to the same ut_line slot, marking the session ended.</li><li>who and w read utmp for current sessions; last reads wtmp for historical login/logout pairs.</li><li>On modern systems, systemd-logind provides session tracking via D-Bus, but utmp/wtmp are still maintained for compatibility with traditional tools.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>UID/GID</td><td>User/group IDs controlling permission checks and access control decisions.</td></tr><tr><td class='mono'>rlimit</td><td>Resource limit preventing runaway usage (open files, memory, CPU).</td></tr><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing live kernel process state and system info.</td></tr><tr><td class='mono'>Clock</td><td>Time source (realtime vs monotonic) used for measurement and deadlines.</td></tr><tr><td class='mono'>errno</td><td>Thread-local error indicator set by failing syscalls.</td></tr><tr><td class='mono'>Capability</td><td>Fine-grained privilege bit; alternative to full root for some operations.</td></tr></tbody>
+  <tbody><tr><td class='mono'>utmp</td><td>Database of currently active login sessions; read by who/w to show logged-in users.</td></tr><tr><td class='mono'>wtmp</td><td>Append-only historical log of all login/logout events; read by last command.</td></tr><tr><td class='mono'>lastlog</td><td>Per-UID record of most recent login (time, terminal, host); shown at login time.</td></tr><tr><td class='mono'>getutxent</td><td>POSIX function to iterate utmp entries one at a time.</td></tr><tr><td class='mono'>pututxline</td><td>Writes/updates a utmp entry; matches by ut_line for existing sessions.</td></tr><tr><td class='mono'>ut_type</td><td>Entry type field: LOGIN_PROCESS, USER_PROCESS, DEAD_PROCESS, BOOT_TIME, etc.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>open</td><td class='mono'>int open(const char *path, int flags, mode_t mode /* optional */);</td><td class='mono muted2'>ENOENT, EACCES, EISDIR, EMFILE, ENFILE, ENOSPC</td><td>Prefer openat() for race-resistant path handling; set O_CLOEXEC by default.</td></tr><tr><td class='mono'>write</td><td class='mono'>ssize_t write(int fd, const void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EPIPE, EBADF, ENOSPC</td><td>Short writes are normal on pipes/sockets/nonblocking fds. SIGPIPE/EPIPE when peer is gone.</td></tr>
+    <tr><td class='mono'>getutxent</td><td class='mono'>struct utmpx *getutxent(void);</td><td class='mono muted2'>—</td><td>Returns next utmp entry or NULL at end. Call setutxent() first to rewind.</td></tr><tr><td class='mono'>pututxline</td><td class='mono'>struct utmpx *pututxline(const struct utmpx *ut);</td><td class='mono muted2'>EPERM, EIO</td><td>Writes entry matching ut_line; creates new slot if none found. Requires write permission on utmp file.</td></tr><tr><td class='mono'>setutxent</td><td class='mono'>void setutxent(void);</td><td class='mono muted2'>—</td><td>Rewinds to beginning of utmp database. Call before iterating with getutxent().</td></tr><tr><td class='mono'>updwtmpx</td><td class='mono'>void updwtmpx(const char *wtmpx_file, const struct utmpx *ut);</td><td class='mono muted2'>—</td><td>Appends an entry to the wtmp file. Used by login/logout to record history.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: always fill ut_tv (timestamp), ut_type, ut_line, and ut_user before calling pututxline.
           </div>
         </div>
 
@@ -126,14 +126,14 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Identity and credentials</summary>
-  <div class="content"><ul><li>Linux tracks multiple UIDs/GIDs: real, effective, and saved. The effective IDs control permission checks.</li><li>Supplementary groups widen access; group lookup APIs are often non-thread-safe unless *_r variants are used.</li><li>Environment variables can be part of the trust boundary — especially for privileged programs.</li><li>Always log IDs and key environment for debugging authz failures in production.</li></ul></div>
+  <summary>Stale utmp entries (ghost sessions)</summary>
+  <div class="content"><ul><li>If a terminal emulator or SSH session crashes without writing a DEAD_PROCESS record, utmp retains the old USER_PROCESS entry.</li><li>who will report a user as logged in even though no process owns that session anymore.</li><li>Fix: a cleanup daemon or login program should check if the PID in ut_pid is still alive before trusting the entry.</li><li>On systemd systems, logind handles session lifecycle and cleans up, but utmp may still lag behind.</li></ul></div>
 </details><details class="accordion">
-  <summary>Resource limits and introspection</summary>
-  <div class="content"><ul><li>rlimits cap resources like open files and address space. Many production incidents are simply RLIMIT_NOFILE too low.</li><li>sysconf/pathconf query system limits. Be careful: some return -1 for “no limit” and also on error (check errno).</li><li>/proc is a live view of kernel state: fd links, maps, status, and cgroup placement.</li><li>Time APIs: choose CLOCK_MONOTONIC for measuring intervals; realtime can jump due to NTP/time adjustments.</li></ul></div>
+  <summary>wtmp rotation and file size</summary>
+  <div class="content"><ul><li>wtmp is append-only and grows without bound. logrotate typically rotates it monthly.</li><li>last reads wtmp sequentially from the end; a very large wtmp slows queries.</li><li>Corrupted wtmp (partial writes during crash) can confuse last — it may skip entries or report garbage.</li><li>Some distributions use wtmp.1, wtmp.2 etc. for rotated files; last -f reads specific files.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>First confirm effective IDs (id -a, /proc/&lt;pid&gt;/status).</li><li>Inspect rlimits (ulimit -a, prlimit).</li><li>Use /proc for process-specific insight; it’s often faster than adding logs.</li><li>For time bugs, log clock source, timeouts, and monotonic deltas.</li></ul></div>
+  <summary>lastlog sparse file behavior</summary>
+  <div class="content"><ul><li>lastlog is indexed by UID — seeking to offset UID * sizeof(struct lastlog). UIDs with large values create a sparse file.</li><li>A system with UID 65534 (nobody) causes lastlog to appear huge on disk but uses minimal blocks (filesystem holes).</li><li>cp or tar without sparse-awareness can inflate the file to its apparent size; use cp --sparse=always.</li><li>The lastlog command reads this file to display per-user last login info.</li></ul></div>
 </details>
         </div>
 
@@ -145,10 +145,24 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch40"><code class="mono">// Inspect rlimits (outline)
-struct rlimit rl;
-getrlimit(RLIMIT_NOFILE, &amp;rl);
-fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur, (long)rl.rlim_max);</code></pre>
+  <pre id="code_ch40"><code class="mono">// List active login sessions from utmp (similar to 'who')
+#include &lt;utmpx.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;time.h&gt;
+
+int main(void) {
+    struct utmpx *ut;
+    setutxent();
+    while ((ut = getutxent()) != NULL) {
+        if (ut-&gt;ut_type != USER_PROCESS)
+            continue;
+        time_t t = ut-&gt;ut_tv.tv_sec;
+        printf(&quot;%-8s %-12s %s&quot;,
+               ut-&gt;ut_user, ut-&gt;ut_line, ctime(&amp;t));
+    }
+    endutxent();
+    return 0;
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -157,17 +171,17 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Log effective IDs, rlimits, and key environment at startup for debuggability.</li><li>Use CLOCK_MONOTONIC for timeouts; never rely on realtime for deadlines.</li><li>Handle “unlimited” returns from sysconf/pathconf correctly (check errno).</li><li>Treat /proc as the source of truth for runtime state; build tooling around it.</li><li>Make errors actionable: include which resource, which limit, and current values.</li></ul>
+            <ul><li>Always write a DEAD_PROCESS entry on session exit — even in signal handlers and crash paths.</li><li>Fill all required utmpx fields: ut_type, ut_pid, ut_line, ut_user, ut_tv, and ut_host for remote logins.</li><li>Rotate wtmp with logrotate to prevent unbounded growth; verify with last after rotation.</li><li>Handle lastlog sparse file correctly in backup/restore scripts (use sparse-aware tools).</li><li>On systemd systems, integrate with logind for session tracking; maintain utmp/wtmp for compatibility with traditional tools (who, last, finger).</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+            <ul><li>Write a C program that iterates utmp and prints active sessions (user, terminal, login time, remote host). Compare output with who.</li><li>Use utmpdump to decode /var/run/utmp and /var/log/wtmp. Identify LOGIN_PROCESS vs USER_PROCESS vs DEAD_PROCESS entries.</li><li>Simulate a stale session: write a USER_PROCESS entry, then exit without writing DEAD_PROCESS. Observe the ghost in who output, then write a cleanup program.</li></ul>
           </div>
         </div>
 
@@ -176,52 +190,52 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="utmp entries are keyed by ut_line (terminal device name). When a user logs out, the program writes DEAD_PROCESS to the same ut_line slot to mark it free.">
+  <div class="qp">Q1. What field uniquely identifies a utmp entry for a session?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">ut_user (username)</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">ut_pid (process ID)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">ut_line (terminal device)</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">ut_host (remote hostname)</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="wtmp is an append-only file that records every login and logout event historically. The last command reads it to display session history.">
+  <div class="qp">Q2. Which file does the 'last' command read?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">/var/run/utmp</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">/var/log/wtmp</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">/var/log/lastlog</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">/etc/passwd</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="A stale utmp entry occurs when a session terminates without writing a DEAD_PROCESS record. The entry remains as USER_PROCESS, causing who to report a nonexistent session.">
+  <div class="qp">Q3. What causes a 'ghost' session in utmp?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">Program exits without writing DEAD_PROCESS</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">wtmp file is rotated</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">lastlog file is corrupted</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The user changes their password</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -229,7 +243,7 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

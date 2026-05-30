@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">255</span> (0-based index 254).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>sys</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>/proc</strong></span> <span class="pill"><strong>time</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>sysconf</strong></span> <span class="pill"><strong>pathconf</strong></span> <span class="pill"><strong>limits</strong></span> <span class="pill"><strong>POSIX</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 11 — System Limits and Options
           </h2>
           <div class="subtitle">
-            <p>“System information” chapters are about the operating context: identities (uid/gid), time, resource limits, and introspection. These APIs are where portability surprises and security boundaries show up in real programs.</p><p>Production workflows depend on observability: /proc, rlimits, uname/sysinfo, and careful error messages that carry enough context to debug failures in the field.</p>
+            <p>Portable programs cannot hardcode system limits. The number of open files, the maximum path length, and the page size all vary across systems and even across filesystems on the same host. POSIX defines a three-tier scheme for discovering these limits: compile-time constants in &lt;limits.h&gt;, runtime queries via sysconf() for system-wide limits, and pathconf()/fpathconf() for filesystem-specific limits.</p><p>The subtlest challenge is the indeterminate limit: when a limit has no fixed value, sysconf() returns -1 without setting errno. Your code must distinguish this from an error (which also returns -1 but sets errno). Failing to handle indeterminate limits correctly leads to silent buffer overflows or unnecessary failures.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Effective IDs + rlimits shape what your process can do.</div>
+  <div class="v">sysconf() queries are always safe and never fail for valid _SC_ names&mdash;they return the limit or -1 for indeterminate (without setting errno).</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">sysconf can return -1 for both error and &#x27;unlimited&#x27;—check errno.</div>
+  <div class="v">Indeterminate means sysconf() returns -1 WITHOUT setting errno. No fixed limit exists. You must provide a sensible fallback default&mdash;do not treat this as an error.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use /proc and prlimit/ulimit to inspect limits and runtime state.</div>
+  <div class="v">The getconf command-line tool mirrors sysconf/pathconf. Run <span class="mono">getconf PATH_MAX /</span> or <span class="mono">getconf OPEN_MAX</span> to quickly check limits without writing code.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Environment matters: ids, groups, rlimits, and time sources change behavior.</li><li>Effective IDs control permissions; supplementary groups expand access.</li><li>rlimits cap resources and often cause production failures (too many open files).</li><li>/proc is a live API for debugging: fds, maps, status, and more.</li><li>Clock selection matters: monotonic for intervals, realtime for timestamps only.</li><li>Make errors actionable by logging context and current limits.</li></ul>
+            <ul><li>Compile-time limits (#define in &lt;limits.h&gt;) are known at build time but may be conservative minimums. Runtime queries may reveal higher actual limits.</li><li>sysconf(name) queries system-wide runtime limits. For example, sysconf(_SC_OPEN_MAX) returns the maximum number of open file descriptors per process. This may differ from RLIMIT_NOFILE (which is per-process and adjustable via setrlimit).</li><li>pathconf(path, name) and fpathconf(fd, name) query filesystem-specific limits. For example, _PC_NAME_MAX gives the maximum filename length on a specific filesystem&mdash;255 for ext4, potentially different for NFS or FUSE mounts.</li><li>Some limits are truly indeterminate. PATH_MAX is the classic example: on procfs, FUSE, and some network filesystems, there is no fixed maximum path length. sysconf/pathconf returns -1 without setting errno.</li><li>_POSIX_* constants (e.g., _POSIX_OPEN_MAX = 20) are POSIX-mandated minimum guarantees. They are a floor, not a ceiling. Real systems almost always support higher values.</li><li>OPEN_MAX via sysconf(_SC_OPEN_MAX) reports the system default. The actual per-process limit is controlled by getrlimit(RLIMIT_NOFILE). These can disagree&mdash;always check RLIMIT_NOFILE for the authoritative per-process value.</li><li>Always have a fallback default for indeterminate limits. A common pattern: try pathconf(); if indeterminate, use a reasonable constant (e.g., 4096 for PATH_MAX) and document the assumption.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>UID/GID</td><td>User/group IDs controlling permission checks and access control decisions.</td></tr><tr><td class='mono'>rlimit</td><td>Resource limit preventing runaway usage (open files, memory, CPU).</td></tr><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing live kernel process state and system info.</td></tr><tr><td class='mono'>Clock</td><td>Time source (realtime vs monotonic) used for measurement and deadlines.</td></tr><tr><td class='mono'>errno</td><td>Thread-local error indicator set by failing syscalls.</td></tr><tr><td class='mono'>Capability</td><td>Fine-grained privilege bit; alternative to full root for some operations.</td></tr></tbody>
+  <tbody><tr><td class='mono'>sysconf</td><td>Queries system-wide runtime configuration limits and options (e.g., _SC_OPEN_MAX, _SC_PAGESIZE).</td></tr><tr><td class='mono'>pathconf</td><td>Queries per-filesystem limits for a given path (e.g., _PC_NAME_MAX, _PC_PATH_MAX).</td></tr><tr><td class='mono'>fpathconf</td><td>Like pathconf but takes an open file descriptor instead of a path.</td></tr><tr><td class='mono'>_SC_OPEN_MAX</td><td>sysconf name for maximum open file descriptors per process.</td></tr><tr><td class='mono'>_PC_NAME_MAX</td><td>pathconf name for maximum filename component length on a filesystem.</td></tr><tr><td class='mono'>_POSIX_* minimums</td><td>POSIX-mandated minimum values (floor). Real implementations typically exceed these.</td></tr><tr><td class='mono'>indeterminate limit</td><td>A limit with no fixed value. sysconf returns -1 without setting errno. Code must provide a fallback.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>—</td><td>Queries runtime system limits (e.g., _SC_PAGESIZE). Returns -1 on error or when unlimited (check errno).</td></tr><tr><td class='mono'>getrlimit</td><td class='mono'>int getrlimit(int resource, struct rlimit *rlim);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Resource limits (RLIMIT_NOFILE, RLIMIT_AS, etc).</td></tr><tr><td class='mono'>setrlimit</td><td class='mono'>int setrlimit(int resource, const struct rlimit *rlim);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Raises/lowers resource limits; raising often requires privilege.</td></tr>
+    <tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>EINVAL</td><td>Returns limit value, or -1. If -1 and errno is 0, the limit is indeterminate (no error). If -1 and errno is EINVAL, the name is invalid.</td></tr><tr><td class='mono'>pathconf</td><td class='mono'>long pathconf(const char *path, int name);</td><td class='mono muted2'>EINVAL, ENOENT, EACCES</td><td>Per-filesystem limit. Returns -1 for indeterminate (errno unchanged) or error (errno set).</td></tr><tr><td class='mono'>fpathconf</td><td class='mono'>long fpathconf(int fd, int name);</td><td class='mono muted2'>EINVAL, EBADF</td><td>Like pathconf but for an open fd. Useful when you already have a descriptor.</td></tr><tr><td class='mono'>getrlimit</td><td class='mono'>int getrlimit(int resource, struct rlimit *rlim);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Per-process resource limits. RLIMIT_NOFILE is the authoritative open-files limit for the calling process.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: clear errno before calling sysconf/pathconf so you can distinguish indeterminate (-1, errno==0) from error (-1, errno!=0).
           </div>
         </div>
 
@@ -126,14 +126,14 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Identity and credentials</summary>
-  <div class="content"><ul><li>Linux tracks multiple UIDs/GIDs: real, effective, and saved. The effective IDs control permission checks.</li><li>Supplementary groups widen access; group lookup APIs are often non-thread-safe unless *_r variants are used.</li><li>Environment variables can be part of the trust boundary — especially for privileged programs.</li><li>Always log IDs and key environment for debugging authz failures in production.</li></ul></div>
+  <summary>PATH_MAX is unreliable</summary>
+  <div class="content"><ul><li>PATH_MAX is defined as 4096 on Linux, but this is not a hard guarantee. On procfs (/proc/self/exe), FUSE filesystems, and some NFS configurations, paths can exceed PATH_MAX.</li><li>pathconf(&quot;/&quot;, _PC_PATH_MAX) returns the limit for a specific mount point. It may differ from the compile-time PATH_MAX constant.</li><li>The safest approach: dynamically allocate path buffers using realpath() which allocates when passed NULL, or use readlink() with growing buffers and retry on ENAMETOOLONG.</li><li>getcwd() with a NULL argument (GNU extension) allocates a buffer of the needed size, sidestepping PATH_MAX entirely.</li></ul></div>
 </details><details class="accordion">
-  <summary>Resource limits and introspection</summary>
-  <div class="content"><ul><li>rlimits cap resources like open files and address space. Many production incidents are simply RLIMIT_NOFILE too low.</li><li>sysconf/pathconf query system limits. Be careful: some return -1 for “no limit” and also on error (check errno).</li><li>/proc is a live view of kernel state: fd links, maps, status, and cgroup placement.</li><li>Time APIs: choose CLOCK_MONOTONIC for measuring intervals; realtime can jump due to NTP/time adjustments.</li></ul></div>
+  <summary>OPEN_MAX vs RLIMIT_NOFILE</summary>
+  <div class="content"><ul><li>sysconf(_SC_OPEN_MAX) returns the system default maximum open file descriptors. This is a starting value, not the current process limit.</li><li>getrlimit(RLIMIT_NOFILE) returns the actual per-process soft and hard limits. The soft limit is what the kernel enforces; the hard limit is the ceiling for unprivileged setrlimit() calls.</li><li>These can disagree: a process may have raised RLIMIT_NOFILE beyond the _SC_OPEN_MAX default. Always check getrlimit() for the authoritative per-process limit.</li><li>In containers, RLIMIT_NOFILE is often set by the runtime (Docker defaults to 1048576). The host _SC_OPEN_MAX may differ.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>First confirm effective IDs (id -a, /proc/&lt;pid&gt;/status).</li><li>Inspect rlimits (ulimit -a, prlimit).</li><li>Use /proc for process-specific insight; it’s often faster than adding logs.</li><li>For time bugs, log clock source, timeouts, and monotonic deltas.</li></ul></div>
+  <summary>_POSIX_* as floor, not ceiling</summary>
+  <div class="content"><ul><li>_POSIX_OPEN_MAX is 20. This is the minimum that any POSIX-compliant system must support. Linux typically supports 1024 or more by default.</li><li>_POSIX_NAME_MAX is 14. Real filesystems support 255 (ext4) or more.</li><li>Never use _POSIX_* constants as buffer sizes or limits in production code. They exist for compile-time portability checks, not for sizing allocations.</li><li>Pattern: use _POSIX_* as compile-time fallback only if sysconf/pathconf returns indeterminate and you have no better default.</li></ul></div>
 </details>
         </div>
 
@@ -145,10 +145,28 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch11"><code class="mono">// Inspect rlimits (outline)
-struct rlimit rl;
-getrlimit(RLIMIT_NOFILE, &amp;rl);
-fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur, (long)rl.rlim_max);</code></pre>
+  <pre id="code_ch11"><code class="mono">// --- sysconf with indeterminate handling ---
+errno = 0;
+long open_max = sysconf(_SC_OPEN_MAX);
+if (open_max == -1) {
+    if (errno == 0)
+        open_max = 256;   // indeterminate; use fallback
+    else
+        perror(&quot;sysconf _SC_OPEN_MAX&quot;);
+}
+printf(&quot;open_max = %ld\n&quot;, open_max);
+
+// --- pathconf for PATH_MAX with fallback ---
+errno = 0;
+long path_max = pathconf(&quot;/&quot;, _PC_PATH_MAX);
+if (path_max == -1) {
+    if (errno == 0)
+        path_max = 4096;  // indeterminate; use safe default
+    else
+        perror(&quot;pathconf _PC_PATH_MAX&quot;);
+}
+char *buf = malloc(path_max + 1);
+// ... use buf for path operations, then free(buf)</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -157,17 +175,17 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Log effective IDs, rlimits, and key environment at startup for debuggability.</li><li>Use CLOCK_MONOTONIC for timeouts; never rely on realtime for deadlines.</li><li>Handle “unlimited” returns from sysconf/pathconf correctly (check errno).</li><li>Treat /proc as the source of truth for runtime state; build tooling around it.</li><li>Make errors actionable: include which resource, which limit, and current values.</li></ul>
+            <ul><li>Always clear errno before calling sysconf()/pathconf(). Check both the return value and errno to distinguish indeterminate from error.</li><li>Never hardcode PATH_MAX for buffer allocation. Use dynamic allocation with realpath(NULL) or growing buffers.</li><li>Use getrlimit(RLIMIT_NOFILE) for the authoritative per-process open-file limit, not sysconf(_SC_OPEN_MAX).</li><li>Provide documented fallback defaults for all indeterminate limits. Log when a fallback is used.</li><li>Do not use _POSIX_* constants as buffer sizes. They are minimums for portability checking, not practical limits.</li><li>Use the getconf command-line tool to verify limits during deployment and container image builds.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Reproduce the key concept with a minimal C program and inspect behavior with strace.</li><li>Write down invariants and failure modes; encode them into assertions and tests.</li><li>Measure and observe: add instrumentation and validate assumptions before optimizing.</li></ul>
+            <ul><li>Write a program that queries sysconf for _SC_OPEN_MAX, _SC_PAGESIZE, _SC_CLK_TCK, and _SC_NPROCESSORS_ONLN. Print each value and note which are indeterminate on your system.</li><li>Run pathconf on /, /tmp, /proc, and an NFS mount (if available). Compare _PC_NAME_MAX and _PC_PATH_MAX across filesystems.</li><li>Compare sysconf(_SC_OPEN_MAX) with getrlimit(RLIMIT_NOFILE). Raise RLIMIT_NOFILE with setrlimit and observe that sysconf still returns the old value.</li><li>Use getconf on the command line to verify your program&rsquo;s results: <span class="mono">getconf OPEN_MAX</span>, <span class="mono">getconf PATH_MAX /proc</span>.</li></ul>
           </div>
         </div>
 
@@ -176,52 +194,52 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="When sysconf returns -1 and errno is 0 (unchanged), the limit is indeterminate&mdash;no fixed maximum exists. This is not an error. Your code must supply a fallback default.">
+  <div class="qp">Q1. sysconf(_SC_OPEN_MAX) returns -1 and errno is 0. What does this mean?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">The system has no open-file limit at all</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">An error occurred</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">The limit is indeterminate; provide a fallback</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">The limit is exactly -1</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="pathconf queries per-filesystem limits. Different filesystems (ext4, NFS, procfs) can have different NAME_MAX and PATH_MAX values.">
+  <div class="qp">Q2. Why might pathconf return different values for / and /proc?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">pathconf is buggy on /proc</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Different filesystems have different limits</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">/proc is not a real path</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">pathconf ignores its path argument</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="_POSIX_OPEN_MAX (20) is the minimum any POSIX system must support. Real systems typically allow 1024+ open files. Using _POSIX_* as actual limits would unnecessarily constrain your application.">
+  <div class="qp">Q3. What is the role of _POSIX_OPEN_MAX?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">The actual maximum open files on Linux</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">The recommended buffer size for fd arrays</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">The hard limit that cannot be exceeded</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The POSIX-mandated minimum that all conforming systems must support</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -229,7 +247,7 @@ fprintf(stderr, &quot;RLIMIT_NOFILE soft=%ld hard=%ld\n&quot;, (long)rl.rlim_cur
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

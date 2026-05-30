@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">715</span> (0-based index 714).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>threads</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pthreads</strong></span> <span class="pill"><strong>mutex</strong></span> <span class="pill"><strong>condvar</strong></span> <span class="pill"><strong>cancellation</strong></span> <span class="pill"><strong>TLS</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>pthread_cancel</strong></span> <span class="pill"><strong>cleanup handlers</strong></span> <span class="pill"><strong>cancellation points</strong></span> <span class="pill"><strong>deferred</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 32 — Threads: Thread Cancellation
           </h2>
           <div class="subtitle">
-            <p>Threads share an address space but execute independently. That sounds simple until you deal with memory visibility, lock ordering, cancellation, thread-local state, and resource lifetime. The pthreads API is a toolset; correctness comes from disciplined invariants and a debugging mindset.</p><p>This guide emphasizes race-free patterns: ownership, immutability, critical sections, condition variables with while-loops, and safe shutdown (cancellation points + cleanup handlers).</p>
+            <p>Thread cancellation is tricky -- it must respect resource cleanup. Deferred cancellation at defined cancellation points is the safe default; asynchronous cancellation is almost never correct because the thread could be cancelled in the middle of any instruction, including malloc or mutex operations.</p><p>The pattern: use pthread_cleanup_push/pop to register cleanup handlers that release locks and free resources, then rely on deferred cancellation happening only at well-defined cancellation points like read(), write(), sleep(), and pthread_cond_wait().</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Shared memory requires synchronization; data races are undefined behavior.</div>
+  <div class="v">Deferred cancellation (the default) acts only at cancellation points. Cleanup handlers run in LIFO order on cancellation.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Condition variables require a predicate loop to avoid lost/spurious wakeups.</div>
+  <div class="v">PTHREAD_CANCEL_ASYNCHRONOUS is unsafe for nearly all code -- the thread can be cancelled inside malloc, mutex_lock, or any non-async-cancel-safe function.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use TSan in tests; perf can reveal contention in futex waits.</div>
+  <div class="v">If a cancelled thread leaves a mutex locked, other threads will deadlock. Always push a cleanup handler to unlock before entering a cancellation point.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Threads share memory; races are bugs unless synchronized (mutex/atomics).</li><li>A mutex protects an invariant; keep critical sections small and consistent.</li><li>Condition variables wait for predicates; always check predicate in a loop.</li><li>Cancellation and shutdown need cleanup handlers and ownership discipline.</li><li>Thread-local state can hide complexity; document lifetime and destructors.</li><li>Measure contention: futex waits and context switches indicate scalability limits.</li></ul>
+            <ul><li>pthread_cancel sends a cancellation request -- it does NOT immediately kill the thread. The thread checks for cancellation at defined cancellation points.</li><li>PTHREAD_CANCEL_DEFERRED (default): cancellation happens only at cancellation points -- blocking syscalls like read(), write(), sleep(), pthread_cond_wait(), and explicitly with pthread_testcancel().</li><li>PTHREAD_CANCEL_ASYNCHRONOUS: cancellation can happen at any point. Only safe if the thread is executing purely computational code with no library calls. Almost never correct in practice.</li><li>Cleanup handlers (pthread_cleanup_push/pop) are a LIFO stack. On cancellation, they run in reverse order of registration. Use them to unlock mutexes, close fds, and free heap memory.</li><li>pthread_cleanup_push/pop are macros that expand to { and }. They must appear in matched pairs in the same lexical scope.</li><li>A cancelled thread's return value is PTHREAD_CANCELED (typically (void*)-1), retrievable via pthread_join.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Mutex</td><td>Mutual exclusion lock protecting shared state; defines critical sections.</td></tr><tr><td class='mono'>Condvar</td><td>Condition variable for waiting on a predicate; requires mutex + while-loop.</td></tr><tr><td class='mono'>TLS</td><td>Thread-local storage: per-thread variables and destructor semantics.</td></tr><tr><td class='mono'>Futex</td><td>Kernel primitive underlying many pthread locks; contention shows as futex waits.</td></tr><tr><td class='mono'>Cancellation</td><td>Cooperative thread termination via cancellation points and cleanup handlers.</td></tr><tr><td class='mono'>Data race</td><td>Undefined behavior when unsynchronized concurrent access occurs (one write).</td></tr></tbody>
+  <tbody><tr><td class='mono'>pthread_cancel</td><td>Sends a cancellation request to a thread. Does not guarantee immediate termination.</td></tr><tr><td class='mono'>Cancellation point</td><td>A function where deferred cancellation is acted upon: read, write, sleep, pthread_cond_wait, etc.</td></tr><tr><td class='mono'>PTHREAD_CANCEL_DEFERRED</td><td>Default cancellation type. Thread checks for cancellation only at cancellation points.</td></tr><tr><td class='mono'>PTHREAD_CANCEL_ASYNCHRONOUS</td><td>Thread can be cancelled at any instruction. Almost never safe.</td></tr><tr><td class='mono'>pthread_cleanup_push/pop</td><td>Register/unregister cleanup handlers. Run in LIFO order on cancellation or explicit pop with execute=1.</td></tr><tr><td class='mono'>pthread_setcancelstate</td><td>Enable (PTHREAD_CANCEL_ENABLE) or disable (PTHREAD_CANCEL_DISABLE) cancellation for the calling thread.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pthread_cancel</td><td class='mono'>int pthread_cancel(pthread_t thread);</td><td class='mono muted2'>ESRCH</td><td>Requests cancellation; actual stop depends on cancellation state/type and cancellation points.</td></tr><tr><td class='mono'>pthread_setcancelstate</td><td class='mono'>int pthread_setcancelstate(int state, int *oldstate);</td><td class='mono muted2'>EINVAL</td><td>Enables/disables cancellation for current thread.</td></tr>
+    <tr><td class='mono'>pthread_cancel</td><td class='mono'>int pthread_cancel(pthread_t thread);</td><td class='mono muted2'>ESRCH</td><td>Sends cancellation request. ESRCH if thread ID is invalid. Actual cancellation depends on target's state/type.</td></tr><tr><td class='mono'>pthread_setcancelstate</td><td class='mono'>int pthread_setcancelstate(int state, int *oldstate);</td><td class='mono muted2'>EINVAL</td><td>PTHREAD_CANCEL_ENABLE (default) or PTHREAD_CANCEL_DISABLE. Disable to protect critical sections from cancellation.</td></tr><tr><td class='mono'>pthread_setcanceltype</td><td class='mono'>int pthread_setcanceltype(int type, int *oldtype);</td><td class='mono muted2'>EINVAL</td><td>PTHREAD_CANCEL_DEFERRED (default) or PTHREAD_CANCEL_ASYNCHRONOUS. Async is almost never safe.</td></tr><tr><td class='mono'>pthread_testcancel</td><td class='mono'>void pthread_testcancel(void);</td><td class='mono muted2'>--</td><td>Explicit cancellation point. Use in long computation loops that don't call any other cancellation point.</td></tr><tr><td class='mono'>pthread_cleanup_push</td><td class='mono'>void pthread_cleanup_push(void (*routine)(void*), void *arg);</td><td class='mono muted2'>--</td><td>Macro. Registers cleanup handler. Must be paired with pthread_cleanup_pop in same scope.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: check POSIX docs for the full list of cancellation points. Common ones: read, write, sleep, nanosleep, open, close, connect, accept, pthread_cond_wait.
           </div>
         </div>
 
@@ -126,17 +126,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Correctness model: data races are bugs</summary>
-  <div class="content"><ul><li>If two threads access the same memory and at least one is a write, you need synchronization (mutex/atomic).</li><li>Thread safety is broader than locks: includes signal safety, cancellation safety, and lifetime management.</li><li>Condition variables require a predicate and a loop. Spurious wakeups are allowed; missed wakeups happen without correct locking.</li><li>Prefer ownership/immutability when possible: it eliminates entire classes of races.</li></ul></div>
+  <summary>Cancellation and mutexes</summary>
+  <div class="content"><ul><li>If a thread is cancelled while holding a mutex, the mutex remains locked and other threads waiting on it will deadlock.</li><li>Solution: push a cleanup handler that unlocks the mutex BEFORE calling any cancellation point (e.g., pthread_cond_wait).</li><li>pthread_cond_wait is both a cancellation point and atomically releases/reacquires the mutex. If cancelled during cond_wait, the mutex is re-acquired before cleanup handlers run.</li><li>Disable cancellation (pthread_setcancelstate(PTHREAD_CANCEL_DISABLE)) around non-cancellation-safe critical sections.</li></ul></div>
 </details><details class="accordion">
-  <summary>Cancellation and cleanup</summary>
-  <div class="content"><ul><li>Cancellation is cooperative: threads stop at cancellation points depending on type/state.</li><li>Always pair cancellation with cleanup handlers (pthread_cleanup_push/pop) so locks and resources are released.</li><li>Design shutdown protocols: stop accepting work, drain queues, signal workers, join, then free shared state.</li><li>Avoid mixing fork() with threads unless you exec immediately; it is a common source of deadlocks.</li></ul></div>
+  <summary>Cleanup handler rules</summary>
+  <div class="content"><ul><li>pthread_cleanup_push and pthread_cleanup_pop are macros expanding to { and }. They MUST be paired in the same function at the same lexical level.</li><li>Handlers run in LIFO order (last pushed = first executed) on cancellation, pthread_exit, or pop with execute != 0.</li><li>Handlers do NOT run on normal return from the thread function. If you need cleanup on normal exit too, call pthread_cleanup_pop(1).</li><li>In C++, prefer RAII destructors over cleanup handlers. Cancellation in C++ can interact poorly with exception handling.</li></ul></div>
 </details><details class="accordion">
-  <summary>Performance notes</summary>
-  <div class="content"><ul><li>Lock contention shows up as CPU in futex waits and high context switches. Reduce critical section size and improve locality.</li><li>Reader-writer locks can starve writers or readers depending on implementation; measure before choosing.</li><li>Per-thread storage is useful but can hide memory bloat and complicate teardown. Document ownership clearly.</li><li>Prefer epoll/event loops for I/O concurrency; use threads for CPU-bound parallelism when work units are coarse enough.</li></ul></div>
+  <summary>Asynchronous cancellation dangers</summary>
+  <div class="content"><ul><li>PTHREAD_CANCEL_ASYNCHRONOUS means the thread can be cancelled between any two machine instructions.</li><li>This makes malloc, free, mutex_lock, printf, and virtually all library calls unsafe -- they can leave data structures in inconsistent states.</li><li>The only safe use case: pure computation loops with no library calls (e.g., a tight numerical calculation).</li><li>Even then, consider using pthread_testcancel() in a deferred-cancellation loop instead -- it is much safer.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use thread sanitizers (TSan) for race detection in tests.</li><li>gdb/rr can inspect thread stacks; `info threads` and `thread apply all bt` are core moves.</li><li>Look at /proc/&lt;pid&gt;/task for per-thread stats.</li><li>perf can attribute time to futex and lock contention hot spots.</li></ul></div>
+  <summary>Alternatives to cancellation</summary>
+  <div class="content"><ul><li>Many production systems avoid pthread_cancel entirely and use a "stop flag" pattern: set a shared atomic/volatile flag and have the thread check it periodically.</li><li>The stop-flag approach gives the thread full control over when and how it cleans up.</li><li>For threads blocked on I/O, use a self-pipe or eventfd to wake them, combined with poll/select.</li><li>In modern C++ (std::jthread in C++20), cooperative cancellation via stop_token replaces pthread_cancel.</li></ul></div>
 </details>
         </div>
 
@@ -146,27 +146,42 @@
     <button class="btn small" data-copy="#code_ch32">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Cancellation with cleanup handler to unlock a mutex.
   </div>
-  <pre id="code_ch32"><code class="mono">// Condition variable pattern: predicate + while loop
-pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  cv = PTHREAD_COND_INITIALIZER;
-int ready = 0;
+  <pre id="code_ch32"><code class="mono">// Safe cancellation with cleanup handler
+#include &lt;pthread.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+
+void unlock_mutex(void *arg){
+  printf("cleanup: unlocking mutex\n");
+  pthread_mutex_unlock((pthread_mutex_t*)arg);
+}
 
 void *worker(void *arg){
-  pthread_mutex_lock(&amp;m);
-  while(!ready) pthread_cond_wait(&amp;cv, &amp;m);
-  pthread_mutex_unlock(&amp;m);
+  pthread_mutex_lock(&amp;mtx);
+  pthread_cleanup_push(unlock_mutex, &amp;mtx);
+
+  // This is a cancellation point -- if cancelled here,
+  // unlock_mutex runs automatically
+  while(1){
+    sleep(1);  // cancellation point
+    printf("working...\n");
+  }
+
+  pthread_cleanup_pop(1);  // 1 = execute handler on normal exit too
   return NULL;
 }
 
-int main(){
-  pthread_t t; pthread_create(&amp;t, NULL, worker, NULL);
-  pthread_mutex_lock(&amp;m);
-  ready = 1;
-  pthread_cond_broadcast(&amp;cv);
-  pthread_mutex_unlock(&amp;m);
-  pthread_join(t, NULL);
+int main(void){
+  pthread_t t;
+  pthread_create(&amp;t, NULL, worker, NULL);
+  sleep(3);
+  pthread_cancel(t);       // request cancellation
+  pthread_join(t, NULL);   // wait for thread to finish cleanup
+  printf("thread cancelled and joined\n");
 }</code></pre>
 </div>
 
@@ -176,17 +191,17 @@ int main(){
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Define ownership of shared data; protect mutable shared state with mutexes or atomics.</li><li>Use condition variables with a predicate in a while-loop; handle spurious wakeups.</li><li>Avoid global locks in hot paths; minimize critical sections and lock contention.</li><li>Design clean shutdown and ensure all locks/resources are released on cancellation/error.</li><li>Use sanitizers in CI (TSan/ASan) and keep reproducers small.</li></ul>
+            <ul><li>Push cleanup handlers before any cancellation point where the thread holds a mutex or owns a resource.</li><li>Never use PTHREAD_CANCEL_ASYNCHRONOUS unless the code is pure computation with zero library calls.</li><li>Consider using a stop-flag pattern instead of pthread_cancel for simpler, more predictable shutdown.</li><li>Disable cancellation around non-cancellation-safe sections (e.g., complex data structure updates spanning multiple cancellation points).</li><li>Always join cancelled threads to retrieve PTHREAD_CANCELED and confirm cleanup completed.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a bounded work queue with a mutex + condition variable; prove no lost wakeups (predicate loop).</li><li>Introduce a deliberate race and catch it with ThreadSanitizer in a test build.</li><li>Build a graceful shutdown: stop producers, wake workers, join threads, free resources.</li></ul>
+            <ul><li>Create a thread that holds a mutex and sleeps. Cancel it WITHOUT a cleanup handler and observe the deadlock when another thread tries to lock the same mutex. Then fix it with pthread_cleanup_push.</li><li>Write a computation loop using PTHREAD_CANCEL_DEFERRED with pthread_testcancel(). Measure how long cancellation takes vs. a stop-flag approach.</li><li>Implement a thread pool with graceful shutdown: cancel workers, let cleanup handlers drain the queue, join all threads.</li></ul>
           </div>
         </div>
 
@@ -195,52 +210,52 @@ int main(){
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Deferred cancellation only acts at cancellation points -- specific functions defined by POSIX (read, write, sleep, pthread_cond_wait, etc.).">
+  <div class="qp">Q1. When does deferred cancellation actually cancel a thread?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">Immediately when pthread_cancel is called</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">At the next context switch</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">At the next cancellation point (e.g., read, sleep, pthread_cond_wait)</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">When the thread returns from its start function</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="Asynchronous cancellation can interrupt any instruction, including malloc, mutex_lock, and printf, leaving data structures in corrupt states.">
+  <div class="qp">Q2. Why is PTHREAD_CANCEL_ASYNCHRONOUS almost never safe?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">It is slower than deferred cancellation</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">The thread can be cancelled inside any library call, corrupting internal state</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">Cleanup handlers do not run with async cancellation</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">It requires root privileges</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="The mutex stays locked because the cancelled thread never reaches pthread_mutex_unlock. Other threads waiting for the mutex deadlock.">
+  <div class="qp">Q3. What happens if a thread is cancelled while holding a mutex and has no cleanup handler?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">The mutex is automatically released</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">The kernel unlocks the mutex</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">The cancellation is deferred until the mutex is unlocked</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">The mutex remains locked, potentially deadlocking other threads</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +263,7 @@ int main(){
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

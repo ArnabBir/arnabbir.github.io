@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1223</span> (0-based index 1222).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>net</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>TCP/IP</strong></span> <span class="pill"><strong>unix domain</strong></span> <span class="pill"><strong>nonblocking</strong></span> <span class="pill"><strong>epoll</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>TCP/IP</strong></span> <span class="pill"><strong>IP addressing</strong></span> <span class="pill"><strong>byte order</strong></span> <span class="pill"><strong>sockaddr</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 58 — Sockets: Fundamentals of TCP/IP Networks
           </h2>
           <div class="subtitle">
-            <p>Sockets are file descriptors with protocol state. Once you internalize that, networking becomes a composition problem: nonblocking I/O, buffering, backpressure, and state machines. TCP adds its own realities: handshake, retransmissions, congestion control, TIME_WAIT, and half-close behavior.</p><p>This guide highlights server design patterns: accept loops, connection handling strategies, timeouts, and how to observe the system (ss, tcpdump, strace).</p>
+            <p>TCP/IP is the network protocol stack that underlies the internet. IP routes packets between hosts, TCP provides reliable ordered byte streams on top, and UDP provides lightweight unreliable datagrams. Understanding the layered architecture is essential for socket programming.</p><p>This chapter covers IP addressing, port numbers, the distinction between TCP and UDP, network byte order conversions, and the socket address structures (sockaddr_in, sockaddr_in6) that tie it all together at the system call level.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Sockets are fds; treat networking as nonblocking I/O + a state machine.</div>
+  <div class="v">Addresses and ports must be in network byte order (big-endian) in all socket structures &mdash; use htonl/htons/ntohl/ntohs consistently.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Nonblocking connect returns EINPROGRESS; completion requires poll/epoll + SO_ERROR.</div>
+  <div class="v">Forgetting byte-order conversion silently corrupts addresses/ports. On little-endian hosts, port 80 (0x0050) becomes 20480 (0x5000) without htons().</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use ss -antp for states and tcpdump for packets; strace shows errno boundaries.</div>
+  <div class="v">Use inet_ntop() to print binary addresses as strings; getaddrinfo() for protocol-independent resolution; tcpdump to verify on-wire byte order.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A socket is a file descriptor plus protocol state and kernel buffers.</li><li>TCP is a state machine; your application must handle connect/accept/close transitions.</li><li>Nonblocking mode turns I/O into explicit scheduling (EINPROGRESS, EAGAIN, readiness).</li><li>Backpressure is a feature: when buffers fill, stop writing and resume later.</li><li>Server design is about bounding work per connection and isolating slow clients.</li><li>Observe the system: ss/tcpdump/strace tell you the truth about network behavior.</li></ul>
+            <ul><li>Four layers: link (Ethernet/WiFi frames), network (IP datagrams &mdash; routing between hosts), transport (TCP/UDP &mdash; multiplexing via ports), application (HTTP, DNS, etc.).</li><li>IP addresses identify hosts on the network; ports identify services within a host. Together they form a socket address.</li><li>TCP provides a reliable, ordered, bidirectional byte stream with flow control and congestion control. Connection-oriented: requires a 3-way handshake.</li><li>UDP provides unreliable datagrams: no connection setup, no ordering guarantees, no retransmission. Lower overhead, used for DNS, gaming, video.</li><li>Network byte order is big-endian. All multi-byte fields in socket address structures (addresses, ports) must be converted: htonl() for 32-bit, htons() for 16-bit.</li><li>struct sockaddr_in holds IPv4 (sin_family=AF_INET, sin_port, sin_addr). struct sockaddr_in6 holds IPv6. Both cast to generic struct sockaddr for syscalls.</li><li>MTU (Maximum Transmission Unit) limits packet size at the link layer (typically 1500 bytes for Ethernet). IP fragments oversized packets; TCP uses MSS to avoid fragmentation.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Socket</td><td>File descriptor with protocol state (TCP/UDP/UNIX) and send/recv buffers.</td></tr><tr><td class='mono'>Listen socket</td><td>Passive socket that queues connection requests; accept() returns connected sockets.</td></tr><tr><td class='mono'>EINPROGRESS</td><td>Nonblocking connect in progress; complete via poll/epoll writability + SO_ERROR.</td></tr><tr><td class='mono'>TIME_WAIT</td><td>TCP state on active close to handle delayed packets; normal and expected.</td></tr><tr><td class='mono'>Backpressure</td><td>Mechanism to stop producers when consumers can&#x27;t keep up (EAGAIN, buffer limits).</td></tr><tr><td class='mono'>epoll</td><td>Readiness notification API; returns ready set instead of scanning all fds.</td></tr></tbody>
+  <tbody><tr><td class='mono'>TCP</td><td>Transmission Control Protocol. Reliable, ordered byte stream over IP. Connection-oriented with handshake, retransmission, and flow control.</td></tr><tr><td class='mono'>UDP</td><td>User Datagram Protocol. Unreliable, connectionless datagrams. No ordering, no retransmission &mdash; application must handle loss.</td></tr><tr><td class='mono'>IP address</td><td>32-bit (IPv4) or 128-bit (IPv6) identifier for a network host. Stored in network byte order in socket structures.</td></tr><tr><td class='mono'>Port</td><td>16-bit number identifying a service on a host. Ports 0-1023 are privileged (require root). Stored in network byte order.</td></tr><tr><td class='mono'>htonl / htons</td><td>Host-to-network byte order conversion for 32-bit (long) and 16-bit (short) values. ntohl/ntohs for the reverse.</td></tr><tr><td class='mono'>sockaddr_in</td><td>IPv4 socket address structure: sin_family (AF_INET), sin_port, sin_addr. Cast to sockaddr* for syscalls.</td></tr><tr><td class='mono'>MTU / MSS</td><td>MTU: max link-layer payload (typically 1500). MSS: max TCP segment data (MTU minus IP+TCP headers, typically 1460).</td></tr></tbody>
 </table>
         </div>
 
@@ -114,11 +114,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>socket</td><td class='mono'>int socket(int domain, int type, int protocol);</td><td class='mono muted2'>EAFNOSUPPORT, EPROTONOSUPPORT, EMFILE, ENFILE</td><td>Creates a socket fd. Use SOCK_CLOEXEC / SOCK_NONBLOCK to avoid races.</td></tr><tr><td class='mono'>connect</td><td class='mono'>int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EINPROGRESS, ECONNREFUSED, ETIMEDOUT, EHOSTUNREACH</td><td>In nonblocking mode returns EINPROGRESS; use poll/epoll for writability then check SO_ERROR.</td></tr><tr><td class='mono'>getaddrinfo</td><td class='mono'>int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);</td><td class='mono muted2'>EAI_AGAIN, EAI_FAIL</td><td>Name resolution + address selection; prefer it over gethostbyname().</td></tr><tr><td class='mono'>inet_pton</td><td class='mono'>int inet_pton(int af, const char *src, void *dst);</td><td class='mono muted2'>EINVAL</td><td>Parses IPv4/IPv6 text to binary; returns 1 on success, 0 for invalid format.</td></tr>
+    <tr><td class='mono'>inet_pton</td><td class='mono'>int inet_pton(int af, const char *src, void *dst);</td><td class='mono muted2'>EAFNOSUPPORT</td><td>Parses text IP address to binary. Returns 1 on success, 0 if invalid format, -1 on error. Handles IPv4 and IPv6.</td></tr><tr><td class='mono'>inet_ntop</td><td class='mono'>const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);</td><td class='mono muted2'>EAFNOSUPPORT, ENOSPC</td><td>Converts binary address to text string. Use INET_ADDRSTRLEN (16) for IPv4, INET6_ADDRSTRLEN (46) for IPv6 buffer.</td></tr><tr><td class='mono'>htonl / htons</td><td class='mono'>uint32_t htonl(uint32_t); uint16_t htons(uint16_t);</td><td class='mono muted2'>n/a</td><td>Host to network byte order. No-op on big-endian systems. Always use &mdash; code must be portable.</td></tr><tr><td class='mono'>getaddrinfo</td><td class='mono'>int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);</td><td class='mono muted2'>EAI_AGAIN, EAI_FAIL, EAI_NONAME</td><td>Protocol-independent name/service resolution. Returns linked list of results. Use gai_strerror() for errors.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: prefer inet_pton/inet_ntop over the deprecated inet_aton/inet_ntoa (which are IPv4-only and not thread-safe).
           </div>
         </div>
 
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>TCP state machine: what servers actually deal with</summary>
-  <div class="content"><ul><li>connect() initiates handshake (SYN). The server’s listen socket queues connections before accept() returns a connected socket.</li><li>Nonblocking connect returns EINPROGRESS; completion is detected via poll/epoll writability then SO_ERROR.</li><li>Half-close exists: one side can shutdown(SHUT_WR) while still reading. recv()==0 means FIN received.</li><li>TIME_WAIT is normal for active close; reuse needs care (SO_REUSEADDR) and a good understanding of 4-tuples.</li></ul></div>
+  <summary>Byte order pitfalls</summary>
+  <div class="content"><ul><li>On x86 (little-endian), forgetting htons(80) stores 0x5000 (20480) instead of 0x0050 (80). Connections silently go to the wrong port.</li><li>htonl/htons are no-ops on big-endian architectures but must still be used for portability.</li><li>INADDR_ANY (0) and INADDR_LOOPBACK (127.0.0.1) still need htonl() wrapping in sockaddr_in.sin_addr.s_addr.</li><li>The same byte-order rules apply to IPv6 addresses in sockaddr_in6, though inet_pton handles conversion for you.</li></ul></div>
 </details><details class="accordion">
-  <summary>Backpressure and buffers</summary>
-  <div class="content"><ul><li>The kernel has send/receive buffers. If your app doesn’t read, the peer eventually blocks or drops based on protocol and timeouts.</li><li>Short writes happen; treat EAGAIN as a signal to stop writing and wait for EPOLLOUT.</li><li>Nagle (TCP_NODELAY) and delayed ACKs interact with small writes; batch writes when possible.</li><li>Always set timeouts (connect, read, write, idle) to avoid hanging connections.</li></ul></div>
+  <summary>IPv4 vs IPv6 dual-stack</summary>
+  <div class="content"><ul><li>AF_INET6 sockets can accept IPv4 connections via IPv4-mapped addresses (::ffff:a.b.c.d) if IPV6_V6ONLY is not set.</li><li>IPV6_V6ONLY (default varies by OS) controls whether an AF_INET6 socket also accepts IPv4. Set explicitly for predictable behavior.</li><li>getaddrinfo() with AI_V4MAPPED returns IPv4-mapped IPv6 addresses when no native IPv6 address exists.</li><li>Always use getaddrinfo() instead of hard-coding AF_INET &mdash; it handles dual-stack resolution transparently.</li></ul></div>
 </details><details class="accordion">
-  <summary>Server design: scaling patterns</summary>
-  <div class="content"><ul><li>Thread-per-connection is simple but can be memory heavy. Event loops scale when per-connection work is bounded and nonblocking.</li><li>Use accept4 with SOCK_NONBLOCK|SOCK_CLOEXEC to avoid races and simplify setup.</li><li>Consider load shedding: cap accept rate, apply per-IP limits, and bound queues to prevent collapse under overload.</li><li>Measure: accept rate, SYN backlog drops, retransmissions, tail latency, and CPU spent in softirq/network stack.</li></ul></div>
+  <summary>TCP vs UDP trade-offs</summary>
+  <div class="content"><ul><li>TCP guarantees delivery and ordering but adds latency (handshake, retransmission timeouts, congestion windows).</li><li>UDP has no connection state &mdash; each sendto() is independent. Application must handle loss, reordering, and duplication.</li><li>TCP head-of-line blocking: one lost segment delays all subsequent segments in the stream. QUIC (UDP-based) avoids this per-stream.</li><li>UDP has no built-in flow control. Sending faster than the receiver can process leads to kernel buffer overflow and silent packet drops.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>ss -antp gives state and owning process. tcpdump/wireshark reveals handshake and retransmissions.</li><li>strace -f -e trace=network shows socket syscalls and errno (ECONNREFUSED, ETIMEDOUT).</li><li>Check /proc/sys/net/* for kernel tuning and listen backlog limits.</li><li>For high packet rates, perf can show time in tcp_recvmsg, tcp_sendmsg, and softirq handlers.</li></ul></div>
+  <summary>MTU, fragmentation, and path MTU discovery</summary>
+  <div class="content"><ul><li>Ethernet MTU is typically 1500 bytes. IP packets larger than MTU are fragmented (IPv4) or rejected with ICMP Packet Too Big (IPv6).</li><li>TCP uses MSS negotiation to avoid fragmentation: MSS = MTU - 40 (IPv4) or MTU - 60 (IPv6) for headers.</li><li>Path MTU Discovery (PMTUD) sets DF (Don't Fragment) flag and relies on ICMP responses. Firewalls blocking ICMP break PMTUD &mdash; a common cause of "black hole" connections.</li><li>UDP applications sending large datagrams risk fragmentation and reassembly failures. Keep UDP payloads under 1400 bytes for reliability.</li></ul></div>
 </details>
         </div>
 
@@ -150,16 +150,25 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch58"><code class="mono">// Nonblocking connect pattern (outline)
-int fd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, 0);
-int rc = connect(fd, (struct sockaddr*)&amp;addr, sizeof(addr));
-if (rc == 0) { /* connected */ }
-else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
-  // wait for writability with poll/epoll
-  // then check SO_ERROR via getsockopt
-} else {
-  // real error (ECONNREFUSED, ETIMEDOUT, ...)
-}</code></pre>
+  <pre id="code_ch58"><code class="mono">// Filling sockaddr_in + address conversion with inet_pton
+#include &lt;arpa/inet.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+struct sockaddr_in addr;
+memset(&amp;addr, 0, sizeof(addr));
+addr.sin_family = AF_INET;
+addr.sin_port   = htons(8080);  // always convert port
+
+if (inet_pton(AF_INET, "192.168.1.10", &amp;addr.sin_addr) != 1) {
+    perror("inet_pton"); return 1;
+}
+// addr is now ready for connect() or bind()
+
+// Print it back:
+char buf[INET_ADDRSTRLEN];
+inet_ntop(AF_INET, &amp;addr.sin_addr, buf, sizeof(buf));
+printf("addr=%s port=%d\n", buf, ntohs(addr.sin_port));</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -168,17 +177,17 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use SOCK_CLOEXEC/SOCK_NONBLOCK and accept4 to avoid races and simplify setup.</li><li>Implement backpressure: bounded buffers, stop writing on EAGAIN, and resume on EPOLLOUT.</li><li>Set timeouts (connect/read/write/idle) and handle half-closes correctly.</li><li>Instrument: connection counts, queue depths, bytes in/out, and tail latencies.</li><li>Use ss/tcpdump/perf for debugging; don’t guess about network states.</li></ul>
+            <ul><li>Use htons/htonl for every port and address assignment &mdash; even constants like INADDR_ANY.</li><li>Use inet_pton/inet_ntop instead of deprecated inet_aton/inet_ntoa for thread safety and IPv6 support.</li><li>Use getaddrinfo() for all name resolution &mdash; it handles IPv4/IPv6, service names, and AI_PASSIVE for servers.</li><li>Always memset sockaddr structures to zero before filling to avoid undefined padding bytes.</li><li>Explicitly set IPV6_V6ONLY when using AF_INET6 sockets to control dual-stack behavior portably.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a TCP echo server with nonblocking sockets, per-connection buffers, and epoll (LT first, then ET).</li><li>Add timeouts: idle timeout and write timeout; close connections cleanly on expiry.</li><li>Capture packets with tcpdump while connecting; map observed handshake to your socket state logs.</li></ul>
+            <ul><li>Write a program that converts an IP address string to binary with inet_pton, then back to string with inet_ntop. Test with IPv4 and IPv6 addresses.</li><li>Deliberately omit htons() on a port number, bind a server, and connect with a client to the "correct" port. Observe the failure and diagnose with ss.</li><li>Use getaddrinfo() to resolve a hostname and print all returned addresses (IPv4 and IPv6) with their socket types. Compare results with dig/nslookup.</li></ul>
           </div>
         </div>
 
@@ -187,52 +196,52 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="EINPROGRESS indicates connection is in progress; wait for writability and check SO_ERROR.">
-  <div class="qp">Q1. Nonblocking connect() usually returns:</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="htons() converts a 16-bit port number from host byte order to network byte order (big-endian).">
+  <div class="qp">Q1. Which function converts a port number to network byte order?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">0 always</div></div>
+  <div><div style="font-weight:750">inet_pton()</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EINPROGRESS</div></div>
+  <div><div style="font-weight:750">ntohl()</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 ENOENT</div></div>
+  <div><div style="font-weight:750">htons()</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EBADF</div></div>
+  <div><div style="font-weight:750">getaddrinfo()</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="0" data-explain="accept returns a new file descriptor representing the established connection.">
-  <div class="qp">Q2. What does accept() return?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="UDP is connectionless and unreliable &mdash; it provides no ordering, retransmission, or flow control.">
+  <div class="qp">Q2. Which transport protocol provides NO delivery guarantee?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A new fd for a connected socket</div></div>
+  <div><div style="font-weight:750">TCP</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A PID</div></div>
+  <div><div style="font-weight:750">UDP</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A thread handle</div></div>
+  <div><div style="font-weight:750">IP</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">An inode</div></div>
+  <div><div style="font-weight:750">SCTP</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="ss can display state and owning process.">
-  <div class="qp">Q3. Which tool shows TCP states with PIDs?</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="The typical Ethernet MTU is 1500 bytes. TCP MSS is MTU minus IP and TCP headers, typically 1460 bytes.">
+  <div class="qp">Q3. What is the typical Ethernet MTU?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ls</div></div>
+  <div><div style="font-weight:750">576 bytes</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ss -antp</div></div>
+  <div><div style="font-weight:750">1460 bytes</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">cat</div></div>
+  <div><div style="font-weight:750">9000 bytes</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">dd</div></div>
+  <div><div style="font-weight:750">1500 bytes</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -240,7 +249,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -280,7 +289,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
       highlight: ["socket", "tcp", "skb", "epoll", "process", "fdtable"]
     });
 TLPIWidgets.mountSocketLab("sock_ch58", {});
-TLPIWidgets.mountStraceParser("str_ch58", {example: "socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP) = 3\nconnect(3, {{sa_family=AF_INET, sin_port=htons(443), sin_addr=...}}, 16) = -1 EINPROGRESS (Operation now in progress)\npoll([{fd=3, events=POLLOUT}], 1, 3000) = 1\ngetsockopt(3, SOL_SOCKET, SO_ERROR, [0], [4]) = 0\n"});
+TLPIWidgets.mountStraceParser("str_ch58", {example: "socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) = 3\nbind(3, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr(\"0.0.0.0\")}, 16) = 0\ngetsockname(3, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr(\"0.0.0.0\")}, [16]) = 0\n"});
   </script>
 </body>
 </html>

@@ -42,8 +42,8 @@
         <div class="glass pad" style="margin-top:12px">
           <div class="section-title">Appendix metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1461</span> (0-based index 1460).</div>
-          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>sys</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>uid/gid</strong></span> <span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>/proc</strong></span> <span class="pill"><strong>time</strong></span></div>
+          <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>kernel</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>.config</strong></span> <span class="pill"><strong>CONFIG_*</strong></span> <span class="pill"><strong>modprobe</strong></span> <span class="pill"><strong>lsmod</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -58,27 +58,27 @@
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
             Appendix D — Kernel Configuration
           </h2>
-          <div class="subtitle"><p>Kernel configuration shows up in real debugging constantly: sysctls, /proc tunables, limits, and feature availability. Many “my code is broken” incidents are actually “the kernel is configured differently than you assumed”.</p><p>This appendix gives you a practical map of where configuration lives and how to reason about it safely.</p></div>
+          <div class="subtitle"><p>Kernel configuration determines which features and drivers are compiled in. Understanding /proc/config.gz and /boot/config helps debug "feature not available" errors -- when epoll_create1 returns ENOSYS or inotify_init fails, the first question is whether the kernel was built with that feature enabled.</p><p>This appendix covers the .config file format, key CONFIG_* options for systems programmers, and tools for inspecting and changing kernel configuration (make menuconfig, modprobe, lsmod).</p></div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Effective IDs + rlimits shape what your process can do.</div>
+  <div class="v">CONFIG_*=y means built-in; =m means loadable module; "not set" means feature is disabled entirely.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">sysconf can return -1 for both error and &#x27;unlimited&#x27;—check errno.</div>
+  <div class="v">/proc/config.gz only exists if CONFIG_IKCONFIG_PROC=y; otherwise check /boot/config-$(uname -r).</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use /proc and prlimit/ulimit to inspect limits and runtime state.</div>
+  <div class="v">zcat /proc/config.gz | grep CONFIG_EPOLL instantly tells you if epoll support is compiled in.</div>
 </div></div>
         </div>
 
         <div class="glass pad-lg">
           <h3 class="section" data-toc="Key concepts">Key concepts</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Use these as a cross-chapter index: the same kernel objects reappear everywhere.
+            Core terminology for kernel build configuration.
           </div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>UID/GID</td><td>User/group IDs controlling permission checks and access control decisions.</td></tr><tr><td class='mono'>rlimit</td><td>Resource limit preventing runaway usage (open files, memory, CPU).</td></tr><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing live kernel process state and system info.</td></tr><tr><td class='mono'>Clock</td><td>Time source (realtime vs monotonic) used for measurement and deadlines.</td></tr><tr><td class='mono'>errno</td><td>Thread-local error indicator set by failing syscalls.</td></tr><tr><td class='mono'>Capability</td><td>Fine-grained privilege bit; alternative to full root for some operations.</td></tr></tbody>
+  <tbody><tr><td class='mono'>.config</td><td>The kernel configuration file; contains CONFIG_* lines that control which features/drivers are built.</td></tr><tr><td class='mono'>CONFIG_*=y</td><td>Feature compiled directly into the kernel image (always available, no loading needed).</td></tr><tr><td class='mono'>CONFIG_*=m</td><td>Feature compiled as a loadable kernel module (.ko file); must be loaded with modprobe before use.</td></tr><tr><td class='mono'>/proc/config.gz</td><td>Gzipped copy of the running kernel's .config; requires CONFIG_IKCONFIG_PROC=y.</td></tr><tr><td class='mono'>make menuconfig</td><td>Ncurses-based UI for editing .config interactively; also make xconfig (Qt) and make nconfig.</td></tr><tr><td class='mono'>modprobe</td><td>Loads kernel modules and their dependencies; modprobe -r removes modules.</td></tr><tr><td class='mono'>lsmod</td><td>Lists currently loaded kernel modules; reads from /proc/modules.</td></tr></tbody>
 </table>
         </div>
 
@@ -94,24 +94,24 @@
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Deep dive">Deep dive</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Practical panels: tools, workflows, and invariants worth memorizing.
+            Practical panels: finding config, key options for systems programmers, and module management.
           </div>
           <details class="accordion">
-  <summary>Where configuration lives</summary>
-  <div class="content"><ul><li>/proc/sys/*: sysctl interface (runtime tunables). Example: net.core.somaxconn influences listen backlog behavior.</li><li>/sys/*: device and subsystem configuration surfaces (cgroups, block devices, network).</li><li>/boot/config-$(uname -r): build-time kernel config (if installed).</li><li>sysctl(8) tool provides a stable interface to /proc/sys.</li></ul></div>
+  <summary>Finding the running kernel's configuration</summary>
+  <div class="content"><ul><li>/proc/config.gz: the running kernel's config, compressed. Use: zcat /proc/config.gz | grep CONFIG_EPOLL.</li><li>/boot/config-$(uname -r): installed by most distros even when /proc/config.gz is unavailable.</li><li>modprobe configs: if CONFIG_IKCONFIG is set to =m, you may need to load the configs module first: modprobe configs.</li><li>Some embedded/minimal systems have neither; in that case, check the build system or distro's kernel package.</li></ul></div>
 </details><details class="accordion">
-  <summary>Operational safety rules</summary>
-  <div class="content"><ul><li>Treat configuration as part of your deployment contract. Document required sysctls and validate at startup.</li><li>Prefer per-service isolation (namespaces/cgroups) over global sysctls when possible.</li><li>Never change sysctls in ad-hoc ways on production systems without rollback and monitoring.</li><li>Understand scope: some sysctls are per-namespace; others are global.</li></ul></div>
+  <summary>Key CONFIG_* options for systems programmers</summary>
+  <div class="content"><ul><li>CONFIG_EPOLL: enables epoll_create/epoll_wait. Almost always =y on modern kernels.</li><li>CONFIG_INOTIFY_USER: enables inotify_init/inotify_add_watch for filesystem event monitoring.</li><li>CONFIG_POSIX_MQUEUE: enables POSIX message queues (mq_open, mq_send, mq_receive).</li><li>CONFIG_NAMESPACES: master switch for Linux namespaces (PID, NET, MNT, UTS, IPC, USER, CGROUP).</li><li>CONFIG_CGROUPS: enables control groups for resource limiting and isolation.</li><li>CONFIG_SECCOMP: enables seccomp syscall filtering for sandboxing.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging patterns</summary>
-  <div class="content"><ul><li>If networking behaves oddly, check somaxconn, tcp_tw_reuse, and related tunables.</li><li>If memory behavior is weird, inspect overcommit and cgroup memory settings.</li><li>If file descriptor usage fails, check rlimits and fs.file-max.</li><li>Always record kernel version and config when collecting incident evidence.</li></ul></div>
+  <summary>Module management</summary>
+  <div class="content"><ul><li>lsmod: shows loaded modules, their size, and use count. Equivalent to reading /proc/modules.</li><li>modprobe &lt;name&gt;: loads a module and its dependencies. Uses /lib/modules/$(uname -r)/ for module files.</li><li>modprobe -r &lt;name&gt;: removes a module (if use count is 0).</li><li>modinfo &lt;name&gt;: shows module metadata (description, parameters, dependencies, license).</li><li>/etc/modprobe.d/: configuration files for module options, blacklisting, and aliases.</li></ul></div>
 </details>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="API quick reference">API quick reference</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            APIs you’ll likely use while working through these topics.
+            APIs affected by kernel configuration.
           </div>
           <table class="table">
   <thead>
@@ -123,7 +123,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>uname</td><td class='mono'>int uname(struct utsname *buf);</td><td class='mono muted2'>EFAULT</td><td>Kernel/system identification (release, machine).</td></tr><tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>—</td><td>Queries runtime system limits (e.g., _SC_PAGESIZE). Returns -1 on error or when unlimited (check errno).</td></tr><tr><td class='mono'>getrlimit</td><td class='mono'>int getrlimit(int resource, struct rlimit *rlim);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Resource limits (RLIMIT_NOFILE, RLIMIT_AS, etc).</td></tr><tr><td class='mono'>setrlimit</td><td class='mono'>int setrlimit(int resource, const struct rlimit *rlim);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Raises/lowers resource limits; raising often requires privilege.</td></tr>
+    <tr><td class='mono'>uname</td><td class='mono'>int uname(struct utsname *buf);</td><td class='mono muted2'>EFAULT</td><td>Returns kernel version string; use to match /boot/config-$(uname -r).</td></tr><tr><td class='mono'>init_module</td><td class='mono'>int init_module(void *image, unsigned long len, const char *params);</td><td class='mono muted2'>EPERM, ENOEXEC, EINVAL</td><td>Loads a kernel module from a memory buffer. Requires CAP_SYS_MODULE.</td></tr><tr><td class='mono'>delete_module</td><td class='mono'>int delete_module(const char *name, int flags);</td><td class='mono muted2'>EPERM, EBUSY, ENOENT</td><td>Removes a loaded module. EBUSY if module is in use.</td></tr><tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>EINVAL</td><td>Queries runtime limits; returns -1 for unsupported or unlimited (check errno).</td></tr>
   </tbody>
 </table>
         </div>
@@ -134,75 +134,88 @@
             <button class="btn small" data-copy="#code_appD">Copy</button>
           </div>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Appendix snippets emphasize workflow and instrumentation.
+            Checking kernel config for specific features.
           </div>
-          <pre id="code_appD"><code class="mono"># Inspect a few common sysctls (read-only)
-sysctl net.core.somaxconn
-sysctl fs.file-max
-sysctl vm.overcommit_memory
+          <pre id="code_appD"><code class="mono"># Check if epoll is compiled in (from /proc/config.gz)
+zcat /proc/config.gz | grep CONFIG_EPOLL
 
-# The raw files are in /proc/sys (dots become slashes)
-cat /proc/sys/net/core/somaxconn
-</code></pre>
+# Check from /boot if /proc/config.gz is unavailable
+grep CONFIG_INOTIFY_USER /boot/config-$(uname -r)
+
+# Check namespace support
+zcat /proc/config.gz | grep CONFIG_NAMESPACES
+
+# Check POSIX message queue support
+zcat /proc/config.gz | grep CONFIG_POSIX_MQUEUE
+
+# List loaded modules and search for a specific one
+lsmod | grep nf_tables
+
+# Load a module and verify
+sudo modprobe configs
+lsmod | grep configs
+
+# Show module info (parameters, dependencies)
+modinfo ext4</code></pre>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Production checklist">Production checklist</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Checklists are how you stop repeating incidents.
+            Practices for managing kernel configuration in systems work.
           </div>
-          <div class="prose"><ul><li>Log effective IDs, rlimits, and key environment at startup for debuggability.</li><li>Use CLOCK_MONOTONIC for timeouts; never rely on realtime for deadlines.</li><li>Handle “unlimited” returns from sysconf/pathconf correctly (check errno).</li><li>Treat /proc as the source of truth for runtime state; build tooling around it.</li><li>Make errors actionable: include which resource, which limit, and current values.</li></ul></div>
+          <div class="prose"><ul><li>When a syscall returns ENOSYS, check whether the feature's CONFIG_* option is enabled before debugging code.</li><li>Record kernel version (uname -r) and relevant CONFIG_* values in bug reports and incident postmortems.</li><li>For containerized deployments, remember the kernel is shared -- container config depends on the host kernel's .config.</li><li>Use modinfo to check module parameters before loading; some modules have security-relevant defaults.</li><li>Keep /boot/config-* files when building custom kernels; they are essential for reproducing builds.</li></ul></div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Quiz">Quiz</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">Quick self-check.</div>
-          <div class="quiz"><div class="q" data-quiz data-answer="0" data-explain="sysctl exposes runtime tunables via /proc/sys.">
-  <div class="qp">Q1. Where do sysctl runtime tunables live?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="CONFIG_*=y means built directly into the kernel; =m means loadable module.">
+  <div class="qp">Q1. What does CONFIG_EPOLL=y mean?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">/proc/sys</div></div>
+  <div><div style="font-weight:750">Epoll is disabled</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">/etc/init.d</div></div>
+  <div><div style="font-weight:750">Epoll is compiled into the kernel</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">/bin</div></div>
+  <div><div style="font-weight:750">Epoll is a loadable module</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">/tmp</div></div>
+  <div><div style="font-weight:750">Epoll requires a reboot</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="Treat sysctls as part of the deployment contract and validate them.">
-  <div class="qp">Q2. Which is a safe operational practice?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="/proc/config.gz requires CONFIG_IKCONFIG_PROC=y; /boot/config-* is the alternative.">
+  <div class="qp">Q2. Where can you find the running kernel's config if /proc/config.gz doesn't exist?</div>
   <div class="opts"><div class="opt" data-opt="0">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">Change sysctls randomly</div></div>
-</div><div class="opt" data-opt="1">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">Document and validate required sysctls at startup</div></div>
-</div><div class="opt" data-opt="2">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">Never measure</div></div>
-</div><div class="opt" data-opt="3">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">Disable monitoring</div></div>
-</div></div>
-  <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="Many distros install the kernel config under /boot/config-*.">
-  <div class="qp">Q3. Kernel build-time configuration is commonly found in:</div>
-  <div class="opts"><div class="opt" data-opt="0">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">/proc/sys</div></div>
-</div><div class="opt" data-opt="1">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">/boot/config-$(uname -r)</div></div>
-</div><div class="opt" data-opt="2">
-  <div class="dot"></div>
-  <div><div style="font-weight:750">/dev/null</div></div>
-</div><div class="opt" data-opt="3">
   <div class="dot"></div>
   <div><div style="font-weight:750">/etc/passwd</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/dev/null</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/boot/config-$(uname -r)</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">/tmp/config</div></div>
+</div></div>
+  <div class="feedback muted2 small"></div>
+</div><div class="q" data-quiz data-answer="0" data-explain="modprobe loads kernel modules and resolves their dependencies automatically.">
+  <div class="qp">Q3. Which command loads a kernel module and its dependencies?</div>
+  <div class="opts"><div class="opt" data-opt="0">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">modprobe</div></div>
+</div><div class="opt" data-opt="1">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">lsmod</div></div>
+</div><div class="opt" data-opt="2">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">insmod</div></div>
+</div><div class="opt" data-opt="3">
+  <div class="dot"></div>
+  <div><div style="font-weight:750">rmmod</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -210,7 +223,7 @@ cat /proc/sys/net/core/somaxconn
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

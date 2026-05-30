@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">797</span> (0-based index 796).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>proc</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fork/exec</strong></span> <span class="pill"><strong>zombies</strong></span> <span class="pill"><strong>pid namespaces</strong></span> <span class="pill"><strong>scheduling</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>rlimits</strong></span> <span class="pill"><strong>getrusage</strong></span> <span class="pill"><strong>soft/hard limits</strong></span> <span class="pill"><strong>prlimit</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 36 — Process Resources
           </h2>
           <div class="subtitle">
-            <p>Processes are isolated execution contexts with their own PID, address space, credentials, and resource tables. The kernel keeps a surprisingly rich *process state machine*: runnable, sleeping, stopped, zombie, and more. Understanding how a process *moves* through states is the key to debugging leaks, zombies, and deadlocks.</p><p>In practice, process control is about composing a small set of primitives (fork/exec/wait, signals, pipes, dup2, setpgid/setsid) into reliable patterns: supervisors, daemons, pipelines, sandboxes, and service managers.</p>
+            <p>Resource limits prevent runaway processes from consuming all system resources — file descriptors, memory, CPU time, core dump size, and more.</p><p>Every process inherits a set of rlimits from its parent. These limits act as guardrails: soft limits are the effective cap (can be raised by the process up to the hard limit), while hard limits are the ceiling that only privileged processes can increase.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">fork clones, exec overlays, wait reaps. PID persists across exec.</div>
+  <div class="v">soft limit &le; hard limit. Unprivileged processes can lower hard limits irreversibly but cannot raise them.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Zombies accumulate if you never reap children (waitpid).</div>
+  <div class="v">RLIMIT_NOFILE default (1024) is too low for servers; hitting it causes mysterious EMFILE errors on accept/open.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Check /proc/&lt;pid&gt;/status for state, signals, and children; use strace -f.</div>
+  <div class="v">cat /proc/&lt;pid&gt;/limits shows all current rlimits; prlimit --pid=&lt;pid&gt; can query and set them live.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A process is a task_struct plus resources (mm, files, cred, signals).</li><li>fork() clones structure; execve() replaces image; wait*() reaps termination status.</li><li>Copy-on-write makes fork cheap until you write; memory behavior changes with workload.</li><li>Signals are the asynchronous control plane for process trees (SIGCHLD, shutdown).</li><li>Job control uses sessions + process groups + controlling terminals; signals target groups.</li><li>In multithreaded code, fork is a sharp edge: exec quickly or use posix_spawn.</li></ul>
+            <ul><li>Each rlimit has two values: rlim_cur (soft/effective) and rlim_max (hard/ceiling).</li><li>Unprivileged processes can raise soft up to hard, or irreversibly lower hard. Only CAP_SYS_RESOURCE can raise hard limits.</li><li>RLIMIT_NOFILE: max number of open file descriptors. Default 1024 soft / 1048576 hard on modern Linux.</li><li>RLIMIT_AS: max virtual address space (mmap, brk). Exceeding causes ENOMEM.</li><li>RLIMIT_CORE: max core dump size. Set to 0 to disable core dumps; unlimited for full debugging.</li><li>RLIMIT_NPROC: max number of processes for a UID (not per-process — a common misconception).</li><li>getrusage() reports accumulated resource usage: user/system CPU time, max RSS, page faults, context switches.</li><li>prlimit() (Linux-specific): query or set rlimits of another process by PID — useful for live tuning.</li><li>systemd LimitNOFILE=, LimitAS=, etc. set rlimits for services at launch — the modern way to configure limits.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>task_struct</td><td>Kernel structure representing a task (process or thread) with scheduling + state.</td></tr><tr><td class='mono'>PID</td><td>Process identifier; can be recycled; stable across exec but not across fork.</td></tr><tr><td class='mono'>Zombie</td><td>Exited process whose exit status is retained until reaped by wait*().</td></tr><tr><td class='mono'>Copy-on-write</td><td>fork() shares pages until a write triggers duplication; makes fork cheap.</td></tr><tr><td class='mono'>Session</td><td>Collection of process groups; setsid() creates new session and detaches from controlling tty.</td></tr><tr><td class='mono'>Process group</td><td>Used for job control and signal delivery to related processes.</td></tr></tbody>
+  <tbody><tr><td class='mono'>rlimit</td><td>Resource limit structure with soft (rlim_cur) and hard (rlim_max) values.</td></tr><tr><td class='mono'>RLIMIT_NOFILE</td><td>Maximum number of file descriptors a process can have open simultaneously.</td></tr><tr><td class='mono'>RLIMIT_AS</td><td>Maximum virtual memory (address space) in bytes; affects mmap and brk.</td></tr><tr><td class='mono'>RLIMIT_CORE</td><td>Maximum size of core dump file; 0 disables core dumps.</td></tr><tr><td class='mono'>RLIMIT_NPROC</td><td>Maximum number of processes (threads) for the real UID of the calling process.</td></tr><tr><td class='mono'>getrusage</td><td>Returns resource usage stats: CPU time, RSS, page faults, I/O, context switches.</td></tr><tr><td class='mono'>prlimit</td><td>Linux-specific syscall to get/set rlimits of any process by PID.</td></tr></tbody>
 </table>
         </div>
 
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>getrlimit</td><td class='mono'>int getrlimit(int resource, struct rlimit *rlim);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Resource limits (RLIMIT_NOFILE, RLIMIT_AS, etc).</td></tr><tr><td class='mono'>setrlimit</td><td class='mono'>int setrlimit(int resource, const struct rlimit *rlim);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Raises/lowers resource limits; raising often requires privilege.</td></tr><tr><td class='mono'>mmap</td><td class='mono'>void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);</td><td class='mono muted2'>ENOMEM, EACCES, EINVAL, EBADF</td><td>Maps file/anon memory. Page faults happen on first touch; mind MAP_PRIVATE vs MAP_SHARED.</td></tr>
+    <tr><td class='mono'>getrlimit</td><td class='mono'>int getrlimit(int resource, struct rlimit *rlim);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Retrieves current soft and hard limits for the specified resource.</td></tr><tr><td class='mono'>setrlimit</td><td class='mono'>int setrlimit(int resource, const struct rlimit *rlim);</td><td class='mono muted2'>EPERM, EINVAL, EFAULT</td><td>Sets limits. EPERM if raising hard limit without CAP_SYS_RESOURCE.</td></tr><tr><td class='mono'>prlimit</td><td class='mono'>int prlimit(pid_t pid, int resource, const struct rlimit *new, struct rlimit *old);</td><td class='mono muted2'>EPERM, ESRCH, EINVAL, EFAULT</td><td>Linux-specific. Gets/sets limits on another process. pid=0 means self.</td></tr><tr><td class='mono'>getrusage</td><td class='mono'>int getrusage(int who, struct rusage *usage);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>who: RUSAGE_SELF, RUSAGE_CHILDREN, or RUSAGE_THREAD. Reports CPU time, RSS, faults.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Fork/exec/wait: the production pattern</summary>
-  <div class="content"><ul><li>fork() clones the process (copy-on-write). execve() replaces the program image. waitpid() reaps the exit status.</li><li>The PID stays the same across exec. File descriptors survive exec unless marked close-on-exec (FD_CLOEXEC / O_CLOEXEC).</li><li>In multi-threaded parents, after fork() only async-signal-safe functions are safe before exec/_exit.</li><li>Zombies exist because the kernel must retain exit status until the parent collects it. If you forget to wait, zombies accumulate.</li></ul></div>
+  <summary>RLIMIT_NOFILE pitfalls</summary>
+  <div class="content"><ul><li>The kernel has a system-wide cap: /proc/sys/fs/nr_open (default 1048576). You cannot set RLIMIT_NOFILE hard limit above this.</li><li>select() is limited to FD_SETSIZE (typically 1024) regardless of RLIMIT_NOFILE — use poll/epoll instead.</li><li>After raising RLIMIT_NOFILE, close-on-exec loops that iterate 0..getrlimit() become expensive with high limits. Use close_range() (Linux 5.9+).</li><li>Docker containers inherit the host's nr_open but may have different default ulimits set by the runtime.</li></ul></div>
 </details><details class="accordion">
-  <summary>Signals and job control interactions</summary>
-  <div class="content"><ul><li>SIGCHLD is how the kernel tells a parent that a child changed state. Always write robust SIGCHLD handling or a wait loop.</li><li>Process groups and sessions matter for terminals: Ctrl-C sends SIGINT to the foreground process group.</li><li>Stopping/continuing (SIGTSTP/SIGCONT) creates state transitions you must handle in shells and supervisors.</li><li>Avoid sending signals by PID alone in long-lived systems; PIDs can be recycled. Consider pidfds (newer kernels) when available.</li></ul></div>
+  <summary>RLIMIT_NPROC and threads</summary>
+  <div class="content"><ul><li>RLIMIT_NPROC counts all tasks (processes + threads) for the real UID, not per-process.</li><li>A single multi-threaded application can exhaust RLIMIT_NPROC for all processes owned by that UID.</li><li>fork() and clone() both check RLIMIT_NPROC; exceeding returns EAGAIN.</li><li>Root (UID 0) is exempt from RLIMIT_NPROC — it can always create new processes.</li></ul></div>
 </details><details class="accordion">
-  <summary>Scheduling and priorities — practical view</summary>
-  <div class="content"><ul><li>nice/priority influence the scheduler, but do not replace correct design. CPU-bound work needs backpressure and sometimes isolation.</li><li>Real-time policies (SCHED_FIFO/RR) can starve the system. Only use with strict limits and watchdogs.</li><li>Affinity and cgroups are often a better lever for performance isolation than priority tweaks.</li><li>Measure: CPU usage, context switches, run queue length, and tail latency — then decide.</li></ul></div>
+  <summary>RLIMIT_STACK and threads</summary>
+  <div class="content"><ul><li>RLIMIT_STACK sets the main thread's stack size. Additional threads get their stack size from pthread_attr (default often 8MB).</li><li>Lowering RLIMIT_STACK after program start does not shrink existing stacks — only affects new threads/processes.</li><li>Stack overflow does not return ENOMEM; it delivers SIGSEGV (guard page hit).</li><li>Unlimited RLIMIT_STACK disables ASLR for the main stack on some kernels (security concern).</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Use ps/top/htop for state; look for Z (zombie), D (uninterruptible sleep), or stopped tasks.</li><li>Inspect /proc/&lt;pid&gt;/status (state, threads, signals), /proc/&lt;pid&gt;/cmdline, and /proc/&lt;pid&gt;/fd.</li><li>strace -f for process trees; add -e trace=process for fork/exec/wait focus.</li><li>For elusive deadlocks, capture stack traces (gdb, pstack) and correlate with futex waits.</li></ul></div>
+  <summary>getrusage accuracy and accounting</summary>
+  <div class="content"><ul><li>ru_maxrss is in kilobytes on Linux (not bytes as on some BSDs). It represents the peak resident set size.</li><li>RUSAGE_CHILDREN only reports for waited-for children. Un-reaped children's usage is lost.</li><li>ru_minflt (minor faults) counts COW faults and demand-zero pages; ru_majflt (major faults) counts disk I/O.</li><li>On multi-core systems, ru_utime + ru_stime can exceed wall-clock time (parallel CPU consumption).</li></ul></div>
 </details>
         </div>
 
@@ -150,24 +150,31 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch36"><code class="mono">// Minimal pipeline: producer | consumer
-int p[2];
-pipe2(p, O_CLOEXEC);
+  <pre id="code_ch36"><code class="mono">// Query and raise RLIMIT_NOFILE; report CPU usage
+#include &lt;sys/resource.h&gt;
+#include &lt;stdio.h&gt;
 
-if (fork() == 0) { // producer
-  dup2(p[1], STDOUT_FILENO);
-  close(p[0]); close(p[1]);
-  execlp(&quot;printf&quot;, &quot;printf&quot;, &quot;hello\n&quot;, (char*)NULL);
-  _exit(127);
+void raise_nofile(rlim_t target) {
+    struct rlimit rl;
+    getrlimit(RLIMIT_NOFILE, &amp;rl);
+    printf(&quot;NOFILE: soft=%lu hard=%lu\n&quot;,
+           (unsigned long)rl.rlim_cur, (unsigned long)rl.rlim_max);
+
+    if (target &gt; rl.rlim_max)
+        target = rl.rlim_max;  // can't exceed hard limit
+    rl.rlim_cur = target;
+    if (setrlimit(RLIMIT_NOFILE, &amp;rl) == -1)
+        perror(&quot;setrlimit NOFILE&quot;);
 }
-if (fork() == 0) { // consumer
-  dup2(p[0], STDIN_FILENO);
-  close(p[0]); close(p[1]);
-  execlp(&quot;wc&quot;, &quot;wc&quot;, &quot;-l&quot;, (char*)NULL);
-  _exit(127);
-}
-close(p[0]); close(p[1]);
-while (wait(NULL) &gt; 0) {}</code></pre>
+
+void report_usage(void) {
+    struct rusage ru;
+    getrusage(RUSAGE_SELF, &amp;ru);
+    printf(&quot;user: %ld.%06lds  sys: %ld.%06lds  maxrss: %ldKB\n&quot;,
+           ru.ru_utime.tv_sec, ru.ru_utime.tv_usec,
+           ru.ru_stime.tv_sec, ru.ru_stime.tv_usec,
+           ru.ru_maxrss);
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -176,17 +183,17 @@ while (wait(NULL) &gt; 0) {}</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use fork+exec with close-on-exec hygiene; avoid leaking fds into children.</li><li>Reap children reliably (waitpid loop, SIGCHLD handling) to avoid zombie buildup.</li><li>Make shutdown explicit: define signals, timeouts, and escalation (TERM → KILL).</li><li>Treat fork in multithreaded programs as dangerous: exec ASAP; use posix_spawn if appropriate.</li><li>Prefer structured supervisors (systemd) when available; integrate with service managers rather than reinventing.</li></ul>
+            <ul><li>Set RLIMIT_NOFILE appropriately for network servers (at least max_connections + headroom); check at startup and log a warning if too low.</li><li>Use RLIMIT_CORE = unlimited in development/staging; consider 0 in production or route cores to coredumpctl.</li><li>Monitor getrusage() in long-running services to detect memory leaks (growing maxrss) and excessive syscalls (context switches).</li><li>Configure limits via systemd unit files (LimitNOFILE=, LimitNPROC=) rather than shell ulimit or /etc/security/limits.conf for services.</li><li>Use prlimit to adjust limits of running processes during incidents without restart.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Write a tiny supervisor: fork worker, restart on crash, exponential backoff, and SIGTERM shutdown.</li><li>Create a pipeline (producer | consumer) using pipe(), fork(), dup2(), execve(). Verify with strace -f.</li><li>Implement a &#x27;timeout&#x27; wrapper: run a command and kill it if it exceeds a deadline.</li></ul>
+            <ul><li>Write a program that opens files in a loop until EMFILE, then raises RLIMIT_NOFILE soft limit and continues — observe the boundary.</li><li>Use getrusage before and after a workload to measure user CPU, system CPU, and page faults; correlate with /usr/bin/time output.</li><li>Use prlimit to reduce RLIMIT_AS on a running process to 100MB, then trigger an allocation to observe ENOMEM.</li></ul>
           </div>
         </div>
 
@@ -195,52 +202,52 @@ while (wait(NULL) &gt; 0) {}</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="waitpid collects termination status and releases kernel resources for the exited child.">
-  <div class="qp">Q1. What does waitpid() do?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Unprivileged processes can raise the soft limit up to (but not exceeding) the hard limit. They cannot raise the hard limit itself.">
+  <div class="qp">Q1. Can an unprivileged process raise its soft limit above the current hard limit?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Starts a process</div></div>
+  <div><div style="font-weight:750">Yes, soft limits have no ceiling</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reaps a child and returns its status</div></div>
+  <div><div style="font-weight:750">No, soft limit cannot exceed hard limit</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Sends a signal</div></div>
+  <div><div style="font-weight:750">Only if RLIMIT_NOFILE is involved</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Allocates memory</div></div>
+  <div><div style="font-weight:750">Only after calling setsid()</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="2" data-explain="Use _exit in the child on exec failure to avoid flushing shared stdio buffers.">
-  <div class="qp">Q2. A common safe pattern in the child after fork() is:</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="RLIMIT_NPROC limits the total number of processes (and threads) for a UID across all processes owned by that user, not per-process.">
+  <div class="qp">Q2. RLIMIT_NPROC applies per:</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">printf then exit()</div></div>
+  <div><div style="font-weight:750">Per process</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">malloc then exec()</div></div>
+  <div><div style="font-weight:750">Per session</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">_exit() on exec failure</div></div>
+  <div><div style="font-weight:750">Per real UID (system-wide for that user)</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">pthread_mutex_lock()</div></div>
+  <div><div style="font-weight:750">Per cgroup</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="Children inherit file descriptors (refcounted); PID is new.">
-  <div class="qp">Q3. Which entity is inherited across fork()?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="getrusage with RUSAGE_SELF returns the resource usage of the calling process, including user CPU time, system CPU time, max RSS, and page faults.">
+  <div class="qp">Q3. What does getrusage(RUSAGE_SELF, &amp;ru) report?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">PID</div></div>
+  <div><div style="font-weight:750">CPU time, RSS, page faults for the calling process</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Open file descriptors</div></div>
+  <div><div style="font-weight:750">Current rlimit values</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Thread IDs</div></div>
+  <div><div style="font-weight:750">System-wide resource consumption</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">None</div></div>
+  <div><div style="font-weight:750">Disk I/O bytes read and written</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -248,7 +255,7 @@ while (wait(NULL) &gt; 0) {}</code></pre>
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -288,7 +295,7 @@ while (wait(NULL) &gt; 0) {}</code></pre>
       highlight: ["process", "thread", "scheduler", "signal", "fdtable", "cred", "tty"]
     });
 TLPIWidgets.mountProcLab("proc_ch36", {});
-TLPIWidgets.mountStraceParser("str_ch36", {example: "fork() = 2001\n[pid 2001] execve(\"/usr/bin/true\", [\"true\"], 0x7ffd...) = 0\nwait4(2001, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 2001\n"});
+TLPIWidgets.mountStraceParser("str_ch36", {example: "getrlimit(RLIMIT_NOFILE, {rlim_cur=1024, rlim_max=1048576}) = 0\nsetrlimit(RLIMIT_NOFILE, {rlim_cur=65536, rlim_max=1048576}) = 0\ngetrusage(RUSAGE_SELF, {ru_utime={0, 45000}, ru_stime={0, 12000}, ...}) = 0\n"});
   </script>
 </body>
 </html>

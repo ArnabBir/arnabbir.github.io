@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">841</span> (0-based index 840).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>security</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>setuid</strong></span> <span class="pill"><strong>capabilities</strong></span> <span class="pill"><strong>least privilege</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>capabilities</strong></span> <span class="pill"><strong>CAP_NET_BIND_SERVICE</strong></span> <span class="pill"><strong>setcap</strong></span> <span class="pill"><strong>seccomp</strong></span> <span class="pill"><strong>privilege</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 39 — Capabilities
           </h2>
           <div class="subtitle">
-            <p>Privileged programs are high-stakes: a single environment variable mistake can become a root exploit. The secure approach is systematic: least privilege, controlled inputs, reduced attack surface, and explicit trust boundaries.</p><p>Linux capabilities decompose root into smaller privileges. Used well, they let you build services that can bind low ports or change network settings without running fully privileged.</p>
+            <p>Capabilities split root's monolithic power into approximately 40 discrete privileges. A web server needs only CAP_NET_BIND_SERVICE to listen on port 80, not the full unconstrained authority of UID 0.</p><p>The capability model replaces the binary root/non-root distinction with fine-grained tokens. Each thread carries capability sets that determine exactly which privileged operations it may perform, enabling precise least-privilege enforcement without setuid binaries.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Privilege boundaries are defined by effective IDs/capabilities and file metadata.</div>
+  <div class="v">A capability must be in the thread's permitted set before it can appear in the effective set. You cannot grant yourself capabilities you do not already possess.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Environment variables and inherited fds are part of the attack surface.</div>
+  <div class="v">CAP_SYS_ADMIN is "the new root" — it grants mount, swapon, BPF, namespace creation, and dozens more operations. Granting it defeats most of the purpose of capabilities.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Inspect CapEff in /proc/&lt;pid&gt;/status; trace EPERM/EACCES with strace.</div>
+  <div class="v">getpcaps PID shows a thread's current capabilities; getcap /path/to/binary shows file capabilities. Decode hex from /proc/PID/status CapEff/CapPrm with capsh --decode=.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Privilege is a liability; reduce it and keep it local to the minimum code path.</li><li>Treat paths, env vars, and inherited fds as untrusted inputs.</li><li>Prefer capabilities and dedicated users over setuid root where possible.</li><li>Design for secure failure: deny-by-default, explicit allowlists, and safe file creation.</li><li>Use defense-in-depth: no_new_privs, seccomp, namespaces, and rlimits.</li><li>Audit and log privilege transitions; verify post-drop invariants.</li></ul>
+            <ul><li>Five capability sets per thread: permitted (ceiling of what can be activated), effective (actually checked by kernel), inheritable (preserved across exec), bounding (limits what can ever be gained), and ambient (Linux 4.3+, auto-raised into permitted+effective across exec without file caps).</li><li>File capabilities (set via setcap) attach privilege to binaries without the setuid bit: the kernel merges file caps into the thread's sets during execve() according to the capability transformation rules.</li><li>The capability bounding set is a one-way filter: bits can only be dropped, never added. Once removed from the bounding set, a capability cannot be reacquired even by a process with CAP_SETPCAP.</li><li>Ambient capabilities (Linux 4.3) solve the inheritance problem: they survive exec without requiring file capabilities on the target binary, enabling unprivileged helper programs to inherit specific caps from their parent.</li><li>PR_SET_NO_NEW_PRIVS combined with seccomp-BPF creates a robust sandbox: no_new_privs prevents gaining capabilities via exec (file caps ignored), while seccomp restricts the syscall surface.</li><li>Capability-aware programs use the libcap API: cap_get_proc() retrieves current sets, cap_set_flag() modifies individual bits, and cap_set_proc() applies changes atomically to the thread.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Least privilege</td><td>Run with minimal rights; drop privileges early and permanently when possible.</td></tr><tr><td class='mono'>setuid</td><td>Mechanism to run programs with elevated effective UID; dangerous if inputs are not sanitized.</td></tr><tr><td class='mono'>Capabilities</td><td>Split root into smaller privileges; can be attached to executables or processes.</td></tr><tr><td class='mono'>no_new_privs</td><td>Prevents gaining new privileges via exec; hardening building block.</td></tr><tr><td class='mono'>Attack surface</td><td>Inputs and interfaces an attacker can influence (env, paths, fds, config).</td></tr><tr><td class='mono'>TOCTOU</td><td>Time-of-check/time-of-use race in path-based security checks.</td></tr></tbody>
+  <tbody><tr><td class='mono'>CAP_NET_BIND_SERVICE</td><td>Permits binding to TCP/UDP ports below 1024 without full root. The minimal capability for most network daemons.</td></tr><tr><td class='mono'>CAP_SYS_ADMIN</td><td>Overloaded "catch-all" capability covering mount, BPF, namespace ops, and more. Effectively equivalent to root for most practical purposes.</td></tr><tr><td class='mono'>Permitted set</td><td>Upper bound of capabilities available to the thread. Effective and inheritable sets cannot contain caps not in permitted.</td></tr><tr><td class='mono'>Effective set</td><td>The set actually checked by the kernel when a privileged operation is attempted. Must be a subset of permitted.</td></tr><tr><td class='mono'>Inheritable set</td><td>Capabilities preserved across execve() if also present in the new binary's inheritable file cap set.</td></tr><tr><td class='mono'>Ambient set</td><td>Capabilities automatically added to permitted and effective sets of a non-setuid child after exec, without requiring file caps.</td></tr><tr><td class='mono'>Bounding set</td><td>One-way limiting set: caps removed from bounding can never be regained. Restricts what file caps or ambient caps can grant.</td></tr><tr><td class='mono'>setcap / getcap</td><td>Userspace tools to set and query file capabilities stored in the security.capability extended attribute.</td></tr><tr><td class='mono'>PR_SET_NO_NEW_PRIVS</td><td>prctl flag preventing the thread (and descendants) from gaining new privileges via execve: file caps and setuid bits are ignored.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,11 +112,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>capset</td><td class='mono'>int capset(cap_user_header_t hdrp, const cap_user_data_t datap);</td><td class='mono muted2'>EPERM, EINVAL, EFAULT</td><td>Manipulates Linux capabilities (fine-grained privileges). Often used with file capabilities or ambient caps.</td></tr><tr><td class='mono'>prctl</td><td class='mono'>int prctl(int option, ...);</td><td class='mono muted2'>EINVAL, EPERM</td><td>Misc process controls (dumpable, name, capabilities in some modes).</td></tr><tr><td class='mono'>setuid</td><td class='mono'>int setuid(uid_t uid);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Changes real/effective/saved uid (rules vary); security-critical—drop privileges early and permanently if possible.</td></tr>
+    <tr><td class='mono'>cap_get_proc</td><td class='mono'>cap_t cap_get_proc(void);</td><td class='mono muted2'>ENOMEM</td><td>Returns a capability state allocated with malloc representing the calling thread's caps. Must be freed with cap_free().</td></tr><tr><td class='mono'>cap_set_proc</td><td class='mono'>int cap_set_proc(cap_t cap_p);</td><td class='mono muted2'>EPERM, EINVAL</td><td>Applies the capability state to the calling thread. Fails if attempting to set caps not in the permitted set.</td></tr><tr><td class='mono'>cap_set_flag</td><td class='mono'>int cap_set_flag(cap_t cap_p, cap_flag_t flag, int ncap, const cap_value_t *caps, cap_flag_value_t value);</td><td class='mono muted2'>EINVAL</td><td>Sets or clears specific capability bits in a given set (CAP_PERMITTED, CAP_EFFECTIVE, CAP_INHERITABLE).</td></tr><tr><td class='mono'>prctl</td><td class='mono'>int prctl(int option, unsigned long arg2, ...);</td><td class='mono muted2'>EINVAL, EPERM</td><td>With PR_SET_NO_NEW_PRIVS: prevents gaining caps via exec. With PR_CAP_AMBIENT: manipulates ambient set.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: link with -lcap when using the libcap API. The raw capset/capget syscalls require manual struct packing and version negotiation.
           </div>
         </div>
 
@@ -126,14 +126,14 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Secure privileged program checklist</summary>
-  <div class="content"><ul><li>Assume all inputs are hostile: argv/env, file paths, configuration files, current directory, and inherited file descriptors.</li><li>Drop privileges as early as possible. If you must regain privileges, minimize the privileged window and isolate code paths.</li><li>Sanitize environment (LD_PRELOAD, PATH, IFS) and avoid unsafe functions.</li><li>Prefer dedicated service users, chroot/namespaces/cgroups, and capabilities over full root.</li></ul></div>
+  <summary>CAP_SYS_ADMIN breadth and danger</summary>
+  <div class="content"><ul><li>CAP_SYS_ADMIN gates over 30 distinct operations: mount/umount, swapon, BPF program load, namespace creation (clone NEWNS/NEWPID), keyctl, ioctl on many devices, and quotactl.</li><li>Granting CAP_SYS_ADMIN to a container or service effectively gives it root-equivalent power: it can mount proc/sysfs, escape namespaces via mount manipulation, or load BPF programs to observe all system traffic.</li><li>Prefer decomposing needs: CAP_NET_ADMIN for network config, CAP_DAC_OVERRIDE for file access, CAP_FOWNER for chown — rather than the blanket CAP_SYS_ADMIN.</li><li>Kernel developers acknowledge the problem; new operations are being split into dedicated capabilities (e.g., CAP_BPF, CAP_PERFMON added in Linux 5.8).</li></ul></div>
 </details><details class="accordion">
-  <summary>Capabilities deep dive (operational)</summary>
-  <div class="content"><ul><li>Capabilities split root into fine-grained bits (CAP_NET_BIND_SERVICE, CAP_SYS_ADMIN, ...).</li><li>There are sets: permitted, effective, inheritable, bounding, and (newer) ambient. Understand transitions across exec.</li><li>File capabilities attach privileges to executables (setcap). This can replace setuid binaries in many cases.</li><li>Always test with securebits and no_new_privs when building hardening strategies.</li></ul></div>
+  <summary>Capability leakage across exec</summary>
+  <div class="content"><ul><li>Without ambient caps (pre-4.3 kernels), capabilities are lost across exec unless the target binary has file capabilities set. This made capability inheritance impractical for many years.</li><li>The inheritable set only matters if the exec'd binary also has matching inheritable file caps — a double-opt-in that confused many administrators.</li><li>Ambient caps fix this: if a cap is in both permitted and inheritable, it can be added to ambient, and will automatically appear in the child's permitted+effective sets after exec.</li><li>Security implication: ambient caps persist across exec of non-setuid binaries. A compromised child inherits the parent's ambient caps. Use PR_SET_NO_NEW_PRIVS + cap_clear to prevent propagation when spawning untrusted programs.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Log effective uid/gid + capability sets early at startup.</li><li>Use getcap/setcap and capsh to inspect. For running processes, check /proc/&lt;pid&gt;/status (CapEff/CapPrm).</li><li>strace shows EPERM/EACCES boundaries. Combine with audit logs (if enabled).</li><li>Treat privilege failures as configuration issues first (ownership, mode, rlimits) before assuming kernel behavior.</li></ul></div>
+  <summary>no_new_privs + seccomp sandboxing</summary>
+  <div class="content"><ul><li>PR_SET_NO_NEW_PRIVS is irreversible and inherited by all descendants. Once set, execve() ignores setuid/setgid bits and file capabilities, preventing privilege escalation via exec.</li><li>seccomp-BPF requires either CAP_SYS_ADMIN or no_new_privs to be set. The common pattern: set no_new_privs, then install a seccomp filter to whitelist only needed syscalls.</li><li>systemd's CapabilityBoundingSet= directive drops caps from the bounding set before exec'ing the service, permanently preventing those capabilities from being acquired.</li><li>Combining CapabilityBoundingSet, NoNewPrivileges=yes, and SystemCallFilter= in a systemd unit creates defense-in-depth: even if the service is compromised, it cannot escalate.</li></ul></div>
 </details>
         </div>
 
@@ -145,10 +145,33 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch39"><code class="mono">// Drop privileges permanently (outline)
-if (setresuid(target_uid, target_uid, target_uid) == -1) die(&quot;setresuid&quot;);
-if (setresgid(target_gid, target_gid, target_gid) == -1) die(&quot;setresgid&quot;);
-// verify with getuid/geteuid and refuse to run if still privileged</code></pre>
+  <pre id="code_ch39"><code class="mono">// Drop all capabilities except CAP_NET_BIND_SERVICE
+#include &lt;sys/capability.h&gt;
+#include &lt;sys/prctl.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+
+static void restrict_to_net_bind(void) {
+    cap_t caps = cap_get_proc();
+    if (!caps) { perror(&quot;cap_get_proc&quot;); _exit(1); }
+
+    // Clear all capabilities from all sets
+    cap_clear(caps);
+
+    // Retain only CAP_NET_BIND_SERVICE in permitted + effective
+    cap_value_t keep[] = { CAP_NET_BIND_SERVICE };
+    cap_set_flag(caps, CAP_PERMITTED, 1, keep, CAP_SET);
+    cap_set_flag(caps, CAP_EFFECTIVE, 1, keep, CAP_SET);
+
+    if (cap_set_proc(caps) &lt; 0) {
+        perror(&quot;cap_set_proc&quot;);
+        _exit(1);
+    }
+    cap_free(caps);
+
+    // Lock down: prevent regaining caps via exec
+    prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+}</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -157,17 +180,17 @@ if (setresgid(target_gid, target_gid, target_gid) == -1) die(&quot;setresgid&quo
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Assume hostile environment: sanitize env vars, close fds, and validate inputs.</li><li>Drop privileges early and permanently when possible; isolate privileged actions.</li><li>Prefer capabilities over setuid where feasible; keep capability sets minimal.</li><li>Use no_new_privs/seccomp/namespaces for defense in depth when applicable.</li><li>Threat model explicitly: identify assets, attacker capabilities, and trust boundaries.</li></ul>
+            <ul><li>Use file capabilities (setcap) instead of setuid root: e.g., setcap cap_net_bind_service=ep /usr/bin/myserver eliminates the need for root entirely.</li><li>Drop all unneeded capabilities immediately after startup using cap_clear + cap_set_flag for only the required set.</li><li>Set PR_SET_NO_NEW_PRIVS after dropping caps to prevent any child process from escalating via exec of setuid or file-capable binaries.</li><li>In systemd units, use CapabilityBoundingSet= to restrict the bounding set, AmbientCapabilities= for non-root services, and NoNewPrivileges=yes.</li><li>Audit running services with getpcaps and /proc/PID/status CapEff; alert on any service holding CAP_SYS_ADMIN that does not strictly require it.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Write a helper that drops privileges permanently (setresuid) after opening required resources.</li><li>Create a small service that binds to port 80 using CAP_NET_BIND_SERVICE instead of root; document setup.</li><li>Audit environment variables for a setuid-like program and build a sanitized whitelist approach.</li></ul>
+            <ul><li>Create a minimal TCP server that binds port 80 as a non-root user using only CAP_NET_BIND_SERVICE via file capabilities (setcap). Verify with ss and getpcaps.</li><li>Write a program that dumps its own capability sets (permitted, effective, inheritable, ambient, bounding) using cap_get_proc and cap_to_text, then progressively drops them one by one.</li><li>Configure a systemd service unit with CapabilityBoundingSet=CAP_NET_BIND_SERVICE, NoNewPrivileges=yes, and a seccomp SystemCallFilter. Test that privilege escalation attempts fail.</li></ul>
           </div>
         </div>
 
@@ -176,52 +199,52 @@ if (setresgid(target_gid, target_gid, target_gid) == -1) die(&quot;setresgid&quo
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="Man pages and experiments (strace) are the fastest path to correct mental models.">
-  <div class="qp">Q1. What is the most reliable way to learn syscall behavior?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="CAP_NET_BIND_SERVICE grants permission to bind TCP/UDP ports below 1024. With file capabilities (setcap cap_net_bind_service=ep binary), a non-root process can listen on port 80 without any setuid involvement.">
+  <div class="qp">Q1. What replaces setuid root for binding privileged ports?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Guessing</div></div>
+  <div><div style="font-weight:750">CAP_SYS_ADMIN with a port whitelist</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Reading man 2/3 + experimenting</div></div>
+  <div><div style="font-weight:750">Running as root with seccomp restrictions</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Copying random code</div></div>
+  <div><div style="font-weight:750">File capabilities granting CAP_NET_BIND_SERVICE to the binary</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Avoiding errors</div></div>
+  <div><div style="font-weight:750">Setting net.ipv4.ip_unprivileged_port_start=0</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="errno is thread-local and only meaningful immediately after a failure.">
-  <div class="qp">Q2. Which is true about errno?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="PR_SET_NO_NEW_PRIVS is irreversible and prevents execve() from honoring setuid bits or file capabilities. This means no descendant process can ever gain capabilities it doesn't already possess, closing the exec-based escalation path.">
+  <div class="qp">Q2. What does PR_SET_NO_NEW_PRIVS prevent?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is global and never changes</div></div>
+  <div><div style="font-weight:750">Forking new child processes</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is thread-local and should be read immediately</div></div>
+  <div><div style="font-weight:750">Gaining new capabilities or setuid privilege via execve()</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is only for networking</div></div>
+  <div><div style="font-weight:750">Opening new file descriptors</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It is reset to 0 after each call</div></div>
+  <div><div style="font-weight:750">Sending signals to other processes</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="A minimal reproduction + strace quickly reveals the failing boundary and errno.">
-  <div class="qp">Q3. A good debugging approach is:</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="File capabilities are stored in the security.capability extended attribute on the file's inode. The setcap command writes this xattr, and the kernel reads it during execve() to determine which capabilities to grant the new process image.">
+  <div class="qp">Q3. Where are file capabilities stored on disk?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with perf</div></div>
+  <div><div style="font-weight:750">In the ELF binary's .cap section</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with strace and minimal reproduction</div></div>
+  <div><div style="font-weight:750">In /etc/capabilities.conf</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Start with rewriting everything</div></div>
+  <div><div style="font-weight:750">In the file's permission bits (like setuid)</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore symptoms</div></div>
+  <div><div style="font-weight:750">In the security.capability extended attribute on the inode</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -229,7 +252,7 @@ if (setresgid(target_gid, target_gid, target_gid) == -1) die(&quot;setresgid&quo
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>

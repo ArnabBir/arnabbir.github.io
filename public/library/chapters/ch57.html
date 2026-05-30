@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1209</span> (0-based index 1208).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>net</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>TCP/IP</strong></span> <span class="pill"><strong>unix domain</strong></span> <span class="pill"><strong>nonblocking</strong></span> <span class="pill"><strong>epoll</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>AF_UNIX</strong></span> <span class="pill"><strong>socketpair</strong></span> <span class="pill"><strong>SCM_RIGHTS</strong></span> <span class="pill"><strong>ancillary data</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 57 — Sockets: UNIX Domain
           </h2>
           <div class="subtitle">
-            <p>Sockets are file descriptors with protocol state. Once you internalize that, networking becomes a composition problem: nonblocking I/O, buffering, backpressure, and state machines. TCP adds its own realities: handshake, retransmissions, congestion control, TIME_WAIT, and half-close behavior.</p><p>This guide highlights server design patterns: accept loops, connection handling strategies, timeouts, and how to observe the system (ss, tcpdump, strace).</p>
+            <p>UNIX domain sockets are the most versatile local IPC mechanism &mdash; bidirectional, supporting both stream and datagram semantics, and capable of passing file descriptors and credentials between processes. They bypass the network stack entirely, making them significantly faster than TCP loopback for same-host communication.</p><p>AF_UNIX sockets bind to filesystem paths or Linux abstract namespace entries. socketpair() creates a pre-connected pair ideal for parent-child communication. Ancillary data (cmsg) enables passing open file descriptors (SCM_RIGHTS) and process credentials (SCM_CREDENTIALS) out-of-band.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Sockets are fds; treat networking as nonblocking I/O + a state machine.</div>
+  <div class="v">AF_UNIX sockets are local-only; they use filesystem paths (or abstract names) instead of IP:port, and support fd passing via ancillary data.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Nonblocking connect returns EINPROGRESS; completion requires poll/epoll + SO_ERROR.</div>
+  <div class="v">Filesystem-bound sockets leave a socket file after close &mdash; you must unlink() it before re-binding, or use the abstract namespace to avoid cleanup.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use ss -antp for states and tcpdump for packets; strace shows errno boundaries.</div>
+  <div class="v">Use ss -x to list UNIX domain sockets; ls -l on the socket path shows socket type (s); lsof shows which processes hold each end.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A socket is a file descriptor plus protocol state and kernel buffers.</li><li>TCP is a state machine; your application must handle connect/accept/close transitions.</li><li>Nonblocking mode turns I/O into explicit scheduling (EINPROGRESS, EAGAIN, readiness).</li><li>Backpressure is a feature: when buffers fill, stop writing and resume later.</li><li>Server design is about bounding work per connection and isolating slow clients.</li><li>Observe the system: ss/tcpdump/strace tell you the truth about network behavior.</li></ul>
+            <ul><li>AF_UNIX sockets bind to filesystem paths (sun_path in struct sockaddr_un) or to the Linux abstract namespace (sun_path[0] = '\0').</li><li>SOCK_STREAM provides connection-oriented, reliable, ordered byte streams &mdash; like TCP but purely local, with no network overhead.</li><li>SOCK_DGRAM provides connectionless, reliable, message-preserving datagrams &mdash; like UDP but with guaranteed delivery on the same host.</li><li>socketpair() creates a connected pair of sockets (like pipe() but bidirectional) &mdash; ideal for parent-child IPC after fork().</li><li>Ancillary data via sendmsg/recvmsg cmsg enables passing file descriptors (SCM_RIGHTS) and caller credentials (SCM_CREDENTIALS) between processes.</li><li>Abstract namespace sockets (Linux-specific) avoid filesystem cleanup: no unlink() needed, automatically removed when all references close.</li><li>No network stack overhead &mdash; AF_UNIX bypasses IP/TCP layers, making it faster than 127.0.0.1 loopback for local communication.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>Socket</td><td>File descriptor with protocol state (TCP/UDP/UNIX) and send/recv buffers.</td></tr><tr><td class='mono'>Listen socket</td><td>Passive socket that queues connection requests; accept() returns connected sockets.</td></tr><tr><td class='mono'>EINPROGRESS</td><td>Nonblocking connect in progress; complete via poll/epoll writability + SO_ERROR.</td></tr><tr><td class='mono'>TIME_WAIT</td><td>TCP state on active close to handle delayed packets; normal and expected.</td></tr><tr><td class='mono'>Backpressure</td><td>Mechanism to stop producers when consumers can&#x27;t keep up (EAGAIN, buffer limits).</td></tr><tr><td class='mono'>epoll</td><td>Readiness notification API; returns ready set instead of scanning all fds.</td></tr></tbody>
+  <tbody><tr><td class='mono'>AF_UNIX</td><td>Address family for local (same-host) sockets; also called AF_LOCAL. Uses filesystem paths or abstract names.</td></tr><tr><td class='mono'>sun_path</td><td>The path field in struct sockaddr_un; max 108 bytes. First byte '\0' selects abstract namespace on Linux.</td></tr><tr><td class='mono'>SOCK_STREAM</td><td>Connection-oriented, reliable byte stream. Requires bind+listen+accept on server side.</td></tr><tr><td class='mono'>SOCK_DGRAM</td><td>Connectionless, reliable, message-preserving datagrams. Sender must bind or use sendto with peer address.</td></tr><tr><td class='mono'>socketpair</td><td>Creates two connected AF_UNIX sockets in one call. Commonly used for bidirectional parent-child IPC.</td></tr><tr><td class='mono'>SCM_RIGHTS</td><td>Ancillary data type for passing file descriptors between processes via sendmsg/recvmsg.</td></tr><tr><td class='mono'>SCM_CREDENTIALS</td><td>Ancillary data type for passing/receiving process credentials (pid, uid, gid) &mdash; kernel-verified.</td></tr><tr><td class='mono'>Abstract namespace</td><td>Linux-specific: sun_path begins with '\0'. Socket is not visible in filesystem and auto-cleans on close.</td></tr></tbody>
 </table>
         </div>
 
@@ -114,11 +114,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>socket</td><td class='mono'>int socket(int domain, int type, int protocol);</td><td class='mono muted2'>EAFNOSUPPORT, EPROTONOSUPPORT, EMFILE, ENFILE</td><td>Creates a socket fd. Use SOCK_CLOEXEC / SOCK_NONBLOCK to avoid races.</td></tr><tr><td class='mono'>bind</td><td class='mono'>int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EADDRINUSE, EACCES, EINVAL</td><td>Associates local address/port. For servers, pair with listen().</td></tr><tr><td class='mono'>connect</td><td class='mono'>int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</td><td class='mono muted2'>EINPROGRESS, ECONNREFUSED, ETIMEDOUT, EHOSTUNREACH</td><td>In nonblocking mode returns EINPROGRESS; use poll/epoll for writability then check SO_ERROR.</td></tr><tr><td class='mono'>send</td><td class='mono'>ssize_t send(int sockfd, const void *buf, size_t len, int flags);</td><td class='mono muted2'>EPIPE, EAGAIN, EINTR</td><td>May be short; handle EAGAIN for nonblocking. SIGPIPE can be suppressed with MSG_NOSIGNAL.</td></tr><tr><td class='mono'>recv</td><td class='mono'>ssize_t recv(int sockfd, void *buf, size_t len, int flags);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>0 indicates orderly shutdown. May be short. Use MSG_WAITALL carefully.</td></tr>
+    <tr><td class='mono'>socket</td><td class='mono'>int socket(AF_UNIX, int type, 0);</td><td class='mono muted2'>EAFNOSUPPORT, EMFILE, ENFILE</td><td>Creates a UNIX domain socket. type is SOCK_STREAM, SOCK_DGRAM, or SOCK_SEQPACKET.</td></tr><tr><td class='mono'>bind</td><td class='mono'>int bind(int sockfd, const struct sockaddr_un *addr, socklen_t addrlen);</td><td class='mono muted2'>EADDRINUSE, EACCES, ENOENT</td><td>Binds to filesystem path. EADDRINUSE if socket file exists &mdash; unlink() first or use abstract namespace.</td></tr><tr><td class='mono'>socketpair</td><td class='mono'>int socketpair(AF_UNIX, int type, 0, int sv[2]);</td><td class='mono muted2'>EMFILE, ENFILE, EAFNOSUPPORT</td><td>Creates connected pair. sv[0] and sv[1] are bidirectional. Use SOCK_CLOEXEC flag.</td></tr><tr><td class='mono'>sendmsg</td><td class='mono'>ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, EPIPE</td><td>Sends data + ancillary data (cmsg). Required for SCM_RIGHTS fd passing.</td></tr><tr><td class='mono'>recvmsg</td><td class='mono'>ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>Receives data + ancillary data. Must allocate msg_control buffer large enough for expected cmsg.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always log enough context for errno to be actionable (inputs, flags, sizes).
+            Tip: when passing fds via SCM_RIGHTS, always send at least 1 byte of real data alongside the ancillary message &mdash; some implementations require it.
           </div>
         </div>
 
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>TCP state machine: what servers actually deal with</summary>
-  <div class="content"><ul><li>connect() initiates handshake (SYN). The server’s listen socket queues connections before accept() returns a connected socket.</li><li>Nonblocking connect returns EINPROGRESS; completion is detected via poll/epoll writability then SO_ERROR.</li><li>Half-close exists: one side can shutdown(SHUT_WR) while still reading. recv()==0 means FIN received.</li><li>TIME_WAIT is normal for active close; reuse needs care (SO_REUSEADDR) and a good understanding of 4-tuples.</li></ul></div>
+  <summary>Socket file lifecycle and binding</summary>
+  <div class="content"><ul><li>bind() creates a socket file in the filesystem. If the path already exists, bind fails with EADDRINUSE &mdash; you must unlink() the stale socket file first.</li><li>Closing a socket does NOT remove the socket file. You must unlink() explicitly (or use atexit/signal handlers).</li><li>Abstract namespace sockets (sun_path[0] = '\0') avoid this problem entirely: no filesystem entry, automatic cleanup when all fds close.</li><li>sun_path is limited to 108 bytes. Long paths silently truncate on some systems &mdash; always check addrlen.</li></ul></div>
 </details><details class="accordion">
-  <summary>Backpressure and buffers</summary>
-  <div class="content"><ul><li>The kernel has send/receive buffers. If your app doesn’t read, the peer eventually blocks or drops based on protocol and timeouts.</li><li>Short writes happen; treat EAGAIN as a signal to stop writing and wait for EPOLLOUT.</li><li>Nagle (TCP_NODELAY) and delayed ACKs interact with small writes; batch writes when possible.</li><li>Always set timeouts (connect, read, write, idle) to avoid hanging connections.</li></ul></div>
+  <summary>File descriptor passing with SCM_RIGHTS</summary>
+  <div class="content"><ul><li>sendmsg() with SCM_RIGHTS ancillary data duplicates the fd into the receiver's fd table &mdash; it's like the kernel calls dup() across process boundaries.</li><li>The receiver must allocate a msg_control buffer (use CMSG_SPACE macro) and iterate with CMSG_FIRSTHDR/CMSG_NXTHDR.</li><li>Received fds are new fd numbers in the receiver's process; the sender can close its copy independently.</li><li>If recvmsg's msg_control buffer is too small, ancillary data is silently truncated and fds are leaked into the receiver's table without being reported.</li></ul></div>
 </details><details class="accordion">
-  <summary>Server design: scaling patterns</summary>
-  <div class="content"><ul><li>Thread-per-connection is simple but can be memory heavy. Event loops scale when per-connection work is bounded and nonblocking.</li><li>Use accept4 with SOCK_NONBLOCK|SOCK_CLOEXEC to avoid races and simplify setup.</li><li>Consider load shedding: cap accept rate, apply per-IP limits, and bound queues to prevent collapse under overload.</li><li>Measure: accept rate, SYN backlog drops, retransmissions, tail latency, and CPU spent in softirq/network stack.</li></ul></div>
+  <summary>Credential passing with SCM_CREDENTIALS</summary>
+  <div class="content"><ul><li>The sender fills a struct ucred (pid, uid, gid) in the cmsg. The kernel verifies the credentials &mdash; unprivileged processes cannot forge them.</li><li>The receiver must enable SO_PASSCRED on its socket before credentials are delivered.</li><li>This is used by D-Bus, systemd, and other services for authentication over UNIX sockets.</li><li>Only available on Linux; BSD uses LOCAL_PEERCRED or getpeereid() instead.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>ss -antp gives state and owning process. tcpdump/wireshark reveals handshake and retransmissions.</li><li>strace -f -e trace=network shows socket syscalls and errno (ECONNREFUSED, ETIMEDOUT).</li><li>Check /proc/sys/net/* for kernel tuning and listen backlog limits.</li><li>For high packet rates, perf can show time in tcp_recvmsg, tcp_sendmsg, and softirq handlers.</li></ul></div>
+  <summary>SOCK_DGRAM vs SOCK_STREAM for AF_UNIX</summary>
+  <div class="content"><ul><li>SOCK_DGRAM preserves message boundaries (each send is one recv) and is reliable on AF_UNIX &mdash; no packet loss possible since there's no network.</li><li>SOCK_STREAM is a byte stream: message boundaries are not preserved. Use length-prefixed or delimited framing.</li><li>SOCK_SEQPACKET combines connection-oriented semantics with message boundaries &mdash; often the best choice for structured IPC.</li><li>SOCK_DGRAM senders must bind() their own address if they want to receive replies (the receiver needs a return address).</li></ul></div>
 </details>
         </div>
 
@@ -150,16 +150,29 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch57"><code class="mono">// Nonblocking connect pattern (outline)
-int fd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, 0);
-int rc = connect(fd, (struct sockaddr*)&amp;addr, sizeof(addr));
-if (rc == 0) { /* connected */ }
-else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
-  // wait for writability with poll/epoll
-  // then check SO_ERROR via getsockopt
-} else {
-  // real error (ECONNREFUSED, ETIMEDOUT, ...)
-}</code></pre>
+  <pre id="code_ch57"><code class="mono">// socketpair + fd passing via SCM_RIGHTS
+#include &lt;sys/socket.h&gt;
+#include &lt;sys/un.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+void send_fd(int sock, int fd_to_send) {
+    char buf[1] = {'F'};
+    struct iovec iov = { .iov_base = buf, .iov_len = 1 };
+    char cmsgbuf[CMSG_SPACE(sizeof(int))];
+    struct msghdr msg = {0};
+    msg.msg_iov = &amp;iov;  msg.msg_iovlen = 1;
+    msg.msg_control = cmsgbuf;  msg.msg_controllen = sizeof(cmsgbuf);
+    struct cmsghdr *cmsg = CMSG_FIRSTHDR(&amp;msg);
+    cmsg-&gt;cmsg_level = SOL_SOCKET;
+    cmsg-&gt;cmsg_type  = SCM_RIGHTS;
+    cmsg-&gt;cmsg_len   = CMSG_LEN(sizeof(int));
+    memcpy(CMSG_DATA(cmsg), &amp;fd_to_send, sizeof(int));
+    sendmsg(sock, &amp;msg, 0);
+}
+// Usage: socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, sv);
+// fork(); parent sends fd via sv[0], child recvmsg on sv[1]</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -168,17 +181,17 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use SOCK_CLOEXEC/SOCK_NONBLOCK and accept4 to avoid races and simplify setup.</li><li>Implement backpressure: bounded buffers, stop writing on EAGAIN, and resume on EPOLLOUT.</li><li>Set timeouts (connect/read/write/idle) and handle half-closes correctly.</li><li>Instrument: connection counts, queue depths, bytes in/out, and tail latencies.</li><li>Use ss/tcpdump/perf for debugging; don’t guess about network states.</li></ul>
+            <ul><li>Always unlink() the socket path before bind(), or use abstract namespace to avoid stale socket files.</li><li>Use SOCK_CLOEXEC on socketpair/socket/accept to prevent fd leaks across exec().</li><li>When passing fds via SCM_RIGHTS, always send at least 1 byte of payload data alongside ancillary data.</li><li>Size msg_control with CMSG_SPACE() macro; undersized buffers silently lose ancillary data and leak fds.</li><li>Prefer SOCK_SEQPACKET over SOCK_STREAM when you need message boundaries with connection semantics.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a TCP echo server with nonblocking sockets, per-connection buffers, and epoll (LT first, then ET).</li><li>Add timeouts: idle timeout and write timeout; close connections cleanly on expiry.</li><li>Capture packets with tcpdump while connecting; map observed handshake to your socket state logs.</li></ul>
+            <ul><li>Write a program that uses socketpair() and fork() to pass an open file descriptor from parent to child using SCM_RIGHTS. Verify with /proc/self/fd.</li><li>Create a UNIX domain SOCK_DGRAM echo server bound to a filesystem path. Test with socat and observe the socket file with ls -l and ss -x.</li><li>Compare latency of AF_UNIX SOCK_STREAM vs TCP 127.0.0.1 for 1M round-trip messages. Measure with clock_gettime.</li></ul>
           </div>
         </div>
 
@@ -187,52 +200,52 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="EINPROGRESS indicates connection is in progress; wait for writability and check SO_ERROR.">
-  <div class="qp">Q1. Nonblocking connect() usually returns:</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="SCM_RIGHTS is the ancillary data type used with sendmsg/recvmsg to pass file descriptors between processes over UNIX domain sockets.">
+  <div class="qp">Q1. Which cmsg type passes file descriptors between processes?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">0 always</div></div>
+  <div><div style="font-weight:750">SO_REUSEADDR</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EINPROGRESS</div></div>
+  <div><div style="font-weight:750">MSG_NOSIGNAL</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 ENOENT</div></div>
+  <div><div style="font-weight:750">SCM_RIGHTS</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 EBADF</div></div>
+  <div><div style="font-weight:750">TCP_NODELAY</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="0" data-explain="accept returns a new file descriptor representing the established connection.">
-  <div class="qp">Q2. What does accept() return?</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="Abstract namespace sockets start with a null byte in sun_path and have no filesystem entry, so no unlink is needed.">
+  <div class="qp">Q2. How do abstract namespace UNIX sockets avoid stale socket files?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A new fd for a connected socket</div></div>
+  <div><div style="font-weight:750">They auto-unlink on bind()</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A PID</div></div>
+  <div><div style="font-weight:750">They have no filesystem entry at all</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">A thread handle</div></div>
+  <div><div style="font-weight:750">The kernel runs unlink() on close</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">An inode</div></div>
+  <div><div style="font-weight:750">They use /tmp which is cleaned on reboot</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="ss can display state and owning process.">
-  <div class="qp">Q3. Which tool shows TCP states with PIDs?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="socketpair() creates two already-connected AF_UNIX sockets, functioning like a bidirectional pipe.">
+  <div class="qp">Q3. What does socketpair() create?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ls</div></div>
+  <div><div style="font-weight:750">Two connected AF_UNIX sockets</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ss -antp</div></div>
+  <div><div style="font-weight:750">Two unidirectional pipes</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">cat</div></div>
+  <div><div style="font-weight:750">A listen socket and a client socket</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">dd</div></div>
+  <div><div style="font-weight:750">Two TCP sockets on localhost</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -240,7 +253,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -280,7 +293,7 @@ else if (rc == -1 &amp;&amp; errno == EINPROGRESS) {
       highlight: ["socket", "tcp", "skb", "epoll", "process", "fdtable"]
     });
 TLPIWidgets.mountSocketLab("sock_ch57", {});
-TLPIWidgets.mountStraceParser("str_ch57", {example: "socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC, IPPROTO_TCP) = 3\nconnect(3, {{sa_family=AF_INET, sin_port=htons(443), sin_addr=...}}, 16) = -1 EINPROGRESS (Operation now in progress)\npoll([{fd=3, events=POLLOUT}], 1, 3000) = 1\ngetsockopt(3, SOL_SOCKET, SO_ERROR, [0], [4]) = 0\n"});
+TLPIWidgets.mountStraceParser("str_ch57", {example: "socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0) = 3\nbind(3, {sa_family=AF_UNIX, sun_path=\"/tmp/my.sock\"}, 110) = 0\nlisten(3, 5) = 0\naccept4(3, {sa_family=AF_UNIX}, [110], SOCK_CLOEXEC) = 4\nrecvmsg(4, {msg_name=NULL, msg_iov=[{iov_base=\"F\", iov_len=1}], msg_controllen=24, [{cmsg_level=SOL_SOCKET, cmsg_type=SCM_RIGHTS, cmsg_data=[5]}]}, 0) = 1\n"});
   </script>
 </body>
 </html>
