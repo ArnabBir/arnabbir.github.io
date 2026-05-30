@@ -32,7 +32,6 @@ const difficultyColors = {
 };
 
 function LibraryCard({ item }) {
-  // Generate a gradient based on the item ID for consistent colors
   const gradients = [
     "from-indigo-500 via-purple-500 to-pink-500",
     "from-blue-500 via-cyan-500 to-teal-500",
@@ -42,12 +41,10 @@ function LibraryCard({ item }) {
   ];
   const gradientIndex = item.id.charCodeAt(0) % gradients.length;
   const gradient = gradients[gradientIndex];
-  
-  // Get first letter or icon for placeholder
   const firstLetter = item.title.charAt(0).toUpperCase();
-  
+
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <Card className="group h-full overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1 hover:border-primary/20 card-spotlight">
       <AspectRatio ratio={16 / 9}>
         {item.thumbnail ? (
           <div
@@ -68,13 +65,10 @@ function LibraryCard({ item }) {
           </div>
         ) : (
           <div className={`h-full w-full bg-gradient-to-br ${gradient} flex flex-col items-center justify-center p-4 text-white relative overflow-hidden`}>
-            {/* Decorative pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
               <div className="absolute bottom-0 right-0 w-40 h-40 bg-white rounded-full translate-x-1/2 translate-y-1/2" />
             </div>
-            
-            {/* Content */}
             <div className="relative z-10 flex flex-col items-center justify-center">
               <div className="text-7xl font-bold mb-3 drop-shadow-lg">{firstLetter}</div>
               <div className="flex items-center gap-2 text-sm font-medium opacity-90">
@@ -85,12 +79,12 @@ function LibraryCard({ item }) {
           </div>
         )}
       </AspectRatio>
-      
-      <CardHeader>
+
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-lg leading-tight">{item.title}</CardTitle>
+          <CardTitle className="text-lg leading-tight font-semibold">{item.title}</CardTitle>
           {item.featured && (
-            <Badge variant="secondary" className="shrink-0">
+            <Badge variant="secondary" className="shrink-0 rounded-full text-xs">
               <TrendingUp className="h-3 w-3 mr-1" />
               Featured
             </Badge>
@@ -98,37 +92,37 @@ function LibraryCard({ item }) {
         </div>
         <CardDescription className="mt-2 line-clamp-2">{item.description}</CardDescription>
       </CardHeader>
-      
-      <CardContent>
-        <div className="flex flex-wrap gap-2 mb-3">
+
+      <CardContent className="pb-3">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {item.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs">
+            <Badge key={tag} variant="outline" className="text-xs rounded-full px-2.5">
               {tag}
             </Badge>
           ))}
           {item.tags.length > 3 && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs rounded-full px-2.5">
               +{item.tags.length - 3}
             </Badge>
           )}
         </div>
-        
+
         {item.highlights?.length > 0 && (
           <ul className="text-sm text-muted-foreground space-y-1">
             {item.highlights.slice(0, 2).map((highlight, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <span className="text-indigo-500 mt-1">•</span>
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary/50" />
                 <span className="line-clamp-1">{highlight}</span>
               </li>
             ))}
           </ul>
         )}
       </CardContent>
-      
+
       <CardFooter className="flex items-center justify-between pt-0">
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           {item.difficulty && (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyColors[item.difficulty]}`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${difficultyColors[item.difficulty]}`}>
               {item.difficulty}
             </span>
           )}
@@ -139,10 +133,10 @@ function LibraryCard({ item }) {
             </div>
           )}
         </div>
-        <Button asChild variant="ghost" size="sm">
+        <Button asChild variant="ghost" size="sm" className="rounded-full group/btn">
           <Link to={`/library/${item.id}`}>
             Explore
-            <ArrowRight className="ml-2 h-3 w-3" />
+            <ArrowRight className="ml-1.5 h-3 w-3 transition-transform duration-300 group-hover/btn:translate-x-1" />
           </Link>
         </Button>
       </CardFooter>
@@ -154,7 +148,7 @@ export default function Library() {
   const featured = libraryContent.filter((item) => item.featured);
 
   return (
-    <section id="library" className="scroll-mt-24 py-16">
+    <section id="library" className="scroll-mt-24 py-20 sm:py-24">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -170,14 +164,15 @@ export default function Library() {
             />
             <Link
               to="/library"
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors mb-2"
+              className="group flex items-center gap-2 text-sm font-medium text-foreground transition-colors mb-2 animated-underline"
             >
-              View all <ArrowRight className="h-4 w-4" />
+              View all
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
 
           {featured.length > 0 && (
-            <div className="mt-8 relative px-12">
+            <div className="mt-10 relative px-12">
               <Carousel opts={CAROUSEL_OPTS}>
                 <CarouselContent>
                   {featured.map((item) => (
@@ -189,18 +184,18 @@ export default function Library() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute -left-12" />
-                <CarouselNext className="absolute -right-12" />
+                <CarouselPrevious className="absolute -left-12 rounded-full" />
+                <CarouselNext className="absolute -right-12 rounded-full" />
               </Carousel>
             </div>
           )}
 
-          <div className="mt-10 flex justify-center">
-            <Button asChild variant="outline" className="gap-2">
+          <div className="mt-12 flex justify-center">
+            <Button asChild variant="outline" size="lg" className="gap-2 rounded-full group">
               <Link to="/library">
                 <LibraryIcon className="h-4 w-4" />
                 Browse full library
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
             </Button>
           </div>

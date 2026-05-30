@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { navItems } from "./nav-items";
 import { ThemeProvider } from "next-themes";
 import ScrollToTop from "./components/ScrollToTop";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 const LibraryHome = lazy(() => import("./pages/LibraryHome"));
 const LibraryRack = lazy(() => import("./pages/LibraryRack"));
@@ -97,7 +98,7 @@ const App = () => (
         <Toaster />
         <BrowserRouter>
           <ScrollToTop />
-          <Suspense fallback={null}>
+          <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               {navItems.map(({ to, page }) => (
                 <Route key={to} path={to} element={page} />

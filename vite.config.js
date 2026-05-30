@@ -5,8 +5,8 @@ import { resolve } from "path";
 
 export default defineConfig({
   server: {
-    host: "::",
-    port: "8080",
+    host: "localhost",
+    port: 8080,
   },
   base: "/",
   plugins: [react()],
@@ -31,7 +31,7 @@ export default defineConfig({
           "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
           "vendor-charts": ["recharts"],
           "vendor-query": ["@tanstack/react-query"],
-          "vendor-export": ["jspdf", "xlsx", "html2canvas"],
+          "vendor-export": ["jspdf", "xlsx"],
         },
       },
     },

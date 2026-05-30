@@ -72,7 +72,7 @@ export default function ProjectDetail() {
       try {
         iframeRef.current.contentWindow?.postMessage(
           { type: "THEME_CHANGE", theme: currentTheme },
-          "*"
+          window.location.origin
         );
       } catch (e) {
         // Iframe might not be ready yet

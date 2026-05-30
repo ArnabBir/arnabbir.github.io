@@ -24,7 +24,7 @@ const CAROUSEL_OPTS = {
 
 export default function Writing() {
   return (
-    <section id="writing" className="scroll-mt-24 py-16">
+    <section id="writing" className="scroll-mt-24 py-20 sm:py-24">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -40,13 +40,14 @@ export default function Writing() {
             />
             <Link
               to="/blogs"
-              className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-muted-foreground transition-colors mb-2"
+              className="group flex items-center gap-2 text-sm font-medium text-foreground transition-colors mb-2 animated-underline"
             >
-              View all <ArrowRight className="h-4 w-4" />
+              View all
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
 
-          <div className="mt-8 relative px-12">
+          <div className="mt-10 relative px-12">
             <Carousel opts={CAROUSEL_OPTS}>
               <CarouselContent>
                 {writingContent.map((w) => (
@@ -58,8 +59,8 @@ export default function Writing() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute -left-12" />
-              <CarouselNext className="absolute -right-12" />
+              <CarouselPrevious className="absolute -left-12 rounded-full" />
+              <CarouselNext className="absolute -right-12 rounded-full" />
             </Carousel>
           </div>
         </motion.div>

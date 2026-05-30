@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Security: Content Security Policy -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self'; base-uri 'self'; form-action 'self';"
+    />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
     <!--
       GitHub Pages SPA routing helper.
       If a deep link hits /404.html, we redirect to /?r=<encoded-path> and then
@@ -12,11 +20,14 @@
     <script>
       (function () {
         try {
-          const params = new URLSearchParams(window.location.search);
-          const r = params.get("r");
+          var params = new URLSearchParams(window.location.search);
+          var r = params.get("r");
           if (r) {
-            const decoded = decodeURIComponent(r);
-            window.history.replaceState(null, "", decoded);
+            var decoded = decodeURIComponent(r);
+            // Prevent open redirect: only allow relative paths
+            if (decoded.startsWith("/") && !decoded.startsWith("//")) {
+              window.history.replaceState(null, "", decoded);
+            }
           }
         } catch (_) {
           // no-op
@@ -31,7 +42,8 @@
     />
     <meta name="author" content="Arnab Bir" />
 
-    <meta name="theme-color" content="#0b0f19" />
+    <meta name="theme-color" content="#0b0f19" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
@@ -48,13 +60,16 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/images/logo.png" />
 
-    <!-- Fonts -->
+    <!-- Fonts — preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Preload critical hero image -->
+    <link rel="preload" as="image" href="/images/arnab-bir-profile.jpg" />
   </head>
 
   <body>

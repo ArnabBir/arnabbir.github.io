@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Copy, ExternalLink, Mail } from "lucide-react";
+import { Copy, ExternalLink, Mail, MessageSquare, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import Container from "@/components/layout/Container";
@@ -19,30 +19,47 @@ async function copyToClipboard(text) {
   }
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
 export default function Contact() {
   return (
-    <section id="contact" className="scroll-mt-24 py-16">
+    <section id="contact" className="scroll-mt-24 py-20 sm:py-24 relative overflow-hidden">
+      {/* Background accent */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute bottom-0 left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-gradient-to-t from-primary/10 via-primary/5 to-transparent blur-3xl" />
+      </div>
+
       <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.45 }}
-        >
+        <div className="text-center max-w-2xl mx-auto">
           <SectionHeading
             eyebrow="Contact"
             title="Want to build something together?"
-            description="Reach out for mentorship, interview prep or professional opportunities."
+            description="Reach out for mentorship, interview prep, or professional opportunities."
+            className="mx-auto text-center"
           />
+        </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ staggerChildren: 0.1 }}
+          className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3"
+        >
+          <motion.div variants={fadeUp} className="lg:col-span-2">
+            <Card className="h-full border-border/50 bg-card/50 backdrop-blur-sm card-spotlight">
               <CardHeader>
-                <CardTitle>Reach me</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  Reach me
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button asChild className="justify-start">
+                  <Button asChild className="justify-start rounded-full glow-sm">
                     <a href={`mailto:${siteContent.email}`}>
                       <Mail className="mr-2 h-4 w-4" /> {siteContent.email}
                     </a>
@@ -50,6 +67,7 @@ export default function Contact() {
                   <Button
                     type="button"
                     variant="secondary"
+                    className="rounded-full"
                     onClick={async () => {
                       const ok = await copyToClipboard(siteContent.email);
                       toast(ok ? "Email copied" : "Could not copy", {
@@ -61,22 +79,23 @@ export default function Contact() {
                   </Button>
 
                   {siteContent.links?.topmate ? (
-                    <Button asChild variant="outline">
+                    <Button asChild variant="outline" className="rounded-full group">
                       <a href={siteContent.links.topmate} target="_blank" rel="noopener noreferrer">
-                        Book a session <ExternalLink className="ml-2 h-4 w-4" />
+                        Book a session
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </a>
                     </Button>
                   ) : null}
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {siteContent.socials.map((s) => (
                     <Button
                       key={s.href}
                       asChild
                       variant="outline"
                       size="sm"
-                      className="gap-2"
+                      className="gap-2 rounded-full text-xs transition-all duration-300 hover:border-primary/30 hover:bg-primary/5"
                     >
                       <a href={s.href} target="_blank" rel="noopener noreferrer">
                         <SocialIcon name={s.icon} className="h-4 w-4" />
@@ -88,10 +107,10 @@ export default function Contact() {
 
                 {(siteContent.links?.preplaced || siteContent.links?.codementor) ? (
                   <div className="mt-6 text-sm text-muted-foreground">
-                    Mentoring: {" "}
+                    Mentoring:{" "}
                     {siteContent.links?.preplaced ? (
                       <a
-                        className="underline underline-offset-4 hover:text-foreground"
+                        className="animated-underline font-medium text-foreground"
                         href={siteContent.links.preplaced}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -99,10 +118,10 @@ export default function Contact() {
                         Preplaced
                       </a>
                     ) : null}
-                    {siteContent.links?.preplaced && siteContent.links?.codementor ? " • " : null}
+                    {siteContent.links?.preplaced && siteContent.links?.codementor ? " · " : null}
                     {siteContent.links?.codementor ? (
                       <a
-                        className="underline underline-offset-4 hover:text-foreground"
+                        className="animated-underline font-medium text-foreground"
                         href={siteContent.links.codementor}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -114,23 +133,30 @@ export default function Contact() {
                 ) : null}
               </CardContent>
             </Card>
+          </motion.div>
 
-            <Card>
+          <motion.div variants={fadeUp}>
+            <Card className="h-full border-border/50 bg-card/50 backdrop-blur-sm card-spotlight">
               <CardHeader>
-                <CardTitle>What helps</CardTitle>
+                <CardTitle className="text-lg">What helps</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground leading-relaxed">
+              <CardContent className="text-sm text-muted-foreground leading-relaxed space-y-4">
                 <p>
-                  When you reach out, feel free to include: what you’re building, timeline, and what
-                  “success” looks like.
+                  When you reach out, feel free to include: what you're building, timeline, and what
+                  "success" looks like.
                 </p>
-                <p className="mt-3">
-                  If it’s about interviewing/mentoring, sharing your context and goals makes the session
+                <p>
+                  If it's about interviewing/mentoring, sharing your context and goals makes the session
                   far more useful.
                 </p>
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground/70">
+                    I typically respond within 24 hours.
+                  </p>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
         </motion.div>
       </Container>
     </section>
