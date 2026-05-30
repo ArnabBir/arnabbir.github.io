@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">133</span> (0-based index 132).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>io</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fd table</strong></span> <span class="pill"><strong>O_CLOEXEC</strong></span> <span class="pill"><strong>EINTR/EAGAIN</strong></span> <span class="pill"><strong>atomicity</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>dup/dup2</strong></span> <span class="pill"><strong>fcntl</strong></span> <span class="pill"><strong>pread/pwrite</strong></span> <span class="pill"><strong>O_APPEND</strong></span> <span class="pill"><strong>tmpfile</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,17 +59,17 @@
             Chapter 05 — File I/O: Further Details
           </h2>
           <div class="subtitle">
-            <p>Linux file I/O is built around a simple abstraction: an integer file descriptor that indexes a per-process table. Under the hood, the descriptor points to an *open file description* (file offset + status flags) which in turn points to an inode and the filesystem implementation. This indirection is why dup()/fork() share offsets and why O_CLOEXEC matters.</p><p>Most real bugs in I/O code come from edge cases: partial reads/writes, EINTR/EAGAIN, nonblocking mode, buffering layers (stdio vs syscalls), and durability assumptions (page cache vs stable storage). This chapter guide is designed to make those edge cases feel normal.</p>
+            <p>Chapter 4 introduced the basic I/O syscalls. This chapter digs into what happens when file descriptors are *shared* — via dup(), dup2(), or fork() — and the kernel objects that make sharing work. The key abstraction is the three-level model: fd &rarr; open file description (OFD) &rarr; inode. Understanding which level owns the offset vs. the flags is the difference between correct concurrent I/O and silent data corruption.</p><p>We also cover fcntl() (the Swiss Army knife of fd manipulation), positional I/O with pread/pwrite, the atomicity guarantees of O_APPEND, temporary file creation (mkstemp, O_TMPFILE), and the /dev/fd virtual directory. These are the tools that let you build robust I/O redirection, safe temp files, and correct multithreaded file access.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">fd → open file description → inode. dup/fork share the open file description (offset + flags).</div>
+  <div class="v">dup() creates a new fd pointing to the same OFD — they share offset and status flags.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Assuming read/write complete fully. They can return short counts or EINTR/EAGAIN.</div>
+  <div class="v">After fork(), parent and child share OFDs; uncoordinated writes interleave bytes.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use strace -f -tt -T and inspect /proc/&lt;pid&gt;/fd for ground truth.</div>
+  <div class="v">Use /proc/PID/fd and /proc/PID/fdinfo to inspect live fd&rarr;OFD mappings.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Think in layers: fd → open file description → inode → filesystem → storage.</li><li>Assume partial progress and interruptions. Your code must be correct under short reads/writes and EINTR.</li><li>Nonblocking I/O turns blocking into explicit flow-control (EAGAIN + readiness notification).</li><li>Durability is separate from visibility: write() updates cache; fsync() requests stable storage.</li><li>Atomicity is about specific operations and objects (PIPE_BUF for pipes, rename within FS, O_APPEND semantics).</li><li>Always define ownership for file descriptors (who closes; when; and what happens across exec).</li></ul>
+            <ul><li>fd &rarr; OFD &rarr; inode: dup() creates a new fd pointing to the *same* OFD; a separate open() creates a *new* OFD pointing to the same inode. This is why dup&#x27;d fds share offset but independently opened fds do not.</li><li>O_APPEND atomically seeks to EOF before each write — the kernel holds the inode lock across the seek+write, so concurrent appenders never overwrite each other (on local filesystems).</li><li>fcntl() is the Swiss Army knife of fd control: F_DUPFD for dup-with-minimum-fd, F_GETFL/F_SETFL for reading/changing status flags, F_SETFD for setting FD_CLOEXEC on individual descriptors.</li><li>File *status* flags (O_APPEND, O_NONBLOCK, O_SYNC) live on the OFD and are shared by all fds pointing to it. File *descriptor* flags (FD_CLOEXEC) live on the fd itself and are per-fd even after dup.</li><li>pread()/pwrite() bypass the shared offset entirely — they take an explicit offset argument and leave the OFD offset unchanged. This makes them essential for multithreaded file access.</li><li>Temporary files: mkstemp() atomically creates and opens a unique file (no TOCTOU race). O_TMPFILE (Linux 3.11+) creates an unnamed inode with no directory entry — link it later with linkat() for atomic publish, or let it vanish on close.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>FD table</td><td>Per-process map: small integers → pointers to open file descriptions.</td></tr><tr><td class='mono'>Open file description</td><td>Kernel object holding file offset + status flags; shared via dup() and fork().</td></tr><tr><td class='mono'>Page cache</td><td>Caches file-backed pages in RAM; affects reads, writes, and durability.</td></tr><tr><td class='mono'>O_CLOEXEC</td><td>Close-on-exec flag preventing FD leakage into exec&#x27;d programs; set atomically where possible.</td></tr><tr><td class='mono'>EINTR</td><td>Error indicating a blocking syscall was interrupted by a signal; requires retry logic.</td></tr><tr><td class='mono'>EAGAIN</td><td>Nonblocking operation would block; treat as flow-control and retry later.</td></tr></tbody>
+  <tbody><tr><td class='mono'>OFD (Open File Description)</td><td>Kernel object holding file offset + status flags; shared across fds created by dup() and inherited across fork().</td></tr><tr><td class='mono'>dup / dup2 / dup3</td><td>Create a new fd referencing the same OFD. dup2 atomically replaces a target fd; dup3 adds O_CLOEXEC atomically.</td></tr><tr><td class='mono'>fcntl</td><td>Multiplexed fd control: duplicate fds, get/set status flags, set FD_CLOEXEC, configure signals and advisory locks.</td></tr><tr><td class='mono'>pread / pwrite</td><td>Positional I/O: read/write at an explicit offset without modifying the shared file offset in the OFD.</td></tr><tr><td class='mono'>O_APPEND</td><td>Status flag causing each write to atomically seek to EOF first; guarantees no overwrites among concurrent appenders.</td></tr><tr><td class='mono'>O_TMPFILE</td><td>Linux-specific flag to create an unnamed temporary file (no directory entry); avoids TOCTOU and stale temp cleanup.</td></tr></tbody>
 </table>
         </div>
 
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr><tr><td class='mono'>dup</td><td class='mono'>int dup(int oldfd);</td><td class='mono muted2'>EBADF, EMFILE</td><td>New fd points to the same open file description → shared offset &amp; status flags.</td></tr><tr><td class='mono'>dup2</td><td class='mono'>int dup2(int oldfd, int newfd);</td><td class='mono muted2'>EBADF, EMFILE</td><td>Atomically replaces newfd; common in redirection and setting up stdio before exec.</td></tr><tr><td class='mono'>pread</td><td class='mono'>ssize_t pread(int fd, void *buf, size_t count, off_t offset);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF</td><td>Positional I/O that does not change the file offset; better for multithreaded reads.</td></tr><tr><td class='mono'>pwrite</td><td class='mono'>ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, ENOSPC</td><td>Positional write; avoids shared offset races. Still needs fsync() if durability matters.</td></tr><tr><td class='mono'>close</td><td class='mono'>int close(int fd);</td><td class='mono muted2'>EBADF, EINTR</td><td>After close(), fd number can be reused; avoid close() races in multithreaded code.</td></tr>
+    <tr><td class='mono'>fcntl</td><td class='mono'>int fcntl(int fd, int cmd, ... /* arg */ );</td><td class='mono muted2'>EBADF, EINVAL</td><td>Multiplexed control: FD_CLOEXEC, O_NONBLOCK, advisory locks (F_SETLK), signals (F_SETOWN).</td></tr><tr><td class='mono'>dup</td><td class='mono'>int dup(int oldfd);</td><td class='mono muted2'>EBADF, EMFILE</td><td>New fd points to the same open file description &rarr; shared offset &amp; status flags.</td></tr><tr><td class='mono'>dup2</td><td class='mono'>int dup2(int oldfd, int newfd);</td><td class='mono muted2'>EBADF, EMFILE</td><td>Atomically replaces newfd; common in redirection and setting up stdio before exec.</td></tr><tr><td class='mono'>pread</td><td class='mono'>ssize_t pread(int fd, void *buf, size_t count, off_t offset);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF</td><td>Positional I/O that does not change the file offset; better for multithreaded reads.</td></tr><tr><td class='mono'>pwrite</td><td class='mono'>ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF, ENOSPC</td><td>Positional write; avoids shared offset races. Still needs fsync() if durability matters.</td></tr><tr><td class='mono'>mkstemp</td><td class='mono'>int mkstemp(char *template);</td><td class='mono muted2'>EEXIST, EMFILE</td><td>Atomically creates &amp; opens a unique temp file. Template must end in XXXXXX. Unlink after open for anonymous temp.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -128,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Atomicity &amp; invariants you can rely on</summary>
-  <div class="content"><ul><li>A file descriptor is a *per-process* handle; the underlying open file description (OFD) is a *kernel object* that can be shared.</li><li>OFD contains the file offset and status flags. After dup() or fork(), multiple fds can reference the same OFD → shared offset.</li><li>For regular files, read/write update the file offset as part of the syscall. For O_APPEND, the kernel sets the offset to EOF atomically for each write.</li><li>Atomicity is filesystem- and operation-dependent. Example: POSIX guarantees atomic writes up to PIPE_BUF for pipes/FIFOs; regular file writes are not globally atomic across threads/processes unless you design for it.</li></ul></div>
+  <summary>dup() vs open() sharing semantics</summary>
+  <div class="content"><ul><li>dup(fd) creates a new fd that shares the *same* OFD: same offset, same status flags. A write on one fd advances the offset seen by the other.</li><li>Two separate open() calls on the same file create *independent* OFDs: each has its own offset and flags. Writes can silently overwrite each other unless O_APPEND is used.</li><li>Implication for log files: if two processes must append without overwriting, they must each open() with O_APPEND — sharing via dup/fork is not enough if they lseek independently.</li><li>After dup2(oldfd, STDOUT_FILENO), writes to stdout go to the same OFD as oldfd. This is the classic I/O redirection pattern before exec.</li></ul></div>
 </details><details class="accordion">
-  <summary>Error-handling: the “three E’s” (EINTR, EAGAIN, EOF)</summary>
-  <div class="content"><ul><li>EINTR means a signal interrupted a blocking syscall. Decide a policy: use SA_RESTART where appropriate, or loop-and-retry explicitly.</li><li>EAGAIN/EWOULDBLOCK means nonblocking I/O would block. Treat it as flow-control: register interest (poll/epoll) and retry later.</li><li>EOF is *not* an error: read() returns 0. For sockets, recv()=0 means peer performed an orderly shutdown (FIN).</li><li>Short reads/writes are normal. Write robust loops that handle partial progress without assuming “all or nothing”.</li></ul></div>
+  <summary>O_APPEND atomicity guarantees</summary>
+  <div class="content"><ul><li>O_APPEND causes write() to atomically seek to EOF and write. The kernel holds the inode mutex across both operations, preventing interleaving on local filesystems.</li><li>NFS may break O_APPEND atomicity: some NFS implementations do not honor atomic append, leading to overwrites in concurrent-append workloads. Test your NFS version.</li><li>O_APPEND vs pwrite: pwrite ignores O_APPEND — it always writes at the specified offset. This is POSIX-specified behavior and catches people off guard.</li><li>O_APPEND does not prevent reads from any offset; it only affects the write path. lseek + read still works normally on an O_APPEND fd.</li></ul></div>
 </details><details class="accordion">
-  <summary>Performance notes you feel in production</summary>
-  <div class="content"><ul><li>The page cache means that “write() returned” does not imply data is on disk. Durability requires fsync()/fdatasync() + careful ordering.</li><li>Avoid tiny syscalls in hot loops: batch, use larger buffers, and reduce context switches.</li><li>pread/pwrite avoid shared offset contention, often improving scalability in multi-threaded servers.</li><li>On fast storage, syscall overhead can dominate. Profiling with perf can show time in vfs, ext4, or copy_to_user/copy_from_user paths.</li></ul></div>
+  <summary>fcntl pitfalls</summary>
+  <div class="content"><ul><li>F_SETFL can change O_APPEND, O_NONBLOCK, O_ASYNC, etc. — but it *cannot* change the access mode (O_RDONLY/O_WRONLY/O_RDWR). Those are fixed at open() time.</li><li>F_DUPFD_CLOEXEC (Linux 2.6.24+) atomically duplicates with CLOEXEC, avoiding the race between fcntl(F_DUPFD) + fcntl(F_SETFD, FD_CLOEXEC). Prefer dup3() when the target fd is known.</li><li>Race window: if you set FD_CLOEXEC via fcntl(F_SETFD) after open/dup, another thread could fork+exec between the two calls, leaking the fd. Always prefer O_CLOEXEC at creation time.</li><li>F_GETFL returns status flags *and* access mode bits. Mask with O_ACCMODE to extract just the access mode.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Start with strace -f to see syscalls and errno. Add -tt -T to see timing.</li><li>Inspect /proc/&lt;pid&gt;/fd to confirm which files are open and where they point.</li><li>Use lsof for system-wide views and to find which process holds a lock or open file.</li><li>When performance matters, perf trace/perf record can reveal syscall hotspots and kernel stack traces.</li></ul></div>
+  <summary>Temporary file security</summary>
+  <div class="content"><ul><li>mktemp() is dangerous: it returns a name but does not open the file, creating a TOCTOU race. An attacker can create a symlink at that path between mktemp and open. Never use it.</li><li>mkstemp() atomically creates and opens the file with mode 0600. Immediately unlink() the path if you only need the fd — this gives you an anonymous temp file that disappears on close.</li><li>O_TMPFILE (Linux 3.11+) creates an inode with no directory entry at all. For atomic publish: write contents, fsync, then linkat(AT_EMPTY_PATH) to give it a name. If you crash before linkat, nothing is visible.</li><li>tmpfile() (libc) calls mkstemp + unlink under the hood but returns a FILE*. Useful for stdio-based temp usage but less control than mkstemp.</li></ul></div>
 </details>
         </div>
 
@@ -150,15 +150,28 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch05"><code class="mono">// read-all loop with EINTR handling (toy)
-ssize_t read_some(int fd, void *buf, size_t cap){
-  for(;;){
-    ssize_t n = read(fd, buf, cap);
-    if(n &gt;= 0) return n;          // 0 = EOF
-    if(errno == EINTR) continue;  // interrupted -&gt; retry
-    return -1;
-  }
-}</code></pre>
+  <pre id="code_ch05"><code class="mono">/* dup2 for I/O redirection before exec */
+int log_fd = open("output.log", O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644);
+if (log_fd == -1) { perror("open"); exit(1); }
+if (dup2(log_fd, STDOUT_FILENO) == -1) { perror("dup2"); exit(1); }
+close(log_fd);  /* stdout now points to the OFD; log_fd is redundant */
+execlp("make", "make", "-j4", (char *)NULL);
+
+/* pread: concurrent access without shared-offset races */
+ssize_t read_chunk(int fd, off_t off, void *buf, size_t len) {
+    ssize_t n;
+    do { n = pread(fd, buf, len, off); } while (n == -1 &amp;&amp; errno == EINTR);
+    return n;  /* offset in OFD is unchanged */
+}
+
+/* mkstemp: safe temporary file pattern */
+char tpl[] = "/tmp/myapp-XXXXXX";
+int tmp_fd = mkstemp(tpl);       /* tpl is modified in place */
+if (tmp_fd == -1) { perror("mkstemp"); exit(1); }
+unlink(tpl);                      /* anonymous: gone when fd closes */
+write(tmp_fd, "secret data\n", 12);
+/* use tmp_fd ... */
+close(tmp_fd);                    /* file disappears from disk */</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
@@ -167,17 +180,17 @@ ssize_t read_some(int fd, void *buf, size_t cap){
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Set O_CLOEXEC / FD_CLOEXEC on all fds by default (use openat/pipe2/socket with CLOEXEC flags).</li><li>Handle partial I/O, EINTR, and EAGAIN in loops; never assume single-call completion.</li><li>Decide and document durability: if data must survive crash, use fsync/fdatasync and correct ordering.</li><li>Avoid mixing stdio and raw fd operations on the same underlying file descriptor unless you understand buffering.</li><li>Log errno with context (path, flags, fd) — it’s your future debugging time-saver.</li></ul>
+            <ul><li>Set O_CLOEXEC at creation time (open, dup3, pipe2, accept4) — never rely on a separate fcntl(F_SETFD) due to the fork+exec race window.</li><li>After fork(), coordinate or close shared fds immediately. Uncoordinated writes to a shared OFD will interleave and corrupt output.</li><li>Use pread/pwrite for any multithreaded file access to avoid offset races on the shared OFD.</li><li>Create temp files with mkstemp() + unlink() or O_TMPFILE. Never use mktemp() or predictable names in /tmp.</li><li>Audit dup2() call sites: the target fd is silently closed first — ensure no other thread is using that fd number concurrently.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a &#x27;cat&#x27; clone that supports an optional --nonblock mode and handles EAGAIN correctly using poll().</li><li>Build a log writer that uses O_APPEND and demonstrate atomic append behavior across two processes.</li><li>Add fsync + directory fsync to an &#x27;atomic config update&#x27; routine (write temp → fsync → rename → fsync dir).</li></ul>
+            <ul><li>Write a program that uses dup2() to redirect stdout to a file, then execs a child. Verify the child&#x27;s output lands in the file. Extend it to redirect both stdout and stderr to the same file.</li><li>Fork a process after opening a file. Have both parent and child write 1000 lines each without O_APPEND, then repeat with O_APPEND. Diff the output files and explain why the non-append version has corrupted/overwritten lines.</li><li>Open a large file and spawn two pthreads that each read different regions using pread(). Verify they get correct data and the file offset (lseek SEEK_CUR) is unchanged after both threads finish.</li></ul>
           </div>
         </div>
 
@@ -186,52 +199,52 @@ ssize_t read_some(int fd, void *buf, size_t cap){
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="0" data-explain="Close-on-exec prevents unintended inheritance of sensitive file descriptors across exec.">
-  <div class="qp">Q1. Why is O_CLOEXEC recommended by default?</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="dup() creates a new fd pointing to the same OFD. The OFD holds the file offset and status flags, so both fds share them. FD_CLOEXEC is per-fd and is NOT shared.">
+  <div class="qp">Q1. After <code>int fd2 = dup(fd1)</code>, what is shared between fd1 and fd2?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Prevents fd leaks into exec&#x27;ed children</div></div>
+  <div><div style="font-weight:750">Only the inode reference</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Makes reads faster</div></div>
+  <div><div style="font-weight:750">File offset and status flags (via shared OFD)</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Changes inode ownership</div></div>
+  <div><div style="font-weight:750">FD_CLOEXEC flag</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Enables atomic rename</div></div>
+  <div><div style="font-weight:750">Nothing — they are independent</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="EINTR interrupts blocking calls; EAGAIN is used for nonblocking flow control.">
-  <div class="qp">Q2. Which errors should a robust read loop expect?</div>
+</div><div class="q" data-quiz data-answer="2" data-explain="pread takes an explicit offset and does not read from or modify the shared file offset in the OFD, making it safe for concurrent use.">
+  <div class="qp">Q2. What does pread() avoid that read() does not?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only EBADF</div></div>
+  <div><div style="font-weight:750">Kernel page cache</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">EINTR and EAGAIN</div></div>
+  <div><div style="font-weight:750">EINTR from signals</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only ENOENT</div></div>
+  <div><div style="font-weight:750">Using/modifying the shared file offset</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">No errors ever</div></div>
+  <div><div style="font-weight:750">Permission checks</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="2" data-explain="pread uses an explicit offset and leaves the file offset unchanged.">
-  <div class="qp">Q3. Which API does not modify the shared file offset?</div>
+</div><div class="q" data-quiz data-answer="0" data-explain="mktemp() returns a filename without opening it. Between mktemp and open, an attacker can create a symlink at that path (TOCTOU race), potentially hijacking the file. Use mkstemp() instead.">
+  <div class="qp">Q3. Why is mktemp() dangerous for creating temporary files?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">read</div></div>
+  <div><div style="font-weight:750">TOCTOU race between name creation and file open</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">write</div></div>
+  <div><div style="font-weight:750">It creates world-readable files</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">pread</div></div>
+  <div><div style="font-weight:750">It uses too much entropy</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">lseek</div></div>
+  <div><div style="font-weight:750">It does not return an fd</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -239,7 +252,7 @@ ssize_t read_some(int fd, void *buf, size_t cap){
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -279,7 +292,7 @@ ssize_t read_some(int fd, void *buf, size_t cap){
       highlight: ["fdtable", "file", "inode", "pagecache", "pipe", "epoll"]
     });
 TLPIWidgets.mountFDLab("fd_ch05", {});
-TLPIWidgets.mountStraceParser("str_ch05", {example: "openat(AT_FDCWD, \"/etc/hosts\", O_RDONLY|O_CLOEXEC) = 3\nread(3, \"...\", 4096) = 172\nclose(3) = 0\nopenat(AT_FDCWD, \"/nope\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)\n"});
+TLPIWidgets.mountStraceParser("str_ch05", {example: "openat(AT_FDCWD, \"/tmp/app.log\", O_WRONLY|O_CREAT|O_APPEND, 0644) = 3\ndup2(3, 1)                              = 1\nclose(3)                                = 0\nfcntl(1, F_GETFL)                       = 0x8401 (flags O_WRONLY|O_APPEND)\nfcntl(1, F_SETFD, FD_CLOEXEC)           = 0\nwrite(1, \"log line\\n\", 9)               = 9\nopenat(AT_FDCWD, \"/tmp/work-XXXXXX\", O_RDWR|O_CREAT|O_EXCL, 0600) = 4\nunlink(\"/tmp/work-a3kF9m\")              = 0\npread64(4, \"data\", 4096, 0)             = 4\nclose(4)                                = 0\n"});
   </script>
 </body>
 </html>

@@ -101,6 +101,8 @@
       let w=0,hgt=0, dpr=1;
       let hoverId = null;
       let lockedId = null;
+      let animFrame = 0;
+      let animRAF = null;
 
       function resize(){
         const rect = canvas.getBoundingClientRect();
@@ -111,6 +113,20 @@
         canvas.height = Math.round(hgt*dpr);
         ctx.setTransform(dpr,0,0,dpr,0,0);
         draw();
+      }
+
+      // Animation loop for node pulse
+      function startAnim(){
+        if(animRAF) return;
+        const loop = ()=>{
+          animFrame++;
+          draw();
+          animRAF = requestAnimationFrame(loop);
+        };
+        animRAF = requestAnimationFrame(loop);
+      }
+      function stopAnim(){
+        if(animRAF){ cancelAnimationFrame(animRAF); animRAF = null; }
       }
 
       function themeColors(){
@@ -147,6 +163,9 @@
 
       function draw(){
         const c = themeColors();
+        const isLight = document.documentElement.classList.contains("theme-light");
+        const pulse = 0.5 + 0.5 * Math.sin(animFrame * 0.04); // 0..1 pulse
+
         // clear
         ctx.clearRect(0,0,w,hgt);
 
@@ -154,6 +173,7 @@
         ctx.save();
         ctx.globalAlpha = 0.12;
         ctx.strokeStyle = c.border;
+        ctx.lineWidth = 0.5;
         for(let x=0; x<w; x+=28){
           ctx.beginPath();
           ctx.moveTo(x,0); ctx.lineTo(x,hgt);
@@ -168,7 +188,6 @@
 
         // edges
         ctx.save();
-        ctx.globalAlpha = 0.55;
         edges.forEach(([a,b])=>{
           const na = nodes.find(n=>n.id===a);
           const nb = nodes.find(n=>n.id===b);
@@ -177,19 +196,19 @@
           const bx = nb.x*w, by=nb.y*hgt;
           const aHot = highlight.has(a);
           const bHot = highlight.has(b);
-          ctx.lineWidth = (aHot || bHot) ? 2 : 1;
-          ctx.strokeStyle = (aHot || bHot) ? "rgba(6,182,212,.45)" : "rgba(255,255,255,.18)";
-          if(document.documentElement.classList.contains("theme-light")){
-            ctx.strokeStyle = (aHot || bHot) ? "rgba(124,58,237,.35)" : "rgba(15,23,42,.18)";
-          }
+          const bothHot = aHot && bHot;
+          ctx.globalAlpha = bothHot ? 0.65 + pulse*0.15 : (aHot||bHot) ? 0.55 : 0.35;
+          ctx.lineWidth = bothHot ? 2.5 : (aHot || bHot) ? 2 : 1;
+          ctx.strokeStyle = (aHot || bHot)
+            ? (isLight ? "rgba(124,58,237,.35)" : "rgba(6,182,212,.45)")
+            : (isLight ? "rgba(15,23,42,.14)" : "rgba(255,255,255,.14)");
           ctx.beginPath();
           ctx.moveTo(ax,ay);
-          // slight curve
           const mx = (ax+bx)/2;
           const my = (ay+by)/2;
-          const cx = mx + (ay-by)*0.08;
-          const cy = my + (bx-ax)*0.08;
-          ctx.quadraticCurveTo(cx,cy,bx,by);
+          const cx2 = mx + (ay-by)*0.08;
+          const cy2 = my + (bx-ax)*0.08;
+          ctx.quadraticCurveTo(cx2,cy2,bx,by);
           ctx.stroke();
         });
         ctx.restore();
@@ -201,39 +220,37 @@
           const isHover = (lockedId ? lockedId===n.id : hoverId===n.id);
           const r = isHot ? 14 : 12;
 
-          // glow
+          // Animated glow for highlighted nodes
           ctx.save();
-          ctx.globalAlpha = isHot ? 0.55 : 0.28;
-          if(document.documentElement.classList.contains("theme-light")){
-            ctx.globalAlpha = isHot ? 0.18 : 0.10;
-          }
-          const grd = ctx.createRadialGradient(x,y,2,x,y,32);
+          const glowAlpha = isHot ? (0.4 + pulse*0.2) : 0.2;
+          ctx.globalAlpha = isLight ? glowAlpha*0.4 : glowAlpha;
+          const glowRadius = isHot ? (30 + pulse*8) : 26;
+          const grd = ctx.createRadialGradient(x,y,2,x,y,glowRadius);
           grd.addColorStop(0, isHot ? "rgba(124,58,237,.95)" : "rgba(255,255,255,.35)");
           grd.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = grd;
-          ctx.beginPath(); ctx.arc(x,y,32,0,Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(x,y,glowRadius,0,Math.PI*2); ctx.fill();
           ctx.restore();
 
           // circle
           ctx.save();
-          ctx.lineWidth = isHover ? 2 : 1;
-          ctx.strokeStyle = isHot ? "rgba(6,182,212,.7)" : "rgba(255,255,255,.22)";
-          if(document.documentElement.classList.contains("theme-light")){
-            ctx.strokeStyle = isHot ? "rgba(124,58,237,.55)" : "rgba(15,23,42,.22)";
-          }
-          ctx.fillStyle = isHot ? "rgba(124,58,237,.22)" : "rgba(255,255,255,.06)";
-          if(document.documentElement.classList.contains("theme-light")){
-            ctx.fillStyle = isHot ? "rgba(124,58,237,.08)" : "rgba(255,255,255,.75)";
-          }
+          ctx.lineWidth = isHover ? 2.5 : (isHot ? 1.5 : 1);
+          ctx.strokeStyle = isHot
+            ? (isLight ? "rgba(124,58,237,.55)" : "rgba(6,182,212,.7)")
+            : (isLight ? "rgba(15,23,42,.22)" : "rgba(255,255,255,.22)");
+          ctx.fillStyle = isHot
+            ? (isLight ? "rgba(124,58,237,.08)" : "rgba(124,58,237,.22)")
+            : (isLight ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.06)");
           ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
           ctx.fill(); ctx.stroke();
           ctx.restore();
 
-          // label
+          // label with better rendering
           ctx.save();
-          ctx.font = `12px ${getComputedStyle(document.body).fontFamily}`;
-          ctx.fillStyle = document.documentElement.classList.contains("theme-light") ? "rgba(10,12,20,.86)" : "rgba(255,255,255,.78)";
-          if(!isHot) ctx.fillStyle = document.documentElement.classList.contains("theme-light") ? "rgba(10,12,20,.68)" : "rgba(255,255,255,.62)";
+          ctx.font = `${isHot ? '600' : '400'} 12px ${getComputedStyle(document.body).fontFamily}`;
+          ctx.fillStyle = isLight
+            ? (isHot ? "rgba(10,12,20,.92)" : "rgba(10,12,20,.62)")
+            : (isHot ? "rgba(255,255,255,.88)" : "rgba(255,255,255,.55)");
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
           ctx.fillText(n.id, x + 16, y);
@@ -297,6 +314,15 @@
       // Redraw on theme change
       const mo = new MutationObserver(()=>draw());
       mo.observe(document.documentElement, {attributes:true, attributeFilter:["class"]});
+
+      // Start/stop animation when visible
+      const visObs = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{
+          if(e.isIntersecting) startAnim();
+          else stopAnim();
+        });
+      }, {threshold:0.1});
+      visObs.observe(canvas);
 
       resize();
     }

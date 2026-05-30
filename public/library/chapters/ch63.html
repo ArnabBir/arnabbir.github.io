@@ -43,7 +43,7 @@
           <div class="section-title">Chapter metadata</div>
           <div class="muted2 small" style="margin-top:8px">Reference: TLPI PDF page index <span class="mono">1369</span> (0-based index 1368).</div>
           <div class="muted2 small" style="margin-top:8px">Theme: <span class="pill"><strong>io</strong></span></div>
-          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>fd table</strong></span> <span class="pill"><strong>O_CLOEXEC</strong></span> <span class="pill"><strong>EINTR/EAGAIN</strong></span> <span class="pill"><strong>atomicity</strong></span></div>
+          <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px"><span class="pill"><strong>epoll</strong></span> <span class="pill"><strong>select</strong></span> <span class="pill"><strong>poll</strong></span> <span class="pill"><strong>EPOLLET</strong></span> <span class="pill"><strong>signalfd</strong></span> <span class="pill"><strong>io_uring</strong></span></div>
           <hr class="sep"/>
           <div class="muted2 small">Keyboard:</div>
           <div class="muted small" style="margin-top:6px">
@@ -59,30 +59,33 @@
             Chapter 63 — Alternative I/O Models
           </h2>
           <div class="subtitle">
-            <p>Linux file I/O is built around a simple abstraction: an integer file descriptor that indexes a per-process table. Under the hood, the descriptor points to an *open file description* (file offset + status flags) which in turn points to an inode and the filesystem implementation. This indirection is why dup()/fork() share offsets and why O_CLOEXEC matters.</p><p>Most real bugs in I/O code come from edge cases: partial reads/writes, EINTR/EAGAIN, nonblocking mode, buffering layers (stdio vs syscalls), and durability assumptions (page cache vs stable storage). This chapter guide is designed to make those edge cases feel normal.</p>
+            <p>Blocking I/O is simple but doesn't scale: one thread per connection collapses under load. This chapter traces the evolution from select() (O(N) per call, FD_SETSIZE limit) through poll() (no bitmap limit, still O(N)) to epoll (kernel-maintained interest list, O(k) ready-set return). It then covers the critical distinction between level-triggered semantics (report readiness as long as data exists) and edge-triggered semantics (report only on *new* activity, requiring nonblocking drain loops). Finally, it introduces the unified event-loop philosophy — signalfd, timerfd, eventfd fold signals, timers, and inter-thread notifications into a single epoll fd — and previews io_uring's submission/completion queue model that eliminates syscall overhead entirely.</p>
           </div>
           <div class="callouts"><div class="callout good">
-  <div class="k">Scaling insight</div>
-  <div class="v">select()/poll() scan O(N) fds per loop; epoll returns only ready fds O(k).</div>
+  <div class="k">Invariant</div>
+  <div class="v">epoll_wait returns only the ready fds (O(k)), not the entire monitored set (O(N)) — this is the fundamental scaling advantage over select/poll.</div>
 </div><div class="callout warn">
-  <div class="k">Common bug</div>
-  <div class="v">Edge-triggered epoll requires draining reads/writes until EAGAIN; otherwise you stop receiving events.</div>
+  <div class="k">Gotcha</div>
+  <div class="v">Edge-triggered (EPOLLET) requires draining until EAGAIN; missing this causes silent stalls — the fd has pending data but epoll never reports it again.</div>
+</div><div class="callout tip">
+  <div class="k">Debugging</div>
+  <div class="v">Use /proc/PID/fdinfo/N on an epoll fd to inspect the interest list entries, registered events, and associated target fds.</div>
 </div></div>
         </div>
 
         <div class="glass pad-lg">
           <h3 class="section" data-toc="Mental model">Mental model</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
+            Internalize these bullets. If you can explain them clearly, you can debug most real-world event-loop incidents.
           </div>
           <div class="prose">
-            <ul><li>Think in layers: fd → open file description → inode → filesystem → storage.</li><li>Assume partial progress and interruptions. Your code must be correct under short reads/writes and EINTR.</li><li>Nonblocking I/O turns blocking into explicit flow-control (EAGAIN + readiness notification).</li><li>Durability is separate from visibility: write() updates cache; fsync() requests stable storage.</li><li>Atomicity is about specific operations and objects (PIPE_BUF for pipes, rename within FS, O_APPEND semantics).</li><li>Always define ownership for file descriptors (who closes; when; and what happens across exec).</li></ul>
+            <ul><li>select/poll copy the entire fd set to the kernel and scan ALL fds each call → O(N) per wakeup even if only k fds are ready. epoll maintains a kernel-side interest list (red-black tree) and returns only the ready set via a linked list → O(k) per epoll_wait return.</li><li>Level-triggered (default): epoll_wait reports an fd as ready as long as data remains available. Safe and forgiving — you can read partial data and epoll will remind you — but can cause redundant wakeups under high throughput.</li><li>Edge-triggered (EPOLLET): epoll_wait reports an fd as ready only when NEW activity occurs (e.g., new data arrives). You must drain with nonblocking reads in a loop until EAGAIN; failing to drain means the fd goes silent with unread data still in the buffer.</li><li>EPOLLONESHOT: disarms the fd after delivering one event. Essential for thread-safe dispatch — prevents two threads from handling the same fd simultaneously. After processing, re-arm with epoll_ctl(EPOLL_CTL_MOD).</li><li>Thundering herd: multiple threads/processes blocked in epoll_wait on the same epoll fd all wake on one event. EPOLLEXCLUSIVE (Linux 4.5+) limits wakeup to one waiter. SO_REUSEPORT with separate epoll instances is an alternative that also provides load balancing.</li><li>signalfd, timerfd, and eventfd convert signals, timers, and cross-thread notifications into file descriptors that can be monitored in the same epoll loop — eliminating the need for signal handlers, alarm-based timers, or pipe-based wakeup hacks.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>FD table</td><td>Per-process map: small integers → pointers to open file descriptions.</td></tr><tr><td class='mono'>Open file description</td><td>Kernel object holding file offset + status flags; shared via dup() and fork().</td></tr><tr><td class='mono'>Page cache</td><td>Caches file-backed pages in RAM; affects reads, writes, and durability.</td></tr><tr><td class='mono'>O_CLOEXEC</td><td>Close-on-exec flag preventing FD leakage into exec&#x27;d programs; set atomically where possible.</td></tr><tr><td class='mono'>EINTR</td><td>Error indicating a blocking syscall was interrupted by a signal; requires retry logic.</td></tr><tr><td class='mono'>EAGAIN</td><td>Nonblocking operation would block; treat as flow-control and retry later.</td></tr></tbody>
+  <tbody><tr><td class='mono'>epoll_create1</td><td>Creates an epoll instance; returns an fd. Pass EPOLL_CLOEXEC to prevent leaking across exec.</td></tr><tr><td class='mono'>epoll_ctl</td><td>Modifies the interest list: EPOLL_CTL_ADD, EPOLL_CTL_MOD, EPOLL_CTL_DEL. Each entry stores an events mask and a user-data union.</td></tr><tr><td class='mono'>epoll_wait</td><td>Blocks until at least one fd is ready (or timeout). Returns up to maxevents ready entries — the O(k) advantage.</td></tr><tr><td class='mono'>EPOLLET</td><td>Edge-triggered flag. Events fire only on state transitions. Requires nonblocking I/O and drain-until-EAGAIN loops.</td></tr><tr><td class='mono'>EPOLLONESHOT</td><td>Disarms the fd after one event delivery. Must re-arm with EPOLL_CTL_MOD. Used for safe multi-threaded dispatch.</td></tr><tr><td class='mono'>EPOLLEXCLUSIVE</td><td>Limits wakeup to one of multiple waiters on the same epoll fd. Mitigates thundering herd on accept().</td></tr><tr><td class='mono'>signalfd</td><td>Creates an fd that receives signals as readable data. Block signals with sigprocmask first, then read signalfd_siginfo structs.</td></tr><tr><td class='mono'>timerfd</td><td>Creates an fd that becomes readable when a timer expires. Supports one-shot and interval timers (timerfd_create + timerfd_settime).</td></tr><tr><td class='mono'>eventfd</td><td>Creates an fd for cross-thread/process event notification. Write increments a 64-bit counter; read returns and resets it.</td></tr><tr><td class='mono'>io_uring</td><td>Asynchronous I/O interface using shared submission (SQ) and completion (CQ) ring buffers. Eliminates per-operation syscall overhead.</td></tr></tbody>
 </table>
         </div>
 
@@ -125,17 +128,17 @@
             This is where production bugs live. Expand each panel and treat the bullets as test cases.
           </div>
           <details class="accordion">
-  <summary>Atomicity &amp; invariants you can rely on</summary>
-  <div class="content"><ul><li>A file descriptor is a *per-process* handle; the underlying open file description (OFD) is a *kernel object* that can be shared.</li><li>OFD contains the file offset and status flags. After dup() or fork(), multiple fds can reference the same OFD → shared offset.</li><li>For regular files, read/write update the file offset as part of the syscall. For O_APPEND, the kernel sets the offset to EOF atomically for each write.</li><li>Atomicity is filesystem- and operation-dependent. Example: POSIX guarantees atomic writes up to PIPE_BUF for pipes/FIFOs; regular file writes are not globally atomic across threads/processes unless you design for it.</li></ul></div>
+  <summary>Edge-triggered draining pitfalls</summary>
+  <div class="content"><ul><li>With EPOLLET, you must read() in a loop until it returns -1 with EAGAIN. A single read() that returns fewer bytes than requested does NOT mean the buffer is empty — another segment may have arrived between the kernel check and the copy.</li><li>Partial drain is the #1 epoll bug: the fd has pending data, but epoll never fires again because no *new* event occurred. The connection appears hung.</li><li>EPOLLOUT with edge-triggered: after getting EAGAIN from write(), register EPOLLOUT. When it fires, write what you can, then remove EPOLLOUT interest if the buffer is fully flushed — otherwise you spin on writable notifications.</li><li>Combine EPOLLET with EPOLLONESHOT for maximum safety: you get exactly one event, process it fully, then re-arm. This is the recommended pattern for multi-threaded servers.</li></ul></div>
 </details><details class="accordion">
-  <summary>Error-handling: the “three E’s” (EINTR, EAGAIN, EOF)</summary>
-  <div class="content"><ul><li>EINTR means a signal interrupted a blocking syscall. Decide a policy: use SA_RESTART where appropriate, or loop-and-retry explicitly.</li><li>EAGAIN/EWOULDBLOCK means nonblocking I/O would block. Treat it as flow-control: register interest (poll/epoll) and retry later.</li><li>EOF is *not* an error: read() returns 0. For sockets, recv()=0 means peer performed an orderly shutdown (FIN).</li><li>Short reads/writes are normal. Write robust loops that handle partial progress without assuming “all or nothing”.</li></ul></div>
+  <summary>Thundering herd and EPOLLEXCLUSIVE</summary>
+  <div class="content"><ul><li>When multiple threads call epoll_wait on the same epoll fd, a single incoming connection wakes ALL of them. Only one succeeds at accept(); the rest get EAGAIN and wasted context switches.</li><li>EPOLLEXCLUSIVE (Linux 4.5+) ensures only one waiter is woken per event. Add it to the listen socket's EPOLLIN mask.</li><li>SO_REUSEPORT is an alternative: each thread gets its own listen socket and epoll instance. The kernel distributes connections across sockets. This also avoids lock contention on the accept queue.</li><li>Accept storms: even with EPOLLEXCLUSIVE, a burst of connections can cause contention. Drain the accept queue (loop accept until EAGAIN) to amortize wakeup cost.</li></ul></div>
 </details><details class="accordion">
-  <summary>Performance notes you feel in production</summary>
-  <div class="content"><ul><li>The page cache means that “write() returned” does not imply data is on disk. Durability requires fsync()/fdatasync() + careful ordering.</li><li>Avoid tiny syscalls in hot loops: batch, use larger buffers, and reduce context switches.</li><li>pread/pwrite avoid shared offset contention, often improving scalability in multi-threaded servers.</li><li>On fast storage, syscall overhead can dominate. Profiling with perf can show time in vfs, ext4, or copy_to_user/copy_from_user paths.</li></ul></div>
+  <summary>epoll and fork/exec</summary>
+  <div class="content"><ul><li>An epoll fd is a regular fd: it survives fork(). But the interest list is a *kernel object* shared between parent and child (like an open file description). Both processes see the same interest list — adding/removing in one affects the other.</li><li>If the child closes a monitored fd, the kernel removes that fd from the interest list — which also affects the parent's epoll monitoring. This is a common source of silent bugs after fork().</li><li>Always use EPOLL_CLOEXEC (or fcntl FD_CLOEXEC) on epoll fds to prevent them from leaking into exec'd children.</li><li>After fork(), the child should typically create its own epoll instance rather than sharing the parent's. The shared interest list semantic is almost never what you want.</li></ul></div>
 </details><details class="accordion">
-  <summary>Debugging workflow</summary>
-  <div class="content"><ul><li>Start with strace -f to see syscalls and errno. Add -tt -T to see timing.</li><li>Inspect /proc/&lt;pid&gt;/fd to confirm which files are open and where they point.</li><li>Use lsof for system-wide views and to find which process holds a lock or open file.</li><li>When performance matters, perf trace/perf record can reveal syscall hotspots and kernel stack traces.</li></ul></div>
+  <summary>io_uring: the future</summary>
+  <div class="content"><ul><li>io_uring (Linux 5.1+) uses two shared ring buffers: the submission queue (SQ) and completion queue (CQ). The application writes submission queue entries (SQEs) and the kernel writes completion queue entries (CQEs) — no syscall per I/O operation.</li><li>IORING_SETUP_SQPOLL creates a kernel thread that polls the SQ, eliminating io_uring_enter() calls entirely. True zero-syscall I/O for sustained workloads.</li><li>io_uring supports registered buffers (IORING_REGISTER_BUFFERS) and registered fds (IORING_REGISTER_FILES) to avoid per-operation map/unmap overhead.</li><li>When to use io_uring vs epoll: io_uring excels at high-throughput storage I/O and when syscall overhead is the bottleneck. For network servers with moderate connection rates, epoll is simpler and well-understood. io_uring's network support is maturing but the API surface is larger and the debugging story is less developed.</li></ul></div>
 </details>
         </div>
 
@@ -145,35 +148,56 @@
     <button class="btn small" data-copy="#code_ch63">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
+    Edge-triggered epoll event loop: nonblocking accept + read with drain-until-EAGAIN pattern.
   </div>
-  <pre id="code_ch63"><code class="mono">// Nonblocking accept loop sketch (edge-triggered epoll requires draining)
+  <pre id="code_ch63"><code class="mono">int epfd = epoll_create1(EPOLL_CLOEXEC);
+struct epoll_event ev = { .events = EPOLLIN | EPOLLET, .data.fd = listen_fd };
+epoll_ctl(epfd, EPOLL_CTL_ADD, listen_fd, &amp;ev);
+
+struct epoll_event ready[MAX_EVENTS];
 for (;;) {
-  int c = accept4(lsock, NULL, NULL, SOCK_NONBLOCK|SOCK_CLOEXEC);
-  if (c &gt;= 0) { add_to_epoll(c); continue; }
-  if (errno == EAGAIN || errno == EWOULDBLOCK) break; // drained accept queue
-  if (errno == EINTR) continue;
-  perror(&quot;accept4&quot;);
+  int n = epoll_wait(epfd, ready, MAX_EVENTS, -1);
+  if (n &lt; 0) { if (errno == EINTR) continue; break; }
+  for (int i = 0; i &lt; n; i++) {
+    if (ready[i].data.fd == listen_fd) {
+      // Drain accept queue (edge-triggered)
+      for (;;) {
+        int c = accept4(listen_fd, NULL, NULL, SOCK_NONBLOCK|SOCK_CLOEXEC);
+        if (c &lt; 0) { if (errno == EAGAIN) break; continue; }
+        ev = (struct epoll_event){ .events = EPOLLIN|EPOLLET, .data.fd = c };
+        epoll_ctl(epfd, EPOLL_CTL_ADD, c, &amp;ev);
+      }
+    } else {
+      // Drain read buffer (edge-triggered)
+      char buf[4096];
+      for (;;) {
+        ssize_t nr = read(ready[i].data.fd, buf, sizeof buf);
+        if (nr &gt; 0) { write(ready[i].data.fd, buf, nr); continue; } // echo
+        if (nr == 0) { close(ready[i].data.fd); break; }             // EOF
+        if (errno == EAGAIN) break;                                    // drained
+      }
+    }
+  }
 }</code></pre>
 </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Production checklist">Production checklist</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            If you are shipping code in this area, try to satisfy each checklist item explicitly.
+            If you are shipping an event-loop server, satisfy each item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Set O_CLOEXEC / FD_CLOEXEC on all fds by default (use openat/pipe2/socket with CLOEXEC flags).</li><li>Handle partial I/O, EINTR, and EAGAIN in loops; never assume single-call completion.</li><li>Decide and document durability: if data must survive crash, use fsync/fdatasync and correct ordering.</li><li>Avoid mixing stdio and raw fd operations on the same underlying file descriptor unless you understand buffering.</li><li>Log errno with context (path, flags, fd) — it’s your future debugging time-saver.</li></ul>
+            <ul><li>Set all fds to O_NONBLOCK before adding to epoll. Blocking fds with edge-triggered epoll will deadlock.</li><li>Always drain until EAGAIN in edge-triggered mode — for both reads and accepts.</li><li>Set EPOLL_CLOEXEC on the epoll fd and SOCK_CLOEXEC on accepted sockets to prevent leaks across exec.</li><li>Implement backpressure: when write() returns EAGAIN, buffer the data, register EPOLLOUT, and remove EPOLLOUT interest once the buffer is flushed. Never busy-loop on write.</li><li>Use EPOLLONESHOT for multi-threaded dispatch to prevent two threads from handling the same fd simultaneously.</li><li>Handle EINTR from epoll_wait — it is normal when signals are delivered.</li><li>Set connection timeouts: use timerfd or epoll_wait timeout to reap idle connections and prevent fd exhaustion.</li><li>Monitor /proc/sys/fs/file-nr and ulimit -n; epoll scales to millions of fds but the system must have headroom.</li></ul>
           </div>
         </div>
 
         <div class="glass pad-lg" style="margin-top:12px">
           <h3 class="section" data-toc="Exercises">Exercises</h3>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-            Hands-on tasks to make the chapter “stick”. These are intentionally practical and debugging-heavy.
+            Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Implement a small epoll-based echo server. First do level-triggered, then switch to EPOLLET and fix the draining bug.</li><li>Compare CPU usage of poll vs epoll by simulating N idle connections and k active ones.</li><li>Add a timerfd (or timeout) to drive periodic maintenance in the same event loop.</li></ul>
+            <ul><li>Build a multi-connection echo server using epoll with EPOLLET. Verify correctness by sending messages larger than the socket buffer size — confirm no data is lost by comparing checksums. Intentionally remove the drain loop and observe the stall.</li><li>Benchmark select vs epoll: create 10,000 idle TCP connections and 10 active ones. Measure CPU usage and latency for both. Graph the results as N increases from 100 to 50,000.</li><li>Integrate signalfd for clean shutdown: block SIGINT/SIGTERM with sigprocmask, create a signalfd, add it to the epoll loop, and perform graceful connection draining when the signal is received.</li></ul>
           </div>
         </div>
 
@@ -182,52 +206,52 @@ for (;;) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="epoll_wait returns the ready set (up to maxevents).">
-  <div class="qp">Q1. epoll_wait returns:</div>
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="select/poll copy and scan the entire fd set on every call — O(N). epoll maintains a kernel-side interest list and returns only the ready fds — O(k). This is the fundamental scaling difference.">
+  <div class="qp">Q1. What is the key scaling advantage of epoll over select?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">All fds registered</div></div>
+  <div><div style="font-weight:750">epoll supports more than 1024 fds</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only fds that are ready</div></div>
+  <div><div style="font-weight:750">epoll uses less memory per fd</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only fds with errors</div></div>
+  <div><div style="font-weight:750">epoll returns only ready fds (O(k)) instead of scanning all (O(N))</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Only fds that are writable</div></div>
+  <div><div style="font-weight:750">epoll supports UDP while select does not</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="2" data-explain="EAGAIN indicates the operation would block.">
-  <div class="qp">Q2. In nonblocking mode, read() when no data returns:</div>
+</div><div class="q" data-quiz data-answer="1" data-explain="In edge-triggered mode, epoll only reports new activity. If you don't drain all available data, no further events are delivered for that fd — it appears idle despite having pending data in the buffer.">
+  <div class="qp">Q2. What happens if you don't drain until EAGAIN in edge-triggered mode?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">0</div></div>
+  <div><div style="font-weight:750">epoll automatically switches to level-triggered</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 with EINTR</div></div>
+  <div><div style="font-weight:750">Events are lost; the fd appears idle despite pending data</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 with EAGAIN/EWOULDBLOCK</div></div>
+  <div><div style="font-weight:750">The kernel returns EPOLLERR on the next call</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">-1 with EBADF</div></div>
+  <div><div style="font-weight:750">The connection is automatically closed</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="Edge-triggered requires you to consume all available data; otherwise no further events are delivered.">
-  <div class="qp">Q3. What is the typical event-loop bug with EPOLLET?</div>
+</div><div class="q" data-quiz data-answer="3" data-explain="EPOLLONESHOT disarms the fd after delivering one event, preventing concurrent dispatch to multiple threads. You must re-arm with epoll_ctl(EPOLL_CTL_MOD) after processing.">
+  <div class="qp">Q3. What does EPOLLONESHOT do?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Not calling epoll_ctl</div></div>
+  <div><div style="font-weight:750">Removes the fd from the interest list permanently</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Not draining until EAGAIN</div></div>
+  <div><div style="font-weight:750">Limits epoll_wait to returning one event at a time</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Using O_APPEND</div></div>
+  <div><div style="font-weight:750">Makes the fd edge-triggered for one event only</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Using FD_CLOEXEC</div></div>
+  <div><div style="font-weight:750">Disarms the fd after one event; must re-arm with EPOLL_CTL_MOD</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -235,7 +259,7 @@ for (;;) {
 
         <div class="glass pad" style="margin-top:12px">
           <div class="muted2 small">
-            Disclaimer: This companion is original educational content and does not reproduce TLPI’s text or figures.
+            Disclaimer: This companion is original educational content and does not reproduce TLPI's text or figures.
             Always verify details with man pages and your target kernel/libc versions.
           </div>
         </div>
@@ -275,7 +299,7 @@ for (;;) {
       highlight: ["fdtable", "file", "inode", "pagecache", "pipe", "epoll"]
     });
 TLPIWidgets.mountEpollLab("ep_ch63", {N: 2000, k: 20});
-TLPIWidgets.mountStraceParser("str_ch63", {example: "openat(AT_FDCWD, \"/etc/hosts\", O_RDONLY|O_CLOEXEC) = 3\nread(3, \"...\", 4096) = 172\nclose(3) = 0\nopenat(AT_FDCWD, \"/nope\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)\n"});
+TLPIWidgets.mountStraceParser("str_ch63", {example: "epoll_create1(EPOLL_CLOEXEC)            = 3\nepoll_ctl(3, EPOLL_CTL_ADD, 4, {events=EPOLLIN|EPOLLET, data={fd=4}}) = 0\nepoll_wait(3, [{events=EPOLLIN, data={fd=4}}], 64, -1) = 1\naccept4(4, NULL, NULL, SOCK_NONBLOCK|SOCK_CLOEXEC) = 5\nepoll_ctl(3, EPOLL_CTL_ADD, 5, {events=EPOLLIN|EPOLLET, data={fd=5}}) = 0\nepoll_wait(3, [{events=EPOLLIN, data={fd=5}}], 64, -1) = 1\nread(5, \"hello\\n\", 4096)                = 6\nread(5, 0x7ffd..., 4096)                = -1 EAGAIN (Resource temporarily unavailable)\n"});
   </script>
 </body>
 </html>
