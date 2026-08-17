@@ -170,8 +170,8 @@ Creating an entirely new section currently requires application code:
 1. Add its Zod schema and field to `src/content/schema.js`.
 2. Add and export its data through `src/content/index.js`.
 3. Create a renderer in `src/components/sections/`.
-4. Add the renderer to `src/pages/Index.jsx`.
-5. Add its navigation metadata to `SiteHeader.jsx` and `CommandMenu.jsx`.
+4. Register its ID, label, icon, component, and navigation visibility in
+   `src/components/sections/registry.jsx`.
 
 Keep a distinct renderer when the section needs a distinct layout, such as a
 timeline, carousel, or tabbed grid. Reuse existing layout primitives instead

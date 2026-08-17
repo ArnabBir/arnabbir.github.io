@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, ArrowUpRight } from "lucide-react";
 
@@ -136,7 +136,9 @@ function ProjectGrid({ items }) {
 }
 
 export default function Projects() {
-  const featured = projectsContent.filter((p) => p.kind === "featured" || p.featured);
+  const [showAllFeatured, setShowAllFeatured] = useState(false);
+  const featuredProjects = projectsContent.filter((p) => p.kind === "featured" || p.featured);
+  const featured = showAllFeatured ? featuredProjects : featuredProjects.slice(0, 3);
   const openSource = projectsContent.filter((p) => p.kind === "open-source");
   const labs = projectsContent.filter((p) => p.kind === "lab");
 
@@ -151,20 +153,33 @@ export default function Projects() {
 
         <div className="mt-10">
           <Tabs defaultValue="featured">
-            <TabsList className="h-10 rounded-full bg-muted/50 p-1">
-              <TabsTrigger value="featured" className="rounded-full text-sm px-4 data-[state=active]:shadow-sm">
+            <TabsList className="h-10 w-full justify-start overflow-x-auto rounded-full bg-muted/50 p-1 sm:w-fit">
+              <TabsTrigger value="featured" className="shrink-0 rounded-full px-4 text-sm data-[state=active]:shadow-sm">
                 Featured
               </TabsTrigger>
-              <TabsTrigger value="open-source" className="rounded-full text-sm px-4 data-[state=active]:shadow-sm">
+              <TabsTrigger value="open-source" className="shrink-0 rounded-full px-4 text-sm data-[state=active]:shadow-sm">
                 Open source
               </TabsTrigger>
-              <TabsTrigger value="labs" className="rounded-full text-sm px-4 data-[state=active]:shadow-sm">
+              <TabsTrigger value="labs" className="shrink-0 rounded-full px-4 text-sm data-[state=active]:shadow-sm">
                 Labs
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="featured" className="mt-8">
               <ProjectGrid items={featured} />
+              {featuredProjects.length > 3 ? (
+                <div className="mt-8 flex justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-full"
+                    aria-expanded={showAllFeatured}
+                    onClick={() => setShowAllFeatured((show) => !show)}
+                  >
+                    {showAllFeatured ? "Show flagship projects" : `Show all ${featuredProjects.length} featured projects`}
+                  </Button>
+                </div>
+              ) : null}
             </TabsContent>
             <TabsContent value="open-source" className="mt-8">
               <ProjectGrid items={openSource} />

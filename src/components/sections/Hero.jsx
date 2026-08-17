@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Download, MapPin, Sparkles } from "lucide-react";
 
 import Container from "@/components/layout/Container";
@@ -10,20 +10,25 @@ import { siteContent } from "@/content";
 
 const ROLES = ["Software Engineer", "Systems Thinker", "Platform Builder", "Reliability Advocate"];
 
-function useTypingEffect(words, typingSpeed = 80, deletingSpeed = 50, pauseDuration = 2000) {
+function useTypingEffect(words, reduceMotion, typingSpeed = 80, deletingSpeed = 50, pauseDuration = 2000) {
   const [text, setText] = useState("");
   const [wordIndex, setWordIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    if (reduceMotion) {
+      setText(words[0]);
+      return undefined;
+    }
     const currentWord = words[wordIndex];
+    let pauseTimeout;
 
     const timeout = setTimeout(
       () => {
         if (!isDeleting) {
           setText(currentWord.slice(0, text.length + 1));
           if (text.length + 1 === currentWord.length) {
-            setTimeout(() => setIsDeleting(true), pauseDuration);
+            pauseTimeout = setTimeout(() => setIsDeleting(true), pauseDuration);
           }
         } else {
           setText(currentWord.slice(0, text.length - 1));
@@ -36,8 +41,11 @@ function useTypingEffect(words, typingSpeed = 80, deletingSpeed = 50, pauseDurat
       isDeleting ? deletingSpeed : typingSpeed,
     );
 
-    return () => clearTimeout(timeout);
-  }, [text, isDeleting, wordIndex, words, typingSpeed, deletingSpeed, pauseDuration]);
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(pauseTimeout);
+    };
+  }, [text, isDeleting, wordIndex, words, reduceMotion, typingSpeed, deletingSpeed, pauseDuration]);
 
   return text;
 }
@@ -53,6 +61,7 @@ const fadeUp = {
 
 export default function Hero() {
   const sectionRef = useRef(null);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
@@ -62,7 +71,7 @@ export default function Hero() {
   const y2 = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
-  const typedRole = useTypingEffect(ROLES);
+  const typedRole = useTypingEffect(ROLES, reduceMotion);
 
   return (
     <section ref={sectionRef} id="home" className="relative min-h-[90vh] flex items-center overflow-hidden">
@@ -89,7 +98,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background/80" />
       </div>
 
-      <Container className="py-16 sm:py-24 lg:py-28" id="content">
+      <Container className="py-16 sm:py-24 lg:py-28">
         <motion.div style={{ opacity }} className="grid grid-cols-1 gap-12 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
           {/* Left Column — Text */}
           <div>
@@ -214,6 +223,7 @@ export default function Hero() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={s.label}
                   className="group inline-flex items-center gap-2 rounded-full border bg-background/60 backdrop-blur-sm px-3.5 py-2 text-sm text-muted-foreground transition-all duration-300 hover:text-foreground hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm"
                 >
                   <SocialIcon name={s.icon} className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />

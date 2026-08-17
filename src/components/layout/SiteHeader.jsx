@@ -14,18 +14,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { siteContent } from "@/content";
-
-const SECTIONS = [
-  { id: "about", label: "About" },
-  { id: "experience", label: "Experience" },
-  { id: "education", label: "Education" },
-  { id: "projects", label: "Projects" },
-  { id: "library", label: "Library" },
-  { id: "writing", label: "Writing" },
-  { id: "skills", label: "Skills" },
-  { id: "certifications", label: "Certifications" },
-  { id: "contact", label: "Contact" },
-];
+import { navigationSections } from "@/components/sections/registry";
 
 function useActiveSection() {
   const [active, setActive] = useState("");
@@ -43,7 +32,7 @@ function useActiveSection() {
       { rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.25, 0.5] },
     );
 
-    SECTIONS.forEach(({ id }) => {
+    navigationSections.forEach(({ id }) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
@@ -57,7 +46,7 @@ function useActiveSection() {
 function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor, activeSection }) {
   return (
     <nav className="flex flex-col gap-1 md:flex-row md:gap-1">
-      {SECTIONS.map((s) => {
+      {navigationSections.map((s) => {
         const isActive = activeSection === s.id;
         const link = (
           <a
@@ -110,10 +99,10 @@ export default function SiteHeader({ onOpenCommand }) {
     >
       <Container className="flex items-center justify-between py-3">
         {/* Logo */}
-        <a href="#home" className="flex items-center gap-3 group">
+        <a href={hrefFor("home")} className="flex items-center gap-3 group">
           <img
             src="/images/logo.png"
-            alt="Logo"
+            alt={`${siteContent.name} home`}
             className={`h-9 w-9 rounded-lg ring-1 ring-border/50 transition-transform duration-300 group-hover:scale-105 ${isDark ? "invert" : ""}`}
           />
           <span className="font-semibold tracking-tight text-foreground animated-underline">

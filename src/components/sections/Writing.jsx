@@ -32,7 +32,7 @@ export default function Writing() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45 }}
         >
-          <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeading
               eyebrow="Writing"
               title="Notes from the trenches"
@@ -47,7 +47,7 @@ export default function Writing() {
             </Link>
           </div>
 
-          <div className="mt-10 relative px-12">
+          <div className="relative mt-10 md:px-12">
             <Carousel opts={CAROUSEL_OPTS}>
               <CarouselContent>
                 {writingContent.map((w) => (
@@ -59,8 +59,10 @@ export default function Writing() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute -left-12 rounded-full" />
-              <CarouselNext className="absolute -right-12 rounded-full" />
+              <div className="mt-4 flex justify-center gap-2 md:contents">
+                <CarouselPrevious className="static translate-y-0 md:absolute md:-left-12 md:top-1/2 md:-translate-y-1/2" />
+                <CarouselNext className="static translate-y-0 md:absolute md:-right-12 md:top-1/2 md:-translate-y-1/2" />
+              </div>
             </Carousel>
           </div>
         </motion.div>

@@ -82,7 +82,7 @@ export default function Certifications() {
           />
 
           {certificationsContent.length > 0 && (
-            <div className="mt-10 relative px-12">
+            <div className="relative mt-10 md:px-12">
               <Carousel opts={CAROUSEL_OPTS}>
                 <CarouselContent>
                   {certificationsContent.map((c) => (
@@ -94,8 +94,10 @@ export default function Certifications() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute -left-12 rounded-full" />
-                <CarouselNext className="absolute -right-12 rounded-full" />
+                <div className="mt-4 flex justify-center gap-2 md:contents">
+                  <CarouselPrevious className="static translate-y-0 md:absolute md:-left-12 md:top-1/2 md:-translate-y-1/2" />
+                  <CarouselNext className="static translate-y-0 md:absolute md:-right-12 md:top-1/2 md:-translate-y-1/2" />
+                </div>
               </Carousel>
             </div>
           )}

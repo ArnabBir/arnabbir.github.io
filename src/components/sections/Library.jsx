@@ -156,7 +156,7 @@ export default function Library() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45 }}
         >
-          <div className="flex items-end justify-between mb-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeading
               eyebrow="Engineering Library"
               title="Interactive Study Materials"
@@ -172,7 +172,7 @@ export default function Library() {
           </div>
 
           {featured.length > 0 && (
-            <div className="mt-10 relative px-12">
+            <div className="relative mt-10 md:px-12">
               <Carousel opts={CAROUSEL_OPTS}>
                 <CarouselContent>
                   {featured.map((item) => (
@@ -184,8 +184,10 @@ export default function Library() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute -left-12 rounded-full" />
-                <CarouselNext className="absolute -right-12 rounded-full" />
+                <div className="mt-4 flex justify-center gap-2 md:contents">
+                  <CarouselPrevious className="static translate-y-0 md:absolute md:-left-12 md:top-1/2 md:-translate-y-1/2" />
+                  <CarouselNext className="static translate-y-0 md:absolute md:-right-12 md:top-1/2 md:-translate-y-1/2" />
+                </div>
               </Carousel>
             </div>
           )}

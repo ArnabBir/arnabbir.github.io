@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { CheckCircle2, Code2, Users, Zap } from "lucide-react";
 
 import Container from "@/components/layout/Container";
@@ -16,17 +16,23 @@ const PRINCIPLES = [
 const STATS = [
   { label: "Years of experience", value: 7, suffix: "+", icon: Code2 },
   { label: "Engineers mentored", value: 50, suffix: "+", icon: Users },
-  { label: "Scale (TPS)", value: 100, suffix: "M+", icon: Zap },
+  { label: "Transactions each month", value: 10, suffix: "B+", icon: Zap },
+  { label: "Peak throughput", value: 200, suffix: "K RPS", icon: Zap },
 ];
 
-function AnimatedCounter({ target, suffix = "", duration = 2000 }) {
+function AnimatedCounter({ target, suffix = "", duration = 2000, reduceMotion }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView) return undefined;
+    if (reduceMotion) {
+      setCount(target);
+      return undefined;
+    }
     let startTime = null;
+    let frameId;
     const animate = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
@@ -34,10 +40,11 @@ function AnimatedCounter({ target, suffix = "", duration = 2000 }) {
       // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setCount(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) frameId = requestAnimationFrame(animate);
     };
-    requestAnimationFrame(animate);
-  }, [inView, target, duration]);
+    frameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameId);
+  }, [inView, target, duration, reduceMotion]);
 
   return (
     <span ref={ref} className="tabular-nums">
@@ -60,6 +67,8 @@ const itemVariants = {
 };
 
 export default function About() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section id="about" className="scroll-mt-24 py-20 sm:py-24">
       <Container>
@@ -75,7 +84,7 @@ export default function About() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
-          className="mt-10 grid grid-cols-3 gap-4"
+          className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4"
         >
           {STATS.map(({ label, value, suffix, icon: Icon }) => (
             <motion.div
@@ -89,7 +98,7 @@ export default function About() {
                 </div>
               </div>
               <div className="text-3xl sm:text-4xl font-bold tracking-tight text-gradient">
-                <AnimatedCounter target={value} suffix={suffix} />
+                <AnimatedCounter target={value} suffix={suffix} reduceMotion={reduceMotion} />
               </div>
               <div className="mt-2 text-xs sm:text-sm text-muted-foreground">{label}</div>
             </motion.div>

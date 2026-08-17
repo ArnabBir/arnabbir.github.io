@@ -10,7 +10,7 @@ export default [
     summary:
       "Engineered TStore (Transaction Store), a high‑performance post‑payment persistence platform.",
     highlights: [
-      "Scaled TStore to support 300M+ transactions/day with 99.99% availability and latency‑sensitive Transaction APIs (p99 < 100ms, p50 < 5ms, 200K RPS).",
+      "Scaled TStore to support 10B+ transactions/month with 99.99% availability and latency-sensitive Transaction APIs (p99 < 100ms, p50 < 5ms, 200K RPS).",
       "Designed durability, disaster recovery, and operational tooling to keep writes safe and reads fast under load.",
       "Partnered with multiple teams to onboard new use‑cases and improve debuggability (dashboards, runbooks, and SLOs).",
     ],

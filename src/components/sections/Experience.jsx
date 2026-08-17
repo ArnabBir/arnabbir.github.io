@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Briefcase } from "lucide-react";
 
@@ -113,6 +113,11 @@ function TimelineItem({ exp, isLast }) {
 }
 
 export default function Experience() {
+  const [showEarlierRoles, setShowEarlierRoles] = useState(false);
+  const recentRoles = experienceContent.slice(0, 4);
+  const visibleExperience = showEarlierRoles ? experienceContent : recentRoles;
+  const hiddenRoleCount = experienceContent.length - recentRoles.length;
+
   return (
     <section id="experience" className="scroll-mt-24 py-20 sm:py-24">
       <Container>
@@ -133,20 +138,35 @@ export default function Experience() {
         </div>
 
         <motion.div
+          id="experience-timeline"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
           className="mt-10"
         >
-          {experienceContent.map((exp, i) => (
+          {visibleExperience.map((exp, i) => (
             <TimelineItem
               key={`${exp.company}-${exp.role}`}
               exp={exp}
-              isLast={i === experienceContent.length - 1}
+              isLast={i === visibleExperience.length - 1}
             />
           ))}
         </motion.div>
+        {hiddenRoleCount > 0 ? (
+          <div className="mt-2 flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full"
+              aria-expanded={showEarlierRoles}
+              aria-controls="experience-timeline"
+              onClick={() => setShowEarlierRoles((show) => !show)}
+            >
+              {showEarlierRoles ? "Show recent experience" : `Show ${hiddenRoleCount} earlier roles`}
+            </Button>
+          </div>
+        ) : null}
       </Container>
     </section>
   );

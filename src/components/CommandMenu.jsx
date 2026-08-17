@@ -4,16 +4,9 @@ import {
   FileText,
   Github,
   Linkedin,
-  Home,
   Mail,
-  Rocket,
-  Briefcase,
   BookOpen,
-  Award,
-  Code2,
-  GraduationCap,
   PenTool,
-  Send,
 } from "lucide-react";
 
 import {
@@ -27,19 +20,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { siteContent } from "@/content";
-
-const SECTIONS = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "about", label: "About", icon: Rocket },
-  { id: "experience", label: "Experience", icon: Briefcase },
-  { id: "education", label: "Education", icon: GraduationCap },
-  { id: "projects", label: "Projects", icon: Code2 },
-  { id: "library", label: "Library", icon: BookOpen },
-  { id: "writing", label: "Writing", icon: PenTool },
-  { id: "skills", label: "Skills", icon: Code2 },
-  { id: "certifications", label: "Certifications", icon: Award },
-  { id: "contact", label: "Contact", icon: Send },
-];
+import { portfolioSections } from "@/components/sections/registry";
 
 function scrollToId(id) {
   const el = document.getElementById(id);
@@ -97,7 +78,7 @@ export default function CommandMenu({ open, onOpenChange }) {
         </CommandEmpty>
 
         <CommandGroup heading="Navigate">
-          {SECTIONS.map((s, idx) => {
+          {portfolioSections.map((s, idx) => {
             const Icon = s.icon;
             const shortcut = idx === 0 ? "H" : undefined;
             return (
