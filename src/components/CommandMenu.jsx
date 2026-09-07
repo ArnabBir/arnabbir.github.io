@@ -25,7 +25,7 @@ import { portfolioSections } from "@/components/sections/registry";
 function scrollToId(id) {
   const el = document.getElementById(id);
   if (!el) return false;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.scrollIntoView({ behavior: "auto", block: "start" });
   return true;
 }
 
@@ -68,7 +68,7 @@ export default function CommandMenu({ open, onOpenChange }) {
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search sections, links, projects..." />
+      <CommandInput aria-label="Search sections and links" placeholder="Search sections and links..." />
       <CommandList className="max-h-[400px]">
         <CommandEmpty>
           <div className="py-6 text-center text-muted-foreground">

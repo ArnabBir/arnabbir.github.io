@@ -20,9 +20,9 @@ const itemVariants = {
 
 function TimelineItem({ exp, isLast }) {
   return (
-    <motion.div variants={itemVariants} className="group relative flex gap-6">
+    <motion.div variants={itemVariants} className="group relative flex gap-3 sm:gap-6">
       {/* Timeline line & dot */}
-      <div className="flex flex-col items-center">
+      <div className="hidden sm:flex flex-col items-center">
         <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border bg-card shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:border-primary/30 group-hover:scale-105">
           {exp.logo ? (
             <img
@@ -41,15 +41,15 @@ function TimelineItem({ exp, isLast }) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-10">
-        <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-5 transition-all duration-300 group-hover:shadow-lg group-hover:border-primary/20 card-spotlight">
+      <div className="min-w-0 flex-1 pb-6 sm:pb-8">
+        <div className="rounded-xl border border-border/70 bg-card p-5 sm:p-7 transition-colors group-hover:border-primary/30 card-spotlight">
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h3 className="font-semibold tracking-tight text-lg">{exp.company}</h3>
+              <h3 className="font-semibold tracking-tight text-xl">{exp.company}</h3>
               <p className="text-sm text-primary font-medium">{exp.role}</p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="text-sm text-muted-foreground font-medium">
                 {exp.start} — {exp.end}
               </p>

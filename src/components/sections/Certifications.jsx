@@ -83,7 +83,7 @@ export default function Certifications() {
 
           {certificationsContent.length > 0 && (
             <div className="relative mt-10 md:px-12">
-              <Carousel opts={CAROUSEL_OPTS}>
+              <Carousel opts={CAROUSEL_OPTS} aria-label="Certifications">
                 <CarouselContent>
                   {certificationsContent.map((c) => (
                     <CarouselItem

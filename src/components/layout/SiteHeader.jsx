@@ -10,11 +10,12 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
 import { siteContent } from "@/content";
-import { navigationSections } from "@/components/sections/registry";
+import { navigationSections, portfolioSections } from "@/components/sections/registry";
 
 function useActiveSection() {
   const [active, setActive] = useState("");
@@ -32,7 +33,7 @@ function useActiveSection() {
       { rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.25, 0.5] },
     );
 
-    navigationSections.forEach(({ id }) => {
+    portfolioSections.forEach(({ id }) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
@@ -43,16 +44,17 @@ function useActiveSection() {
   return active;
 }
 
-function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor, activeSection }) {
+function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor, activeSection, compact = false }) {
   return (
-    <nav className="flex flex-col gap-1 md:flex-row md:gap-1">
-      {navigationSections.map((s) => {
+    <nav aria-label={compact ? "Primary" : "All sections"} className={compact ? "flex items-center gap-1" : "flex flex-col gap-1"}>
+      {(compact ? navigationSections : portfolioSections).map((s) => {
         const isActive = activeSection === s.id;
         const link = (
           <a
             href={hrefFor ? hrefFor(s.id) : `#${s.id}`}
             onClick={onNavigate}
-            className={`relative text-sm px-3 py-1.5 rounded-full transition-all duration-300 ${
+            aria-current={isActive ? "location" : undefined}
+            className={`relative flex min-h-11 items-center text-sm px-3 py-2 rounded-full transition-colors ${
               isActive
                 ? "text-foreground bg-primary/10 font-medium"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -64,7 +66,7 @@ function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor, activeSection
 
         return (
           <React.Fragment key={s.id}>
-            {ItemWrapper ? <ItemWrapper>{link}</ItemWrapper> : link}
+            {ItemWrapper ? <ItemWrapper asChild>{link}</ItemWrapper> : link}
           </React.Fragment>
         );
       })}
@@ -73,9 +75,9 @@ function NavLinks({ onNavigate, itemWrapper: ItemWrapper, hrefFor, activeSection
 }
 
 export default function SiteHeader({ onOpenCommand }) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const location = useLocation();
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
   const isHome = location.pathname === "/";
   const hrefFor = (id) => (isHome ? `#${id}` : `/#${id}`);
   const activeSection = useActiveSection();
@@ -97,22 +99,22 @@ export default function SiteHeader({ onOpenCommand }) {
           : "bg-transparent"
       }`}
     >
-      <Container className="flex items-center justify-between py-3">
+      <Container className="flex items-center justify-between gap-2 py-3">
         {/* Logo */}
-        <a href={hrefFor("home")} className="flex items-center gap-3 group">
+        <a href={hrefFor("home")} className="flex shrink-0 items-center gap-2 group">
           <img
             src="/images/logo.png"
             alt={`${siteContent.name} home`}
-            className={`h-9 w-9 rounded-lg ring-1 ring-border/50 transition-transform duration-300 group-hover:scale-105 ${isDark ? "invert" : ""}`}
+            className={`h-9 w-9 object-contain rounded-lg ring-1 ring-border/50 transition-transform duration-300 group-hover:scale-105 ${isDark ? "invert" : ""}`}
           />
-          <span className="font-semibold tracking-tight text-foreground animated-underline">
+          <span className="font-semibold tracking-tight text-foreground animated-underline text-sm sm:text-base">
             {siteContent.name}
           </span>
         </a>
 
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-1">
-          <NavLinks hrefFor={hrefFor} activeSection={activeSection} />
+          <NavLinks compact hrefFor={hrefFor} activeSection={activeSection} />
         </div>
 
         {/* Actions */}
@@ -129,16 +131,17 @@ export default function SiteHeader({ onOpenCommand }) {
           </Button>
           <ThemeToggle />
 
-          <div className="lg:hidden">
+          <div>
             <Sheet>
               <SheetTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" aria-label="Open menu" className="rounded-full">
+                <Button type="button" variant="ghost" size="icon" aria-label="Open all sections" className="rounded-full">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 max-w-[90vw] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle className="text-left">Navigate</SheetTitle>
+                  <SheetDescription className="text-left">Explore the work, background, and ideas.</SheetDescription>
                 </SheetHeader>
                 <div className="mt-8">
                   <NavLinks onNavigate={() => {}} itemWrapper={SheetClose} hrefFor={hrefFor} activeSection={activeSection} />

@@ -48,8 +48,8 @@ function AnimatedCounter({ target, suffix = "", duration = 2000, reduceMotion })
 
   return (
     <span ref={ref} className="tabular-nums">
-      {count}
-      {suffix}
+      <span className="sr-only">{target}{suffix}</span>
+      <span aria-hidden="true">{reduceMotion ? target : count}{suffix}</span>
     </span>
   );
 }
@@ -84,20 +84,20 @@ export default function About() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
-          className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4"
+           className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4"
         >
           {STATS.map(({ label, value, suffix, icon: Icon }) => (
             <motion.div
               key={label}
               variants={itemVariants}
-              className="group relative rounded-xl border bg-card/50 backdrop-blur-sm p-5 text-center transition-all duration-300 hover:shadow-lg hover:border-primary/20 card-spotlight"
+              className="group relative rounded-xl border border-primary/15 bg-primary/[0.03] p-4 sm:p-6 card-spotlight"
             >
-              <div className="flex justify-center mb-3">
+              <div aria-hidden="true" className="flex mb-5">
                 <div className="rounded-full bg-primary/10 p-2.5">
                   <Icon className="h-5 w-5 text-primary" />
                 </div>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold tracking-tight text-gradient">
+              <div className="font-display text-[clamp(1.5rem,4vw,2.75rem)] font-bold tracking-tight text-foreground whitespace-nowrap">
                 <AnimatedCounter target={value} suffix={suffix} reduceMotion={reduceMotion} />
               </div>
               <div className="mt-2 text-xs sm:text-sm text-muted-foreground">{label}</div>

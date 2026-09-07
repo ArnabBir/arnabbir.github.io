@@ -123,6 +123,12 @@ export const LibraryItemSchema = z.object({
         z.object({
           title: z.string(),
           contentPath: z.string().optional(),
+          id: z.string().optional(),
+          category: z.string().optional(),
+          objective: z.string().optional(),
+          source: z.string().url().optional(),
+          sourceLabel: z.string().optional(),
+          kind: z.enum(['Legacy interactive', 'Model lab', 'Guided walkthrough', 'Interactive demo']).optional(),
         }),
       ])
     )

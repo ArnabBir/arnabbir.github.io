@@ -1,5 +1,6 @@
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react";
+import { useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -29,6 +30,7 @@ const Carousel = React.forwardRef((
   },
   ref
 ) => {
+  const reduceMotion = useReducedMotion()
   const [carouselRef, api] = useEmblaCarousel({
     ...opts,
     axis: orientation === "horizontal" ? "x" : "y",
@@ -46,12 +48,12 @@ const Carousel = React.forwardRef((
   }, [])
 
   const scrollPrev = React.useCallback(() => {
-    api?.scrollPrev()
-  }, [api])
+    api?.scrollPrev(Boolean(reduceMotion))
+  }, [api, reduceMotion])
 
   const scrollNext = React.useCallback(() => {
-    api?.scrollNext()
-  }, [api])
+    api?.scrollNext(Boolean(reduceMotion))
+  }, [api, reduceMotion])
 
   const handleKeyDown = React.useCallback((event) => {
     if (event.key === "ArrowLeft") {
@@ -81,6 +83,7 @@ const Carousel = React.forwardRef((
     api.on("select", onSelect)
 
     return () => {
+      api?.off("reInit", onSelect)
       api?.off("select", onSelect)
     };
   }, [api, onSelect])
@@ -156,7 +159,7 @@ const CarouselPrevious = React.forwardRef(({ className, variant = "outline", siz
       ref={ref}
       variant={variant}
       size={size}
-      className={cn("absolute  h-8 w-8 rounded-full", orientation === "horizontal"
+      className={cn("absolute h-11 w-11 rounded-full", orientation === "horizontal"
         ? "-left-12 top-1/2 -translate-y-1/2"
         : "-top-12 left-1/2 -translate-x-1/2 rotate-90", className)}
       disabled={!canScrollPrev}
@@ -177,7 +180,7 @@ const CarouselNext = React.forwardRef(({ className, variant = "outline", size = 
       ref={ref}
       variant={variant}
       size={size}
-      className={cn("absolute h-8 w-8 rounded-full", orientation === "horizontal"
+      className={cn("absolute h-11 w-11 rounded-full", orientation === "horizontal"
         ? "-right-12 top-1/2 -translate-y-1/2"
         : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90", className)}
       disabled={!canScrollNext}

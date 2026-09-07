@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { MotionConfig } from "framer-motion";
 
 import BackToTop from "@/components/BackToTop";
 import CommandMenu from "@/components/CommandMenu";
@@ -30,7 +31,8 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen noise">
+    <MotionConfig reducedMotion="user">
+    <div className="portfolio min-h-screen noise">
       <ScrollProgress />
       <SiteHeader onOpenCommand={() => setCommandOpen(true)} />
 
@@ -43,7 +45,7 @@ export default function Index() {
 
         {portfolioSections.map(({ id, component: Section }, index) => (
           <React.Fragment key={id}>
-            {index > 0 ? <SectionDivider /> : null}
+            {index > 1 ? <SectionDivider /> : null}
             <Section />
           </React.Fragment>
         ))}
@@ -54,5 +56,6 @@ export default function Index() {
       <BackToTop />
       <CommandMenu open={commandOpen} onOpenChange={setCommandOpen} />
     </div>
+    </MotionConfig>
   );
 }

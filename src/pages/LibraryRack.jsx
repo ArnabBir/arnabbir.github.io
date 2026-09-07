@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { libraryContent } from "@/content";
+import WhitepaperRack from './WhitepaperRack';
 
 const slugify = (value) =>
   value
@@ -96,6 +97,8 @@ export default function LibraryRack() {
       return haystack.includes(q);
     });
   }, [chapterItems, chapterQuery]);
+
+  if (rackId === 'whitepapers' && rack) return <WhitepaperRack papers={rack.books[0].chapters} />;
 
   if (!rack) {
     return (

@@ -97,13 +97,37 @@
     scroll-behavior: smooth;
   }
 
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 4px;
+  }
+
   ::selection {
     background: hsl(var(--primary) / 0.2);
     color: hsl(var(--foreground));
   }
 }
 
+/* Portfolio rhythm stays scoped so embedded simulations keep their own layout. */
+.portfolio main > section:not(#home) {
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+}
+
+.portfolio #projects,
+.portfolio #writing,
+.portfolio #education {
+  background: hsl(var(--muted) / 0.25);
+}
+
+.portfolio main > section {
+  overflow-wrap: anywhere;
+}
+
 @layer utilities {
+  .font-display {
+    font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui;
+  }
+
   /* Grid background pattern */
   .bg-grid {
     background-image:
@@ -370,6 +394,10 @@
   }
   .text-shimmer {
     animation: none;
+  }
+  .portfolio .transition-transform,
+  .portfolio .transition-all {
+    transform: none !important;
   }
 }
 

@@ -48,7 +48,7 @@ export default function Writing() {
           </div>
 
           <div className="relative mt-10 md:px-12">
-            <Carousel opts={CAROUSEL_OPTS}>
+            <Carousel opts={CAROUSEL_OPTS} aria-label="Writing">
               <CarouselContent>
                 {writingContent.map((w) => (
                   <CarouselItem

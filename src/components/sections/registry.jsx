@@ -24,13 +24,13 @@ import Writing from "./Writing";
 export const portfolioSections = [
   { id: "home", label: "Home", icon: Home, component: Hero },
   { id: "about", label: "About", icon: Rocket, component: About, navigation: true },
-  { id: "experience", label: "Experience", icon: Briefcase, component: Experience, navigation: true },
-  { id: "education", label: "Education", icon: GraduationCap, component: Education, navigation: true },
   { id: "projects", label: "Projects", icon: Code2, component: Projects, navigation: true },
+  { id: "experience", label: "Experience", icon: Briefcase, component: Experience, navigation: true },
   { id: "library", label: "Library", icon: BookOpen, component: Library, navigation: true },
   { id: "writing", label: "Writing", icon: PenTool, component: Writing, navigation: true },
-  { id: "skills", label: "Skills", icon: Code2, component: Skills, navigation: true },
-  { id: "certifications", label: "Certifications", icon: Award, component: Certifications, navigation: true },
+  { id: "skills", label: "Skills", icon: Code2, component: Skills },
+  { id: "education", label: "Education", icon: GraduationCap, component: Education },
+  { id: "certifications", label: "Certifications", icon: Award, component: Certifications },
   { id: "contact", label: "Contact", icon: Send, component: Contact, navigation: true },
 ];
 

@@ -173,6 +173,18 @@ Creating an entirely new section currently requires application code:
 4. Register its ID, label, icon, component, and navigation visibility in
    `src/components/sections/registry.jsx`.
 
+The registry order is the homepage reading order: introduction and scale,
+projects, experience, library and writing, supporting credentials, then contact.
+`navigation: true` selects the six primary desktop links; every registered
+section remains available in the all-sections menu and command search.
+Keep the primary navigation short to avoid crowding at laptop widths.
+
+Experience initially shows the first four entries. Featured projects initially
+show the first three matching entries. Order these arrays intentionally; expand
+controls expose the remaining entries without removing them from the portfolio.
+Project cards display descriptions and the first two highlights without truncation.
+Keep highlights concise and put the most useful evidence first.
+
 Keep a distinct renderer when the section needs a distinct layout, such as a
 timeline, carousel, or tabbed grid. Reuse existing layout primitives instead
 of duplicating the section shell or card styles.

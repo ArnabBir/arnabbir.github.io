@@ -22,7 +22,7 @@ export default function SectionHeading({ eyebrow, title, description, className 
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight"
+        className="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight leading-[1.15] text-balance"
       >
         {title}
       </motion.h2>

@@ -41,11 +41,11 @@ export default function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-border/50 pt-8">
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} {siteContent.name}. Crafted with Vite, React & Tailwind.
           </p>
           <a
-            className="text-xs text-muted-foreground/70 hover:text-foreground transition-colors animated-underline"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors animated-underline"
             href={`mailto:${siteContent.email}`}
           >
             {siteContent.email}

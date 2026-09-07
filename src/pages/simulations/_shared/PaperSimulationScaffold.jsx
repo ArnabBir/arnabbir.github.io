@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from 'react-router-dom';
+import { paperMetadata } from '@/content/whitepapers';
 import { useTheme } from "next-themes";
 import {
   Play, Pause, StepForward, RotateCcw, Sun, Moon,
@@ -14,8 +16,8 @@ import {
 /**
  * PaperSimulationScaffold
  * ------------------------------------------------------------
- * A reusable, polished simulation + deep-dive layout for system
- * design papers. Intended for Next.js + Tailwind + next-themes.
+ * A fixed-sequence walkthrough + deep-dive layout for system
+ * design papers, using React, Tailwind, and next-themes.
  *
  * Usage:
  *   <PaperSimulationScaffold config={CONFIG} />
@@ -143,6 +145,7 @@ function SectionTitle({ icon, title, accent }) {
 }
 
 export default function PaperSimulationScaffold({ config }) {
+  const paper = paperMetadata.find(p => p.id === config?.id);
   const { theme, setTheme } = useTheme();
   const accent = ACCENTS[config?.accent] || ACCENTS.indigo;
 
@@ -164,14 +167,18 @@ export default function PaperSimulationScaffold({ config }) {
     setLogs([]);
   }, [config?.id]);
 
-  // Autoplay loop
+  // Stop at the final step instead of silently restarting the explanation.
   useEffect(() => {
     if (!isRunning || steps.length === 0) return;
-    const interval = setInterval(() => {
-      setStepIdx((i) => (i + 1) % steps.length);
+    if (stepIdx >= steps.length - 1) {
+      setIsRunning(false);
+      return;
+    }
+    const interval = setTimeout(() => {
+      setStepIdx((i) => Math.min(i + 1, steps.length - 1));
     }, config?.autoPlayMs || 1400);
-    return () => clearInterval(interval);
-  }, [isRunning, steps.length, config?.autoPlayMs]);
+    return () => clearTimeout(interval);
+  }, [isRunning, stepIdx, steps.length, config?.autoPlayMs]);
 
   // Log step transitions
   useEffect(() => {
@@ -189,7 +196,7 @@ export default function PaperSimulationScaffold({ config }) {
   const stepForward = () => {
     setIsRunning(false);
     if (steps.length === 0) return;
-    setStepIdx((i) => (i + 1) % steps.length);
+    setStepIdx((i) => Math.min(i + 1, steps.length - 1));
   };
 
   const heroIcon = config?.heroIcon || "BookOpen";
@@ -208,17 +215,18 @@ export default function PaperSimulationScaffold({ config }) {
               <Icon name={heroIcon} className="w-6 h-6 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className={classNames("text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent truncate", accent.gradientTitle)}>
-                {config?.title || "Paper Simulation"}
+              <h1 className={classNames("text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent", accent.gradientTitle)}>
+                {config?.title || "Paper Walkthrough"}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">
-                {config?.subtitle || config?.badge || "Interactive demo + deep dive"}
+                Guided walkthrough + technical notes
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 bg-slate-100 dark:bg-slate-900 p-2 rounded-lg border border-slate-300 dark:border-slate-800">
             <button
+              disabled={stepIdx >= steps.length - 1}
               onClick={() => setIsRunning((v) => !v)}
               className={classNames(
                 "flex items-center gap-2 px-4 py-2 rounded-md font-bold text-sm transition-all",
@@ -232,6 +240,7 @@ export default function PaperSimulationScaffold({ config }) {
             </button>
 
             <button
+              disabled={stepIdx >= steps.length - 1}
               onClick={stepForward}
               className="flex items-center gap-2 px-3 py-2 rounded-md text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-950/40 border border-slate-300 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-950 transition-colors text-sm font-semibold"
               title="Step"
@@ -243,6 +252,7 @@ export default function PaperSimulationScaffold({ config }) {
               onClick={reset}
               className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md text-slate-600 dark:text-slate-300 transition-colors"
               title="Reset"
+              aria-label="Reset walkthrough"
             >
               <RotateCcw size={16} />
             </button>
@@ -251,6 +261,7 @@ export default function PaperSimulationScaffold({ config }) {
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md text-slate-600 dark:text-slate-300 transition-colors"
               title="Toggle theme"
+              aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -261,7 +272,16 @@ export default function PaperSimulationScaffold({ config }) {
       {/* ============================================================
           BODY
           ============================================================ */}
-      <div className="max-w-7xl mx-auto p-4 md:p-6">
+      <main id="content" tabIndex={-1} className="max-w-7xl mx-auto p-4 md:p-6">
+        <nav className="flex flex-wrap justify-between gap-4 mb-5 text-sm">
+          <Link className="underline underline-offset-4" to="/library/rack/whitepapers">Back to whitepapers</Link>
+          {paper && <a className="underline underline-offset-4" href={paper.source} target="_blank" rel="noopener noreferrer">{paper.sourceLabel} (new tab)</a>}
+        </nav>
+        <aside className="rounded-xl border border-slate-300 dark:border-slate-700 p-4 mb-6 text-sm leading-relaxed">
+          <strong>Guided walkthrough, not an executable system model.</strong> The controls navigate a fixed explanatory sequence; they do not compute workload, failure, or performance outcomes.
+          {paper && <p className="mt-2">Learning objective: {paper.objective}</p>}
+          <p className="mt-2">For experiments with computed failures and state, try the <Link className="underline" to="/library/whitepapers/dynamo">Dynamo lab</Link> or <Link className="underline" to="/library/whitepapers/paxos-simple">Paxos lab</Link>.</p>
+        </aside>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Steps */}
           <div className="lg:col-span-4 flex flex-col gap-4">
@@ -269,7 +289,7 @@ export default function PaperSimulationScaffold({ config }) {
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <Pill>
                   <Icon name="Activity" className="w-4 h-4" />
-                  Simulation Steps
+                  Walkthrough Steps
                 </Pill>
                 {config?.badge ? (
                   <span className={classNames("text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded-md border", accent.chip)}>
@@ -282,6 +302,7 @@ export default function PaperSimulationScaffold({ config }) {
                 {steps.map((s, idx) => (
                   <button
                     key={idx}
+                    aria-current={idx === stepIdx ? 'step' : undefined}
                     onClick={() => { setIsRunning(false); setStepIdx(idx); }}
                     className={classNames(
                       "w-full text-left p-3 rounded-lg border transition-all",
@@ -443,11 +464,11 @@ export default function PaperSimulationScaffold({ config }) {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Footer hint */}
-      <footer className="py-10 text-center text-xs text-slate-500 dark:text-slate-600">
-        Built with <span className="font-mono">next-themes</span>, <span className="font-mono">lucide-react</span>, and Tailwind utility classes.
+      <footer className="py-10 text-center text-xs text-slate-600 dark:text-slate-400">
+        Educational walkthrough. Consult the linked source for the full design and its assumptions.
       </footer>
     </div>
   );

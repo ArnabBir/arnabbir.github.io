@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Download, MapPin, Sparkles } from "lucide-react";
 
 import Container from "@/components/layout/Container";
@@ -21,15 +21,14 @@ function useTypingEffect(words, reduceMotion, typingSpeed = 80, deletingSpeed = 
       return undefined;
     }
     const currentWord = words[wordIndex];
-    let pauseTimeout;
+    const atEnd = !isDeleting && text === currentWord;
 
     const timeout = setTimeout(
       () => {
-        if (!isDeleting) {
+        if (atEnd) {
+          setIsDeleting(true);
+        } else if (!isDeleting) {
           setText(currentWord.slice(0, text.length + 1));
-          if (text.length + 1 === currentWord.length) {
-            pauseTimeout = setTimeout(() => setIsDeleting(true), pauseDuration);
-          }
         } else {
           setText(currentWord.slice(0, text.length - 1));
           if (text.length === 0) {
@@ -38,16 +37,15 @@ function useTypingEffect(words, reduceMotion, typingSpeed = 80, deletingSpeed = 
           }
         }
       },
-      isDeleting ? deletingSpeed : typingSpeed,
+      atEnd ? pauseDuration : isDeleting ? deletingSpeed : typingSpeed,
     );
 
     return () => {
       clearTimeout(timeout);
-      clearTimeout(pauseTimeout);
     };
   }, [text, isDeleting, wordIndex, words, reduceMotion, typingSpeed, deletingSpeed, pauseDuration]);
 
-  return text;
+  return reduceMotion ? words[0] : text;
 }
 
 const fadeUp = {
@@ -60,21 +58,12 @@ const fadeUp = {
 };
 
 export default function Hero() {
-  const sectionRef = useRef(null);
   const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -40]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   const typedRole = useTypingEffect(ROLES, reduceMotion);
 
   return (
-    <section ref={sectionRef} id="home" className="relative min-h-[90vh] flex items-center overflow-hidden">
+    <section id="home" className="relative isolate flex min-h-[min(820px,90svh)] items-center overflow-hidden border-b border-border/60">
       {/* Animated background */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         {/* Dot grid */}
@@ -82,15 +71,12 @@ export default function Hero() {
 
         {/* Gradient orbs */}
         <motion.div
-          style={{ y: y1 }}
           className="absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-primary/25 via-violet-500/15 to-transparent blur-3xl animate-pulse-glow"
         />
         <motion.div
-          style={{ y: y2 }}
           className="absolute top-1/3 -right-20 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-cyan-400/15 via-blue-500/10 to-transparent blur-3xl animate-float-slow"
         />
         <motion.div
-          style={{ y: y1 }}
           className="absolute -bottom-40 left-1/3 h-[350px] w-[350px] rounded-full bg-gradient-to-r from-fuchsia-400/15 via-pink-500/10 to-transparent blur-3xl animate-float-reverse"
         />
 
@@ -98,10 +84,10 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-background/80" />
       </div>
 
-      <Container className="py-16 sm:py-24 lg:py-28">
-        <motion.div style={{ opacity }} className="grid grid-cols-1 gap-12 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
+      <Container className="py-12 sm:py-20 lg:py-24">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-16">
           {/* Left Column — Text */}
-          <div>
+          <div className="min-w-0">
             {/* Status pill */}
             <motion.div
               custom={0}
@@ -117,31 +103,16 @@ export default function Hero() {
               Open to opportunities
             </motion.div>
 
-            {/* Tags */}
-            <motion.div
-              custom={1}
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-wrap gap-2 mb-6"
-            >
-              {["Distributed Systems", "Reliability", "Platform Engineering"].map((tag) => (
-                <Badge key={tag} variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
-                  {tag}
-                </Badge>
-              ))}
-            </motion.div>
-
             {/* Name */}
             <motion.h1
               custom={2}
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08]"
+              className="text-[clamp(3.5rem,7.5vw,7rem)] font-bold tracking-[-0.065em] leading-[0.98]"
             >
-              Hi, I'm{" "}
-              <span className="text-shimmer">{siteContent.name}</span>
+              <span className="mb-3 block text-base font-medium tracking-normal text-muted-foreground">Hi, I'm</span>
+              <span className="text-gradient">{siteContent.name}</span>
               <span className="text-primary">.</span>
             </motion.h1>
 
@@ -151,10 +122,11 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="mt-4 flex items-center gap-2 text-lg sm:text-xl text-muted-foreground"
+              className="mt-6 flex min-h-7 items-center gap-2 text-base sm:text-lg text-muted-foreground"
             >
-              <Sparkles className="h-5 w-5 text-primary/60" />
-              <span className="font-medium">
+              <Sparkles aria-hidden="true" className="h-4 w-4 shrink-0 text-primary/60" />
+              <span className="sr-only">{siteContent.role}</span>
+              <span aria-hidden="true" className="font-medium">
                 {typedRole}
                 <span className="ml-0.5 inline-block w-[2px] h-5 bg-primary animate-pulse align-middle" />
               </span>
@@ -166,7 +138,7 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="mt-5 text-lg text-muted-foreground leading-relaxed max-w-xl"
+              className="mt-6 max-w-xl text-xl font-medium leading-relaxed text-foreground sm:text-2xl"
             >
               {siteContent.tagline}
             </motion.p>
@@ -177,7 +149,7 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="mt-3 text-base text-muted-foreground/80 leading-relaxed max-w-2xl"
+              className="mt-4 text-base text-muted-foreground leading-relaxed max-w-xl"
             >
               {siteContent.summary}
             </motion.p>
@@ -224,7 +196,7 @@ export default function Hero() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="group inline-flex items-center gap-2 rounded-full border bg-background/60 backdrop-blur-sm px-3.5 py-2 text-sm text-muted-foreground transition-all duration-300 hover:text-foreground hover:border-primary/30 hover:bg-primary/5 hover:shadow-sm"
+                  className="group inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border bg-background/60 backdrop-blur-sm px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground hover:border-primary/30 hover:bg-primary/5"
                 >
                   <SocialIcon name={s.icon} className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                   <span className="hidden sm:inline">{s.label}</span>
@@ -239,9 +211,9 @@ export default function Hero() {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="flex justify-center lg:justify-end"
+            className="flex min-w-0 justify-center lg:justify-end"
           >
-            <div className="relative group">
+            <div className="relative group w-full max-w-[372px]">
               {/* Glow behind card */}
               <div
                 aria-hidden="true"
@@ -249,7 +221,7 @@ export default function Hero() {
               />
 
               {/* Card */}
-              <div className="relative rounded-2xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl p-4 transition-transform duration-500 group-hover:-translate-y-1">
+              <div className="relative rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl shadow-xl p-3 sm:p-4">
                 {/* Gradient border accent */}
                 <div className="absolute inset-0 rounded-2xl gradient-border" />
 
@@ -257,7 +229,9 @@ export default function Hero() {
                   <img
                     src="/images/arnab-bir-profile.jpg"
                     alt={siteContent.name}
-                    className="h-[300px] w-[300px] sm:h-[340px] sm:w-[340px] object-cover transition-transform duration-700 group-hover:scale-105"
+                    width={340}
+                    height={340}
+                    className="aspect-square w-full object-cover"
                     loading="eager"
                   />
                 </div>
@@ -270,7 +244,7 @@ export default function Hero() {
                       {siteContent.location}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1">
+                  <div className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                       <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
@@ -279,9 +253,16 @@ export default function Hero() {
                   </div>
                 </div>
               </div>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                {["Distributed Systems", "Reliability", "Platform Engineering"].map((tag) => (
+                  <Badge key={tag} variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       </Container>
 
       {/* Scroll indicator */}
@@ -289,11 +270,12 @@ export default function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/50"
+        aria-hidden="true"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 text-muted-foreground/50"
       >
         <span className="text-xs tracking-wider uppercase">Scroll</span>
         <motion.div
-          animate={{ y: [0, 8, 0] }}
+          animate={reduceMotion ? { y: 0 } : { y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           className="h-8 w-5 rounded-full border border-current flex items-start justify-center p-1"
         >

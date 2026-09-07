@@ -7,12 +7,14 @@ import { navItems } from "./nav-items";
 import { ThemeProvider } from "next-themes";
 import ScrollToTop from "./components/ScrollToTop";
 import LoadingSpinner from "./components/LoadingSpinner";
+import PaperExperienceNav from './pages/simulations/_shared/PaperExperienceNav';
 
 const LibraryHome = lazy(() => import("./pages/LibraryHome"));
 const LibraryRack = lazy(() => import("./pages/LibraryRack"));
 const LibraryItem = lazy(() => import("./pages/LibraryItem"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const AllBlogs = lazy(() => import("./pages/AllBlogs"));
+const PaperLab = lazy(() => import('./pages/simulations/labs/PaperLab'));
 
 // Simulation pages — lazy loaded for code splitting
 const AnycastLoadBalancingSimulation = lazy(() => import("./pages/simulations/AnycastLoadBalancingSimulation"));
@@ -21,7 +23,6 @@ const BloomParadoxSimulation = lazy(() => import("./pages/simulations/BloomParad
 const BorgSimulation = lazy(() => import("./pages/simulations/BorgSimulation"));
 const DremelSimulation = lazy(() => import("./pages/simulations/DremelSimulation"));
 const DruidSimulation = lazy(() => import("./pages/simulations/DruidSimulation"));
-const DynamoSimulation = lazy(() => import("./pages/simulations/DynamoSimulation"));
 const F1Simulation = lazy(() => import("./pages/simulations/F1Simulation"));
 const FederatedOptimizationsSimulation = lazy(() => import("./pages/simulations/FederatedOptimizationsSimulation"));
 const FlumejavaSimulation = lazy(() => import("./pages/simulations/FlumejavaSimulation"));
@@ -36,7 +37,6 @@ const MyrocksSimulation = lazy(() => import("./pages/simulations/MyrocksSimulati
 const NapaSimulation = lazy(() => import("./pages/simulations/NapaSimulation"));
 const ParallelismOptimizingDataPlacementSimulation = lazy(() => import("./pages/simulations/ParallelismOptimizingDataPlacementSimulation"));
 const PaxosMadeLiveSimulation = lazy(() => import("./pages/simulations/PaxosMadeLiveSimulation"));
-const PaxosSimpleSimulation = lazy(() => import("./pages/simulations/PaxosSimpleSimulation"));
 const QuicSimulation = lazy(() => import("./pages/simulations/QuicSimulation"));
 const RelationalModelSimulation = lazy(() => import("./pages/simulations/RelationalModelSimulation"));
 const ScalingPagerankSimulation = lazy(() => import("./pages/simulations/ScalingPagerankSimulation"));
@@ -58,7 +58,6 @@ const SIMULATION_ROUTES = [
   { path: "borg", component: BorgSimulation },
   { path: "dremel", component: DremelSimulation },
   { path: "druid", component: DruidSimulation },
-  { path: "dynamo", component: DynamoSimulation },
   { path: "f1", component: F1Simulation },
   { path: "federated-optimizations", component: FederatedOptimizationsSimulation },
   { path: "flumejava", component: FlumejavaSimulation },
@@ -72,7 +71,6 @@ const SIMULATION_ROUTES = [
   { path: "napa", component: NapaSimulation },
   { path: "parallelism-optimizing-data-placement", component: ParallelismOptimizingDataPlacementSimulation },
   { path: "paxos-made-live", component: PaxosMadeLiveSimulation },
-  { path: "paxos-simple", component: PaxosSimpleSimulation },
   { path: "quic", component: QuicSimulation },
   { path: "relational-model", component: RelationalModelSimulation },
   { path: "scaling-pagerank", component: ScalingPagerankSimulation },
@@ -108,8 +106,9 @@ const App = () => (
               <Route path="/library" element={<LibraryHome />} />
               <Route path="/library/operating-system/virtual-memory" element={<VirtualMemorySimulation />} />
               {SIMULATION_ROUTES.map(({ path, component: Component }) => (
-                <Route key={path} path={`/library/whitepapers/${path}`} element={<Component />} />
+                <Route key={path} path={`/library/whitepapers/${path}`} element={<PaperExperienceNav id={path}><Component /></PaperExperienceNav>} />
               ))}
+              <Route path="/library/whitepapers/:slug" element={<PaperLab />} />
               <Route path="/library/rack/:rackId" element={<LibraryRack />} />
               <Route path="/library/:id" element={<LibraryItem />} />
             </Routes>

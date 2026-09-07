@@ -4,6 +4,7 @@
  */
 
 import { tlpiAppendices, tlpiChapters, tlpiMeta } from "./tlpi";
+import { paperMetadata } from "./whitepapers";
 
 export default [
   {
@@ -28,18 +29,18 @@ export default [
   {
     id: "whitepapers",
     title: "Whitepapers",
-    description: "Deep dive into the architecture enabling 10,000+ simultaneous experiments via orthogonal layering, cookie-based diversion, and real-time parameter injection.",
+    description: "Explore 52 systems papers and architecture companions through interactive experiments, model labs, and guided walkthroughs.",
     category: "Whitepapers",
-    tags: ["A/B Testing", "Infrastructure", "Experimentation", "Google"],
+    tags: ["Distributed Systems", "Storage", "Consensus", "Networking", "Machine Learning"],
     // thumbnail: "/images/mendel-thumb.png", // Optional: Add thumbnail image to public/images/
     contentPath: "/library/rack/whitepapers", // Path to the HTML file (served from public/library/)
     date: "2024-01-15",
     featured: true,
     highlights: [
-      "Multi-layer orthogonality explained with interactive charts",
-      "Mod-1000 hashing simulation",
-      "Jackknife estimation methodology",
-      "Complete technical architecture breakdown"
+      "Paper-specific learning objectives and source references",
+      "Deterministic models with failure and comparison scenarios",
+      "Storage, consensus, networking, data processing, and reliability",
+      "Explicit model assumptions and walkthrough limitations"
     ],
     chapters: [
       { title: "Google Mendel: Overlapping Experiment Infrastructure" },
@@ -74,7 +75,7 @@ export default [
       { title: "The Relational Model", contentPath: "/library/whitepapers/relational-model" },
       { title: "Scaling PageRank", contentPath: "/library/whitepapers/scaling-pagerank" },
       { title: "SRE Capacity Management", contentPath: "/library/whitepapers/sre-capacity-management" },
-      { title: "Sundial", contentPath: "/library/whitepapers/sundial" },
+      { title: "Sundial: Fault-Tolerant Clock Synchronization", contentPath: "/library/whitepapers/sundial" },
       { title: "Thread-Per-Core Tail Latency", contentPath: "/library/whitepapers/thread-per-core-tail-latency" },
       { title: "Trickle", contentPath: "/library/whitepapers/trickle" },
       { title: "Twitter WTF", contentPath: "/library/whitepapers/twitter-wtf" },
@@ -86,17 +87,17 @@ export default [
       { title: "Percolator: Incremental Processing" },
       { title: "MillWheel: Stream Processing System" },
       { title: "TensorFlow: Large-Scale Machine Learning" },
-      { title: "Lambda Architecture (Google perspective)" },
+      { title: "Lambda Architecture: Batch and Speed Views" },
       { title: "Google Infrastructure Security Design" },
       { title: "Photon / PubSub: Messaging at Scale" },
       { title: "Jupiter Rising: Network Architecture at Google" },
-      { title: "Autopilot: Workload Management" },
+      { title: "Autopilot: Workload Autoscaling at Google" },
       { title: "Inside Google Datacenters & Networking" },
       { title: "SRE Workbook Foundations (Google SRE)" },
       { title: "Term Frequency Inverse Document Frequency",contentPath: "/library/whitepapers/idf-symbolic-sim" },
-    ],
+    ].map((paper, index) => ({ ...paper, ...paperMetadata[index] })),
     difficulty: "Advanced",
-    readingTime: "15 min",
+    readingTime: "52 experiences",
   },
   {
     id: "java-reference",

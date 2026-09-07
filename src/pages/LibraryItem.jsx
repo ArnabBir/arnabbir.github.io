@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link, Navigate } from "react-router-dom";
+import { resolvePaperChapter } from '@/content/whitepapers';
 import { ArrowLeft, BookOpen, Home, Loader2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -28,6 +29,7 @@ export default function LibraryItem() {
   const libraryItem = libraryContent.find((item) => item.id === id);
 
   const searchParams = new URLSearchParams(location.search);
+  const resolvedPaperPath = id === 'whitepapers' ? resolvePaperChapter(searchParams.get('chapter')) : null;
   const chapterParam = parseInt(searchParams.get("chapter") || "", 10);
   const chapterIndex = Number.isFinite(chapterParam) ? chapterParam - 1 : null;
   const rawChapter =
@@ -105,6 +107,16 @@ export default function LibraryItem() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [chapterIndex, id]);
+
+  useEffect(() => {
+    // Standalone HTML needs a document navigation, not a React Router transition.
+    if (resolvedPaperPath?.endsWith('.html')) window.location.replace(resolvedPaperPath);
+  }, [resolvedPaperPath]);
+
+  if (id === 'whitepapers') {
+    if (resolvedPaperPath?.endsWith('.html')) return <main className="p-8" aria-busy="true">Opening paper... <a className="underline" href={resolvedPaperPath}>Open directly</a></main>;
+    return <Navigate replace to={resolvedPaperPath || '/library/rack/whitepapers'} />;
+  }
 
   if (!libraryItem) {
     return (

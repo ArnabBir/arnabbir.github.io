@@ -173,7 +173,7 @@ export default function Library() {
 
           {featured.length > 0 && (
             <div className="relative mt-10 md:px-12">
-              <Carousel opts={CAROUSEL_OPTS}>
+              <Carousel opts={CAROUSEL_OPTS} aria-label="Study materials">
                 <CarouselContent>
                   {featured.map((item) => (
                     <CarouselItem
