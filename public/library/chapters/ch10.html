@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 10 — Time</title>
+  <title>TLPI v2, Chapter 10, Time</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 10 — Time</div>
+          <div class="sub" id="subTitle">Chapter 10: Time</div>
         </div>
       </div>
       <div class="actions">
@@ -56,20 +56,20 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 10 — Time
+            Chapter 10: Time
           </h2>
           <div class="subtitle">
-            <p>Time in Linux spans two fundamentally different domains: wall-clock time (calendar time tied to UTC and time zones) and monotonic time (a steadily advancing counter immune to NTP adjustments). Understanding which clock to use&mdash;and why&mdash;prevents an entire class of production bugs involving timeouts, intervals, and timestamps.</p><p>The kernel exposes multiple clock sources via clock_gettime(). CLOCK_REALTIME reflects the system&rsquo;s best guess at UTC and can jump forward or backward due to NTP step corrections. CLOCK_MONOTONIC never goes backward and is the correct choice for measuring elapsed time. CPU time accounting uses CLOCK_PROCESS_CPUTIME_ID or the older clock() function.</p>
+            <p>Time in Linux spans two fundamentally different domains: wall-clock time (calendar time tied to UTC and time zones) and monotonic time (a steadily advancing counter immune to NTP adjustments). Understanding which clock to use, and why, prevents an entire class of production bugs involving timeouts, intervals, and timestamps.</p><p>The kernel exposes multiple clock sources via clock_gettime(). CLOCK_REALTIME reflects the system&rsquo;s best guess at UTC and can jump forward or backward due to NTP step corrections. CLOCK_MONOTONIC never goes backward and is the correct choice for measuring elapsed time. CPU time accounting uses CLOCK_PROCESS_CPUTIME_ID or the older clock() function.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">CLOCK_MONOTONIC never goes backward&mdash;even across NTP adjustments or admin time changes. It is always safe for interval measurement.</div>
+  <div class="v">CLOCK_MONOTONIC never goes backward: even across NTP adjustments or admin time changes. It is always safe for interval measurement.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v">time_t is a signed 32-bit integer on many 32-bit systems and overflows on 2038-01-19. NTP can jump CLOCK_REALTIME forward or backward at any moment.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">clock_getres() reveals the actual resolution of each clock source. On modern kernels this is typically 1 ns, but check&mdash;do not assume.</div>
+  <div class="v">clock_getres() reveals the actual resolution of each clock source. On modern kernels this is typically 1 ns, but check: do not assume.</div>
 </div></div>
         </div>
 
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>CLOCK_REALTIME is wall-clock time (calendar/UTC). It can jump due to NTP step corrections or manual adjtime/settimeofday calls. Use it only when you need a timestamp that corresponds to human-readable date/time.</li><li>CLOCK_MONOTONIC advances at a steady rate and never goes backward. Use it for measuring intervals, timeouts, and elapsed durations. It is adjusted by NTP frequency slewing (rate correction) but never stepped.</li><li>CLOCK_MONOTONIC_RAW excludes even NTP frequency adjustment&mdash;it reflects raw hardware counter ticks. Useful for micro-benchmarks where NTP rate correction would distort results.</li><li>Process CPU time can be measured via clock() (returns CLOCKS_PER_SEC units) or clock_gettime(CLOCK_PROCESS_CPUTIME_ID). The latter gives nanosecond resolution and separates user/system time.</li><li>nanosleep() sleeps against CLOCK_REALTIME by default and can be affected by time jumps. clock_nanosleep() with CLOCK_MONOTONIC and TIMER_ABSTIME provides jump-immune absolute deadline sleeps.</li><li>timerfd_create() creates a file descriptor that becomes readable when a timer expires, integrating timer events into epoll/select event loops without signals.</li><li>strftime() and localtime_r() convert time_t to human-readable strings. Always use the _r (reentrant) variants in multithreaded code. Time zone is controlled by TZ environment variable and /etc/localtime.</li></ul>
+            <ul><li>CLOCK_REALTIME is wall-clock time (calendar/UTC). It can jump due to NTP step corrections or manual adjtime/settimeofday calls. Use it only when you need a timestamp that corresponds to human-readable date/time.</li><li>CLOCK_MONOTONIC advances at a steady rate and never goes backward. Use it for measuring intervals, timeouts, and elapsed durations. It is adjusted by NTP frequency slewing (rate correction) but never stepped.</li><li>CLOCK_MONOTONIC_RAW excludes even NTP frequency adjustment: it reflects raw hardware counter ticks. Useful for micro-benchmarks where NTP rate correction would distort results.</li><li>Process CPU time can be measured via clock() (returns CLOCKS_PER_SEC units) or clock_gettime(CLOCK_PROCESS_CPUTIME_ID). The latter gives nanosecond resolution and separates user/system time.</li><li>nanosleep() sleeps against CLOCK_REALTIME by default and can be affected by time jumps. clock_nanosleep() with CLOCK_MONOTONIC and TIMER_ABSTIME provides jump-immune absolute deadline sleeps.</li><li>timerfd_create() creates a file descriptor that becomes readable when a timer expires, integrating timer events into epoll/select event loops without signals.</li><li>strftime() and localtime_r() convert time_t to human-readable strings. Always use the _r (reentrant) variants in multithreaded code. Time zone is controlled by TZ environment variable and /etc/localtime.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>clock_gettime</td><td class='mono'>int clock_gettime(clockid_t clk_id, struct timespec *tp);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>High-res clocks; prefer CLOCK_MONOTONIC for intervals, CLOCK_REALTIME for timestamps.</td></tr><tr><td class='mono'>clock_getres</td><td class='mono'>int clock_getres(clockid_t clk_id, struct timespec *res);</td><td class='mono muted2'>EINVAL</td><td>Returns actual resolution of a clock. Typically 1 ns on modern kernels.</td></tr><tr><td class='mono'>nanosleep</td><td class='mono'>int nanosleep(const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Sleeps against CLOCK_REALTIME. On EINTR, rem holds remaining time for retry.</td></tr><tr><td class='mono'>clock_nanosleep</td><td class='mono'>int clock_nanosleep(clockid_t clk, int flags, const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Sleeps against specified clock. With TIMER_ABSTIME, immune to clock jumps for deadline sleeps.</td></tr><tr><td class='mono'>timerfd_create</td><td class='mono'>int timerfd_create(int clockid, int flags);</td><td class='mono muted2'>EINVAL, EMFILE, ENOMEM</td><td>Creates timer fd for epoll integration. Use CLOCK_MONOTONIC for interval timers.</td></tr><tr><td class='mono'>strftime</td><td class='mono'>size_t strftime(char *s, size_t max, const char *fmt, const struct tm *tm);</td><td class='mono muted2'>&mdash;</td><td>Formats broken-down time. Returns 0 on buffer overflow (not an errno-setting function).</td></tr>
+    <tr><td class='mono'>clock_gettime</td><td class='mono'>int clock_gettime(clockid_t clk_id, struct timespec *tp);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>High-res clocks; prefer CLOCK_MONOTONIC for intervals, CLOCK_REALTIME for timestamps.</td></tr><tr><td class='mono'>clock_getres</td><td class='mono'>int clock_getres(clockid_t clk_id, struct timespec *res);</td><td class='mono muted2'>EINVAL</td><td>Returns actual resolution of a clock. Typically 1 ns on modern kernels.</td></tr><tr><td class='mono'>nanosleep</td><td class='mono'>int nanosleep(const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Sleeps against CLOCK_REALTIME. On EINTR, rem holds remaining time for retry.</td></tr><tr><td class='mono'>clock_nanosleep</td><td class='mono'>int clock_nanosleep(clockid_t clk, int flags, const struct timespec *req, struct timespec *rem);</td><td class='mono muted2'>EINTR, EINVAL</td><td>Sleeps against specified clock. With TIMER_ABSTIME, immune to clock jumps for deadline sleeps.</td></tr><tr><td class='mono'>timerfd_create</td><td class='mono'>int timerfd_create(int clockid, int flags);</td><td class='mono muted2'>EINVAL, EMFILE, ENOMEM</td><td>Creates timer fd for epoll integration. Use CLOCK_MONOTONIC for interval timers.</td></tr><tr><td class='mono'>strftime</td><td class='mono'>size_t strftime(char *s, size_t max, const char *fmt, const struct tm *tm);</td><td class='mono muted2'>N/A</td><td>Formats broken-down time. Returns 0 on buffer overflow (not an errno-setting function).</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -276,7 +276,7 @@ timerfd_settime(tfd, 0, &amp;its, NULL);
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch10", n:10, subtitle:"Chapter 10 \u2014 Time"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch10", n:10, subtitle:"Chapter 10: Time"});
     TLPIWidgets.mountKernelGraph("kg_ch10", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (sys). Click to pin a tooltip.",

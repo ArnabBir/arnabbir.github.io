@@ -106,7 +106,7 @@ const CONFIG = {
       "log": "Query received.",
       "message": {
         "from": "Query Serving",
-        "to": "—",
+        "to": "N/A",
         "label": "Query"
       }
     },
@@ -133,7 +133,7 @@ const CONFIG = {
       "log": "Result returned quickly.",
       "message": {
         "from": "Query Serving",
-        "to": "—",
+        "to": "N/A",
         "label": "Return"
       }
     }

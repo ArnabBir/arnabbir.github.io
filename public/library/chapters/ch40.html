@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 40 — Login Accounting</title>
+  <title>TLPI v2, Chapter 40, Login Accounting</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 40 — Login Accounting</div>
+          <div class="sub" id="subTitle">Chapter 40: Login Accounting</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 40 — Login Accounting
+            Chapter 40: Login Accounting
           </h2>
           <div class="subtitle">
             <p>Login accounting tracks who logged in, when, and from where. The utmp file records current active sessions, wtmp accumulates the full login/logout history, and lastlog stores the most recent login for each user. Together they form the observability backbone for multi-user systems.</p><p>Programs like login, sshd, and terminal emulators are responsible for writing utmp/wtmp entries on session start and clearing them on logout. Commands like who, w, and last consume these databases to report session state.</p>
@@ -66,7 +66,7 @@
   <div class="v">Every login creates a utmp entry keyed by ut_line (terminal); logout must clear that same entry or stale sessions appear.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">If a program crashes without writing a DEAD_PROCESS record, utmp shows a ghost session — who reports a user that isn't actually logged in.</div>
+  <div class="v">If a program crashes without writing a DEAD_PROCESS record, utmp shows a ghost session: who reports a user that isn't actually logged in.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use utmpdump /var/run/utmp to inspect raw records; last -f /var/log/wtmp to trace historical sessions.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>utmp records current sessions (/var/run/utmp) — each entry corresponds to one active login, keyed by ut_line (the terminal device).</li><li>wtmp (/var/log/wtmp) is an append-only log of all login and logout events; it grows indefinitely unless rotated.</li><li>lastlog (/var/log/lastlog) is a fixed-size file indexed by UID, storing only the most recent login time, terminal, and remote host per user.</li><li>getutxent() iterates through utmp entries sequentially; setutxent() rewinds; endutxent() closes.</li><li>pututxline() writes or updates an entry — it searches for a matching ut_line slot before appending.</li><li>Login programs write USER_PROCESS; logout writes DEAD_PROCESS to the same ut_line slot, marking the session ended.</li><li>who and w read utmp for current sessions; last reads wtmp for historical login/logout pairs.</li><li>On modern systems, systemd-logind provides session tracking via D-Bus, but utmp/wtmp are still maintained for compatibility with traditional tools.</li></ul>
+            <ul><li>utmp records current sessions (/var/run/utmp): each entry corresponds to one active login, keyed by ut_line (the terminal device).</li><li>wtmp (/var/log/wtmp) is an append-only log of all login and logout events; it grows indefinitely unless rotated.</li><li>lastlog (/var/log/lastlog) is a fixed-size file indexed by UID, storing only the most recent login time, terminal, and remote host per user.</li><li>getutxent() iterates through utmp entries sequentially; setutxent() rewinds; endutxent() closes.</li><li>pututxline() writes or updates an entry: it searches for a matching ut_line slot before appending.</li><li>Login programs write USER_PROCESS; logout writes DEAD_PROCESS to the same ut_line slot, marking the session ended.</li><li>who and w read utmp for current sessions; last reads wtmp for historical login/logout pairs.</li><li>On modern systems, systemd-logind provides session tracking via D-Bus, but utmp/wtmp are still maintained for compatibility with traditional tools.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>getutxent</td><td class='mono'>struct utmpx *getutxent(void);</td><td class='mono muted2'>—</td><td>Returns next utmp entry or NULL at end. Call setutxent() first to rewind.</td></tr><tr><td class='mono'>pututxline</td><td class='mono'>struct utmpx *pututxline(const struct utmpx *ut);</td><td class='mono muted2'>EPERM, EIO</td><td>Writes entry matching ut_line; creates new slot if none found. Requires write permission on utmp file.</td></tr><tr><td class='mono'>setutxent</td><td class='mono'>void setutxent(void);</td><td class='mono muted2'>—</td><td>Rewinds to beginning of utmp database. Call before iterating with getutxent().</td></tr><tr><td class='mono'>updwtmpx</td><td class='mono'>void updwtmpx(const char *wtmpx_file, const struct utmpx *ut);</td><td class='mono muted2'>—</td><td>Appends an entry to the wtmp file. Used by login/logout to record history.</td></tr>
+    <tr><td class='mono'>getutxent</td><td class='mono'>struct utmpx *getutxent(void);</td><td class='mono muted2'>N/A</td><td>Returns next utmp entry or NULL at end. Call setutxent() first to rewind.</td></tr><tr><td class='mono'>pututxline</td><td class='mono'>struct utmpx *pututxline(const struct utmpx *ut);</td><td class='mono muted2'>EPERM, EIO</td><td>Writes entry matching ut_line; creates new slot if none found. Requires write permission on utmp file.</td></tr><tr><td class='mono'>setutxent</td><td class='mono'>void setutxent(void);</td><td class='mono muted2'>N/A</td><td>Rewinds to beginning of utmp database. Call before iterating with getutxent().</td></tr><tr><td class='mono'>updwtmpx</td><td class='mono'>void updwtmpx(const char *wtmpx_file, const struct utmpx *ut);</td><td class='mono muted2'>N/A</td><td>Appends an entry to the wtmp file. Used by login/logout to record history.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -130,10 +130,10 @@
   <div class="content"><ul><li>If a terminal emulator or SSH session crashes without writing a DEAD_PROCESS record, utmp retains the old USER_PROCESS entry.</li><li>who will report a user as logged in even though no process owns that session anymore.</li><li>Fix: a cleanup daemon or login program should check if the PID in ut_pid is still alive before trusting the entry.</li><li>On systemd systems, logind handles session lifecycle and cleans up, but utmp may still lag behind.</li></ul></div>
 </details><details class="accordion">
   <summary>wtmp rotation and file size</summary>
-  <div class="content"><ul><li>wtmp is append-only and grows without bound. logrotate typically rotates it monthly.</li><li>last reads wtmp sequentially from the end; a very large wtmp slows queries.</li><li>Corrupted wtmp (partial writes during crash) can confuse last — it may skip entries or report garbage.</li><li>Some distributions use wtmp.1, wtmp.2 etc. for rotated files; last -f reads specific files.</li></ul></div>
+  <div class="content"><ul><li>wtmp is append-only and grows without bound. logrotate typically rotates it monthly.</li><li>last reads wtmp sequentially from the end; a very large wtmp slows queries.</li><li>Corrupted wtmp (partial writes during crash) can confuse last: it may skip entries or report garbage.</li><li>Some distributions use wtmp.1, wtmp.2 etc. for rotated files; last -f reads specific files.</li></ul></div>
 </details><details class="accordion">
   <summary>lastlog sparse file behavior</summary>
-  <div class="content"><ul><li>lastlog is indexed by UID — seeking to offset UID * sizeof(struct lastlog). UIDs with large values create a sparse file.</li><li>A system with UID 65534 (nobody) causes lastlog to appear huge on disk but uses minimal blocks (filesystem holes).</li><li>cp or tar without sparse-awareness can inflate the file to its apparent size; use cp --sparse=always.</li><li>The lastlog command reads this file to display per-user last login info.</li></ul></div>
+  <div class="content"><ul><li>lastlog is indexed by UID: seeking to offset UID * sizeof(struct lastlog). UIDs with large values create a sparse file.</li><li>A system with UID 65534 (nobody) causes lastlog to appear huge on disk but uses minimal blocks (filesystem holes).</li><li>cp or tar without sparse-awareness can inflate the file to its apparent size; use cp --sparse=always.</li><li>The lastlog command reads this file to display per-user last login info.</li></ul></div>
 </details>
         </div>
 
@@ -171,7 +171,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always write a DEAD_PROCESS entry on session exit — even in signal handlers and crash paths.</li><li>Fill all required utmpx fields: ut_type, ut_pid, ut_line, ut_user, ut_tv, and ut_host for remote logins.</li><li>Rotate wtmp with logrotate to prevent unbounded growth; verify with last after rotation.</li><li>Handle lastlog sparse file correctly in backup/restore scripts (use sparse-aware tools).</li><li>On systemd systems, integrate with logind for session tracking; maintain utmp/wtmp for compatibility with traditional tools (who, last, finger).</li></ul>
+            <ul><li>Always write a DEAD_PROCESS entry on session exit: even in signal handlers and crash paths.</li><li>Fill all required utmpx fields: ut_type, ut_pid, ut_line, ut_user, ut_tv, and ut_host for remote logins.</li><li>Rotate wtmp with logrotate to prevent unbounded growth; verify with last after rotation.</li><li>Handle lastlog sparse file correctly in backup/restore scripts (use sparse-aware tools).</li><li>On systemd systems, integrate with logind for session tracking; maintain utmp/wtmp for compatibility with traditional tools (who, last, finger).</li></ul>
           </div>
         </div>
 
@@ -276,7 +276,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch40", n:40, subtitle:"Chapter 40 \u2014 Login Accounting"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch40", n:40, subtitle:"Chapter 40: Login Accounting"});
     TLPIWidgets.mountKernelGraph("kg_ch40", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (sys). Click to pin a tooltip.",

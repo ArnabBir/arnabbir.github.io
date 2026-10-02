@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 6: Partitioning</title>
+  <title>DDIA Atlas: Chapter 6: Partitioning</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,7 +75,7 @@
 <div class="lab" data-lab="partition">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Partitioning Skew — Hotspots & Consistent Hashing</h3>
+      <h3 class="lab-title">Lab: Partitioning Skew: Hotspots & Consistent Hashing</h3>
       <p class="lab-sub">Increase skew and watch keys concentrate on a subset of nodes. The ring visualization updates each run.</p>
     </div>
     <div class="pill"><span class="dot"></span> Hot keys</div>
@@ -84,16 +84,16 @@
     <div class="controls">
       <div class="row">
         <div>
-          <label>Nodes <span class="kbd"><span data-val="nodes">—</span></span></label>
+          <label>Nodes <span class="kbd"><span data-val="nodes">N/A</span></span></label>
           <input type="range" min="3" max="12" value="6" data-k="nodes" oninput="this.parentElement.querySelector('[data-val=nodes]').textContent=this.value"/>
         </div>
         <div>
-          <label>Sampled keys <span class="kbd"><span data-val="keys">—</span></span></label>
+          <label>Sampled keys <span class="kbd"><span data-val="keys">N/A</span></span></label>
           <input type="range" min="80" max="800" value="240" data-k="keys" oninput="this.parentElement.querySelector('[data-val=keys]').textContent=this.value"/>
         </div>
       </div>
 
-      <label>Skew / hotspot intensity <span class="kbd"><span data-val="skew">—</span>%</span></label>
+      <label>Skew / hotspot intensity <span class="kbd"><span data-val="skew">N/A</span>%</span></label>
       <input type="range" min="0" max="100" value="25" data-k="skew" oninput="this.parentElement.querySelector('[data-val=skew]').textContent=this.value"/>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
@@ -102,8 +102,8 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Hotspot factor (max/min)</span><span class="v" data-out="hot">—</span></div>
-      <div class="metric"><span class="k">Key spread</span><span class="v" data-out="spread">—</span></div>
+      <div class="metric"><span class="k">Hotspot factor (max/min)</span><span class="v" data-out="hot">N/A</span></div>
+      <div class="metric"><span class="k">Key spread</span><span class="v" data-out="spread">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -208,7 +208,7 @@ Key concerns:
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Time-based keys</summary>
+  <summary>Drill 1: Time-based keys</summary>
   <p>
     You partition by <code>created_at</code>. New writes all go to the “latest” shard.
     List 3 solutions: pre-splitting ranges, hash on (time bucket + random), or separate “ingest log” then compaction.
@@ -217,7 +217,7 @@ Key concerns:
 </details>
 
 <details>
-  <summary>Drill 2 — Global secondary index</summary>
+  <summary>Drill 2: Global secondary index</summary>
   <p>
     You need “find user by email” in O(log n).
     Do you build a global index service? If yes, what consistency do you require between primary and index?
@@ -226,7 +226,7 @@ Key concerns:
 </details>
 
 <details>
-  <summary>Drill 3 — Rebalancing safety</summary>
+  <summary>Drill 3: Rebalancing safety</summary>
   <p>
     Describe a safe migration protocol:
     mark partition “moving”, copy data, dual-write, switch ownership, then garbage collect.

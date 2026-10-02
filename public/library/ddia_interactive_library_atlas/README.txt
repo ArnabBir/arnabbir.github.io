@@ -1,4 +1,4 @@
-DDIA Atlas — Interactive Chapter Library (Offline)
+DDIA Atlas: Interactive Chapter Library (Offline)
 
 How to use:
 1) Unzip the folder.

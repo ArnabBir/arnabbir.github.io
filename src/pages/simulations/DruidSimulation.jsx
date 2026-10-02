@@ -134,7 +134,7 @@ const CONFIG = {
       "log": "Results merged; sub-second response.",
       "message": {
         "from": "Broker",
-        "to": "—",
+        "to": "N/A",
         "label": "Merge"
       }
     }

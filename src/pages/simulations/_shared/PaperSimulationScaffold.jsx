@@ -362,7 +362,7 @@ export default function PaperSimulationScaffold({ config }) {
                 <Pill><Icon name="Layers" className="w-4 h-4" /> System Diagram</Pill>
                 <Pill tone="soft">
                   <span className="font-mono text-[10px]">Step</span>
-                  <span className="font-mono text-xs font-bold">{steps.length ? `${stepIdx + 1}/${steps.length}` : "—"}</span>
+                  <span className="font-mono text-xs font-bold">{steps.length ? `${stepIdx + 1}/${steps.length}` : "N/A"}</span>
                 </Pill>
               </div>
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 24 — Process Creation</title>
+  <title>TLPI v2, Chapter 24, Process Creation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 24 — Process Creation</div>
+          <div class="sub" id="subTitle">Chapter 24: Process Creation</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 24 — Process Creation
+            Chapter 24: Process Creation
           </h2>
           <div class="subtitle">
-            <p>Process creation on Linux centers on fork(), which duplicates the calling process via copy-on-write semantics — page table entries are cloned but physical pages are shared until either process writes. The underlying syscall is actually clone(), whose flags (CLONE_VM, CLONE_FILES, CLONE_NEWNS) give fine-grained control over what parent and child share. vfork() exists as a dangerous optimization that suspends the parent entirely; in modern code, posix_spawn() is the preferred alternative, combining fork+exec into a single safe operation with explicit file actions.</p><p>The critical window between fork() and exec() is a minefield in multithreaded programs: only async-signal-safe functions may be called. Understanding this constraint — and the alternatives — is essential for writing reliable process-creation code.</p>
+            <p>Process creation on Linux centers on fork(), which duplicates the calling process via copy-on-write semantics: page table entries are cloned but physical pages are shared until either process writes. The underlying syscall is actually clone(), whose flags (CLONE_VM, CLONE_FILES, CLONE_NEWNS) give fine-grained control over what parent and child share. vfork() exists as a dangerous optimization that suspends the parent entirely; in modern code, posix_spawn() is the preferred alternative, combining fork+exec into a single safe operation with explicit file actions.</p><p>The critical window between fork() and exec() is a minefield in multithreaded programs: only async-signal-safe functions may be called. Understanding this constraint, and the alternatives, is essential for writing reliable process-creation code.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>fork() copies the task_struct; CoW means page table entries are cloned but physical pages are shared until written — a write triggers a page fault, and only then is the page duplicated.</li><li>vfork() suspends the parent until the child calls exec or _exit — faster than fork (no page table copy) but extremely dangerous; modifying any data corrupts the parent. Prefer posix_spawn instead.</li><li>clone() is the underlying syscall beneath fork and pthread_create: CLONE_VM shares address space, CLONE_FILES shares the fd table, CLONE_SIGHAND shares signal handlers. Combining flags controls exactly what is shared vs. copied.</li><li>After fork, the child inherits: open file descriptors, signal dispositions, cwd, environment, umask, resource limits, and mmap regions.</li><li>After fork, the child gets NEW: PID, PPID (set to parent), pending signals cleared, file locks NOT inherited, POSIX timers NOT inherited, async I/O operations NOT inherited.</li><li>posix_spawn combines fork+exec with declarative file actions (dup2, close, open) — it avoids the dangerous post-fork/pre-exec window entirely and is the recommended approach for simple process creation.</li></ul>
+            <ul><li>fork() copies the task_struct; CoW means page table entries are cloned but physical pages are shared until written: a write triggers a page fault, and only then is the page duplicated.</li><li>vfork() suspends the parent until the child calls exec or _exit: faster than fork (no page table copy) but extremely dangerous; modifying any data corrupts the parent. Prefer posix_spawn instead.</li><li>clone() is the underlying syscall beneath fork and pthread_create: CLONE_VM shares address space, CLONE_FILES shares the fd table, CLONE_SIGHAND shares signal handlers. Combining flags controls exactly what is shared vs. copied.</li><li>After fork, the child inherits: open file descriptors, signal dispositions, cwd, environment, umask, resource limits, and mmap regions.</li><li>After fork, the child gets NEW: PID, PPID (set to parent), pending signals cleared, file locks NOT inherited, POSIX timers NOT inherited, async I/O operations NOT inherited.</li><li>posix_spawn combines fork+exec with declarative file actions (dup2, close, open): it avoids the dangerous post-fork/pre-exec window entirely and is the recommended approach for simple process creation.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>vfork</td><td class='mono'>pid_t vfork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child shares address space until exec/_exit; extremely restrictive—avoid unless you deeply understand constraints.</td></tr><tr><td class='mono'>clone</td><td class='mono'>int clone(int (*fn)(void *), void *child_stack, int flags, void *arg, ...);</td><td class='mono muted2'>EINVAL, ENOMEM, EAGAIN</td><td>Low-level primitive underlying threads/namespaces. Flags control resource sharing.</td></tr><tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr>
+    <tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>vfork</td><td class='mono'>pid_t vfork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child shares address space until exec/_exit; extremely restrictive: avoid unless you deeply understand constraints.</td></tr><tr><td class='mono'>clone</td><td class='mono'>int clone(int (*fn)(void *), void *child_stack, int flags, void *arg, ...);</td><td class='mono muted2'>EINVAL, ENOMEM, EAGAIN</td><td>Low-level primitive underlying threads/namespaces. Flags control resource sharing.</td></tr><tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -132,13 +132,13 @@
   <div class="content"><ul><li>fork() is cheap: it copies page table entries, not pages. Cost is O(page-table-size), not O(RSS). But the moment either process writes, a page fault fires and the kernel copies that page.</li><li>In large-process servers (e.g., Redis with 20 GB RSS), fork() for background save can cause massive RSS inflation: every written page doubles memory usage. This is the "Redis fork problem."</li><li>Transparent Huge Pages (THP) amplify CoW cost: a single byte write to a 2 MB huge page forces a 2 MB copy. Disable THP for fork-heavy workloads or use jemalloc's THP-aware settings.</li><li>Monitor CoW faults via /proc/&lt;pid&gt;/status (VmRSS growth) and perf stat -e page-faults during the fork window.</li></ul></div>
 </details><details class="accordion">
   <summary>Post-fork/pre-exec safety</summary>
-  <div class="content"><ul><li>After fork() in a multithreaded program, only the calling thread exists in the child. All other threads vanish — along with any locks they held. This means malloc, printf, syslog, and any function taking internal locks can deadlock.</li><li>The ONLY safe operations are async-signal-safe functions: execve, _exit, signal manipulation (sigaction, sigprocmask), dup2, close, open, read, write, fork, getpid.</li><li>Even atexit handlers and stdio buffer flushing are unsafe — use _exit(), not exit(), if exec fails in the child.</li><li>This is why posix_spawn exists: it performs all fd manipulation and signal setup atomically, without exposing the dangerous post-fork window to user code.</li></ul></div>
+  <div class="content"><ul><li>After fork() in a multithreaded program, only the calling thread exists in the child. All other threads vanish: along with any locks they held. This means malloc, printf, syslog, and any function taking internal locks can deadlock.</li><li>The ONLY safe operations are async-signal-safe functions: execve, _exit, signal manipulation (sigaction, sigprocmask), dup2, close, open, read, write, fork, getpid.</li><li>Even atexit handlers and stdio buffer flushing are unsafe: use _exit(), not exit(), if exec fails in the child.</li><li>This is why posix_spawn exists: it performs all fd manipulation and signal setup atomically, without exposing the dangerous post-fork window to user code.</li></ul></div>
 </details><details class="accordion">
   <summary>clone() flag combinations</summary>
-  <div class="content"><ul><li>CLONE_VM without CLONE_THREAD: creates a separate process sharing the address space — extremely dangerous without careful synchronization. One process's stack can corrupt the other.</li><li>CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWNET: namespace flags used by container runtimes. Each creates an isolated view of mounts, PIDs, or network.</li><li>unshare() is an alternative to clone() for namespaces: the calling process enters new namespaces without creating a child. Used by unshare(1) CLI and container setup.</li><li>CLONE_THREAD | CLONE_VM | CLONE_SIGHAND: the combination used by pthread_create. Removing any one flag creates unusual semantics — e.g., threads with separate fd tables.</li></ul></div>
+  <div class="content"><ul><li>CLONE_VM without CLONE_THREAD: creates a separate process sharing the address space: extremely dangerous without careful synchronization. One process's stack can corrupt the other.</li><li>CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWNET: namespace flags used by container runtimes. Each creates an isolated view of mounts, PIDs, or network.</li><li>unshare() is an alternative to clone() for namespaces: the calling process enters new namespaces without creating a child. Used by unshare(1) CLI and container setup.</li><li>CLONE_THREAD | CLONE_VM | CLONE_SIGHAND: the combination used by pthread_create. Removing any one flag creates unusual semantics: e.g., threads with separate fd tables.</li></ul></div>
 </details><details class="accordion">
   <summary>posix_spawn file actions</summary>
-  <div class="content"><ul><li>posix_spawn_file_actions_adddup2(&amp;actions, oldfd, newfd): redirects fd in the child, replacing manual dup2 between fork and exec.</li><li>posix_spawn_file_actions_addclose(&amp;actions, fd): closes fd in child, replacing close-on-exec for fds you don't control.</li><li>posix_spawn_file_actions_addopen(&amp;actions, fd, path, flags, mode): opens a file and assigns it to a specific fd in the child.</li><li>File actions execute in order; this lets you chain: open a log file, dup2 it to stderr, close the original — all declaratively and safely.</li></ul></div>
+  <div class="content"><ul><li>posix_spawn_file_actions_adddup2(&amp;actions, oldfd, newfd): redirects fd in the child, replacing manual dup2 between fork and exec.</li><li>posix_spawn_file_actions_addclose(&amp;actions, fd): closes fd in child, replacing close-on-exec for fds you don't control.</li><li>posix_spawn_file_actions_addopen(&amp;actions, fd, path, flags, mode): opens a file and assigns it to a specific fd in the child.</li><li>File actions execute in order; this lets you chain: open a log file, dup2 it to stderr, close the original: all declaratively and safely.</li></ul></div>
 </details>
         </div>
 
@@ -156,7 +156,7 @@ if (pid &lt; 0) { perror(&quot;fork&quot;); exit(1); }
 if (pid == 0) {
   // Child: only async-signal-safe calls here
   execvp(argv[1], &amp;argv[1]);
-  _exit(127);  // _exit, NOT exit — avoid flushing parent's buffers
+  _exit(127);  // _exit, NOT exit: avoid flushing parent's buffers
 }
 // Parent: wait for child
 int status;
@@ -187,7 +187,7 @@ posix_spawn_file_actions_destroy(&amp;actions);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Set O_CLOEXEC on every fd at creation time (open, socket, pipe2, accept4) — never leak fds into children by default.</li><li>After fork, call exec or _exit immediately; never call exit() (it flushes parent's stdio buffers in the child).</li><li>In multithreaded programs, prefer posix_spawn over fork+exec to avoid the async-signal-safety minefield.</li><li>Always check fork() return value for -1 (EAGAIN/ENOMEM) — failing to check causes the parent to execute child logic.</li><li>Monitor CoW page fault overhead when forking large-RSS processes; consider posix_spawn or external helper processes.</li><li>Reap all children with waitpid(-1, ..., WNOHANG) in a loop or a SIGCHLD handler to prevent zombie accumulation.</li></ul>
+            <ul><li>Set O_CLOEXEC on every fd at creation time (open, socket, pipe2, accept4): never leak fds into children by default.</li><li>After fork, call exec or _exit immediately; never call exit() (it flushes parent's stdio buffers in the child).</li><li>In multithreaded programs, prefer posix_spawn over fork+exec to avoid the async-signal-safety minefield.</li><li>Always check fork() return value for -1 (EAGAIN/ENOMEM): failing to check causes the parent to execute child logic.</li><li>Monitor CoW page fault overhead when forking large-RSS processes; consider posix_spawn or external helper processes.</li><li>Reap all children with waitpid(-1, ..., WNOHANG) in a loop or a SIGCHLD handler to prevent zombie accumulation.</li></ul>
           </div>
         </div>
 
@@ -292,7 +292,7 @@ posix_spawn_file_actions_destroy(&amp;actions);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch24", n:24, subtitle:"Chapter 24 \u2014 Process Creation"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch24", n:24, subtitle:"Chapter 24: Process Creation"});
     TLPIWidgets.mountKernelGraph("kg_ch24", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

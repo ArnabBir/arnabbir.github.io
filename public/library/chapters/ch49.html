@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 49 — Memory Mappings</title>
+  <title>TLPI v2, Chapter 49, Memory Mappings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 49 — Memory Mappings</div>
+          <div class="sub" id="subTitle">Chapter 49: Memory Mappings</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 49 — Memory Mappings
+            Chapter 49: Memory Mappings
           </h2>
           <div class="subtitle">
-            <p>mmap is one of Linux's most powerful APIs &mdash; map files into memory for zero-copy I/O, create shared anonymous mappings for IPC, and use private mappings for copy-on-write. It is the foundation for dynamic linking, large allocations in malloc, and memory-mapped databases.</p><p>The flags matrix (SHARED vs PRIVATE, file-backed vs anonymous) produces four distinct behaviors. Understanding which combination you need &mdash; and what happens to dirty pages, visibility, and persistence &mdash; is essential for correct use.</p>
+            <p>mmap is one of Linux's most powerful APIs: map files into memory for zero-copy I/O, create shared anonymous mappings for IPC, and use private mappings for copy-on-write. It is the foundation for dynamic linking, large allocations in malloc, and memory-mapped databases.</p><p>The flags matrix (SHARED vs PRIVATE, file-backed vs anonymous) produces four distinct behaviors. Understanding which combination you need, and what happens to dirty pages, visibility, and persistence, is essential for correct use.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>mmap(addr, length, prot, flags, fd, offset) creates a virtual memory mapping; pages are faulted in on first access.</li><li>MAP_SHARED + file: changes are visible to other processes mapping the same file and are eventually written back to disk.</li><li>MAP_PRIVATE + file: copy-on-write &mdash; reads see the file, writes create private copies that are never written to disk.</li><li>MAP_ANONYMOUS (no file): pages are zero-initialized; used by malloc for large allocations (&gt;128KB typically).</li><li>MAP_SHARED + MAP_ANONYMOUS: shared zero-initialized region between parent and child after fork() &mdash; lightweight IPC without a file.</li><li>munmap() removes the mapping; accessing the address after unmapping causes SIGSEGV.</li><li>msync(MS_SYNC) flushes dirty pages from a MAP_SHARED file mapping to disk; durability still requires fsync on the fd.</li><li>madvise() gives the kernel optimization hints: MADV_SEQUENTIAL enables readahead, MADV_DONTNEED drops pages immediately.</li><li>mremap() resizes an existing mapping without unmapping (Linux-specific); avoids the cost of copy + remap.</li></ul>
+            <ul><li>mmap(addr, length, prot, flags, fd, offset) creates a virtual memory mapping; pages are faulted in on first access.</li><li>MAP_SHARED + file: changes are visible to other processes mapping the same file and are eventually written back to disk.</li><li>MAP_PRIVATE + file: copy-on-write: reads see the file, writes create private copies that are never written to disk.</li><li>MAP_ANONYMOUS (no file): pages are zero-initialized; used by malloc for large allocations (&gt;128KB typically).</li><li>MAP_SHARED + MAP_ANONYMOUS: shared zero-initialized region between parent and child after fork(): lightweight IPC without a file.</li><li>munmap() removes the mapping; accessing the address after unmapping causes SIGSEGV.</li><li>msync(MS_SYNC) flushes dirty pages from a MAP_SHARED file mapping to disk; durability still requires fsync on the fd.</li><li>madvise() gives the kernel optimization hints: MADV_SEQUENTIAL enables readahead, MADV_DONTNEED drops pages immediately.</li><li>mremap() resizes an existing mapping without unmapping (Linux-specific); avoids the cost of copy + remap.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -189,7 +189,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always check mmap() return against MAP_FAILED, not NULL.</li><li>For MAP_SHARED file mappings, ensure file size covers the mapped region (ftruncate before writing).</li><li>Use msync() + fsync() for durability guarantees; msync alone may not flush to stable storage on all filesystems.</li><li>Use madvise(MADV_SEQUENTIAL) for sequential scans and MADV_RANDOM for random access patterns.</li><li>Avoid frequent mmap/munmap in hot paths &mdash; the TLB shootdown and VMA manipulation overhead is significant.</li></ul>
+            <ul><li>Always check mmap() return against MAP_FAILED, not NULL.</li><li>For MAP_SHARED file mappings, ensure file size covers the mapped region (ftruncate before writing).</li><li>Use msync() + fsync() for durability guarantees; msync alone may not flush to stable storage on all filesystems.</li><li>Use madvise(MADV_SEQUENTIAL) for sequential scans and MADV_RANDOM for random access patterns.</li><li>Avoid frequent mmap/munmap in hot paths: the TLB shootdown and VMA manipulation overhead is significant.</li></ul>
           </div>
         </div>
 
@@ -294,7 +294,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch49", n:49, subtitle:"Chapter 49 \u2014 Memory Mappings"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch49", n:49, subtitle:"Chapter 49: Memory Mappings"});
     TLPIWidgets.mountKernelGraph("kg_ch49", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (mem). Click to pin a tooltip.",

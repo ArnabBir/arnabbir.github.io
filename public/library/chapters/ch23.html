@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 23 — Timers and Sleeping</title>
+  <title>TLPI v2, Chapter 23, Timers and Sleeping</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 23 — Timers and Sleeping</div>
+          <div class="sub" id="subTitle">Chapter 23: Timers and Sleeping</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 23 — Timers and Sleeping
+            Chapter 23: Timers and Sleeping
           </h2>
           <div class="subtitle">
-            <p>Timers and sleeping are signal-adjacent — interval timers deliver SIGALRM, POSIX timers offer flexible notification, and timerfd integrates deadline-driven logic into event loops.</p><p>The evolution of Linux timer APIs reflects a shift from signal-based notification (setitimer, alarm) toward fd-based integration (timerfd). Modern servers should use timerfd_create with epoll for periodic tasks and timeouts, reserving POSIX timer_create for cases requiring thread notification or overrun counting.</p>
+            <p>Timers and sleeping are signal-adjacent: interval timers deliver SIGALRM, POSIX timers offer flexible notification, and timerfd integrates deadline-driven logic into event loops.</p><p>The evolution of Linux timer APIs reflects a shift from signal-based notification (setitimer, alarm) toward fd-based integration (timerfd). Modern servers should use timerfd_create with epoll for periodic tasks and timeouts, reserving POSIX timer_create for cases requiring thread notification or overrun counting.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>setitimer delivers SIGALRM (ITIMER_REAL), SIGVTALRM (ITIMER_VIRTUAL), or SIGPROF (ITIMER_PROF) at intervals. It is deprecated — only one timer per type per process.</li><li>POSIX timer_create + timer_settime offers: choice of clock (CLOCK_MONOTONIC recommended), signal OR thread notification (via sigevent), and overrun counting (timer_getoverrun).</li><li>nanosleep suspends the calling thread; if interrupted by a signal, it returns -1/EINTR and writes remaining time to the second argument.</li><li>clock_nanosleep with TIMER_ABSTIME sleeps until an absolute deadline, avoiding cumulative drift from repeated relative sleeps.</li><li>timerfd_create returns a file descriptor that becomes readable when the timer expires; integrates directly with epoll/poll (best for servers).</li><li>Sleep granularity depends on kernel CONFIG_HZ (typically 1ms on modern kernels) and timer slack (kernel may delay wakeup to batch interrupts for power savings).</li></ul>
+            <ul><li>setitimer delivers SIGALRM (ITIMER_REAL), SIGVTALRM (ITIMER_VIRTUAL), or SIGPROF (ITIMER_PROF) at intervals. It is deprecated: only one timer per type per process.</li><li>POSIX timer_create + timer_settime offers: choice of clock (CLOCK_MONOTONIC recommended), signal OR thread notification (via sigevent), and overrun counting (timer_getoverrun).</li><li>nanosleep suspends the calling thread; if interrupted by a signal, it returns -1/EINTR and writes remaining time to the second argument.</li><li>clock_nanosleep with TIMER_ABSTIME sleeps until an absolute deadline, avoiding cumulative drift from repeated relative sleeps.</li><li>timerfd_create returns a file descriptor that becomes readable when the timer expires; integrates directly with epoll/poll (best for servers).</li><li>Sleep granularity depends on kernel CONFIG_HZ (typically 1ms on modern kernels) and timer slack (kernel may delay wakeup to batch interrupts for power savings).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -291,7 +291,7 @@ void periodic_loop(int interval_ms) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch23", n:23, subtitle:"Chapter 23 \u2014 Timers and Sleeping"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch23", n:23, subtitle:"Chapter 23: Timers and Sleeping"});
     TLPIWidgets.mountKernelGraph("kg_ch23", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (timers). Click to pin a tooltip.",

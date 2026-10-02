@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 37 — Daemons</title>
+  <title>TLPI v2, Chapter 37, Daemons</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 37 — Daemons</div>
+          <div class="sub" id="subTitle">Chapter 37: Daemons</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 37 — Daemons
+            Chapter 37: Daemons
           </h2>
           <div class="subtitle">
-            <p>Daemons are long-running background processes — no controlling terminal, proper signal handling, single-instance enforcement via PID files, and logging via syslog.</p><p>Traditional daemon creation involves a careful sequence of fork, setsid, and fd management. Modern systems (systemd) simplify this dramatically, but understanding the mechanics remains critical for debugging and portability.</p>
+            <p>Daemons are long-running background processes: no controlling terminal, proper signal handling, single-instance enforcement via PID files, and logging via syslog.</p><p>Traditional daemon creation involves a careful sequence of fork, setsid, and fd management. Modern systems (systemd) simplify this dramatically, but understanding the mechanics remains critical for debugging and portability.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>openlog</td><td class='mono'>void openlog(const char *ident, int option, int facility);</td><td class='mono muted2'>—</td><td>Sets identity prefix, LOG_PID/LOG_NDELAY options, facility like LOG_DAEMON.</td></tr><tr><td class='mono'>syslog</td><td class='mono'>void syslog(int priority, const char *format, ...);</td><td class='mono muted2'>—</td><td>Sends message to syslog daemon; priority = facility | level (e.g., LOG_ERR).</td></tr><tr><td class='mono'>closelog</td><td class='mono'>void closelog(void);</td><td class='mono muted2'>—</td><td>Closes syslog connection; optional (closed on process exit anyway).</td></tr><tr><td class='mono'>flock</td><td class='mono'>int flock(int fd, int operation);</td><td class='mono muted2'>EWOULDBLOCK, EINTR</td><td>LOCK_EX|LOCK_NB for non-blocking exclusive lock; EWOULDBLOCK = already locked.</td></tr><tr><td class='mono'>daemon</td><td class='mono'>int daemon(int nochdir, int noclose);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>glibc helper (deprecated on some systems); does fork+setsid. Prefer manual or systemd.</td></tr><tr><td class='mono'>sd_notify</td><td class='mono'>int sd_notify(int unset_environment, const char *state);</td><td class='mono muted2'>—</td><td>"READY=1", "STOPPING=1", "WATCHDOG=1" — systemd notification protocol.</td></tr>
+    <tr><td class='mono'>openlog</td><td class='mono'>void openlog(const char *ident, int option, int facility);</td><td class='mono muted2'>N/A</td><td>Sets identity prefix, LOG_PID/LOG_NDELAY options, facility like LOG_DAEMON.</td></tr><tr><td class='mono'>syslog</td><td class='mono'>void syslog(int priority, const char *format, ...);</td><td class='mono muted2'>N/A</td><td>Sends message to syslog daemon; priority = facility | level (e.g., LOG_ERR).</td></tr><tr><td class='mono'>closelog</td><td class='mono'>void closelog(void);</td><td class='mono muted2'>N/A</td><td>Closes syslog connection; optional (closed on process exit anyway).</td></tr><tr><td class='mono'>flock</td><td class='mono'>int flock(int fd, int operation);</td><td class='mono muted2'>EWOULDBLOCK, EINTR</td><td>LOCK_EX|LOCK_NB for non-blocking exclusive lock; EWOULDBLOCK = already locked.</td></tr><tr><td class='mono'>daemon</td><td class='mono'>int daemon(int nochdir, int noclose);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>glibc helper (deprecated on some systems); does fork+setsid. Prefer manual or systemd.</td></tr><tr><td class='mono'>sd_notify</td><td class='mono'>int sd_notify(int unset_environment, const char *state);</td><td class='mono muted2'>N/A</td><td>"READY=1", "STOPPING=1", "WATCHDOG=1": systemd notification protocol.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -129,16 +129,16 @@
           </div>
           <details class="accordion">
   <summary>PID file race conditions</summary>
-  <div class="content"><ul><li>Never use "check if file exists → create": between check and create, another instance can start (TOCTOU race).</li><li>Correct pattern: open(O_CREAT|O_WRONLY) → flock(LOCK_EX|LOCK_NB) → ftruncate → write PID. If flock fails, exit.</li><li>The lock is automatically released when the process exits (even on crash) because flock is tied to the open file description.</li><li>Don't unlink the PID file on shutdown — the flock approach doesn't need it, and unlinking creates a new race window.</li></ul></div>
+  <div class="content"><ul><li>Never use "check if file exists → create": between check and create, another instance can start (TOCTOU race).</li><li>Correct pattern: open(O_CREAT|O_WRONLY) → flock(LOCK_EX|LOCK_NB) → ftruncate → write PID. If flock fails, exit.</li><li>The lock is automatically released when the process exits (even on crash) because flock is tied to the open file description.</li><li>Don't unlink the PID file on shutdown: the flock approach doesn't need it, and unlinking creates a new race window.</li></ul></div>
 </details><details class="accordion">
   <summary>systemd vs traditional daemonization</summary>
   <div class="content"><ul><li>Type=forking: systemd expects the main process to fork and exit; it reads PIDFile= to find the daemon PID. Fragile and error-prone.</li><li>Type=simple: systemd considers the exec'd process as the main PID. No forking needed. Readiness is assumed at exec time.</li><li>Type=notify: like simple, but the daemon calls sd_notify(0, "READY=1") when actually ready. Best for services with initialization phases.</li><li>If your daemon does traditional double-fork under systemd Type=simple, systemd will think it crashed (main PID exited). Don't mix patterns.</li></ul></div>
 </details><details class="accordion">
   <summary>Syslog and log rotation</summary>
-  <div class="content"><ul><li>syslog() is thread-safe but can block if the syslog socket buffer is full (especially with LOG_NDELAY).</li><li>Traditional log rotation: logrotate renames the file, then sends SIGHUP to syslogd to reopen. Daemon's own log files need similar handling.</li><li>With journald, syslog() messages go to the journal; use journalctl --identifier=&lt;ident&gt; to filter.</li><li>LOG_PERROR option additionally prints to stderr — useful during development but not in production daemons (stderr is /dev/null).</li></ul></div>
+  <div class="content"><ul><li>syslog() is thread-safe but can block if the syslog socket buffer is full (especially with LOG_NDELAY).</li><li>Traditional log rotation: logrotate renames the file, then sends SIGHUP to syslogd to reopen. Daemon's own log files need similar handling.</li><li>With journald, syslog() messages go to the journal; use journalctl --identifier=&lt;ident&gt; to filter.</li><li>LOG_PERROR option additionally prints to stderr: useful during development but not in production daemons (stderr is /dev/null).</li></ul></div>
 </details><details class="accordion">
   <summary>Signal handling in daemons</summary>
-  <div class="content"><ul><li>SIGHUP convention: reload configuration files without restart. Use a flag variable set in the handler, checked in the main loop.</li><li>SIGTERM: initiate graceful shutdown. Finish current requests, close connections, flush buffers, then exit.</li><li>Avoid doing real work in signal handlers — only set flags or write to a self-pipe/signalfd. Handler context is restrictive (async-signal-safe only).</li><li>With systemd, TimeoutStopSec= defines how long to wait after SIGTERM before sending SIGKILL. Default is 90s.</li></ul></div>
+  <div class="content"><ul><li>SIGHUP convention: reload configuration files without restart. Use a flag variable set in the handler, checked in the main loop.</li><li>SIGTERM: initiate graceful shutdown. Finish current requests, close connections, flush buffers, then exit.</li><li>Avoid doing real work in signal handlers: only set flags or write to a self-pipe/signalfd. Handler context is restrictive (async-signal-safe only).</li><li>With systemd, TimeoutStopSec= defines how long to wait after SIGTERM before sending SIGKILL. Default is 90s.</li></ul></div>
 </details>
         </div>
 
@@ -193,7 +193,7 @@ void daemonize_and_run(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use flock-based PID files for single-instance enforcement — never rely on file existence checks alone.</li><li>Handle SIGHUP for config reload and SIGTERM for graceful shutdown; use signalfd or self-pipe for safe handler dispatch.</li><li>For systemd services, prefer Type=notify with sd_notify("READY=1") over traditional forking daemons.</li><li>Log startup, shutdown, config reload, and errors via syslog with appropriate priority levels (LOG_ERR vs LOG_INFO).</li><li>Set appropriate resource limits, umask, and working directory at daemon startup — don't inherit random values from the launcher.</li></ul>
+            <ul><li>Use flock-based PID files for single-instance enforcement: never rely on file existence checks alone.</li><li>Handle SIGHUP for config reload and SIGTERM for graceful shutdown; use signalfd or self-pipe for safe handler dispatch.</li><li>For systemd services, prefer Type=notify with sd_notify("READY=1") over traditional forking daemons.</li><li>Log startup, shutdown, config reload, and errors via syslog with appropriate priority levels (LOG_ERR vs LOG_INFO).</li><li>Set appropriate resource limits, umask, and working directory at daemon startup: don't inherit random values from the launcher.</li></ul>
           </div>
         </div>
 
@@ -298,7 +298,7 @@ void daemonize_and_run(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch37", n:37, subtitle:"Chapter 37 \u2014 Daemons"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch37", n:37, subtitle:"Chapter 37: Daemons"});
     TLPIWidgets.mountKernelGraph("kg_ch37", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

@@ -49,7 +49,7 @@ export default [
   {
     name: "Google Cloud User Auto Provisioning",
     description:
-      "Automated user provisioning for SAML apps in Google Workspace — changes to user identities in the Admin console are automatically synced to supported third-party cloud applications.",
+      "Automated user provisioning for SAML apps in Google Workspace: changes to user identities in the Admin console are automatically synced to supported third-party cloud applications.",
     image: "/images/auto-provisioning-screenshot.png",
     tags: ["Google Cloud", "Identity", "SAML", "Provisioning", "Enterprise"],
     highlights: [
@@ -67,15 +67,15 @@ export default [
     kind: "featured",
   },
   {
-    name: "Arkham — Supply Chain Insights Platform (Flipkart)",
+    name: "Arkham: Supply Chain Insights Platform (Flipkart)",
     description:
-      "A real-time supply chain intelligence platform at Flipkart that provides end-to-end visibility into the fulfilment journey — from warehouse to last-mile delivery — enabling proactive decision-making and reducing SLA breaches.",
+      "A real-time supply chain intelligence platform at Flipkart that provides end-to-end visibility into the fulfilment journey, from warehouse to last-mile delivery, enabling proactive decision-making and reducing SLA breaches.",
     image: "/images/arkham-screenshot.png",
     tags: ["Supply Chain", "Full Stack", "Data Platform", "Flipkart"],
     highlights: [
       "End-to-end fulfilment visibility across warehousing, transportation, and last-mile delivery.",
       "Proactive alerting and insights to reduce SLA breaches and improve delivery performance.",
-      "Built as the cockpit for Flipkart's supply chain — ensuring passengers within the airport never miss a flight.",
+      "Built as the cockpit for Flipkart's supply chain: ensuring passengers within the airport never miss a flight.",
     ],
     links: [
       {
@@ -115,7 +115,7 @@ export default [
     highlights: [
       "Click any sentence to start narration from that exact point.",
       "Multiple system voices with searchable picker and speed control.",
-      "Runs entirely on-device — no servers, no AI, no tracking.",
+      "Runs entirely on-device: no servers, no AI, no tracking.",
     ],
     links: [
       {
@@ -191,7 +191,7 @@ export default [
   },
   {
     name: "IIKH",
-    description: "Interactive Intelligent Kitchen Helper — an AI-powered kitchen assistant app.",
+    description: "Interactive Intelligent Kitchen Helper: an AI-powered kitchen assistant app.",
     tags: ["AI", "Product"],
     highlights: ["Explores conversational UX and practical workflows for cooking."],
     links: [{ label: "GitHub", href: "https://github.com/ArnabBir/IIKH" }],

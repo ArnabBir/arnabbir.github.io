@@ -104,7 +104,7 @@ const CONFIG = {
       "log": "Replace messages with edge payloads + implicit targets.",
       "message": {
         "from": "Implicit Targets",
-        "to": "—",
+        "to": "N/A",
         "label": "Optimize"
       }
     },

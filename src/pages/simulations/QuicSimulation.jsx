@@ -394,7 +394,7 @@ export default function QuicSimulation() {
           
           <div className="text-center mb-16">
              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — SIGCOMM '17
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: SIGCOMM '17
             </div>
             <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-emerald-500 dark:from-blue-400 dark:to-emerald-400 bg-clip-text text-transparent mb-6">
               The QUIC Transport Protocol
@@ -620,7 +620,7 @@ export default function QuicSimulation() {
                 </h4>
                 <div className="prose dark:prose-invert text-sm text-slate-600 dark:text-slate-400 max-w-none">
                     <p>
-                        Google initially hypothesized that <strong>Forward Error Correction (FEC)</strong>—sending redundant XOR packets to recover lost data without retransmission—would significantly lower latency. 
+                        Google initially hypothesized that <strong>Forward Error Correction (FEC)</strong>, sending redundant XOR packets to recover lost data without retransmission, would significantly lower latency.
                         However, the SIGCOMM '17 paper reports that <strong>FEC was removed</strong> from QUIC in early 2016.
                     </p>
                     <ul className="list-disc pl-5 mt-2 space-y-1">

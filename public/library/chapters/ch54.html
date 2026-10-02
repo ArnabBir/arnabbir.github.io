@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 54 — POSIX Shared Memory</title>
+  <title>TLPI v2, Chapter 54, POSIX Shared Memory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 54 — POSIX Shared Memory</div>
+          <div class="sub" id="subTitle">Chapter 54: POSIX Shared Memory</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 54 — POSIX Shared Memory
+            Chapter 54: POSIX Shared Memory
           </h2>
           <div class="subtitle">
-            <p>POSIX shared memory combines <span class="mono">shm_open</span> + <span class="mono">mmap</span> &mdash; it creates a named shared memory object backed by tmpfs that multiple processes can map into their address spaces. This is the fastest IPC mechanism: no kernel-mediated data copying, just direct memory access.</p><p>This chapter covers object creation with <span class="mono">shm_open</span>, sizing with <span class="mono">ftruncate</span>, mapping with <span class="mono">mmap</span>, cleanup with <span class="mono">shm_unlink</span>, and synchronizing access with process-shared mutexes or semaphores.</p>
+            <p>POSIX shared memory combines <span class="mono">shm_open</span> + <span class="mono">mmap</span>: it creates a named shared memory object backed by tmpfs that multiple processes can map into their address spaces. This is the fastest IPC mechanism: no kernel-mediated data copying, just direct memory access.</p><p>This chapter covers object creation with <span class="mono">shm_open</span>, sizing with <span class="mono">ftruncate</span>, mapping with <span class="mono">mmap</span>, cleanup with <span class="mono">shm_unlink</span>, and synchronizing access with process-shared mutexes or semaphores.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Shared memory is just memory &mdash; it provides no synchronization. You must use mutexes, semaphores, or atomics to coordinate access between processes.</div>
+  <div class="v">Shared memory is just memory: it provides no synchronization. You must use mutexes, semaphores, or atomics to coordinate access between processes.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">You must call <span class="mono">ftruncate</span> after <span class="mono">shm_open</span> with <span class="mono">O_CREAT</span> &mdash; new objects have size 0. Mapping size 0 results in SIGBUS on access.</div>
+  <div class="v">You must call <span class="mono">ftruncate</span> after <span class="mono">shm_open</span> with <span class="mono">O_CREAT</span>: new objects have size 0. Mapping size 0 results in SIGBUS on access.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v"><span class="mono">ls -la /dev/shm/</span> shows objects with permissions and sizes. <span class="mono">/proc/&lt;pid&gt;/maps</span> shows which processes have mapped the region.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><span class="mono">shm_open(name, O_CREAT|O_RDWR, mode)</span> creates or opens a shared memory object. Returns a regular file descriptor backed by tmpfs.</li><li><span class="mono">ftruncate(fd, size)</span> sets the object size. New objects start at size 0 &mdash; you must set the size before mapping or face SIGBUS.</li><li><span class="mono">mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)</span> maps the object into the process address space. Multiple processes mapping the same object see the same physical pages.</li><li>After mmap, you can <span class="mono">close(fd)</span> &mdash; the mapping remains valid. The fd is only needed for ftruncate and initial setup.</li><li><span class="mono">shm_unlink(name)</span> removes the name from <span class="mono">/dev/shm</span>. The object persists until the last <span class="mono">munmap</span> or process exit. Reference-counted like file unlink.</li><li>Synchronization must be explicit: use <span class="mono">pthread_mutex_t</span> with <span class="mono">PTHREAD_PROCESS_SHARED</span> attribute (placed in the shared region), or POSIX semaphores, or atomic operations.</li><li>Backed by <span class="mono">/dev/shm</span> (tmpfs). Objects are visible as regular files &mdash; you can inspect size, permissions, even <span class="mono">hexdump</span> contents.</li><li>vs System V: <span class="mono">shm_open</span> returns a real fd (fstat, fchmod work). System V <span class="mono">shmget</span>/<span class="mono">shmat</span> uses opaque IDs and has less flexible permissions.</li></ul>
+            <ul><li><span class="mono">shm_open(name, O_CREAT|O_RDWR, mode)</span> creates or opens a shared memory object. Returns a regular file descriptor backed by tmpfs.</li><li><span class="mono">ftruncate(fd, size)</span> sets the object size. New objects start at size 0: you must set the size before mapping or face SIGBUS.</li><li><span class="mono">mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)</span> maps the object into the process address space. Multiple processes mapping the same object see the same physical pages.</li><li>After mmap, you can <span class="mono">close(fd)</span>: the mapping remains valid. The fd is only needed for ftruncate and initial setup.</li><li><span class="mono">shm_unlink(name)</span> removes the name from <span class="mono">/dev/shm</span>. The object persists until the last <span class="mono">munmap</span> or process exit. Reference-counted like file unlink.</li><li>Synchronization must be explicit: use <span class="mono">pthread_mutex_t</span> with <span class="mono">PTHREAD_PROCESS_SHARED</span> attribute (placed in the shared region), or POSIX semaphores, or atomic operations.</li><li>Backed by <span class="mono">/dev/shm</span> (tmpfs). Objects are visible as regular files: you can inspect size, permissions, even <span class="mono">hexdump</span> contents.</li><li>vs System V: <span class="mono">shm_open</span> returns a real fd (fstat, fchmod work). System V <span class="mono">shmget</span>/<span class="mono">shmat</span> uses opaque IDs and has less flexible permissions.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -130,10 +130,10 @@
   <div class="content"><ul><li>A new shm object has size 0. If you mmap it without calling ftruncate first, any access to the mapped region causes SIGBUS (not SIGSEGV).</li><li>Shrinking with ftruncate after processes have mapped the region can also cause SIGBUS for pages beyond the new size.</li><li>Always ftruncate before mmap. If multiple processes race to create, use O_EXCL or a semaphore to coordinate initialization.</li></ul></div>
 </details><details class="accordion">
   <summary>Process-shared mutexes</summary>
-  <div class="content"><ul><li>A <span class="mono">pthread_mutex_t</span> can be used across processes if: (a) it is placed in shared memory (MAP_SHARED), and (b) initialized with <span class="mono">PTHREAD_PROCESS_SHARED</span> via <span class="mono">pthread_mutexattr_setpshared</span>.</li><li>If a process holding the mutex crashes, the mutex is left locked. Use <span class="mono">PTHREAD_MUTEX_ROBUST</span> attribute &mdash; the next locker gets EOWNERDEAD and can call <span class="mono">pthread_mutex_consistent</span> to recover.</li><li>Condition variables can also be process-shared with the same attribute pattern.</li></ul></div>
+  <div class="content"><ul><li>A <span class="mono">pthread_mutex_t</span> can be used across processes if: (a) it is placed in shared memory (MAP_SHARED), and (b) initialized with <span class="mono">PTHREAD_PROCESS_SHARED</span> via <span class="mono">pthread_mutexattr_setpshared</span>.</li><li>If a process holding the mutex crashes, the mutex is left locked. Use <span class="mono">PTHREAD_MUTEX_ROBUST</span> attribute: the next locker gets EOWNERDEAD and can call <span class="mono">pthread_mutex_consistent</span> to recover.</li><li>Condition variables can also be process-shared with the same attribute pattern.</li></ul></div>
 </details><details class="accordion">
   <summary>Sizing and resizing</summary>
-  <div class="content"><ul><li>You can grow a shm object with ftruncate after creation. Existing mappings do NOT automatically see the new pages &mdash; you must munmap and remap (or use mremap on Linux).</li><li>For fixed-size regions, agree on size at design time and document it. Dynamic resizing with multiple processes is complex and error-prone.</li><li>tmpfs is backed by RAM+swap. Large shm objects consume physical memory. Monitor <span class="mono">df /dev/shm</span>.</li></ul></div>
+  <div class="content"><ul><li>You can grow a shm object with ftruncate after creation. Existing mappings do NOT automatically see the new pages: you must munmap and remap (or use mremap on Linux).</li><li>For fixed-size regions, agree on size at design time and document it. Dynamic resizing with multiple processes is complex and error-prone.</li><li>tmpfs is backed by RAM+swap. Large shm objects consume physical memory. Monitor <span class="mono">df /dev/shm</span>.</li></ul></div>
 </details><details class="accordion">
   <summary>Cleanup and crash recovery</summary>
   <div class="content"><ul><li>If the creating process crashes without calling <span class="mono">shm_unlink</span>, the object persists in <span class="mono">/dev/shm</span> until reboot or manual removal.</li><li>Pattern: unlink immediately after all processes have opened/mapped. New processes can't attach, but existing mappings remain valid.</li><li>For crash recovery: design startup to check for and clean up stale objects in <span class="mono">/dev/shm</span>.</li><li>Use restrictive permissions (0600) to prevent other users from attaching to sensitive shared data.</li></ul></div>
@@ -189,7 +189,7 @@ pthread_mutex_unlock(&amp;r-&gt;mtx);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always <span class="mono">ftruncate</span> before <span class="mono">mmap</span> on newly created objects. Check for SIGBUS in crash reports.</li><li>Use <span class="mono">PTHREAD_PROCESS_SHARED</span> + <span class="mono">PTHREAD_MUTEX_ROBUST</span> for mutexes in shared memory.</li><li>Handle <span class="mono">EOWNERDEAD</span> from <span class="mono">pthread_mutex_lock</span>: repair shared state, call <span class="mono">pthread_mutex_consistent</span>.</li><li>Monitor <span class="mono">/dev/shm</span> usage (<span class="mono">df -h /dev/shm</span>) &mdash; shared memory consumes RAM+swap.</li><li>Design startup cleanup: unlink stale objects, re-create with known initial state.</li></ul>
+            <ul><li>Always <span class="mono">ftruncate</span> before <span class="mono">mmap</span> on newly created objects. Check for SIGBUS in crash reports.</li><li>Use <span class="mono">PTHREAD_PROCESS_SHARED</span> + <span class="mono">PTHREAD_MUTEX_ROBUST</span> for mutexes in shared memory.</li><li>Handle <span class="mono">EOWNERDEAD</span> from <span class="mono">pthread_mutex_lock</span>: repair shared state, call <span class="mono">pthread_mutex_consistent</span>.</li><li>Monitor <span class="mono">/dev/shm</span> usage (<span class="mono">df -h /dev/shm</span>): shared memory consumes RAM+swap.</li><li>Design startup cleanup: unlink stale objects, re-create with known initial state.</li></ul>
           </div>
         </div>
 
@@ -199,7 +199,7 @@ pthread_mutex_unlock(&amp;r-&gt;mtx);</code></pre>
             Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Create a shm object, map it in two processes, increment a shared counter 1M times each with a process-shared mutex. Verify final count is 2M.</li><li>Create a shm object with <span class="mono">shm_open</span> but skip <span class="mono">ftruncate</span>. Map it and access data &mdash; observe SIGBUS. Then fix by adding <span class="mono">ftruncate</span>.</li><li>Use <span class="mono">PTHREAD_MUTEX_ROBUST</span>: lock the mutex in one process, kill -9 that process, and observe EOWNERDEAD in the surviving process. Implement recovery.</li></ul>
+            <ul><li>Create a shm object, map it in two processes, increment a shared counter 1M times each with a process-shared mutex. Verify final count is 2M.</li><li>Create a shm object with <span class="mono">shm_open</span> but skip <span class="mono">ftruncate</span>. Map it and access data: observe SIGBUS. Then fix by adding <span class="mono">ftruncate</span>.</li><li>Use <span class="mono">PTHREAD_MUTEX_ROBUST</span>: lock the mutex in one process, kill -9 that process, and observe EOWNERDEAD in the surviving process. Implement recovery.</li></ul>
           </div>
         </div>
 
@@ -294,7 +294,7 @@ pthread_mutex_unlock(&amp;r-&gt;mtx);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch54", n:54, subtitle:"Chapter 54 \u2014 POSIX Shared Memory"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch54", n:54, subtitle:"Chapter 54: POSIX Shared Memory"});
     TLPIWidgets.mountKernelGraph("kg_ch54", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

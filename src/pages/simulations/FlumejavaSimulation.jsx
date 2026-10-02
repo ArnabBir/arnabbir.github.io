@@ -133,7 +133,7 @@ const CONFIG = {
       "log": "Results materialized.",
       "message": {
         "from": "Sinks",
-        "to": "—",
+        "to": "N/A",
         "label": "Commit"
       }
     }

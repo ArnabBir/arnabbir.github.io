@@ -57,17 +57,17 @@ const COLUMN_STORE = {
 const QUERIES = [
   {
     sql: "SELECT DocId FROM T",
-    desc: 'The "Lazy" Scan — reads only the top-level ID. Ignores all nested data.',
+    desc: 'The "Lazy" Scan: reads only the top-level ID. Ignores all nested data.',
     cols: ["DocId"],
   },
   {
     sql: "SELECT COUNT(Name.Language.Code) FROM T",
-    desc: 'The "Deep Dive" — drills 3 levels deep. Reads ONLY Code. Skips URLs & Links.',
+    desc: 'The "Deep Dive": drills 3 levels deep. Reads ONLY Code. Skips URLs & Links.',
     cols: ["Name.Language.Code"],
   },
   {
     sql: "SELECT Name.Url, Links.Forward FROM T",
-    desc: 'The "Zipper" — reads two separate branches and stitches them back.',
+    desc: 'The "Zipper": reads two separate branches and stitches them back.',
     cols: ["Name.Url", "Links.Forward"],
   },
 ];
@@ -332,13 +332,13 @@ export default function DremelSimulation() {
           {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — VLDB 2010
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: VLDB 2010
             </div>
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-600 via-blue-500 to-indigo-500 dark:from-cyan-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent mb-4">
               Dremel: Interactive Analysis of Web-Scale Datasets
             </h2>
             <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              A scalable, interactive ad-hoc query system for nested data. Combines columnar storage with multi-level execution trees to run aggregation queries over <strong className="text-slate-900 dark:text-slate-200">trillion-row tables in seconds</strong> — the system behind BigQuery.
+              A scalable, interactive ad-hoc query system for nested data. Combines columnar storage with multi-level execution trees to run aggregation queries over <strong className="text-slate-900 dark:text-slate-200">trillion-row tables in seconds</strong>: the system behind BigQuery.
             </p>
           </div>
 
@@ -353,7 +353,7 @@ export default function DremelSimulation() {
                 <InnovationCard
                   num="1"
                   title="Columnar Storage for Nested Data"
-                  desc="A novel encoding using repetition and definition levels that losslessly flattens arbitrarily nested Protocol Buffer records into column stripes — enabling reads of only the fields you need."
+                  desc="A novel encoding using repetition and definition levels that losslessly flattens arbitrarily nested Protocol Buffer records into column stripes: enabling reads of only the fields you need."
                   color="cyan"
                 />
                 <InnovationCard
@@ -374,10 +374,10 @@ export default function DremelSimulation() {
 
           {/* ---- Repetition & Definition Levels ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Binary className="w-5 h-5" />} title="The Core Innovation — Repetition & Definition Levels" />
+            <SectionTitle icon={<Binary className="w-5 h-5" />} title="The Core Innovation: Repetition & Definition Levels" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
-                When you flatten nested data into columns, you lose structural information. Two values of a repeated field — are they from the same record or different records? From the same list or a sibling list? Dremel solves this with two small integers per value:
+                When you flatten nested data into columns, you lose structural information. Two values of a repeated field: are they from the same record or different records? From the same list or a sibling list? Dremel solves this with two small integers per value:
               </p>
               <div className="grid md:grid-cols-2 gap-5 mb-6">
                 <LevelCard
@@ -395,16 +395,16 @@ export default function DremelSimulation() {
                   color="purple"
                   examples={[
                     { val: "d = max", meaning: "Value is fully present (not NULL)" },
-                    { val: "d < max", meaning: "Value is missing — NULL at some ancestor level" },
+                    { val: "d < max", meaning: "Value is missing: NULL at some ancestor level" },
                     { val: "d = 0", meaning: "The topmost optional/repeated ancestor is absent" },
                   ]}
-                  desc="Tells you how many optional/repeated fields in the path are actually defined. This disambiguates different levels of 'missingness' — a crucial detail for lossless reconstruction."
+                  desc="Tells you how many optional/repeated fields in the path are actually defined. This disambiguates different levels of 'missingness': a crucial detail for lossless reconstruction."
                 />
               </div>
               <div className="bg-slate-50 dark:bg-slate-900/80 rounded-xl border border-amber-200 dark:border-amber-500/20 p-4 flex items-start gap-3">
                 <Info className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-amber-700 dark:text-amber-300">Key proof:</strong> The paper proves this encoding is <strong className="text-slate-900 dark:text-slate-200">lossless</strong> — given any subset of columns with their r/d levels, you can reconstruct the exact original nested records (with only the selected fields). This is what makes Dremel's columnar format fundamentally different from traditional column stores.
+                  <strong className="text-amber-700 dark:text-amber-300">Key proof:</strong> The paper proves this encoding is <strong className="text-slate-900 dark:text-slate-200">lossless</strong>: given any subset of columns with their r/d levels, you can reconstruct the exact original nested records (with only the selected fields). This is what makes Dremel's columnar format fundamentally different from traditional column stores.
                 </p>
               </div>
             </div>
@@ -412,7 +412,7 @@ export default function DremelSimulation() {
 
           {/* ---- Architecture ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<TreePine className="w-5 h-5" />} title="Architecture — The Serving Tree" />
+            <SectionTitle icon={<TreePine className="w-5 h-5" />} title="Architecture: The Serving Tree" />
             <div className="space-y-4 mb-6">
               <FlowStep num={1} color="cyan" icon={<Globe className="w-5 h-5" />} title="Client sends query"
                 desc="A SQL-like query arrives at the root server. The query may reference nested fields using dotted notation (e.g., Name.Language.Code)."
@@ -421,24 +421,24 @@ export default function DremelSimulation() {
                 desc="The root server reads table metadata, identifies all tablets (horizontal partitions), and rewrites the query for each subtree. For example, a COUNT becomes a SUM of partial COUNTs."
               />
               <FlowStep num={3} color="indigo" icon={<Server className="w-5 h-5" />} title="Intermediate servers aggregate"
-                desc="Mixer-level servers further split the work and aggregate partial results from below. Multi-level trees are critical when queries produce many groups — a single root can't aggregate thousands of leaf results."
+                desc="Mixer-level servers further split the work and aggregate partial results from below. Multi-level trees are critical when queries produce many groups: a single root can't aggregate thousands of leaf results."
               />
               <FlowStep num={4} color="emerald" icon={<Database className="w-5 h-5" />} title="Leaf servers scan columns"
-                desc="Each leaf reads ONLY the columns needed from its tablets (stored on GFS/Colossus). Column blocks are prefetched asynchronously with 95% cache hit rate. NULLs are inferred from definition levels — never stored."
+                desc="Each leaf reads ONLY the columns needed from its tablets (stored on GFS/Colossus). Column blocks are prefetched asynchronously with 95% cache hit rate. NULLs are inferred from definition levels: never stored."
               />
               <FlowStep num={5} color="purple" icon={<Zap className="w-5 h-5" />} title="Results assembled & returned"
                 desc="Using the FSM-based record assembly algorithm, partial results flow back up the tree. The query dispatcher handles stragglers by re-dispatching slow tablets to other servers."
               />
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              <FeatureCard title="Query Dispatcher" desc="Schedules queries by priority, load-balances across the tree, and monitors per-tablet histograms. If a tablet takes too long, it's re-dispatched to another leaf — multiple times if needed." color="cyan" />
+              <FeatureCard title="Query Dispatcher" desc="Schedules queries by priority, load-balances across the tree, and monitors per-tablet histograms. If a tablet takes too long, it's re-dispatched to another leaf: multiple times if needed." color="cyan" />
               <FeatureCard title="Approximate Results" desc="A parameter controls the minimum percentage of tablets scanned before returning. Setting it to 98% instead of 100% can dramatically speed up queries by skipping a few slow stragglers." color="amber" />
             </div>
           </section>
 
           {/* ---- The Shredding Algorithm ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Columns3 className="w-5 h-5" />} title="Shredding & Assembly — How It Works" />
+            <SectionTitle icon={<Columns3 className="w-5 h-5" />} title="Shredding & Assembly: How It Works" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div className="rounded-xl border-2 border-cyan-200 dark:border-cyan-500/40 bg-cyan-50 dark:bg-cyan-500/10 p-5">
@@ -446,7 +446,7 @@ export default function DremelSimulation() {
                     <ArrowDown className="w-4 h-4" /> Shredding (Record → Columns)
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                    A tree of <strong>field writers</strong> mirrors the schema hierarchy. The algorithm recurses through each record, computing r and d levels. Writers only activate when they have data — sparse records (1000 fields, 100 populated) are cheap.
+                    A tree of <strong>field writers</strong> mirrors the schema hierarchy. The algorithm recurses through each record, computing r and d levels. Writers only activate when they have data: sparse records (1000 fields, 100 populated) are cheap.
                   </p>
                   <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
                     <div>1. Walk the record tree top-down</div>
@@ -473,7 +473,7 @@ export default function DremelSimulation() {
               <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-500/20 p-4 flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-emerald-700 dark:text-emerald-300">The magic:</strong> If you only need 3 fields out of 1200, you read 3 column stripes — not 1200. The FSM reconstructs records as if the other 1197 fields never existed. This is why Dremel achieves <strong>10× speedup</strong> on local disk when reading few columns.
+                  <strong className="text-emerald-700 dark:text-emerald-300">The magic:</strong> If you only need 3 fields out of 1200, you read 3 column stripes: not 1200. The FSM reconstructs records as if the other 1197 fields never existed. This is why Dremel achieves <strong>10× speedup</strong> on local disk when reading few columns.
                 </p>
               </div>
             </div>
@@ -481,7 +481,7 @@ export default function DremelSimulation() {
 
           {/* ---- Performance ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<BarChart3 className="w-5 h-5" />} title="Performance — Experimental Results" />
+            <SectionTitle icon={<BarChart3 className="w-5 h-5" />} title="Performance: Experimental Results" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <MetricCard label="Table T1" value="85B rows" sub="87 TB compressed" color="cyan" />
               <MetricCard label="Table T4" value="1T+ rows" sub="105 TB compressed" color="blue" />
@@ -489,7 +489,7 @@ export default function DremelSimulation() {
               <MetricCard label="Monthly" value="Quadrillions" sub="of records scanned" color="emerald" />
             </div>
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm dark:shadow-none space-y-4">
-              <ResultCard title="Columnar vs Record-Oriented (Local Disk)" desc="Reading 1-2 columns from columnar storage is 10× faster than record-oriented. The advantage scales linearly — crossover happens at dozens of fields." color="cyan" />
+              <ResultCard title="Columnar vs Record-Oriented (Local Disk)" desc="Reading 1-2 columns from columnar storage is 10× faster than record-oriented. The advantage scales linearly: crossover happens at dozens of fields." color="cyan" />
               <ResultCard title="Columnar MR vs Record MR" desc="MapReduce on columnar data: minutes. MapReduce on record data: hours. Same query, same 3000 nodes. Columnar storage benefits all tools." color="blue" />
               <ResultCard title="Serving Tree Depth" desc="For queries with many groups (e.g., 1.1M distinct domains), going from 2 levels to 3 levels halves execution time. The root can't aggregate thousands of leaf results alone." color="indigo" />
               <ResultCard title="Near-Linear Scalability" desc="Scaling from 1000 to 4000 nodes on a trillion-row table: CPU time stays constant (~300K sec), wall-clock time drops proportionally. No efficiency loss at scale." color="emerald" />
@@ -499,7 +499,7 @@ export default function DremelSimulation() {
 
           {/* ---- Dremel vs MapReduce ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Table2 className="w-5 h-5" />} title="Dremel vs MapReduce — Complementary Tools" />
+            <SectionTitle icon={<Table2 className="w-5 h-5" />} title="Dremel vs MapReduce: Complementary Tools" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 Dremel is <strong className="text-cyan-600 dark:text-cyan-300">not a replacement for MapReduce</strong>. They are complementary. Dremel is used for interactive exploration (seconds), while MR handles complex multi-pass computations (minutes to hours).
@@ -532,8 +532,8 @@ export default function DremelSimulation() {
             <SectionTitle icon={<Eye className="w-5 h-5" />} title="Using the Simulator Above" />
             <div className="grid md:grid-cols-3 gap-4">
               <UsageCard step="1" title="Pick a Query" desc="Click one of the three SQL queries. Watch the execution status transition: DISPATCHING → SCANNING COLUMNS → ASSEMBLING RESULTS." color="cyan" />
-              <UsageCard step="2" title="Watch Column Selection" desc="Only the columns needed for the query light up. Unused columns dim and blur — this IS Dremel's key advantage: reading only what you need." color="blue" />
-              <UsageCard step="3" title="Hover for Details" desc="Hover over any cell in the column store to see its value, record number, repetition level, and definition level — the building blocks of nested columnar storage." color="emerald" />
+              <UsageCard step="2" title="Watch Column Selection" desc="Only the columns needed for the query light up. Unused columns dim and blur: this IS Dremel's key advantage: reading only what you need." color="blue" />
+              <UsageCard step="3" title="Hover for Details" desc="Hover over any cell in the column store to see its value, record number, repetition level, and definition level: the building blocks of nested columnar storage." color="emerald" />
             </div>
           </section>
         </div>

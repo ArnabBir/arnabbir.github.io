@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 45 — Introduction to System V IPC</title>
+  <title>TLPI v2, Chapter 45, Introduction to System V IPC</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 45 — Introduction to System V IPC</div>
+          <div class="sub" id="subTitle">Chapter 45: Introduction to System V IPC</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 45 — Introduction to System V IPC
+            Chapter 45: Introduction to System V IPC
           </h2>
           <div class="subtitle">
-            <p>System V IPC provides kernel-persistent objects — message queues, semaphores, and shared memory segments — identified by integer keys. The API is older and less clean than POSIX IPC, but remains widespread in legacy codebases and is fully supported by modern kernels.</p><p>All three System V IPC types share a common framework: ftok() generates keys, *get() creates or opens objects, *ctl() controls them, and *op() performs operations. Understanding this common pattern makes learning all three straightforward.</p>
+            <p>System V IPC provides kernel-persistent objects, message queues, semaphores, and shared memory segments, identified by integer keys. The API is older and less clean than POSIX IPC, but remains widespread in legacy codebases and is fully supported by modern kernels.</p><p>All three System V IPC types share a common framework: ftok() generates keys, *get() creates or opens objects, *ctl() controls them, and *op() performs operations. Understanding this common pattern makes learning all three straightforward.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><strong>Common pattern across all three types</strong>: msgget/semget/shmget create or open an object; msgctl/semctl/shmctl query or modify metadata (permissions, limits, IPC_RMID); msgsnd+msgrcv / semop / shmat+shmdt perform the actual IPC operation.</li><li><strong>key_t from ftok(pathname, proj_id)</strong>: converts a filesystem path + 8-bit project ID into an integer key. The key identifies the IPC object across unrelated processes. ftok uses the file's inode number and device — it does not read the file contents.</li><li><strong>IPC_CREAT</strong>: flag passed to *get(). Creates the object if it doesn't exist. If it exists, opens it. Combined with IPC_EXCL, it fails with EEXIST if the object already exists — useful for ensuring you are the creator.</li><li><strong>IPC_PRIVATE (key=0)</strong>: creates a private object not associated with any key. Only accessible by processes that inherit the identifier (via fork). Useful for parent-child IPC without name collisions.</li><li><strong>Permissions</strong>: each IPC object has a struct ipc_perm with uid, gid, and mode bits (similar to files but no execute bit). Checked on each operation. Set at creation time; modifiable via *ctl(IPC_SET).</li><li><strong>Kernel persistence</strong>: unlike pipes (which vanish when fds close), System V IPC objects live until IPC_RMID or reboot. A crashed process leaves orphaned objects. Always plan cleanup: startup scripts, atexit handlers, or cron jobs running ipcrm.</li><li><strong>Resource limits</strong>: controlled via /proc/sys/kernel/msgmax, msgmnb, msgmni (message queues), semmsl, semmns, semmni (semaphores), shmmax, shmall, shmmni (shared memory). Hitting limits returns ENOSPC or ENOMEM.</li></ul>
+            <ul><li><strong>Common pattern across all three types</strong>: msgget/semget/shmget create or open an object; msgctl/semctl/shmctl query or modify metadata (permissions, limits, IPC_RMID); msgsnd+msgrcv / semop / shmat+shmdt perform the actual IPC operation.</li><li><strong>key_t from ftok(pathname, proj_id)</strong>: converts a filesystem path + 8-bit project ID into an integer key. The key identifies the IPC object across unrelated processes. ftok uses the file's inode number and device: it does not read the file contents.</li><li><strong>IPC_CREAT</strong>: flag passed to *get(). Creates the object if it doesn't exist. If it exists, opens it. Combined with IPC_EXCL, it fails with EEXIST if the object already exists: useful for ensuring you are the creator.</li><li><strong>IPC_PRIVATE (key=0)</strong>: creates a private object not associated with any key. Only accessible by processes that inherit the identifier (via fork). Useful for parent-child IPC without name collisions.</li><li><strong>Permissions</strong>: each IPC object has a struct ipc_perm with uid, gid, and mode bits (similar to files but no execute bit). Checked on each operation. Set at creation time; modifiable via *ctl(IPC_SET).</li><li><strong>Kernel persistence</strong>: unlike pipes (which vanish when fds close), System V IPC objects live until IPC_RMID or reboot. A crashed process leaves orphaned objects. Always plan cleanup: startup scripts, atexit handlers, or cron jobs running ipcrm.</li><li><strong>Resource limits</strong>: controlled via /proc/sys/kernel/msgmax, msgmnb, msgmni (message queues), semmsl, semmns, semmni (semaphores), shmmax, shmall, shmmni (shared memory). Hitting limits returns ENOSPC or ENOMEM.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -127,10 +127,10 @@
           </div>
           <details class="accordion">
   <summary>ftok collisions and key generation</summary>
-  <div class="content"><ul><li>ftok() uses the file's st_ino (inode) and st_dev (device) plus proj_id. If two files on the same device have the same inode number (unlikely but possible after file deletion and recreation), ftok returns the same key.</li><li>If the file is deleted and recreated, its inode may change — causing ftok to return a different key. Existing IPC objects become orphaned.</li><li>proj_id is truncated to 8 bits. Only values 1-255 are useful. 0 is technically valid but discouraged (some implementations handle it poorly).</li><li>Alternative: use IPC_PRIVATE to avoid key collisions entirely, sharing the ID via fork or a side channel (file, environment variable).</li></ul></div>
+  <div class="content"><ul><li>ftok() uses the file's st_ino (inode) and st_dev (device) plus proj_id. If two files on the same device have the same inode number (unlikely but possible after file deletion and recreation), ftok returns the same key.</li><li>If the file is deleted and recreated, its inode may change: causing ftok to return a different key. Existing IPC objects become orphaned.</li><li>proj_id is truncated to 8 bits. Only values 1-255 are useful. 0 is technically valid but discouraged (some implementations handle it poorly).</li><li>Alternative: use IPC_PRIVATE to avoid key collisions entirely, sharing the ID via fork or a side channel (file, environment variable).</li></ul></div>
 </details><details class="accordion">
   <summary>Orphaned IPC objects after crashes</summary>
-  <div class="content"><ul><li>If a process crashes without calling IPC_RMID, the IPC object remains in the kernel indefinitely. This is the most common operational problem with System V IPC.</li><li>Use <span class="mono">ipcs</span> to list orphaned objects. Automate cleanup: check for stale objects on application startup or via a cron job.</li><li>For shared memory, IPC_RMID marks the segment for deletion but it persists until the last process calls shmdt(). For message queues and semaphores, IPC_RMID destroys immediately — pending operations get EIDRM.</li><li>Resource limits (msgmni, semmni, shmmni) cap the total number of objects system-wide. Orphaned objects eat into these limits.</li></ul></div>
+  <div class="content"><ul><li>If a process crashes without calling IPC_RMID, the IPC object remains in the kernel indefinitely. This is the most common operational problem with System V IPC.</li><li>Use <span class="mono">ipcs</span> to list orphaned objects. Automate cleanup: check for stale objects on application startup or via a cron job.</li><li>For shared memory, IPC_RMID marks the segment for deletion but it persists until the last process calls shmdt(). For message queues and semaphores, IPC_RMID destroys immediately: pending operations get EIDRM.</li><li>Resource limits (msgmni, semmni, shmmni) cap the total number of objects system-wide. Orphaned objects eat into these limits.</li></ul></div>
 </details><details class="accordion">
   <summary>Permissions and security</summary>
   <div class="content"><ul><li>IPC permissions are checked like file permissions (read/write for owner, group, other) but there is no execute bit.</li><li>The creator (cuid/cgid) and owner (uid/gid) are tracked separately. Only the creator, owner, or root can call IPC_RMID or IPC_SET.</li><li>System V IPC has no pathname-based access control (unlike POSIX IPC in /dev/mqueue or /dev/shm). Security depends entirely on the permission bits and UID/GID matching.</li><li>In containerized environments, IPC namespaces (CLONE_NEWIPC) isolate System V IPC objects between containers.</li></ul></div>
@@ -183,7 +183,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always plan IPC object cleanup: atexit handler, signal handler, or startup cleanup routine that removes stale objects.</li><li>Use IPC_CREAT | IPC_EXCL for the creator process; just IPC_CREAT (or 0) for clients that attach.</li><li>Set restrictive permissions (0600 or 0660) and verify with ipcs -p to check creator/owner PIDs.</li><li>Monitor resource limits: check /proc/sys/kernel/msg*, sem*, shm* and tune before deployment.</li><li>Prefer POSIX IPC (mq_open, sem_open, shm_open) for new projects — cleaner API, fd-based, better cleanup semantics.</li></ul>
+            <ul><li>Always plan IPC object cleanup: atexit handler, signal handler, or startup cleanup routine that removes stale objects.</li><li>Use IPC_CREAT | IPC_EXCL for the creator process; just IPC_CREAT (or 0) for clients that attach.</li><li>Set restrictive permissions (0600 or 0660) and verify with ipcs -p to check creator/owner PIDs.</li><li>Monitor resource limits: check /proc/sys/kernel/msg*, sem*, shm* and tune before deployment.</li><li>Prefer POSIX IPC (mq_open, sem_open, shm_open) for new projects: cleaner API, fd-based, better cleanup semantics.</li></ul>
           </div>
         </div>
 
@@ -288,7 +288,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch45", n:45, subtitle:"Chapter 45 \u2014 Introduction to System V IPC"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch45", n:45, subtitle:"Chapter 45: Introduction to System V IPC"});
     TLPIWidgets.mountKernelGraph("kg_ch45", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

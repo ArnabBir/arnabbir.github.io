@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 2: Data Models & Query Languages</title>
+  <title>DDIA Atlas: Chapter 2: Data Models & Query Languages</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,7 +75,7 @@
 <div class="lab" data-lab="datamodel">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Data Model Fit — Query Shape vs Constraints</h3>
+      <h3 class="lab-title">Lab: Data Model Fit: Query Shape vs Constraints</h3>
       <p class="lab-sub">Pick a model and an access pattern. The “scores” are heuristics to trigger design discussion, not universal truth.</p>
     </div>
     <div class="pill"><span class="dot"></span> Modeling tradeoffs</div>
@@ -103,7 +103,7 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Design advice</span><span class="v" data-out="advice">—</span></div>
+      <div class="metric"><span class="k">Design advice</span><span class="v" data-out="advice">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -115,7 +115,7 @@
 <p>
 A data model is a <strong>compression format for reality</strong>. It decides what relationships are easy, what invariants are enforceable,
 and how your team thinks about change.
-The most important question is not “SQL vs NoSQL” — it’s:
+The most important question is not “SQL vs NoSQL”: it’s:
 <strong>What are the aggregates and boundaries of consistency in your domain?</strong>
 </p>
 
@@ -219,7 +219,7 @@ Imperative pipelines are flexible but can become harder to reason about and opti
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Aggregate boundaries</summary>
+  <summary>Drill 1: Aggregate boundaries</summary>
   <p>
     Pick a domain (shopping cart, ride request, payments, messaging). Define what a single “aggregate” is.
     For each invariant (e.g., no double charge), decide: can it be enforced within one aggregate?
@@ -228,7 +228,7 @@ Imperative pipelines are flexible but can become harder to reason about and opti
 </details>
 
 <details>
-  <summary>Drill 2 — Query-first design</summary>
+  <summary>Drill 2: Query-first design</summary>
   <p>
     Write 3 queries that matter. Example: “last 50 messages in a conversation”, “search messages by keyword”, “list unread counts”.
     Which model makes each query cheap? Where do you need secondary indexes? Which query becomes expensive as data grows?
@@ -236,7 +236,7 @@ Imperative pipelines are flexible but can become harder to reason about and opti
 </details>
 
 <details>
-  <summary>Drill 3 — Evolution without downtime</summary>
+  <summary>Drill 3: Evolution without downtime</summary>
   <p>
     Add a new field and remove an old field. Describe how old and new services coexist.
     How do you prevent old services from breaking when they see new data?

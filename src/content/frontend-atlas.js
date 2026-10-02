@@ -1,6 +1,6 @@
 export const frontendAtlas = {
   id: "frontend-atlas",
-  title: "Frontend Atlas — From Java to the Browser",
+  title: "Frontend Atlas: From Java to the Browser",
   description: "Build frontend fluency through 80 lessons in 16 chapters: HTML, CSS, JavaScript, TypeScript, React, state, accessibility, testing, security, performance, and shipping. Explore 9 visual labs, a working React/TSX playground, and 8 project guides with a downloadable Taskflow reference.",
   category: "Frontend",
   format: "Study course",

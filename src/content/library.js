@@ -133,7 +133,7 @@ export default [
   },
   {
     id: "java-performance-scott-oaks",
-    title: "Java Performance (Scott Oaks) — Concept Atlas",
+    title: "Java Performance (Scott Oaks): Concept Atlas",
     description: "A concept-by-concept atlas of Java Performance: measurement, GC, JIT, memory, concurrency, and tuning workflows. Structured like a study shelf with deep dives.",
     category: "Performance Engineering",
     tags: ["Java", "Performance", "JVM", "GC", "Profiling"],
@@ -172,7 +172,7 @@ export default [
   },
   {
     id: "java-concurrency-in-practice",
-    title: "Java Concurrency in Practice — Interactive Atlas",
+    title: "Java Concurrency in Practice: Interactive Atlas",
     description:
       "Deep, interactive engineering notes for JCIP: thread safety, sharing objects, task execution, liveness, performance, the Java Memory Model, and nonblocking synchronization.",
     category: "Programming Languages",
@@ -269,7 +269,7 @@ export default [
   },
   {
     id: "ddia",
-    title: "Designing Data-Intensive Applications — Interactive Atlas",
+    title: "Designing Data-Intensive Applications: Interactive Atlas",
     description:
       "Chapter-by-chapter interactive companion to DDIA covering data models, replication, partitioning, transactions, consistency, batch & stream processing, and the future of data systems.",
     category: "DDIA",
@@ -355,7 +355,7 @@ export default [
   },
   {
     id: "operating-system",
-    title: "Operating System Concepts — Interactive Companion",
+    title: "Operating System Concepts: Interactive Companion",
     description:
       "Interactive explorations of OS fundamentals: virtual memory, paging, TLB, and more. Hands-on simulations to build intuition.",
     category: "Operating System",

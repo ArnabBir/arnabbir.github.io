@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 12 — System and Process Information</title>
+  <title>TLPI v2, Chapter 12, System and Process Information</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 12 — System and Process Information</div>
+          <div class="sub" id="subTitle">Chapter 12: System and Process Information</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 12 — System and Process Information
+            Chapter 12: System and Process Information
           </h2>
           <div class="subtitle">
-            <p>/proc is a live window into kernel state. It is not a real filesystem&mdash;no data is stored on disk. Instead, the kernel generates file contents on each read, exposing process state, memory maps, file descriptors, and system tunables as ordinary-looking files. This pseudo-filesystem is the foundation of nearly every Linux monitoring and debugging tool.</p><p>Beyond /proc, the uname() syscall provides kernel identification (version, architecture), and sysinfo() returns basic system-wide statistics (uptime, load averages, memory usage). Together, these APIs enable runtime introspection without external tools.</p>
+            <p>/proc is a live window into kernel state. It is not a real filesystem: no data is stored on disk. Instead, the kernel generates file contents on each read, exposing process state, memory maps, file descriptors, and system tunables as ordinary-looking files. This pseudo-filesystem is the foundation of nearly every Linux monitoring and debugging tool.</p><p>Beyond /proc, the uname() syscall provides kernel identification (version, architecture), and sysinfo() returns basic system-wide statistics (uptime, load averages, memory usage). Together, these APIs enable runtime introspection without external tools.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -85,7 +85,7 @@
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing kernel and process state as files. Generated on-read, no disk storage.</td></tr><tr><td class='mono'>/proc/PID/status</td><td>Process metadata: state, UIDs, GIDs, memory usage, threads, capabilities, signal masks.</td></tr><tr><td class='mono'>/proc/PID/maps</td><td>Virtual memory area listing: address ranges, permissions, mapped files, heap, stack.</td></tr><tr><td class='mono'>/proc/PID/fd</td><td>Directory of symlinks&mdash;one per open file descriptor&mdash;pointing to the underlying file, socket, or pipe.</td></tr><tr><td class='mono'>/proc/self</td><td>Magic symlink that always resolves to /proc/&lt;calling-process-PID&gt;. No need to know your own PID.</td></tr><tr><td class='mono'>uname</td><td>Syscall returning kernel release, version string, machine architecture, and hostname.</td></tr><tr><td class='mono'>sysinfo</td><td>Syscall returning system uptime, load averages, memory/swap stats, and running process count.</td></tr></tbody>
+  <tbody><tr><td class='mono'>/proc</td><td>Pseudo-filesystem exposing kernel and process state as files. Generated on-read, no disk storage.</td></tr><tr><td class='mono'>/proc/PID/status</td><td>Process metadata: state, UIDs, GIDs, memory usage, threads, capabilities, signal masks.</td></tr><tr><td class='mono'>/proc/PID/maps</td><td>Virtual memory area listing: address ranges, permissions, mapped files, heap, stack.</td></tr><tr><td class='mono'>/proc/PID/fd</td><td>Directory of symlinks, one per open file descriptor, pointing to the underlying file, socket, or pipe.</td></tr><tr><td class='mono'>/proc/self</td><td>Magic symlink that always resolves to /proc/&lt;calling-process-PID&gt;. No need to know your own PID.</td></tr><tr><td class='mono'>uname</td><td>Syscall returning kernel release, version string, machine architecture, and hostname.</td></tr><tr><td class='mono'>sysinfo</td><td>Syscall returning system uptime, load averages, memory/swap stats, and running process count.</td></tr></tbody>
 </table>
         </div>
 
@@ -175,7 +175,7 @@ closedir(d);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always handle ENOENT/ESRCH when reading /proc/PID files. The target process may have exited.</li><li>Use /proc/self/ instead of constructing /proc/&lt;getpid()&gt;/ to avoid PID reuse races on your own process.</li><li>Parse /proc files by field name, not by line number. Kernel updates may add or reorder fields.</li><li>For monitoring other processes, prefer pidfd_open() (Linux 5.3+) over raw PID to avoid race conditions with PID reuse.</li><li>Use uname() to detect kernel version at startup. Log it for debugging&mdash;/proc format and feature availability depend on kernel version.</li><li>Prefer sysinfo() over parsing /proc/meminfo and /proc/loadavg when you only need basic stats. It is a single syscall with no parsing.</li></ul>
+            <ul><li>Always handle ENOENT/ESRCH when reading /proc/PID files. The target process may have exited.</li><li>Use /proc/self/ instead of constructing /proc/&lt;getpid()&gt;/ to avoid PID reuse races on your own process.</li><li>Parse /proc files by field name, not by line number. Kernel updates may add or reorder fields.</li><li>For monitoring other processes, prefer pidfd_open() (Linux 5.3+) over raw PID to avoid race conditions with PID reuse.</li><li>Use uname() to detect kernel version at startup. Log it for debugging: /proc format and feature availability depend on kernel version.</li><li>Prefer sysinfo() over parsing /proc/meminfo and /proc/loadavg when you only need basic stats. It is a single syscall with no parsing.</li></ul>
           </div>
         </div>
 
@@ -204,7 +204,7 @@ closedir(d);</code></pre>
   <div><div style="font-weight:750">In a tmpfs RAM disk</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Nowhere&mdash;the kernel generates it on each read</div></div>
+  <div><div style="font-weight:750">Nowhere: the kernel generates it on each read</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
   <div><div style="font-weight:750">In the swap partition</div></div>
@@ -280,7 +280,7 @@ closedir(d);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch12", n:12, subtitle:"Chapter 12 \u2014 System and Process Information"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch12", n:12, subtitle:"Chapter 12: System and Process Information"});
     TLPIWidgets.mountKernelGraph("kg_ch12", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (sys). Click to pin a tooltip.",

@@ -13,7 +13,7 @@ const CONFIG = {
   "paper": {
     "filename": "The Bloom Paradox - When not to use a Bloom Filter.pdf"
   },
-  "abstract": "—In this paper, we uncover the Bloom paradox in Bloom ﬁlters: sometimes, the Bloom ﬁlter is harmful and should not be queried. We ﬁrst analyze conditions under which the Bloom paradox occurs in a Bloom ﬁlter, and demonstrate that it depends on the a priori probability that a given element belongs to the represented set. We show that the Bloom paradox also applies to Counting Bloom Filters (CBFs), and depends on the product of the hashed counters of each element. In addition, we further suggest improved architectures that deal with the Bloom paradox in Bloom ﬁlters, CBFs and their variants. We further present an application of the presented theory in cache sharing among Web proxies. Last, using simulations, we verify our theoretical results, and show that our improved schemes can lead to a large improvement in the performance of Bloom ﬁlters and CBFs.",
+  "abstract": "In this paper, we uncover the Bloom paradox in Bloom ﬁlters: sometimes, the Bloom ﬁlter is harmful and should not be queried. We ﬁrst analyze conditions under which the Bloom paradox occurs in a Bloom ﬁlter, and demonstrate that it depends on the a priori probability that a given element belongs to the represented set. We show that the Bloom paradox also applies to Counting Bloom Filters (CBFs), and depends on the product of the hashed counters of each element. In addition, we further suggest improved architectures that deal with the Bloom paradox in Bloom ﬁlters, CBFs and their variants. We further present an application of the presented theory in cache sharing among Web proxies. Last, using simulations, we verify our theoretical results, and show that our improved schemes can lead to a large improvement in the performance of Bloom ﬁlters and CBFs.",
   "diagram": {
     "nodes": [
       {
@@ -64,7 +64,7 @@ const CONFIG = {
       "log": "Prior probability estimated.",
       "message": {
         "from": "Decision Policy",
-        "to": "—",
+        "to": "N/A",
         "label": "Prior"
       }
     },
@@ -133,7 +133,7 @@ const CONFIG = {
       "log": "Expected cost optimized.",
       "message": {
         "from": "Decision Policy",
-        "to": "—",
+        "to": "N/A",
         "label": "Cost"
       }
     }
@@ -144,7 +144,7 @@ const CONFIG = {
         "title": "The paradox",
         "icon": "Info",
         "bullets": [
-          "A Bloom filter's false-positive rate alone is not enough—**priors matter**.",
+          "A Bloom filter's false-positive rate alone is not enough: **priors matter**.",
           "If Pr(x ∈ set) is very small, a positive Bloom result can still be overwhelmingly likely to be wrong."
         ]
       },

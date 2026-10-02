@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 1: Reliable, Scalable & Maintainable Applications</title>
+  <title>DDIA Atlas: Chapter 1: Reliable, Scalable & Maintainable Applications</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -83,26 +83,26 @@
     <div class="controls">
       <div class="row">
         <div>
-          <label>Traffic (requests/sec) <span class="kbd"><span data-val="qps">—</span></span></label>
+          <label>Traffic (requests/sec) <span class="kbd"><span data-val="qps">N/A</span></span></label>
           <input type="range" min="10" max="5000" value="800" data-k="qps" oninput="this.parentElement.parentElement.querySelector('[data-val=qps]').textContent=this.value"/>
         </div>
         <div>
-          <label>Error rate (%) <span class="kbd"><span data-val="err">—</span></span></label>
+          <label>Error rate (%) <span class="kbd"><span data-val="err">N/A</span></span></label>
           <input type="range" min="0" max="5" step="0.05" value="0.3" data-k="err" oninput="this.parentElement.parentElement.querySelector('[data-val=err]').textContent=this.value"/>
         </div>
       </div>
-      <label>p99 latency (ms) <span class="kbd"><span data-val="lat">—</span></span></label>
+      <label>p99 latency (ms) <span class="kbd"><span data-val="lat">N/A</span></span></label>
       <input type="range" min="20" max="900" value="160" data-k="lat" oninput="this.parentElement.querySelector('[data-val=lat]').textContent=this.value"/>
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
         Interpretation: availability ≈ 1 − error_rate. Latency “pressure” is modeled as extra burn once p99 crosses a 200ms target.
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Availability</span><span class="v" data-out="avail">—</span></div>
-      <div class="metric"><span class="k">30‑day error budget</span><span class="v" data-out="budget">—</span></div>
-      <div class="metric"><span class="k">Bad requests per hour</span><span class="v" data-out="bad">—</span></div>
-      <div class="metric"><span class="k">Observed p99</span><span class="v" data-out="p99">—</span></div>
-      <div class="metric"><span class="k">Latency SLO risk</span><span class="v" data-out="slo">—</span></div>
+      <div class="metric"><span class="k">Availability</span><span class="v" data-out="avail">N/A</span></div>
+      <div class="metric"><span class="k">30‑day error budget</span><span class="v" data-out="budget">N/A</span></div>
+      <div class="metric"><span class="k">Bad requests per hour</span><span class="v" data-out="bad">N/A</span></div>
+      <div class="metric"><span class="k">Observed p99</span><span class="v" data-out="p99">N/A</span></div>
+      <div class="metric"><span class="k">Latency SLO risk</span><span class="v" data-out="slo">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -122,9 +122,9 @@ You’re designing <em>behavior under stress</em>.
   <div class="panel">
     <h4>Three first‑class properties</h4>
     <p>
-      <strong>Reliability</strong> — the system does what it promised, even when things go wrong.<br>
-      <strong>Scalability</strong> — you can keep promises as load grows.<br>
-      <strong>Maintainability</strong> — humans can safely change the system over years.
+      <strong>Reliability</strong>: the system does what it promised, even when things go wrong.<br>
+      <strong>Scalability</strong>: you can keep promises as load grows.<br>
+      <strong>Maintainability</strong>: humans can safely change the system over years.
     </p>
   </div>
   <div class="panel">
@@ -231,7 +231,7 @@ If not, your architecture likely has hidden coupling.
 
 <h2 id="drills">Design drills</h2>
 <details>
-  <summary>Drill 1 — Pick your SLOs</summary>
+  <summary>Drill 1: Pick your SLOs</summary>
   <p>
     You have an internal API used by 20 services. Pick an SLO for availability and p99 latency.
     Then decide: what is your error budget policy? (freeze launches if budget burn &gt; X?).
@@ -240,7 +240,7 @@ If not, your architecture likely has hidden coupling.
 </details>
 
 <details>
-  <summary>Drill 2 — Identify the real load parameter</summary>
+  <summary>Drill 2: Identify the real load parameter</summary>
   <p>
     A feed service “has 1M daily active users.” That’s not enough. List the parameters that matter:
     fanout per request, percent of cache hits, size of user graph, write rate of new posts, skew (celebrity accounts).
@@ -249,7 +249,7 @@ If not, your architecture likely has hidden coupling.
 </details>
 
 <details>
-  <summary>Drill 3 — Design a failure mode</summary>
+  <summary>Drill 3: Design a failure mode</summary>
   <p>
     Choose one failure: database is slow, cache cluster is down, or a deploy introduces a hot loop.
     For each: what does the user see? what does oncall see? what is the automatic mitigation?

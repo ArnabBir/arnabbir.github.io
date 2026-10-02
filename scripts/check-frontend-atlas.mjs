@@ -5,8 +5,10 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { frontendAtlas, frontendPath } from '../src/content/frontend-atlas.js';
 import { LibraryItemSchema } from '../src/content/schema.js';
+import { normalizeBytes, NORMALIZATION } from './text-normalization.mjs';
 
 const manifest = JSON.parse(await readFile('public/library/frontend-atlas/manifest.json', 'utf8'));
+assert.equal(manifest.normalization, NORMALIZATION);
 LibraryItemSchema.parse(frontendAtlas);
 assert.deepEqual(frontendPath.ids, [frontendAtlas.id]);
 assert.equal(manifest.id, frontendAtlas.id);
@@ -18,7 +20,15 @@ for (const file of manifest.files) {
   const bytes = await readFile(`public${file.contentPath}`);
   assert.equal(bytes.length, file.bytes);
   assert.equal(createHash('sha256').update(bytes).digest('hex'), file.sha256);
-  if (process.argv[2]) assert.deepEqual(bytes, await readFile(resolve(process.argv[2], file.sourceFile)));
+  assert.match(file.sourceSha256, /^[a-f0-9]{64}$/);
+  assert.ok(file.sourceBytes > 0);
+  assert.deepEqual(normalizeBytes(bytes, file.sourceFile), bytes);
+  if (process.argv[2]) {
+    const source = await readFile(resolve(process.argv[2], file.sourceFile));
+    assert.equal(createHash('sha256').update(source).digest('hex'), file.sourceSha256);
+    assert.equal(source.length, file.sourceBytes);
+    assert.deepEqual(bytes, normalizeBytes(source, file.sourceFile));
+  }
 }
 const html = await readFile(`public${frontendAtlas.contentPath}`, 'utf8');
 assert.match(html, /Frontend Atlas/);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 27 — Program Execution</title>
+  <title>TLPI v2, Chapter 27, Program Execution</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 27 — Program Execution</div>
+          <div class="sub" id="subTitle">Chapter 27: Program Execution</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 27 — Program Execution
+            Chapter 27: Program Execution
           </h2>
           <div class="subtitle">
-            <p>exec replaces the current process image — same PID, same open fds (unless CLOEXEC), new program. Understanding exec semantics is critical for daemon design, shell implementation, and security-sensitive fd management.</p><p>There is only one real syscall: execve. The rest (execl, execlp, execle, execv, execvp, execvpe) are libc convenience wrappers that differ in how they accept arguments, search PATH, and pass the environment.</p>
+            <p>exec replaces the current process image: same PID, same open fds (unless CLOEXEC), new program. Understanding exec semantics is critical for daemon design, shell implementation, and security-sensitive fd management.</p><p>There is only one real syscall: execve. The rest (execl, execlp, execle, execv, execvp, execvpe) are libc convenience wrappers that differ in how they accept arguments, search PATH, and pass the environment.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><code>execve(path, argv, envp)</code> is the only syscall. It loads a new program from <code>path</code>, replacing text/data/heap/stack entirely.</li><li>The "l" variants (execl, execlp, execle) take args as a variadic list terminated by (char*)NULL.</li><li>The "v" variants (execv, execvp, execvpe) take args as a NULL-terminated char* array.</li><li>The "p" variants search PATH for the executable. Without "p", the path must be absolute or relative.</li><li>The "e" variants accept an explicit envp array. Without "e", the current environ is passed.</li><li>File descriptors survive exec unless marked O_CLOEXEC (or FD_CLOEXEC via fcntl). This is how pipes work across exec.</li><li>Signal dispositions: handled signals reset to SIG_DFL (handler code is gone); SIG_IGN stays ignored; pending signals preserved.</li><li>#! (shebang) scripts: kernel reads first 2 bytes; if "#!", it parses the interpreter path and re-execs as <code>interpreter [arg] script argv...</code></li><li>After exec: new text/data/heap/stack. Preserved: PID, PPID, pgid, sid, controlling tty, cwd, root dir, umask, rlimits, real UID/GID.</li><li>Set-UID/Set-GID bits on the executable change effective UID/GID on exec — a security-critical mechanism.</li></ul>
+            <ul><li><code>execve(path, argv, envp)</code> is the only syscall. It loads a new program from <code>path</code>, replacing text/data/heap/stack entirely.</li><li>The "l" variants (execl, execlp, execle) take args as a variadic list terminated by (char*)NULL.</li><li>The "v" variants (execv, execvp, execvpe) take args as a NULL-terminated char* array.</li><li>The "p" variants search PATH for the executable. Without "p", the path must be absolute or relative.</li><li>The "e" variants accept an explicit envp array. Without "e", the current environ is passed.</li><li>File descriptors survive exec unless marked O_CLOEXEC (or FD_CLOEXEC via fcntl). This is how pipes work across exec.</li><li>Signal dispositions: handled signals reset to SIG_DFL (handler code is gone); SIG_IGN stays ignored; pending signals preserved.</li><li>#! (shebang) scripts: kernel reads first 2 bytes; if "#!", it parses the interpreter path and re-execs as <code>interpreter [arg] script argv...</code></li><li>After exec: new text/data/heap/stack. Preserved: PID, PPID, pgid, sid, controlling tty, cwd, root dir, umask, rlimits, real UID/GID.</li><li>Set-UID/Set-GID bits on the executable change effective UID/GID on exec: a security-critical mechanism.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -129,16 +129,16 @@
           </div>
           <details class="accordion">
   <summary>execve after fork in multithreaded programs</summary>
-  <div class="content"><ul><li>fork() in a multithreaded program only clones the calling thread. Other threads vanish. Mutexes they held are now permanently locked.</li><li>Between fork and exec, only async-signal-safe functions are safe. This means no malloc, no printf, no mutex operations.</li><li>posix_spawn() exists specifically to avoid this problem — it combines fork+exec atomically (on Linux, implemented via clone+exec).</li><li>If you must fork in MT code, exec immediately. The exec replaces everything, so the broken mutex state doesn't matter.</li></ul></div>
+  <div class="content"><ul><li>fork() in a multithreaded program only clones the calling thread. Other threads vanish. Mutexes they held are now permanently locked.</li><li>Between fork and exec, only async-signal-safe functions are safe. This means no malloc, no printf, no mutex operations.</li><li>posix_spawn() exists specifically to avoid this problem: it combines fork+exec atomically (on Linux, implemented via clone+exec).</li><li>If you must fork in MT code, exec immediately. The exec replaces everything, so the broken mutex state doesn't matter.</li></ul></div>
 </details><details class="accordion">
   <summary>Script with no execute permission or bad shebang</summary>
-  <div class="content"><ul><li>execve returns EACCES if the file lacks execute permission (even if readable).</li><li>If the file has execute permission but an invalid format and no shebang, execve returns ENOEXEC.</li><li>execlp/execvp fall back to <code>/bin/sh script</code> on ENOEXEC — a legacy behavior that can be surprising.</li><li>Shebang line length is limited (typically 128 bytes on Linux). Extra args are passed as a single string, not split by spaces.</li></ul></div>
+  <div class="content"><ul><li>execve returns EACCES if the file lacks execute permission (even if readable).</li><li>If the file has execute permission but an invalid format and no shebang, execve returns ENOEXEC.</li><li>execlp/execvp fall back to <code>/bin/sh script</code> on ENOEXEC: a legacy behavior that can be surprising.</li><li>Shebang line length is limited (typically 128 bytes on Linux). Extra args are passed as a single string, not split by spaces.</li></ul></div>
 </details><details class="accordion">
   <summary>PATH search semantics</summary>
-  <div class="content"><ul><li>execvp searches each directory in PATH left-to-right. It stops at the first match with execute permission.</li><li>If PATH contains "." or empty components (":/usr/bin" or "/usr/bin:"), the current directory is searched — a security risk.</li><li>If no "/" in the filename, PATH is searched. If "/" is present, it's treated as a path (no PATH search).</li><li>confstr(_CS_PATH) gives the standard safe PATH (/usr/bin:/bin) for privilege-safe execution.</li></ul></div>
+  <div class="content"><ul><li>execvp searches each directory in PATH left-to-right. It stops at the first match with execute permission.</li><li>If PATH contains "." or empty components (":/usr/bin" or "/usr/bin:"), the current directory is searched: a security risk.</li><li>If no "/" in the filename, PATH is searched. If "/" is present, it's treated as a path (no PATH search).</li><li>confstr(_CS_PATH) gives the standard safe PATH (/usr/bin:/bin) for privilege-safe execution.</li></ul></div>
 </details><details class="accordion">
   <summary>File descriptor leaks across exec</summary>
-  <div class="content"><ul><li>Any fd without CLOEXEC survives exec. This is a common security and resource leak vector.</li><li>Modern practice: always open with O_CLOEXEC; selectively clear CLOEXEC only for fds the child needs (stdin/stdout/stderr, pipe ends).</li><li>Legacy fds (socket inherited from inetd, etc.) rely on fd inheritance by design — but document this explicitly.</li><li>Use /proc/self/fd or fcntl(fd, F_GETFD) to audit which fds will survive an exec.</li></ul></div>
+  <div class="content"><ul><li>Any fd without CLOEXEC survives exec. This is a common security and resource leak vector.</li><li>Modern practice: always open with O_CLOEXEC; selectively clear CLOEXEC only for fds the child needs (stdin/stdout/stderr, pipe ends).</li><li>Legacy fds (socket inherited from inetd, etc.) rely on fd inheritance by design: but document this explicitly.</li><li>Use /proc/self/fd or fcntl(fd, F_GETFD) to audit which fds will survive an exec.</li></ul></div>
 </details>
         </div>
 
@@ -163,7 +163,7 @@ int run_command(char *const argv[]) {
     if (pid == 0) {
         // Child: exec the command
         execvp(argv[0], argv);
-        // exec failed — report and use _exit (not exit)
+        // exec failed: report and use _exit (not exit)
         perror(argv[0]);
         _exit(127);  // 127 = command not found (shell convention)
     }
@@ -175,7 +175,7 @@ int run_command(char *const argv[]) {
 // O_CLOEXEC pattern: open a log fd that won't leak to children
 int open_log_safe(const char *path) {
     int fd = open(path, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0640);
-    // fd is automatically closed on exec — no leak to child processes
+    // fd is automatically closed on exec: no leak to child processes
     return fd;
 }</code></pre>
 </div>
@@ -291,7 +291,7 @@ int open_log_safe(const char *path) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch27", n:27, subtitle:"Chapter 27 \u2014 Program Execution"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch27", n:27, subtitle:"Chapter 27: Program Execution"});
     TLPIWidgets.mountKernelGraph("kg_ch27", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

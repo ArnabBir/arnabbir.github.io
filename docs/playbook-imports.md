@@ -39,13 +39,15 @@ npm run build
 git diff --check
 ```
 
-The importer copies bytes, not serialized DOM. It imports only the 24 explicitly mapped
+The importer applies `editorial-punctuation-v1` from `scripts/text-normalization.mjs`,
+without serializing the DOM. It imports only the 24 explicitly mapped
 HTML files, never PDFs or transcripts. It verifies that the registry covers all unique
 source HTML hashes. Four `(1)` files (Netflix, Razorpay, YouTube, ledger design) are exact
 duplicates; their names are retained as aliases in `public/library/playbooks/manifest.json`.
 The ledger **design blueprint** and **illustrated playbook** have distinct hashes and routes.
 
-The manifest records source filename, SHA-256, byte length, destination, and duplicate
+The manifest records source filename, original `sourceSha256`/`sourceBytes`, published
+`sha256`/`bytes`, normalization version, destination, and duplicate
 aliases. It is the snapshot provenance; the repository URL is not a fabricated Pages host.
 Before updating, review source changes and registry descriptions. The importer refuses to
 overwrite a destination modified since the last manifest. Resolve such edits explicitly;
@@ -69,7 +71,11 @@ Only HTML is bundled. Some unchanged source text mentions companion projects, va
 reports, or downloads that are not in this source collection. The reader explains that scope;
 the portfolio does not add download buttons or claim that code is available. External source
 links still require network access. Any original content/layout defects should be corrected
-upstream and reimported rather than silently rewriting these byte-preserved documents.
+upstream and reimported. The explicit local editorial transform removes U+2014 and its
+HTML/JS/CSS representations using colons, parenthetical commas, and missing-value labels.
+Source hashes and duplicate grouping still refer to original upstream bytes. The optional
+source-aware checks verify both original hashes and normalized output. Sibling repositories
+are never changed by these scripts.
 
 ## Verification checklist
 

@@ -593,7 +593,7 @@ export default function VirtualMemorySimulation() {
                 color="amber"
                 title="TLB"
                 specs={["4 entries", "Fully associative", "LRU replacement"]}
-                desc="A tiny, blazing-fast cache inside the MMU. If the VPN is found here (a hit), no page-table walk is needed — saving hundreds of cycles."
+                desc="A tiny, blazing-fast cache inside the MMU. If the VPN is found here (a hit), no page-table walk is needed: saving hundreds of cycles."
               />
               <HwCard
                 icon={<Database className="w-6 h-6" />}
@@ -607,28 +607,28 @@ export default function VirtualMemorySimulation() {
                 color="emerald"
                 title="Physical RAM"
                 specs={["8 physical frames", "Each frame = 64 bytes"]}
-                desc="The actual DRAM. With only 8 frames and 64 virtual pages, page faults and evictions are inevitable — exactly what makes the simulation interesting."
+                desc="The actual DRAM. With only 8 frames and 64 virtual pages, page faults and evictions are inevitable: exactly what makes the simulation interesting."
               />
               <HwCard
                 icon={<HardDrive className="w-6 h-6" />}
                 color="orange"
                 title="Disk (Swap)"
                 specs={["Unlimited capacity (conceptual)", "~10 ms latency"]}
-                desc="Acts as the backing store. When a page isn't in RAM the OS reads it from disk — the single most expensive operation in the memory hierarchy."
+                desc="Acts as the backing store. When a page isn't in RAM the OS reads it from disk: the single most expensive operation in the memory hierarchy."
               />
               <HwCard
                 icon={<Monitor className="w-6 h-6" />}
                 color="cyan"
                 title="System Log"
                 specs={["Last 50 events", "Color-coded severity"]}
-                desc="The console at the bottom records every operation — hits (green), misses (amber), faults (red), and disk I/O (orange) — so you can trace the full story."
+                desc="The console at the bottom records every operation, hits (green), misses (amber), faults (red), and disk I/O (orange), so you can trace the full story."
               />
             </div>
           </section>
 
           {/* ---- Translation flow ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="Translation Flow — Step by Step" />
+            <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="Translation Flow: Step by Step" />
             <div className="space-y-4">
               <FlowStep
                 num={1}
@@ -642,13 +642,13 @@ export default function VirtualMemorySimulation() {
                 color="amber"
                 icon={<Search className="w-5 h-5" />}
                 title="TLB lookup"
-                desc="The MMU checks the TLB for a matching VPN. This is a parallel, content-addressable search — effectively O(1)."
+                desc="The MMU checks the TLB for a matching VPN. This is a parallel, content-addressable search: effectively O(1)."
               />
               <div className="grid md:grid-cols-2 gap-4 pl-8 md:pl-14">
                 <FlowOutcome
                   variant="success"
                   title="TLB Hit"
-                  desc="PFN is read directly from the TLB entry. The physical address is formed immediately — no memory access needed for the translation itself."
+                  desc="PFN is read directly from the TLB entry. The physical address is formed immediately: no memory access needed for the translation itself."
                 />
                 <FlowOutcome
                   variant="error"
@@ -671,7 +671,7 @@ export default function VirtualMemorySimulation() {
                 />
                 <FlowOutcome
                   variant="error"
-                  title="Valid = 0 — Page Fault!"
+                  title="Valid = 0: Page Fault!"
                   desc="The page is on disk. The OS takes over: it suspends the process, issues a disk read, finds (or evicts) a free frame, updates the page table, and retries."
                 />
               </div>
@@ -694,7 +694,7 @@ export default function VirtualMemorySimulation() {
 
           {/* ---- Eviction detail ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<AlertTriangle className="w-5 h-5" />} title="Eviction — When RAM Is Full" />
+            <SectionTitle icon={<AlertTriangle className="w-5 h-5" />} title="Eviction: When RAM Is Full" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 With only <strong className="text-emerald-600 dark:text-emerald-300">8 physical frames</strong> and <strong className="text-indigo-600 dark:text-indigo-300">64 virtual pages</strong>,
@@ -708,7 +708,7 @@ export default function VirtualMemorySimulation() {
               <div className="bg-amber-50 dark:bg-slate-900/80 rounded-xl border border-amber-200 dark:border-amber-500/20 p-4 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-amber-700 dark:text-amber-300">Performance impact:</strong> A single page fault can cost <strong className="text-slate-900 dark:text-slate-200">~10 ms</strong> of disk I/O —
+                  <strong className="text-amber-700 dark:text-amber-300">Performance impact:</strong> A single page fault can cost <strong className="text-slate-900 dark:text-slate-200">~10 ms</strong> of disk I/O:
                   roughly <strong className="text-slate-900 dark:text-slate-200">10 million</strong> times slower than a TLB hit (~1 ns). This is why the TLB hit rate is the single most
                   important metric in virtual memory performance.
                 </p>
@@ -723,7 +723,7 @@ export default function VirtualMemorySimulation() {
               <UsageCard step="1" title="Step Once" desc="Click to generate a single random virtual address request and watch the translation flow." color="blue" />
               <UsageCard step="2" title="Watch highlights" desc="Blue glow = active component. Green = hit/success. Red = miss/fault. Orange = disk I/O." color="emerald" />
               <UsageCard step="3" title="Auto Play" desc="Toggle to run continuous requests and observe how the TLB and RAM fill up over time." color="amber" />
-              <UsageCard step="4" title="Reset" desc="Clear everything — TLB, page table, RAM, stats, and logs — to start a fresh experiment." color="slate" />
+              <UsageCard step="4" title="Reset" desc="Clear everything, TLB, page table, RAM, stats, and logs, to start a fresh experiment." color="slate" />
             </div>
           </section>
 
@@ -731,7 +731,7 @@ export default function VirtualMemorySimulation() {
           <section className="mb-8">
             <SectionTitle icon={<Activity className="w-5 h-5" />} title="Key Metrics to Watch" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard label="TLB Hit Rate" formula="Hits / (Hits + Misses)" ideal="≥ 95%" desc="Higher is better — avoids page table walks." color="green" />
+              <MetricCard label="TLB Hit Rate" formula="Hits / (Hits + Misses)" ideal="≥ 95%" desc="Higher is better: avoids page table walks." color="green" />
               <MetricCard label="Page Fault Rate" formula="Faults / Total Accesses" ideal="< 1%" desc="Each fault triggers expensive disk I/O." color="red" />
               <MetricCard label="Effective Access Time" formula="TLB×1ns + Miss×100ns + Fault×10ms" ideal="As low as possible" desc="Weighted average latency per access." color="blue" />
               <MetricCard label="Working Set Fit" formula="Active pages ≤ RAM frames?" ideal="Ideally yes" desc="If the working set exceeds RAM, thrashing occurs." color="amber" />

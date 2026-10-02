@@ -1,4 +1,4 @@
-/* TLPI Interactive Library v2 — "Neon Technical" theme
+/* TLPI Interactive Library v2: "Neon Technical" theme
    Designed for readability + high-end visuals.
    Offline-friendly: no build tooling required.
 */
@@ -78,7 +78,7 @@
   50%{ opacity:1; }
 }
 
-/* Scroll-reveal class — applied by JS IntersectionObserver */
+/* Scroll-reveal class: applied by JS IntersectionObserver */
 .reveal{
   opacity:0;
   transform:translateY(18px);

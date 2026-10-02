@@ -423,7 +423,7 @@ export default function SpannerSimulation() {
           {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — OSDI 2012
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: OSDI 2012
             </div>
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 dark:from-blue-400 dark:via-cyan-300 dark:to-emerald-400 bg-clip-text text-transparent mb-4">
               Spanner: Google's Globally-Distributed Database
@@ -459,7 +459,7 @@ export default function SpannerSimulation() {
 
           {/* ---- Architecture ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Server className="w-5 h-5" />} title="Architecture — Spanserver Stack" />
+            <SectionTitle icon={<Server className="w-5 h-5" />} title="Architecture: Spanserver Stack" />
             <div className="grid md:grid-cols-2 gap-5">
               <HwCard icon={<Globe className="w-6 h-6" />} color="blue" title="Universe & Zones"
                 specs={["Zones = unit of deployment", "Data replication across zones"]}
@@ -482,7 +482,7 @@ export default function SpannerSimulation() {
 
           {/* ---- TrueTime ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Clock className="w-5 h-5" />} title="TrueTime — The Key Enabler" />
+            <SectionTitle icon={<Clock className="w-5 h-5" />} title="TrueTime: The Key Enabler" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 TrueTime is a novel API that <strong className="text-blue-600 dark:text-blue-300">explicitly exposes clock uncertainty</strong>.
@@ -552,7 +552,7 @@ export default function SpannerSimulation() {
 
           {/* ---- Commit Protocol ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="Read-Write Transaction — Step by Step" />
+            <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="Read-Write Transaction: Step by Step" />
             <div className="space-y-4">
               <FlowStep num={1} color="blue" icon={<Database className="w-5 h-5" />} title="Client buffers writes"
                 desc="All writes are buffered at the client. Reads acquire locks at the leader replica of the appropriate Paxos group using wound-wait deadlock avoidance."
@@ -567,7 +567,7 @@ export default function SpannerSimulation() {
                 desc="The coordinator picks S ≥ max(all prepare timestamps), S ≥ TT.now().latest at commit receipt, S > any previous timestamp assigned. Logs commit through Paxos."
               />
               <FlowStep num={5} color="red" icon={<AlertTriangle className="w-5 h-5" />} title="Commit Wait"
-                desc="Coordinator waits until TT.after(S) is true — ensuring S is definitely in the past. Expected wait ≥ 2ε. This wait overlaps with Paxos communication."
+                desc="Coordinator waits until TT.after(S) is true: ensuring S is definitely in the past. Expected wait ≥ 2ε. This wait overlaps with Paxos communication."
               />
               <FlowStep num={6} color="emerald" icon={<CheckCircle2 className="w-5 h-5" />} title="Commit & release"
                 desc="Coordinator sends the commit timestamp to the client and all participants. Each applies at the same timestamp and releases locks."
@@ -577,11 +577,11 @@ export default function SpannerSimulation() {
 
           {/* ---- External Consistency Proof ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<ShieldCheck className="w-5 h-5" />} title="External Consistency — The Proof" />
+            <SectionTitle icon={<ShieldCheck className="w-5 h-5" />} title="External Consistency: The Proof" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 The protocol guarantees: if T1 commits before T2 starts, then <strong className="text-blue-600 dark:text-blue-300">s1 &lt; s2</strong>.
-                This is enforced by two rules — <strong className="text-emerald-600 dark:text-emerald-300">Start</strong> and <strong className="text-amber-600 dark:text-amber-300">Commit Wait</strong>.
+                This is enforced by two rules: <strong className="text-emerald-600 dark:text-emerald-300">Start</strong> and <strong className="text-amber-600 dark:text-amber-300">Commit Wait</strong>.
               </p>
               <div className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 font-mono text-sm space-y-2">
                 <ProofLine left="s₁ < t_abs(e₁ᶜᵒᵐᵐⁱᵗ)" right="commit wait" color="amber" />
@@ -620,7 +620,7 @@ export default function SpannerSimulation() {
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 Spanner's first major customer was <strong className="text-blue-600 dark:text-blue-300">F1</strong>, Google's advertising backend (rewritten from MySQL).
-                F1 uses 5 replicas across the US — 2 on the west coast, 3 on the east coast — to survive major natural disasters.
+                F1 uses 5 replicas across the US, 2 on the west coast, 3 on the east coast, to survive major natural disasters.
               </p>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <MetricCard label="Read Latency" value="8.7ms" sub="mean across 21.5B reads" color="green" />
@@ -643,7 +643,7 @@ export default function SpannerSimulation() {
             <SectionTitle icon={<Eye className="w-5 h-5" />} title="Using the Simulator Above" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <UsageCard step="1" title="Start Transaction" desc="Click to initiate a write. Watch the Paxos replication bar, then the Commit Wait bar on the timeline." color="blue" />
-              <UsageCard step="2" title="Safe vs Unsafe" desc="Toggle mode. Safe waits for TT.after(S). Unsafe skips the wait — watch for consistency violations!" color="emerald" />
+              <UsageCard step="2" title="Safe vs Unsafe" desc="Toggle mode. Safe waits for TT.after(S). Unsafe skips the wait: watch for consistency violations!" color="emerald" />
               <UsageCard step="3" title="Adjust ε" desc="Increase uncertainty to see longer commit waits. Decrease to see Spanner run faster but with tighter bounds." color="amber" />
               <UsageCard step="4" title="Check Validator" desc="The Consistency Validator checks every committed transaction against Spanner's invariant: S < T_abs(commit)." color="slate" />
             </div>

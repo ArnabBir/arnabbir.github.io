@@ -216,7 +216,7 @@
     if(prevItem){
       prev.href = `../${prevItem.href}`;
       prev.removeAttribute("disabled");
-      prev.title = `Previous: ${prevItem.kind==="chapter" ? "Ch "+prevItem.n : "App "+prevItem.letter} \u2014 ${prevItem.title}`;
+      prev.title = `Previous: ${prevItem.kind==="chapter" ? "Ch "+prevItem.n : "App "+prevItem.letter}: ${prevItem.title}`;
     } else {
       prev.href = "#";
       prev.setAttribute("disabled","true");
@@ -225,7 +225,7 @@
     if(nextItem){
       next.href = `../${nextItem.href}`;
       next.removeAttribute("disabled");
-      next.title = `Next: ${nextItem.kind==="chapter" ? "Ch "+nextItem.n : "App "+nextItem.letter} \u2014 ${nextItem.title}`;
+      next.title = `Next: ${nextItem.kind==="chapter" ? "Ch "+nextItem.n : "App "+nextItem.letter}: ${nextItem.title}`;
     } else {
       next.href = "#";
       next.setAttribute("disabled","true");
@@ -330,7 +330,7 @@
             const correct = opts.find(o=>Number(o.getAttribute("data-opt"))===answer);
             if(correct) correct.classList.add("correct");
             if(feedback){
-              feedback.textContent = q.getAttribute("data-explain") || "Incorrect \u2014 review the concept and retry.";
+              feedback.textContent = q.getAttribute("data-explain") || "Incorrect: review the concept and retry.";
               feedback.style.color = "";
             }
           }

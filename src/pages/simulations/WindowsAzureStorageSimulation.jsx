@@ -410,7 +410,7 @@ export default function WindowsAzureStorageSimulation() {
           {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — SOSP 2011
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: SOSP 2011
             </div>
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-500 dark:from-blue-400 dark:via-cyan-300 dark:to-indigo-400 bg-clip-text text-transparent mb-4">
               Windows Azure Storage (WAS) Architecture

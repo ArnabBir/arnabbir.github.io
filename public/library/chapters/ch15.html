@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 15 — File Attributes</title>
+  <title>TLPI v2, Chapter 15, File Attributes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 15 — File Attributes</div>
+          <div class="sub" id="subTitle">Chapter 15: File Attributes</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 15 — File Attributes
+            Chapter 15: File Attributes
           </h2>
           <div class="subtitle">
-            <p>Every file has metadata stored in its inode — type, permissions, ownership, size, timestamps. stat() is how you read it. The struct stat is your window into the inode: it tells you the file type (regular, directory, symlink, device), permission bits, owner/group, size, and three timestamps (atime, mtime, ctime).</p><p>Understanding st_mode bit layout, the difference between the three timestamps, how umask affects file creation, and when to use lstat vs stat vs fstat is essential for writing correct file-handling code and debugging permission issues.</p>
+            <p>Every file has metadata stored in its inode: type, permissions, ownership, size, timestamps. stat() is how you read it. The struct stat is your window into the inode: it tells you the file type (regular, directory, symlink, device), permission bits, owner/group, size, and three timestamps (atime, mtime, ctime).</p><p>Understanding st_mode bit layout, the difference between the three timestamps, how umask affects file creation, and when to use lstat vs stat vs fstat is essential for writing correct file-handling code and debugging permission issues.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>stat() returns a snapshot of inode metadata; the file can change between stat() and subsequent operations (TOCTOU).</li><li>st_mode encodes file type in upper 4 bits (S_ISREG, S_ISDIR, S_ISLNK macros) and permissions in lower 12 bits (rwx for u/g/o + setuid/setgid/sticky).</li><li>Three timestamps: atime (last access/read), mtime (last data modification), ctime (last inode change — permissions, links, etc). There is no portable creation time (use statx for birth time on Linux 4.11+).</li><li>umask is a per-process mask that filters OUT permission bits at file creation: effective_mode = requested_mode &amp; ~umask.</li><li>The sticky bit on directories restricts deletion: only file owner, directory owner, or root can unlink files within.</li><li>lstat() does NOT follow symlinks (returns symlink inode); stat() follows symlinks; fstat() operates on an already-open fd.</li></ul>
+            <ul><li>stat() returns a snapshot of inode metadata; the file can change between stat() and subsequent operations (TOCTOU).</li><li>st_mode encodes file type in upper 4 bits (S_ISREG, S_ISDIR, S_ISLNK macros) and permissions in lower 12 bits (rwx for u/g/o + setuid/setgid/sticky).</li><li>Three timestamps: atime (last access/read), mtime (last data modification), ctime (last inode change: permissions, links, etc). There is no portable creation time (use statx for birth time on Linux 4.11+).</li><li>umask is a per-process mask that filters OUT permission bits at file creation: effective_mode = requested_mode &amp; ~umask.</li><li>The sticky bit on directories restricts deletion: only file owner, directory owner, or root can unlink files within.</li><li>lstat() does NOT follow symlinks (returns symlink inode); stat() follows symlinks; fstat() operates on an already-open fd.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -113,7 +113,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>stat</td><td class='mono'>int stat(const char *path, struct stat *buf);</td><td class='mono muted2'>ENOENT, EACCES, ENOTDIR</td><td>Follows symlinks. Use fstatat(AT_SYMLINK_NOFOLLOW) for lstat behavior with dirfd.</td></tr><tr><td class='mono'>lstat</td><td class='mono'>int lstat(const char *path, struct stat *buf);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Does NOT follow symlinks; returns metadata of the symlink itself.</td></tr><tr><td class='mono'>chmod</td><td class='mono'>int chmod(const char *path, mode_t mode);</td><td class='mono muted2'>EPERM, EACCES, EROFS</td><td>Only owner or CAP_FOWNER can chmod. fchmod() operates on open fd.</td></tr><tr><td class='mono'>chown</td><td class='mono'>int chown(const char *path, uid_t owner, gid_t group);</td><td class='mono muted2'>EPERM, EACCES</td><td>Only privileged processes can change owner arbitrarily. Clears setuid/setgid bits.</td></tr><tr><td class='mono'>utimensat</td><td class='mono'>int utimensat(int dirfd, const char *path, const struct timespec times[2], int flags);</td><td class='mono muted2'>EPERM, EACCES, EINVAL</td><td>Sets atime/mtime with nanosecond precision. UTIME_NOW/UTIME_OMIT for special values.</td></tr><tr><td class='mono'>umask</td><td class='mono'>mode_t umask(mode_t mask);</td><td class='mono muted2'>—</td><td>Returns previous mask; always succeeds. No way to query without setting (use /proc/self/status).</td></tr>
+    <tr><td class='mono'>stat</td><td class='mono'>int stat(const char *path, struct stat *buf);</td><td class='mono muted2'>ENOENT, EACCES, ENOTDIR</td><td>Follows symlinks. Use fstatat(AT_SYMLINK_NOFOLLOW) for lstat behavior with dirfd.</td></tr><tr><td class='mono'>lstat</td><td class='mono'>int lstat(const char *path, struct stat *buf);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Does NOT follow symlinks; returns metadata of the symlink itself.</td></tr><tr><td class='mono'>chmod</td><td class='mono'>int chmod(const char *path, mode_t mode);</td><td class='mono muted2'>EPERM, EACCES, EROFS</td><td>Only owner or CAP_FOWNER can chmod. fchmod() operates on open fd.</td></tr><tr><td class='mono'>chown</td><td class='mono'>int chown(const char *path, uid_t owner, gid_t group);</td><td class='mono muted2'>EPERM, EACCES</td><td>Only privileged processes can change owner arbitrarily. Clears setuid/setgid bits.</td></tr><tr><td class='mono'>utimensat</td><td class='mono'>int utimensat(int dirfd, const char *path, const struct timespec times[2], int flags);</td><td class='mono muted2'>EPERM, EACCES, EINVAL</td><td>Sets atime/mtime with nanosecond precision. UTIME_NOW/UTIME_OMIT for special values.</td></tr><tr><td class='mono'>umask</td><td class='mono'>mode_t umask(mode_t mask);</td><td class='mono muted2'>N/A</td><td>Returns previous mask; always succeeds. No way to query without setting (use /proc/self/status).</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -128,7 +128,7 @@
           </div>
           <details class="accordion">
   <summary>atime performance impact and mount options</summary>
-  <div class="content"><ul><li>Default atime updates on every read cause write I/O on read-only workloads — significant performance cost.</li><li>relatime (default since Linux 2.6.30): only updates atime if atime &lt; mtime or atime is &gt;24h old.</li><li>noatime: never updates atime — best performance, but breaks programs that depend on atime (e.g., mutt).</li><li>lazytime: batches timestamp updates in memory, writes them lazily — good compromise.</li></ul></div>
+  <div class="content"><ul><li>Default atime updates on every read cause write I/O on read-only workloads: significant performance cost.</li><li>relatime (default since Linux 2.6.30): only updates atime if atime &lt; mtime or atime is &gt;24h old.</li><li>noatime: never updates atime: best performance, but breaks programs that depend on atime (e.g., mutt).</li><li>lazytime: batches timestamp updates in memory, writes them lazily: good compromise.</li></ul></div>
 </details><details class="accordion">
   <summary>stat vs lstat and symlink handling</summary>
   <div class="content"><ul><li>stat() follows symlinks: you get metadata of the target. If the target is missing, stat() returns ENOENT.</li><li>lstat() returns metadata of the symlink itself: st_size is the length of the target path string.</li><li>fstat() on an fd always returns the file the fd points to (symlinks already resolved at open time).</li><li>chmod on a symlink path changes the TARGET's permissions; there is no portable way to chmod the link itself.</li></ul></div>
@@ -174,7 +174,7 @@ utimensat(AT_FDCWD, path, times, 0);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use fstat() on already-open fds rather than stat() on paths to avoid TOCTOU races.</li><li>Always check S_ISLNK with lstat() before operating on untrusted paths in privileged code.</li><li>Set umask explicitly in daemons (umask(027) or stricter) — don't inherit a permissive shell umask.</li><li>Remember: chown clears setuid/setgid bits; re-apply them deliberately if needed after ownership change.</li><li>Use noatime or relatime mount options for performance-sensitive workloads unless atime semantics are required.</li></ul>
+            <ul><li>Use fstat() on already-open fds rather than stat() on paths to avoid TOCTOU races.</li><li>Always check S_ISLNK with lstat() before operating on untrusted paths in privileged code.</li><li>Set umask explicitly in daemons (umask(027) or stricter): don't inherit a permissive shell umask.</li><li>Remember: chown clears setuid/setgid bits; re-apply them deliberately if needed after ownership change.</li><li>Use noatime or relatime mount options for performance-sensitive workloads unless atime semantics are required.</li></ul>
           </div>
         </div>
 
@@ -184,7 +184,7 @@ utimensat(AT_FDCWD, path, times, 0);</code></pre>
             Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Write a program that calls stat() and prints all struct stat fields in human-readable form (like stat(1) command).</li><li>Create a file, set umask to 077, create another file — compare permissions. Then reset umask and verify.</li><li>Create a symlink and compare stat() vs lstat() output on it. Observe st_size of lstat (should be target path length).</li></ul>
+            <ul><li>Write a program that calls stat() and prints all struct stat fields in human-readable form (like stat(1) command).</li><li>Create a file, set umask to 077, create another file: compare permissions. Then reset umask and verify.</li><li>Create a symlink and compare stat() vs lstat() output on it. Observe st_size of lstat (should be target path length).</li></ul>
           </div>
         </div>
 
@@ -279,7 +279,7 @@ utimensat(AT_FDCWD, path, times, 0);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch15", n:15, subtitle:"Chapter 15 \u2014 File Attributes"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch15", n:15, subtitle:"Chapter 15: File Attributes"});
     TLPIWidgets.mountKernelGraph("kg_ch15", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",

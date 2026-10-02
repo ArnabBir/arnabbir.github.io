@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 10: Batch Processing</title>
+  <title>DDIA Atlas: Chapter 10: Batch Processing</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,17 +75,17 @@
 <div class="lab" data-lab="batch">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Batch Costs — Shuffle, Sort, IO</h3>
+      <h3 class="lab-title">Lab: Batch Costs: Shuffle, Sort, IO</h3>
       <p class="lab-sub">Batch systems are limited by data movement. Shuffle is often the bill you didn’t know you were paying.</p>
     </div>
     <div class="pill"><span class="dot"></span> Data movement</div>
   </div>
   <div class="lab-grid">
     <div class="controls">
-      <label>Input data (GB) <span class="kbd"><span data-val="data">—</span></span></label>
+      <label>Input data (GB) <span class="kbd"><span data-val="data">N/A</span></span></label>
       <input type="range" min="1" max="500" value="120" data-k="data" oninput="this.parentElement.querySelector('[data-val=data]').textContent=this.value"/>
 
-      <label>Partitions / reducers <span class="kbd"><span data-val="parts">—</span></span></label>
+      <label>Partitions / reducers <span class="kbd"><span data-val="parts">N/A</span></span></label>
       <input type="range" min="1" max="200" value="60" data-k="parts" oninput="this.parentElement.querySelector('[data-val=parts]').textContent=this.value"/>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
@@ -93,9 +93,9 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Shuffle time (toy)</span><span class="v" data-out="shuffle">—</span></div>
-      <div class="metric"><span class="k">Sort time (toy)</span><span class="v" data-out="sort">—</span></div>
-      <div class="metric"><span class="k">IO volume (toy)</span><span class="v" data-out="io">—</span></div>
+      <div class="metric"><span class="k">Shuffle time (toy)</span><span class="v" data-out="shuffle">N/A</span></div>
+      <div class="metric"><span class="k">Sort time (toy)</span><span class="v" data-out="sort">N/A</span></div>
+      <div class="metric"><span class="k">IO volume (toy)</span><span class="v" data-out="io">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -195,7 +195,7 @@ This requires:
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Skewed join</summary>
+  <summary>Drill 1: Skewed join</summary>
   <p>
     You join clicks(user_id, url) with users(user_id, country).
     1% of users generate 50% of clicks. How does skew affect reducers?
@@ -204,7 +204,7 @@ This requires:
 </details>
 
 <details>
-  <summary>Drill 2 — Backfill design</summary>
+  <summary>Drill 2: Backfill design</summary>
   <p>
     You introduce a new derived field. Would you compute it in a batch backfill or online at read-time?
     Compare correctness (eventual consistency), cost, and operational risk.
@@ -212,7 +212,7 @@ This requires:
 </details>
 
 <details>
-  <summary>Drill 3 — Exactly-once output</summary>
+  <summary>Drill 3: Exactly-once output</summary>
   <p>
     A batch job writes results to a database table. The job retries tasks.
     How do you prevent duplicate writes? Consider idempotent upserts, staging tables + swap, or output partition overwrite.

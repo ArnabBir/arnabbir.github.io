@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 25 — Process Termination</title>
+  <title>TLPI v2, Chapter 25, Process Termination</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 25 — Process Termination</div>
+          <div class="sub" id="subTitle">Chapter 25: Process Termination</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 25 — Process Termination
+            Chapter 25: Process Termination
           </h2>
           <div class="subtitle">
-            <p>Process termination is more than <code>return 0</code> — there are exit handlers, stdio flushing, the exit status protocol, and the zombie state waiting for the parent to reap. Understanding the difference between _exit() and exit() prevents subtle double-flush bugs after fork and ensures deterministic cleanup.</p><p>The exit status is the process's last message to its parent: 8 bits encoding success/failure/signal information, delivered via wait macros. Getting this right is essential for shell scripting, supervisors, and CI pipelines.</p>
+            <p>Process termination is more than <code>return 0</code>: there are exit handlers, stdio flushing, the exit status protocol, and the zombie state waiting for the parent to reap. Understanding the difference between _exit() and exit() prevents subtle double-flush bugs after fork and ensures deterministic cleanup.</p><p>The exit status is the process's last message to its parent: 8 bits encoding success/failure/signal information, delivered via wait macros. Getting this right is essential for shell scripting, supervisors, and CI pipelines.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">_exit() is immediate; exit() flushes stdio + runs atexit handlers + calls _exit(). return from main() calls exit(n).</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">After fork(), child stdio buffers are copies — calling exit() in the child can double-flush parent's buffered output.</div>
+  <div class="v">After fork(), child stdio buffers are copies: calling exit() in the child can double-flush parent's buffered output.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use WIFEXITED/WEXITSTATUS/WIFSIGNALED/WTERMSIG macros to decode wait status; never inspect raw int bits directly.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><code>_exit(status)</code> is the raw syscall: terminates immediately, no stdio flush, no atexit handlers. Use in child after failed exec.</li><li><code>exit(status)</code> is the libc wrapper: flushes all stdio streams, calls atexit/on_exit handlers in LIFO order, then calls _exit.</li><li><code>return n</code> from main() is equivalent to <code>exit(n)</code> — the C runtime startup code calls exit with main's return value.</li><li>Exit status is only 8 bits (0–255); the kernel stores it in bits 8–15 of the wait status word. Use WEXITSTATUS() to extract.</li><li>Abnormal termination (unhandled signal) sets different bits: WIFSIGNALED(status) is true, WTERMSIG gives the signal number.</li><li><code>_Exit()</code> (C99) is identical to _exit — no cleanup, guaranteed by the standard.</li><li>atexit() registers up to ATEXIT_MAX (≥32) handlers; they run in reverse registration order (LIFO).</li><li>on_exit() is a GNU extension that also passes the exit status and a user arg to the handler.</li></ul>
+            <ul><li><code>_exit(status)</code> is the raw syscall: terminates immediately, no stdio flush, no atexit handlers. Use in child after failed exec.</li><li><code>exit(status)</code> is the libc wrapper: flushes all stdio streams, calls atexit/on_exit handlers in LIFO order, then calls _exit.</li><li><code>return n</code> from main() is equivalent to <code>exit(n)</code>: the C runtime startup code calls exit with main's return value.</li><li>Exit status is only 8 bits (0–255); the kernel stores it in bits 8–15 of the wait status word. Use WEXITSTATUS() to extract.</li><li>Abnormal termination (unhandled signal) sets different bits: WIFSIGNALED(status) is true, WTERMSIG gives the signal number.</li><li><code>_Exit()</code> (C99) is identical to _exit: no cleanup, guaranteed by the standard.</li><li>atexit() registers up to ATEXIT_MAX (≥32) handlers; they run in reverse registration order (LIFO).</li><li>on_exit() is a GNU extension that also passes the exit status and a user arg to the handler.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>_exit</td><td class='mono'>void _exit(int status);</td><td class='mono muted2'>—</td><td>Immediate termination. Only lower 8 bits of status are preserved. Does not return.</td></tr><tr><td class='mono'>exit</td><td class='mono'>void exit(int status);</td><td class='mono muted2'>—</td><td>Flushes stdio, calls atexit handlers (LIFO), then _exit. Can deadlock after fork in MT programs.</td></tr><tr><td class='mono'>atexit</td><td class='mono'>int atexit(void (*func)(void));</td><td class='mono muted2'>ENOMEM</td><td>Register cleanup handler. Returns 0 on success. At least 32 handlers guaranteed.</td></tr><tr><td class='mono'>on_exit</td><td class='mono'>int on_exit(void (*func)(int, void*), void *arg);</td><td class='mono muted2'>ENOMEM</td><td>GNU extension. Handler receives exit status and user arg. Same LIFO order as atexit.</td></tr>
+    <tr><td class='mono'>_exit</td><td class='mono'>void _exit(int status);</td><td class='mono muted2'>N/A</td><td>Immediate termination. Only lower 8 bits of status are preserved. Does not return.</td></tr><tr><td class='mono'>exit</td><td class='mono'>void exit(int status);</td><td class='mono muted2'>N/A</td><td>Flushes stdio, calls atexit handlers (LIFO), then _exit. Can deadlock after fork in MT programs.</td></tr><tr><td class='mono'>atexit</td><td class='mono'>int atexit(void (*func)(void));</td><td class='mono muted2'>ENOMEM</td><td>Register cleanup handler. Returns 0 on success. At least 32 handlers guaranteed.</td></tr><tr><td class='mono'>on_exit</td><td class='mono'>int on_exit(void (*func)(int, void*), void *arg);</td><td class='mono muted2'>ENOMEM</td><td>GNU extension. Handler receives exit status and user arg. Same LIFO order as atexit.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -129,16 +129,16 @@
           </div>
           <details class="accordion">
   <summary>Double-flush after fork</summary>
-  <div class="content"><ul><li>stdio buffers (especially line-buffered stdout redirected to a file becomes fully-buffered) are duplicated on fork.</li><li>If both parent and child call exit(), buffered data is flushed twice — producing duplicate output.</li><li>Fix: use _exit() in the child, or fflush(NULL) before fork, or use unbuffered I/O in the child.</li><li>This is the #1 reason to always use _exit() in a child that fails to exec.</li></ul></div>
+  <div class="content"><ul><li>stdio buffers (especially line-buffered stdout redirected to a file becomes fully-buffered) are duplicated on fork.</li><li>If both parent and child call exit(), buffered data is flushed twice: producing duplicate output.</li><li>Fix: use _exit() in the child, or fflush(NULL) before fork, or use unbuffered I/O in the child.</li><li>This is the #1 reason to always use _exit() in a child that fails to exec.</li></ul></div>
 </details><details class="accordion">
   <summary>atexit handler crashes</summary>
-  <div class="content"><ul><li>If an atexit handler calls exit(), behavior is undefined (C standard). In practice, glibc re-enters the handler list, risking infinite recursion.</li><li>If a handler crashes (SIGSEGV), remaining handlers are not called — the process terminates abnormally.</li><li>Keep atexit handlers minimal: close files, remove temp files, log. Never call exit() from within a handler.</li><li>In forked children, atexit handlers inherited from parent may not be appropriate — another reason to use _exit().</li></ul></div>
+  <div class="content"><ul><li>If an atexit handler calls exit(), behavior is undefined (C standard). In practice, glibc re-enters the handler list, risking infinite recursion.</li><li>If a handler crashes (SIGSEGV), remaining handlers are not called: the process terminates abnormally.</li><li>Keep atexit handlers minimal: close files, remove temp files, log. Never call exit() from within a handler.</li><li>In forked children, atexit handlers inherited from parent may not be appropriate: another reason to use _exit().</li></ul></div>
 </details><details class="accordion">
   <summary>exit() in signal handlers</summary>
   <div class="content"><ul><li>exit() is NOT async-signal-safe. Calling it from a signal handler can deadlock (e.g., handler interrupts malloc, atexit handler calls malloc).</li><li>Use _exit() or _Exit() in signal handlers if you must terminate.</li><li>Better pattern: set a volatile sig_atomic_t flag in the handler and check it in the main loop.</li><li>Only functions listed in signal-safety(7) are safe to call from signal handlers.</li></ul></div>
 </details><details class="accordion">
   <summary>Exit status encoding</summary>
-  <div class="content"><ul><li>Wait status is NOT the exit code directly. It's a bit field: bits 8-15 = exit status, bits 0-6 = signal, bit 7 = core dump.</li><li>WIFEXITED(s): true if normal exit. WEXITSTATUS(s): the 8-bit exit code.</li><li>WIFSIGNALED(s): true if killed by signal. WTERMSIG(s): the signal. WCOREDUMP(s): core produced.</li><li>Exit codes > 128 in shells conventionally mean "killed by signal (code - 128)" — e.g., 137 = SIGKILL (128+9).</li></ul></div>
+  <div class="content"><ul><li>Wait status is NOT the exit code directly. It's a bit field: bits 8-15 = exit status, bits 0-6 = signal, bit 7 = core dump.</li><li>WIFEXITED(s): true if normal exit. WEXITSTATUS(s): the 8-bit exit code.</li><li>WIFSIGNALED(s): true if killed by signal. WTERMSIG(s): the signal. WCOREDUMP(s): core produced.</li><li>Exit codes > 128 in shells conventionally mean "killed by signal (code - 128)": e.g., 137 = SIGKILL (128+9).</li></ul></div>
 </details>
         </div>
 
@@ -166,7 +166,7 @@ int main(void) {
     pid_t pid = fork();
     if (pid == 0) {
         execlp(&quot;false&quot;, &quot;false&quot;, (char*)NULL);
-        _exit(127);  // exec failed — use _exit, NOT exit
+        _exit(127);  // exec failed: use _exit, NOT exit
     }
     int status;
     waitpid(pid, &amp;status, 0);
@@ -185,7 +185,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always use _exit() (not exit()) in the child after a failed exec to avoid double-flushing and running parent's atexit handlers.</li><li>Keep atexit handlers idempotent and minimal — they should tolerate being called in unexpected states.</li><li>Never call exit() from a signal handler; use _exit() or _Exit() instead.</li><li>Check wait status with WIFEXITED/WIFSIGNALED macros — never assume normal termination.</li><li>Document your process's exit codes (0 = success, 1 = usage error, 2 = runtime error, 127 = exec failed, etc.).</li></ul>
+            <ul><li>Always use _exit() (not exit()) in the child after a failed exec to avoid double-flushing and running parent's atexit handlers.</li><li>Keep atexit handlers idempotent and minimal: they should tolerate being called in unexpected states.</li><li>Never call exit() from a signal handler; use _exit() or _Exit() instead.</li><li>Check wait status with WIFEXITED/WIFSIGNALED macros: never assume normal termination.</li><li>Document your process's exit codes (0 = success, 1 = usage error, 2 = runtime error, 127 = exec failed, etc.).</li></ul>
           </div>
         </div>
 
@@ -290,7 +290,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch25", n:25, subtitle:"Chapter 25 \u2014 Process Termination"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch25", n:25, subtitle:"Chapter 25: Process Termination"});
     TLPIWidgets.mountKernelGraph("kg_ch25", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

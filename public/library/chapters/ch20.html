@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 20 — Signals: Fundamental Concepts</title>
+  <title>TLPI v2, Chapter 20, Signals: Fundamental Concepts</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 20 — Signals: Fundamental Concepts</div>
+          <div class="sub" id="subTitle">Chapter 20: Signals: Fundamental Concepts</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 20 — Signals: Fundamental Concepts
+            Chapter 20: Signals: Fundamental Concepts
           </h2>
           <div class="subtitle">
             <p>Signals are asynchronous control flow injected by the kernel. They’re powerful (timeouts, termination, child tracking) and dangerous (reentrancy, interrupted syscalls, handler safety). If you treat signals as “rare”, you’ll ship fragile code; if you treat them as a first-class concurrency primitive, you can build robust supervisors and event loops.</p><p>This guide focuses on signal *mechanics*: dispositions, masks, pending queues, SA_RESTART vs EINTR, and safe patterns (self-pipe/signalfd, flag + main loop).</p>
@@ -111,7 +111,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>kill</td><td class='mono'>int kill(pid_t pid, int sig);</td><td class='mono muted2'>ESRCH, EINVAL, EPERM</td><td>Send a signal. With pid &lt; 0, targets process groups; with pid=0, current process group.</td></tr><tr><td class='mono'>sigaction</td><td class='mono'>int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Modern signal handler API; supports SA_RESTART, SA_SIGINFO, signal masks per handler.</td></tr><tr><td class='mono'>sigprocmask</td><td class='mono'>int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Blocks/unblocks signals for the calling thread (in NPTL). Use pthread_sigmask in threaded apps.</td></tr><tr><td class='mono'>sigsuspend</td><td class='mono'>int sigsuspend(const sigset_t *mask);</td><td class='mono muted2'>EINTR</td><td>Atomically swaps mask and sleeps until a signal arrives—avoids race windows.</td></tr>
+    <tr><td class='mono'>kill</td><td class='mono'>int kill(pid_t pid, int sig);</td><td class='mono muted2'>ESRCH, EINVAL, EPERM</td><td>Send a signal. With pid &lt; 0, targets process groups; with pid=0, current process group.</td></tr><tr><td class='mono'>sigaction</td><td class='mono'>int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Modern signal handler API; supports SA_RESTART, SA_SIGINFO, signal masks per handler.</td></tr><tr><td class='mono'>sigprocmask</td><td class='mono'>int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);</td><td class='mono muted2'>EINVAL, EFAULT</td><td>Blocks/unblocks signals for the calling thread (in NPTL). Use pthread_sigmask in threaded apps.</td></tr><tr><td class='mono'>sigsuspend</td><td class='mono'>int sigsuspend(const sigset_t *mask);</td><td class='mono muted2'>EINTR</td><td>Atomically swaps mask and sleeps until a signal arrives: avoids race windows.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -126,7 +126,7 @@
           </div>
           <details class="accordion">
   <summary>Mask + pending queue: how to think about delivery</summary>
-  <div class="content"><ul><li>Each thread has a signal mask. A blocked signal becomes pending; it is delivered when unblocked.</li><li>Some signals coalesce (standard signals): multiple occurrences may merge into one pending instance; real-time signals can queue with data.</li><li>SIGKILL and SIGSTOP cannot be caught or blocked — design shutdown strategies accordingly.</li><li>Signal handlers run on the interrupted thread, on its stack (unless alt stack configured), with strict reentrancy constraints.</li></ul></div>
+  <div class="content"><ul><li>Each thread has a signal mask. A blocked signal becomes pending; it is delivered when unblocked.</li><li>Some signals coalesce (standard signals): multiple occurrences may merge into one pending instance; real-time signals can queue with data.</li><li>SIGKILL and SIGSTOP cannot be caught or blocked: design shutdown strategies accordingly.</li><li>Signal handlers run on the interrupted thread, on its stack (unless alt stack configured), with strict reentrancy constraints.</li></ul></div>
 </details><details class="accordion">
   <summary>SA_RESTART vs EINTR: choose intentionally</summary>
   <div class="content"><ul><li>With SA_RESTART, many blocking syscalls restart automatically after the handler returns. This reduces boilerplate but can hide wakeups.</li><li>Without SA_RESTART, syscalls return -1/EINTR and you control retry. This is often clearer for event loops and timeouts.</li><li>Always write code so that EINTR is safe even if you think it “won’t happen”. Production systems run with timers and signals.</li><li>If you use timeouts, consider clockconsiderations: restarting a syscall can extend the actual sleep beyond the intended deadline.</li></ul></div>
@@ -280,7 +280,7 @@ int main(void){
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch20", n:20, subtitle:"Chapter 20 \u2014 Signals: Fundamental Concepts"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch20", n:20, subtitle:"Chapter 20: Signals: Fundamental Concepts"});
     TLPIWidgets.mountKernelGraph("kg_ch20", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (signals). Click to pin a tooltip.",

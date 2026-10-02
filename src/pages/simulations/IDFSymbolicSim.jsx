@@ -626,7 +626,7 @@ export default function IDFSymbolicSim() {
              </div>
              <SectionTitle icon={<Activity className="text-blue-500" />} title="From Heuristic to Probability" />
              <p className="text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mt-6 leading-relaxed text-lg">
-                For years, IDF was considered a "heuristic hack"—something that worked in practice but lacked theory. 
+                For years, IDF was considered a "heuristic hack", something that worked in practice but lacked theory.
                 Stephen Robertson's 2004 paper dismantles this view, proving that IDF is a direct consequence of a 
                 rigorous <strong>Probabilistic Model</strong> of retrieval.
              </p>

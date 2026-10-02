@@ -133,7 +133,7 @@ const CONFIG = {
       "log": "Result downsampled for UI.",
       "message": {
         "from": "Query",
-        "to": "—",
+        "to": "N/A",
         "label": "Downsample"
       }
     }

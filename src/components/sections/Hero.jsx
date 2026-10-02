@@ -86,7 +86,7 @@ export default function Hero() {
 
       <Container className="py-12 sm:py-20 lg:py-24">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-16">
-          {/* Left Column — Text */}
+          {/* Left Column: Text */}
           <div className="min-w-0">
             {/* Status pill */}
             <motion.div
@@ -205,7 +205,7 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right Column — Profile Card */}
+          {/* Right Column: Profile Card */}
           <motion.div
             custom={3}
             variants={fadeUp}

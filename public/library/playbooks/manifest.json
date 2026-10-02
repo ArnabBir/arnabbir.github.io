@@ -9,7 +9,9 @@
       "bytes": 900662,
       "aliases": [
         "Razorpay_Engineering_Master_Playbook (1).html"
-      ]
+      ],
+      "sourceSha256": "51bfd2bd55e0bea530b4719f8e56dc2e4a1a74d9072d4bc586b2ec6be1902b2a",
+      "sourceBytes": 900662
     },
     {
       "id": "stripe-payment-infrastructure",
@@ -17,7 +19,9 @@
       "contentPath": "/library/playbooks/stripe-payment-infrastructure.html",
       "sha256": "a8bb995f6d8f383b6d2881dd19ef939b1196ab69278ba13ccd5b9d3cc912899a",
       "bytes": 717459,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "a8bb995f6d8f383b6d2881dd19ef939b1196ab69278ba13ccd5b9d3cc912899a",
+      "sourceBytes": 717459
     },
     {
       "id": "cross-border-ledger-design",
@@ -27,7 +31,9 @@
       "bytes": 376246,
       "aliases": [
         "cross_border_ledger_design (1).html"
-      ]
+      ],
+      "sourceSha256": "00bced7a9db2b0c24d6f62f9a410fa4719bbf0d48c14ebb7ec523df7810322f5",
+      "sourceBytes": 376246
     },
     {
       "id": "cross-border-ledger-playbook",
@@ -35,7 +41,9 @@
       "contentPath": "/library/playbooks/cross-border-ledger-playbook.html",
       "sha256": "e3612c89b81808df4efd57c783bb79b96b621f33134491f67ddc99591ecf0799",
       "bytes": 379354,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "e3612c89b81808df4efd57c783bb79b96b621f33134491f67ddc99591ecf0799",
+      "sourceBytes": 379354
     },
     {
       "id": "stock-exchange",
@@ -43,7 +51,9 @@
       "contentPath": "/library/playbooks/stock-exchange.html",
       "sha256": "4a22fd368f6751b4ce5a783c98da8f7623a285f71b8986806df3c909953e802e",
       "bytes": 672769,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "4a22fd368f6751b4ce5a783c98da8f7623a285f71b8986806df3c909953e802e",
+      "sourceBytes": 672769
     },
     {
       "id": "google-search-engineering",
@@ -51,7 +61,9 @@
       "contentPath": "/library/playbooks/google-search-engineering.html",
       "sha256": "b0df257b206131e62b00f5f9b8448ce23a0cc59cb1f810e79ca83cec7d6f7dea",
       "bytes": 1245104,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "b0df257b206131e62b00f5f9b8448ce23a0cc59cb1f810e79ca83cec7d6f7dea",
+      "sourceBytes": 1245104
     },
     {
       "id": "chatgpt-playbook",
@@ -59,23 +71,29 @@
       "contentPath": "/library/playbooks/chatgpt-playbook.html",
       "sha256": "23357332302cc40f1adf9f58e6d8d5a0ada98daa397edf6fecffa908cd79f419",
       "bytes": 627388,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "23357332302cc40f1adf9f58e6d8d5a0ada98daa397edf6fecffa908cd79f419",
+      "sourceBytes": 627388
     },
     {
       "id": "glean-playbook",
       "sourceFile": "glean_master_playbook.html",
       "contentPath": "/library/playbooks/glean-playbook.html",
-      "sha256": "472ab8b90d94d2a68d19f1754a2fef693f1801f02e24b780da99e76ac0e64be7",
-      "bytes": 744551,
-      "aliases": []
+      "sha256": "ca717ba88568a6cafeb672ce5211f4fa8d9a3c4702a3a858ff6e487b85fa6290",
+      "bytes": 744550,
+      "aliases": [],
+      "sourceSha256": "472ab8b90d94d2a68d19f1754a2fef693f1801f02e24b780da99e76ac0e64be7",
+      "sourceBytes": 744551
     },
     {
       "id": "llm-engineers-handbook",
       "sourceFile": "LLM_Engineers_Handbook_Bite_Sized_Playbook.html",
       "contentPath": "/library/playbooks/llm-engineers-handbook.html",
-      "sha256": "d16f60913f4a5650b32f04113c4c27e5ab32989e4e6776279823b3e41abcb167",
-      "bytes": 1397913,
-      "aliases": []
+      "sha256": "1f0a517e3df6fa0879fedde2f772a95c0163a626929298d9b10fa3894a77a113",
+      "bytes": 1397901,
+      "aliases": [],
+      "sourceSha256": "d16f60913f4a5650b32f04113c4c27e5ab32989e4e6776279823b3e41abcb167",
+      "sourceBytes": 1397913
     },
     {
       "id": "google-maps-engineering",
@@ -83,15 +101,19 @@
       "contentPath": "/library/playbooks/google-maps-engineering.html",
       "sha256": "ac0c553ebcc265c3555d7402f59a782fdfca339e6c4a783b6b049ef914179683",
       "bytes": 1327507,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "ac0c553ebcc265c3555d7402f59a782fdfca339e6c4a783b6b049ef914179683",
+      "sourceBytes": 1327507
     },
     {
       "id": "uber-engineering",
       "sourceFile": "Uber_Engineering_Master_Playbook.html",
       "contentPath": "/library/playbooks/uber-engineering.html",
-      "sha256": "7ce52466ed3c15d6e984836891fe727b38e5d5e4b154ee3b7005d6d2f874f00e",
-      "bytes": 888586,
-      "aliases": []
+      "sha256": "e3ce66bad9f13df0415d32e487af98610b8996c2b9676a3f82dd88a87373ade7",
+      "bytes": 888582,
+      "aliases": [],
+      "sourceSha256": "7ce52466ed3c15d6e984836891fe727b38e5d5e4b154ee3b7005d6d2f874f00e",
+      "sourceBytes": 888586
     },
     {
       "id": "doordash-engineering",
@@ -99,7 +121,9 @@
       "contentPath": "/library/playbooks/doordash-engineering.html",
       "sha256": "90f52dc15d1e4297ad3a9399a11b95158587b5d5d348881ea3e17e83e9163bdf",
       "bytes": 885540,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "90f52dc15d1e4297ad3a9399a11b95158587b5d5d348881ea3e17e83e9163bdf",
+      "sourceBytes": 885540
     },
     {
       "id": "netflix-engineering",
@@ -109,7 +133,9 @@
       "bytes": 1232716,
       "aliases": [
         "Netflix_Engineering_Master_Playbook (1).html"
-      ]
+      ],
+      "sourceSha256": "efe7a2f7d5b80036428905e79ae814299cceb9d08f4edf256b7058fccdde32bf",
+      "sourceBytes": 1232716
     },
     {
       "id": "youtube-engineering",
@@ -119,7 +145,9 @@
       "bytes": 1227932,
       "aliases": [
         "YouTube_Engineering_Master_Playbook (1).html"
-      ]
+      ],
+      "sourceSha256": "42d4eb456fcfb2c3b3b193d52a1b71349e18f84a6f431b27c0e328a137e2b04e",
+      "sourceBytes": 1227932
     },
     {
       "id": "whatsapp-engineering",
@@ -127,7 +155,9 @@
       "contentPath": "/library/playbooks/whatsapp-engineering.html",
       "sha256": "e16cba063110a88c96a722d61316be855b875805a7a97356d2270c91722d959e",
       "bytes": 925442,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "e16cba063110a88c96a722d61316be855b875805a7a97356d2270c91722d959e",
+      "sourceBytes": 925442
     },
     {
       "id": "twilio-engineering",
@@ -135,7 +165,9 @@
       "contentPath": "/library/playbooks/twilio-engineering.html",
       "sha256": "3808e8c6ad2aaffe44f29bb0d6762cf337e1335c91d22fd4e31c9fd28248ad33",
       "bytes": 1399158,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "3808e8c6ad2aaffe44f29bb0d6762cf337e1335c91d22fd4e31c9fd28248ad33",
+      "sourceBytes": 1399158
     },
     {
       "id": "airflow-study-course",
@@ -143,15 +175,19 @@
       "contentPath": "/library/playbooks/airflow-study-course.html",
       "sha256": "36fdf6945d034d9a85ab28c364a35b99e6664ad1d5da8ce960d9216748881519",
       "bytes": 892680,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "36fdf6945d034d9a85ab28c364a35b99e6664ad1d5da8ce960d9216748881519",
+      "sourceBytes": 892680
     },
     {
       "id": "hbase-in-action",
       "sourceFile": "HBase_in_Action_Bite_Sized_Playbook.html",
       "contentPath": "/library/playbooks/hbase-in-action.html",
-      "sha256": "53ba23e4e96a2079b3337e8f6aae7043b65c70fc74855f2082b5b95198db50cd",
-      "bytes": 777708,
-      "aliases": []
+      "sha256": "ea2d05714b2bc1faa7e2af59b25874005ef90aa497daea2e8dade73268bac0e8",
+      "bytes": 777695,
+      "aliases": [],
+      "sourceSha256": "53ba23e4e96a2079b3337e8f6aae7043b65c70fc74855f2082b5b95198db50cd",
+      "sourceBytes": 777708
     },
     {
       "id": "cohesity-engineering",
@@ -159,7 +195,9 @@
       "contentPath": "/library/playbooks/cohesity-engineering.html",
       "sha256": "0af916d82cfd341a74458a12d00a324c8f32e5d7f7fcf9916389bd1ca5435d0f",
       "bytes": 491504,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "0af916d82cfd341a74458a12d00a324c8f32e5d7f7fcf9916389bd1ca5435d0f",
+      "sourceBytes": 491504
     },
     {
       "id": "java-to-go",
@@ -167,7 +205,9 @@
       "contentPath": "/library/playbooks/java-to-go.html",
       "sha256": "9fa292b1dd92e064a5bd2f4181e63e972a3971ec5ffa3159b012fd1ea0b0b7ff",
       "bytes": 477276,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "9fa292b1dd92e064a5bd2f4181e63e972a3971ec5ffa3159b012fd1ea0b0b7ff",
+      "sourceBytes": 477276
     },
     {
       "id": "java-low-level-design",
@@ -175,7 +215,9 @@
       "contentPath": "/library/playbooks/java-low-level-design.html",
       "sha256": "d4c3727bb9ca5b5acea0fd462cee220129e54030a5929b096d00e893bdc5f5fa",
       "bytes": 873846,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "d4c3727bb9ca5b5acea0fd462cee220129e54030a5929b096d00e893bdc5f5fa",
+      "sourceBytes": 873846
     },
     {
       "id": "java-dsa",
@@ -183,7 +225,9 @@
       "contentPath": "/library/playbooks/java-dsa.html",
       "sha256": "b94ea86f42799bcc151261a3267989a082ae6a6d7e0e72cb4956d619166575d4",
       "bytes": 1687206,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "b94ea86f42799bcc151261a3267989a082ae6a6d7e0e72cb4956d619166575d4",
+      "sourceBytes": 1687206
     },
     {
       "id": "okta-identity-platform",
@@ -191,7 +235,9 @@
       "contentPath": "/library/playbooks/okta-identity-platform.html",
       "sha256": "ff2b95df03b8d22aefe190a79689a4454724e31b6ad05b3d42e028b3d9d2cf17",
       "bytes": 930632,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "ff2b95df03b8d22aefe190a79689a4454724e31b6ad05b3d42e028b3d9d2cf17",
+      "sourceBytes": 930632
     },
     {
       "id": "postman-playbook",
@@ -199,7 +245,10 @@
       "contentPath": "/library/playbooks/postman-playbook.html",
       "sha256": "2f760ad51a6d40dfd112231780e5d438dffdf4778431ef1da6d479ee06ffbe17",
       "bytes": 799987,
-      "aliases": []
+      "aliases": [],
+      "sourceSha256": "2f760ad51a6d40dfd112231780e5d438dffdf4778431ef1da6d479ee06ffbe17",
+      "sourceBytes": 799987
     }
-  ]
+  ],
+  "normalization": "editorial-punctuation-v1"
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 52 — POSIX Message Queues</title>
+  <title>TLPI v2, Chapter 52, POSIX Message Queues</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 52 — POSIX Message Queues</div>
+          <div class="sub" id="subTitle">Chapter 52: POSIX Message Queues</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 52 — POSIX Message Queues
+            Chapter 52: POSIX Message Queues
           </h2>
           <div class="subtitle">
-            <p>POSIX message queues offer priority-ordered message delivery with async notification &mdash; cleaner than System V, with better integration into event-driven architectures. Each message has discrete boundaries (not a byte stream) and an unsigned priority that determines receive order.</p><p>This chapter covers <span class="mono">mq_open</span>, sending and receiving with priorities, queue attributes (<span class="mono">mq_attr</span>), async notification via <span class="mono">mq_notify</span>, and timed operations for deadline-aware designs.</p>
+            <p>POSIX message queues offer priority-ordered message delivery with async notification: cleaner than System V, with better integration into event-driven architectures. Each message has discrete boundaries (not a byte stream) and an unsigned priority that determines receive order.</p><p>This chapter covers <span class="mono">mq_open</span>, sending and receiving with priorities, queue attributes (<span class="mono">mq_attr</span>), async notification via <span class="mono">mq_notify</span>, and timed operations for deadline-aware designs.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><span class="mono">mq_open(name, flags, mode, attr)</span> creates or opens a queue. The <span class="mono">attr</span> parameter sets <span class="mono">mq_maxmsg</span> (max messages in queue) and <span class="mono">mq_msgsize</span> (max bytes per message) at creation time &mdash; cannot be changed later.</li><li><span class="mono">mq_send(mqd, buf, len, priority)</span> enqueues a message. Higher priority number = delivered first. Blocks when queue is full (unless <span class="mono">O_NONBLOCK</span>).</li><li><span class="mono">mq_receive(mqd, buf, len, &amp;prio)</span> dequeues the highest-priority message. The buffer must be &ge; <span class="mono">mq_msgsize</span> or the call fails with EMSGSIZE.</li><li><span class="mono">mq_notify(mqd, sigevent)</span> registers for async notification when a message arrives on an empty queue. Only one process can register at a time. Notification fires once &mdash; must re-register after each delivery.</li><li><span class="mono">mq_timedreceive</span>/<span class="mono">mq_timedsend</span> accept an absolute <span class="mono">struct timespec</span> deadline &mdash; useful for avoiding indefinite blocking.</li><li>Messages have boundaries: each send/receive is one complete message, unlike pipe byte streams.</li><li>Backed by <span class="mono">/dev/mqueue</span> filesystem. Queue descriptors are NOT regular fds &mdash; <span class="mono">select</span>/<span class="mono">poll</span>/<span class="mono">epoll</span> support is Linux-specific (via <span class="mono">mq_getattr</span> returning an fd on some kernels).</li></ul>
+            <ul><li><span class="mono">mq_open(name, flags, mode, attr)</span> creates or opens a queue. The <span class="mono">attr</span> parameter sets <span class="mono">mq_maxmsg</span> (max messages in queue) and <span class="mono">mq_msgsize</span> (max bytes per message) at creation time: cannot be changed later.</li><li><span class="mono">mq_send(mqd, buf, len, priority)</span> enqueues a message. Higher priority number = delivered first. Blocks when queue is full (unless <span class="mono">O_NONBLOCK</span>).</li><li><span class="mono">mq_receive(mqd, buf, len, &amp;prio)</span> dequeues the highest-priority message. The buffer must be &ge; <span class="mono">mq_msgsize</span> or the call fails with EMSGSIZE.</li><li><span class="mono">mq_notify(mqd, sigevent)</span> registers for async notification when a message arrives on an empty queue. Only one process can register at a time. Notification fires once: must re-register after each delivery.</li><li><span class="mono">mq_timedreceive</span>/<span class="mono">mq_timedsend</span> accept an absolute <span class="mono">struct timespec</span> deadline: useful for avoiding indefinite blocking.</li><li>Messages have boundaries: each send/receive is one complete message, unlike pipe byte streams.</li><li>Backed by <span class="mono">/dev/mqueue</span> filesystem. Queue descriptors are NOT regular fds: <span class="mono">select</span>/<span class="mono">poll</span>/<span class="mono">epoll</span> support is Linux-specific (via <span class="mono">mq_getattr</span> returning an fd on some kernels).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -127,13 +127,13 @@
           </div>
           <details class="accordion">
   <summary>Buffer sizing pitfall</summary>
-  <div class="content"><ul><li><span class="mono">mq_receive</span> requires a buffer &ge; <span class="mono">mq_msgsize</span> (the queue's max message size), NOT the actual message length. This catches many first-time users.</li><li>Always call <span class="mono">mq_getattr</span> after open to discover the actual <span class="mono">mq_msgsize</span>, then allocate accordingly.</li><li>The default <span class="mono">mq_msgsize</span> (if attr is NULL on creation) is system-defined &mdash; often 8192 bytes on Linux.</li></ul></div>
+  <div class="content"><ul><li><span class="mono">mq_receive</span> requires a buffer &ge; <span class="mono">mq_msgsize</span> (the queue's max message size), NOT the actual message length. This catches many first-time users.</li><li>Always call <span class="mono">mq_getattr</span> after open to discover the actual <span class="mono">mq_msgsize</span>, then allocate accordingly.</li><li>The default <span class="mono">mq_msgsize</span> (if attr is NULL on creation) is system-defined: often 8192 bytes on Linux.</li></ul></div>
 </details><details class="accordion">
   <summary>mq_notify semantics</summary>
-  <div class="content"><ul><li>Notification fires only when a message arrives on a previously empty queue &mdash; not on every message.</li><li>After notification fires, you must re-register before the next drain-to-empty cycle.</li><li>Only one process can be registered per queue at a time. A second <span class="mono">mq_notify</span> returns EBUSY.</li><li>With <span class="mono">SIGEV_THREAD</span>: the kernel spawns a thread for the callback. Be careful with thread safety and re-registration timing.</li><li>Best pattern: in the notification callback, drain all messages (loop until EAGAIN), then re-register.</li></ul></div>
+  <div class="content"><ul><li>Notification fires only when a message arrives on a previously empty queue: not on every message.</li><li>After notification fires, you must re-register before the next drain-to-empty cycle.</li><li>Only one process can be registered per queue at a time. A second <span class="mono">mq_notify</span> returns EBUSY.</li><li>With <span class="mono">SIGEV_THREAD</span>: the kernel spawns a thread for the callback. Be careful with thread safety and re-registration timing.</li><li>Best pattern: in the notification callback, drain all messages (loop until EAGAIN), then re-register.</li></ul></div>
 </details><details class="accordion">
   <summary>Priority ordering</summary>
-  <div class="content"><ul><li>Higher numeric priority = dequeued first. Priority 10 is delivered before priority 1.</li><li>Within the same priority, messages are FIFO.</li><li>Maximum priority is at least 31 (<span class="mono">MQ_PRIO_MAX - 1</span>); on Linux typically 32767.</li><li>If you don't need priorities, use 0 for all messages &mdash; the queue becomes a simple FIFO.</li></ul></div>
+  <div class="content"><ul><li>Higher numeric priority = dequeued first. Priority 10 is delivered before priority 1.</li><li>Within the same priority, messages are FIFO.</li><li>Maximum priority is at least 31 (<span class="mono">MQ_PRIO_MAX - 1</span>); on Linux typically 32767.</li><li>If you don't need priorities, use 0 for all messages: the queue becomes a simple FIFO.</li></ul></div>
 </details><details class="accordion">
   <summary>Timed operations and deadlines</summary>
   <div class="content"><ul><li><span class="mono">mq_timedreceive</span>/<span class="mono">mq_timedsend</span> use absolute <span class="mono">struct timespec</span> values (CLOCK_REALTIME).</li><li>Calculate deadline as: <span class="mono">clock_gettime(CLOCK_REALTIME, &amp;ts); ts.tv_sec += timeout;</span></li><li>Returns ETIMEDOUT if the deadline passes. Returns EINTR if interrupted by a signal.</li><li>Be aware of clock adjustments (NTP, settimeofday) affecting CLOCK_REALTIME deadlines.</li></ul></div>
@@ -183,7 +183,7 @@ static void on_msg(union sigval sv) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Set <span class="mono">mq_maxmsg</span> and <span class="mono">mq_msgsize</span> explicitly at creation &mdash; don't rely on defaults.</li><li>Always allocate receive buffers to <span class="mono">mq_msgsize</span> (from <span class="mono">mq_getattr</span>), not the expected message size.</li><li>Use <span class="mono">mq_timedsend</span>/<span class="mono">mq_timedreceive</span> with deadlines to avoid indefinite blocking.</li><li>If using <span class="mono">mq_notify</span>: drain all messages in the callback, then re-register before returning.</li><li>Call <span class="mono">mq_unlink</span> during cleanup; design idempotent startup that unlinks stale queues.</li></ul>
+            <ul><li>Set <span class="mono">mq_maxmsg</span> and <span class="mono">mq_msgsize</span> explicitly at creation: don't rely on defaults.</li><li>Always allocate receive buffers to <span class="mono">mq_msgsize</span> (from <span class="mono">mq_getattr</span>), not the expected message size.</li><li>Use <span class="mono">mq_timedsend</span>/<span class="mono">mq_timedreceive</span> with deadlines to avoid indefinite blocking.</li><li>If using <span class="mono">mq_notify</span>: drain all messages in the callback, then re-register before returning.</li><li>Call <span class="mono">mq_unlink</span> during cleanup; design idempotent startup that unlinks stale queues.</li></ul>
           </div>
         </div>
 
@@ -288,7 +288,7 @@ static void on_msg(union sigval sv) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch52", n:52, subtitle:"Chapter 52 \u2014 POSIX Message Queues"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch52", n:52, subtitle:"Chapter 52: POSIX Message Queues"});
     TLPIWidgets.mountKernelGraph("kg_ch52", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

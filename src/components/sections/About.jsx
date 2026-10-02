@@ -7,10 +7,10 @@ import SectionHeading from "@/components/layout/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PRINCIPLES = [
-  "SLOs over vibes — reliability is a feature.",
+  "SLOs over vibes: reliability is a feature.",
   "Make the fast path obvious (and the safe path automatic).",
   "Measure, iterate, document, repeat.",
-  "Keep it simple — until you can prove you need complexity.",
+  "Keep it simple until you can prove you need complexity.",
 ];
 
 const STATS = [
@@ -120,7 +120,7 @@ export default function About() {
               <CardContent className="text-muted-foreground leading-relaxed space-y-4">
                 <p>
                   I've worked on high-scale backends in payments, identity, fulfillment, and data platforms.
-                  My happy place is the intersection of performance, correctness, and operability —
+                  My happy place is the intersection of performance, correctness, and operability:
                   making sure systems are fast, safe, observable, and easy to evolve.
                 </p>
                 <p>

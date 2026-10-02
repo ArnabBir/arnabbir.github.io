@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 57 — Sockets: UNIX Domain</title>
+  <title>TLPI v2, Chapter 57, Sockets: UNIX Domain</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 57 — Sockets: UNIX Domain</div>
+          <div class="sub" id="subTitle">Chapter 57: Sockets: UNIX Domain</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 57 — Sockets: UNIX Domain
+            Chapter 57: Sockets: UNIX Domain
           </h2>
           <div class="subtitle">
-            <p>UNIX domain sockets are the most versatile local IPC mechanism &mdash; bidirectional, supporting both stream and datagram semantics, and capable of passing file descriptors and credentials between processes. They bypass the network stack entirely, making them significantly faster than TCP loopback for same-host communication.</p><p>AF_UNIX sockets bind to filesystem paths or Linux abstract namespace entries. socketpair() creates a pre-connected pair ideal for parent-child communication. Ancillary data (cmsg) enables passing open file descriptors (SCM_RIGHTS) and process credentials (SCM_CREDENTIALS) out-of-band.</p>
+            <p>UNIX domain sockets are the most versatile local IPC mechanism: bidirectional, supporting both stream and datagram semantics, and capable of passing file descriptors and credentials between processes. They bypass the network stack entirely, making them significantly faster than TCP loopback for same-host communication.</p><p>AF_UNIX sockets bind to filesystem paths or Linux abstract namespace entries. socketpair() creates a pre-connected pair ideal for parent-child communication. Ancillary data (cmsg) enables passing open file descriptors (SCM_RIGHTS) and process credentials (SCM_CREDENTIALS) out-of-band.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">AF_UNIX sockets are local-only; they use filesystem paths (or abstract names) instead of IP:port, and support fd passing via ancillary data.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Filesystem-bound sockets leave a socket file after close &mdash; you must unlink() it before re-binding, or use the abstract namespace to avoid cleanup.</div>
+  <div class="v">Filesystem-bound sockets leave a socket file after close: you must unlink() it before re-binding, or use the abstract namespace to avoid cleanup.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use ss -x to list UNIX domain sockets; ls -l on the socket path shows socket type (s); lsof shows which processes hold each end.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>AF_UNIX sockets bind to filesystem paths (sun_path in struct sockaddr_un) or to the Linux abstract namespace (sun_path[0] = '\0').</li><li>SOCK_STREAM provides connection-oriented, reliable, ordered byte streams &mdash; like TCP but purely local, with no network overhead.</li><li>SOCK_DGRAM provides connectionless, reliable, message-preserving datagrams &mdash; like UDP but with guaranteed delivery on the same host.</li><li>socketpair() creates a connected pair of sockets (like pipe() but bidirectional) &mdash; ideal for parent-child IPC after fork().</li><li>Ancillary data via sendmsg/recvmsg cmsg enables passing file descriptors (SCM_RIGHTS) and caller credentials (SCM_CREDENTIALS) between processes.</li><li>Abstract namespace sockets (Linux-specific) avoid filesystem cleanup: no unlink() needed, automatically removed when all references close.</li><li>No network stack overhead &mdash; AF_UNIX bypasses IP/TCP layers, making it faster than 127.0.0.1 loopback for local communication.</li></ul>
+            <ul><li>AF_UNIX sockets bind to filesystem paths (sun_path in struct sockaddr_un) or to the Linux abstract namespace (sun_path[0] = '\0').</li><li>SOCK_STREAM provides connection-oriented, reliable, ordered byte streams: like TCP but purely local, with no network overhead.</li><li>SOCK_DGRAM provides connectionless, reliable, message-preserving datagrams: like UDP but with guaranteed delivery on the same host.</li><li>socketpair() creates a connected pair of sockets (like pipe() but bidirectional): ideal for parent-child IPC after fork().</li><li>Ancillary data via sendmsg/recvmsg cmsg enables passing file descriptors (SCM_RIGHTS) and caller credentials (SCM_CREDENTIALS) between processes.</li><li>Abstract namespace sockets (Linux-specific) avoid filesystem cleanup: no unlink() needed, automatically removed when all references close.</li><li>No network stack overhead: AF_UNIX bypasses IP/TCP layers, making it faster than 127.0.0.1 loopback for local communication.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>AF_UNIX</td><td>Address family for local (same-host) sockets; also called AF_LOCAL. Uses filesystem paths or abstract names.</td></tr><tr><td class='mono'>sun_path</td><td>The path field in struct sockaddr_un; max 108 bytes. First byte '\0' selects abstract namespace on Linux.</td></tr><tr><td class='mono'>SOCK_STREAM</td><td>Connection-oriented, reliable byte stream. Requires bind+listen+accept on server side.</td></tr><tr><td class='mono'>SOCK_DGRAM</td><td>Connectionless, reliable, message-preserving datagrams. Sender must bind or use sendto with peer address.</td></tr><tr><td class='mono'>socketpair</td><td>Creates two connected AF_UNIX sockets in one call. Commonly used for bidirectional parent-child IPC.</td></tr><tr><td class='mono'>SCM_RIGHTS</td><td>Ancillary data type for passing file descriptors between processes via sendmsg/recvmsg.</td></tr><tr><td class='mono'>SCM_CREDENTIALS</td><td>Ancillary data type for passing/receiving process credentials (pid, uid, gid) &mdash; kernel-verified.</td></tr><tr><td class='mono'>Abstract namespace</td><td>Linux-specific: sun_path begins with '\0'. Socket is not visible in filesystem and auto-cleans on close.</td></tr></tbody>
+  <tbody><tr><td class='mono'>AF_UNIX</td><td>Address family for local (same-host) sockets; also called AF_LOCAL. Uses filesystem paths or abstract names.</td></tr><tr><td class='mono'>sun_path</td><td>The path field in struct sockaddr_un; max 108 bytes. First byte '\0' selects abstract namespace on Linux.</td></tr><tr><td class='mono'>SOCK_STREAM</td><td>Connection-oriented, reliable byte stream. Requires bind+listen+accept on server side.</td></tr><tr><td class='mono'>SOCK_DGRAM</td><td>Connectionless, reliable, message-preserving datagrams. Sender must bind or use sendto with peer address.</td></tr><tr><td class='mono'>socketpair</td><td>Creates two connected AF_UNIX sockets in one call. Commonly used for bidirectional parent-child IPC.</td></tr><tr><td class='mono'>SCM_RIGHTS</td><td>Ancillary data type for passing file descriptors between processes via sendmsg/recvmsg.</td></tr><tr><td class='mono'>SCM_CREDENTIALS</td><td>Ancillary data type for passing/receiving process credentials (pid, uid, gid): kernel-verified.</td></tr><tr><td class='mono'>Abstract namespace</td><td>Linux-specific: sun_path begins with '\0'. Socket is not visible in filesystem and auto-cleans on close.</td></tr></tbody>
 </table>
         </div>
 
@@ -114,11 +114,11 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>socket</td><td class='mono'>int socket(AF_UNIX, int type, 0);</td><td class='mono muted2'>EAFNOSUPPORT, EMFILE, ENFILE</td><td>Creates a UNIX domain socket. type is SOCK_STREAM, SOCK_DGRAM, or SOCK_SEQPACKET.</td></tr><tr><td class='mono'>bind</td><td class='mono'>int bind(int sockfd, const struct sockaddr_un *addr, socklen_t addrlen);</td><td class='mono muted2'>EADDRINUSE, EACCES, ENOENT</td><td>Binds to filesystem path. EADDRINUSE if socket file exists &mdash; unlink() first or use abstract namespace.</td></tr><tr><td class='mono'>socketpair</td><td class='mono'>int socketpair(AF_UNIX, int type, 0, int sv[2]);</td><td class='mono muted2'>EMFILE, ENFILE, EAFNOSUPPORT</td><td>Creates connected pair. sv[0] and sv[1] are bidirectional. Use SOCK_CLOEXEC flag.</td></tr><tr><td class='mono'>sendmsg</td><td class='mono'>ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, EPIPE</td><td>Sends data + ancillary data (cmsg). Required for SCM_RIGHTS fd passing.</td></tr><tr><td class='mono'>recvmsg</td><td class='mono'>ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>Receives data + ancillary data. Must allocate msg_control buffer large enough for expected cmsg.</td></tr>
+    <tr><td class='mono'>socket</td><td class='mono'>int socket(AF_UNIX, int type, 0);</td><td class='mono muted2'>EAFNOSUPPORT, EMFILE, ENFILE</td><td>Creates a UNIX domain socket. type is SOCK_STREAM, SOCK_DGRAM, or SOCK_SEQPACKET.</td></tr><tr><td class='mono'>bind</td><td class='mono'>int bind(int sockfd, const struct sockaddr_un *addr, socklen_t addrlen);</td><td class='mono muted2'>EADDRINUSE, EACCES, ENOENT</td><td>Binds to filesystem path. EADDRINUSE if socket file exists: unlink() first or use abstract namespace.</td></tr><tr><td class='mono'>socketpair</td><td class='mono'>int socketpair(AF_UNIX, int type, 0, int sv[2]);</td><td class='mono muted2'>EMFILE, ENFILE, EAFNOSUPPORT</td><td>Creates connected pair. sv[0] and sv[1] are bidirectional. Use SOCK_CLOEXEC flag.</td></tr><tr><td class='mono'>sendmsg</td><td class='mono'>ssize_t sendmsg(int sockfd, const struct msghdr *msg, int flags);</td><td class='mono muted2'>EAGAIN, EINTR, EPIPE</td><td>Sends data + ancillary data (cmsg). Required for SCM_RIGHTS fd passing.</td></tr><tr><td class='mono'>recvmsg</td><td class='mono'>ssize_t recvmsg(int sockfd, struct msghdr *msg, int flags);</td><td class='mono muted2'>EAGAIN, EINTR</td><td>Receives data + ancillary data. Must allocate msg_control buffer large enough for expected cmsg.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: when passing fds via SCM_RIGHTS, always send at least 1 byte of real data alongside the ancillary message &mdash; some implementations require it.
+            Tip: when passing fds via SCM_RIGHTS, always send at least 1 byte of real data alongside the ancillary message: some implementations require it.
           </div>
         </div>
 
@@ -129,16 +129,16 @@
           </div>
           <details class="accordion">
   <summary>Socket file lifecycle and binding</summary>
-  <div class="content"><ul><li>bind() creates a socket file in the filesystem. If the path already exists, bind fails with EADDRINUSE &mdash; you must unlink() the stale socket file first.</li><li>Closing a socket does NOT remove the socket file. You must unlink() explicitly (or use atexit/signal handlers).</li><li>Abstract namespace sockets (sun_path[0] = '\0') avoid this problem entirely: no filesystem entry, automatic cleanup when all fds close.</li><li>sun_path is limited to 108 bytes. Long paths silently truncate on some systems &mdash; always check addrlen.</li></ul></div>
+  <div class="content"><ul><li>bind() creates a socket file in the filesystem. If the path already exists, bind fails with EADDRINUSE: you must unlink() the stale socket file first.</li><li>Closing a socket does NOT remove the socket file. You must unlink() explicitly (or use atexit/signal handlers).</li><li>Abstract namespace sockets (sun_path[0] = '\0') avoid this problem entirely: no filesystem entry, automatic cleanup when all fds close.</li><li>sun_path is limited to 108 bytes. Long paths silently truncate on some systems: always check addrlen.</li></ul></div>
 </details><details class="accordion">
   <summary>File descriptor passing with SCM_RIGHTS</summary>
-  <div class="content"><ul><li>sendmsg() with SCM_RIGHTS ancillary data duplicates the fd into the receiver's fd table &mdash; it's like the kernel calls dup() across process boundaries.</li><li>The receiver must allocate a msg_control buffer (use CMSG_SPACE macro) and iterate with CMSG_FIRSTHDR/CMSG_NXTHDR.</li><li>Received fds are new fd numbers in the receiver's process; the sender can close its copy independently.</li><li>If recvmsg's msg_control buffer is too small, ancillary data is silently truncated and fds are leaked into the receiver's table without being reported.</li></ul></div>
+  <div class="content"><ul><li>sendmsg() with SCM_RIGHTS ancillary data duplicates the fd into the receiver's fd table: it's like the kernel calls dup() across process boundaries.</li><li>The receiver must allocate a msg_control buffer (use CMSG_SPACE macro) and iterate with CMSG_FIRSTHDR/CMSG_NXTHDR.</li><li>Received fds are new fd numbers in the receiver's process; the sender can close its copy independently.</li><li>If recvmsg's msg_control buffer is too small, ancillary data is silently truncated and fds are leaked into the receiver's table without being reported.</li></ul></div>
 </details><details class="accordion">
   <summary>Credential passing with SCM_CREDENTIALS</summary>
-  <div class="content"><ul><li>The sender fills a struct ucred (pid, uid, gid) in the cmsg. The kernel verifies the credentials &mdash; unprivileged processes cannot forge them.</li><li>The receiver must enable SO_PASSCRED on its socket before credentials are delivered.</li><li>This is used by D-Bus, systemd, and other services for authentication over UNIX sockets.</li><li>Only available on Linux; BSD uses LOCAL_PEERCRED or getpeereid() instead.</li></ul></div>
+  <div class="content"><ul><li>The sender fills a struct ucred (pid, uid, gid) in the cmsg. The kernel verifies the credentials: unprivileged processes cannot forge them.</li><li>The receiver must enable SO_PASSCRED on its socket before credentials are delivered.</li><li>This is used by D-Bus, systemd, and other services for authentication over UNIX sockets.</li><li>Only available on Linux; BSD uses LOCAL_PEERCRED or getpeereid() instead.</li></ul></div>
 </details><details class="accordion">
   <summary>SOCK_DGRAM vs SOCK_STREAM for AF_UNIX</summary>
-  <div class="content"><ul><li>SOCK_DGRAM preserves message boundaries (each send is one recv) and is reliable on AF_UNIX &mdash; no packet loss possible since there's no network.</li><li>SOCK_STREAM is a byte stream: message boundaries are not preserved. Use length-prefixed or delimited framing.</li><li>SOCK_SEQPACKET combines connection-oriented semantics with message boundaries &mdash; often the best choice for structured IPC.</li><li>SOCK_DGRAM senders must bind() their own address if they want to receive replies (the receiver needs a return address).</li></ul></div>
+  <div class="content"><ul><li>SOCK_DGRAM preserves message boundaries (each send is one recv) and is reliable on AF_UNIX: no packet loss possible since there's no network.</li><li>SOCK_STREAM is a byte stream: message boundaries are not preserved. Use length-prefixed or delimited framing.</li><li>SOCK_SEQPACKET combines connection-oriented semantics with message boundaries: often the best choice for structured IPC.</li><li>SOCK_DGRAM senders must bind() their own address if they want to receive replies (the receiver needs a return address).</li></ul></div>
 </details>
         </div>
 
@@ -286,7 +286,7 @@ void send_fd(int sock, int fd_to_send) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch57", n:57, subtitle:"Chapter 57 \u2014 Sockets: UNIX Domain"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch57", n:57, subtitle:"Chapter 57: Sockets: UNIX Domain"});
     TLPIWidgets.mountKernelGraph("kg_ch57", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (net). Click to pin a tooltip.",

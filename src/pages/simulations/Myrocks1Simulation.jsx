@@ -134,7 +134,7 @@ const CONFIG = {
       "log": "Tuning changes performance envelope.",
       "message": {
         "from": "Compaction",
-        "to": "—",
+        "to": "N/A",
         "label": "Tune"
       }
     }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 35 — Process Priorities and Scheduling</title>
+  <title>TLPI v2, Chapter 35, Process Priorities and Scheduling</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 35 — Process Priorities and Scheduling</div>
+          <div class="sub" id="subTitle">Chapter 35: Process Priorities and Scheduling</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 35 — Process Priorities and Scheduling
+            Chapter 35: Process Priorities and Scheduling
           </h2>
           <div class="subtitle">
             <p>The Linux scheduler determines which process runs when. Nice values provide hints for timesharing; real-time policies guarantee strict priority ordering.</p><p>Understanding scheduling is essential for latency-sensitive applications, real-time systems, and diagnosing performance anomalies where CPU time is unfairly distributed among competing tasks.</p>
@@ -66,7 +66,7 @@
   <div class="v">CFS approximates ideal fairness using virtual runtime; higher-weight tasks accumulate vruntime slower and thus run more.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">SCHED_FIFO tasks at high priority can starve the entire system — including the shell you need to fix it.</div>
+  <div class="v">SCHED_FIFO tasks at high priority can starve the entire system: including the shell you need to fix it.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use chrt -p &lt;pid&gt; to inspect scheduling policy; schedtool or /proc/&lt;pid&gt;/sched for runtime stats.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>CFS (Completely Fair Scheduler) tracks virtual runtime (vruntime) per task; the task with lowest vruntime runs next.</li><li>Nice value (-20 to +19) adjusts task weight: nice -20 gets ~88x more CPU share than nice +19 under full contention.</li><li>Nice values only matter under CPU contention — an idle system runs everything instantly regardless of nice.</li><li>Real-time policies (SCHED_FIFO, SCHED_RR) preempt all normal (SCHED_OTHER) tasks unconditionally.</li><li>SCHED_FIFO: runs until it blocks or yields; SCHED_RR: same but with a time quantum for round-robin among equal-priority RT tasks.</li><li>SCHED_DEADLINE: earliest-deadline-first scheduling for periodic tasks with declared runtime/deadline/period.</li><li>CPU affinity (sched_setaffinity) pins a task to specific CPUs — useful for cache locality and NUMA optimization.</li><li>Priority inversion: a high-priority RT task blocked on a mutex held by a low-priority task; solved by priority inheritance (PI mutexes).</li></ul>
+            <ul><li>CFS (Completely Fair Scheduler) tracks virtual runtime (vruntime) per task; the task with lowest vruntime runs next.</li><li>Nice value (-20 to +19) adjusts task weight: nice -20 gets ~88x more CPU share than nice +19 under full contention.</li><li>Nice values only matter under CPU contention: an idle system runs everything instantly regardless of nice.</li><li>Real-time policies (SCHED_FIFO, SCHED_RR) preempt all normal (SCHED_OTHER) tasks unconditionally.</li><li>SCHED_FIFO: runs until it blocks or yields; SCHED_RR: same but with a time quantum for round-robin among equal-priority RT tasks.</li><li>SCHED_DEADLINE: earliest-deadline-first scheduling for periodic tasks with declared runtime/deadline/period.</li><li>CPU affinity (sched_setaffinity) pins a task to specific CPUs: useful for cache locality and NUMA optimization.</li><li>Priority inversion: a high-priority RT task blocked on a mutex held by a low-priority task; solved by priority inheritance (PI mutexes).</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>nice value</td><td>Priority hint for SCHED_OTHER tasks; range -20 (highest) to +19 (lowest). Mapped to scheduler weight.</td></tr><tr><td class='mono'>CFS</td><td>Completely Fair Scheduler — default Linux scheduler using red-black tree of vruntime values.</td></tr><tr><td class='mono'>SCHED_FIFO</td><td>Real-time first-in-first-out policy; runs until blocked/yielded; preempts all SCHED_OTHER.</td></tr><tr><td class='mono'>SCHED_RR</td><td>Real-time round-robin; like FIFO but with time-slice rotation among same-priority tasks.</td></tr><tr><td class='mono'>SCHED_DEADLINE</td><td>Earliest-deadline-first for tasks with declared (runtime, deadline, period) parameters.</td></tr><tr><td class='mono'>sched_setaffinity</td><td>Restricts a task to run on a specific set of CPUs (cpu_set_t bitmask).</td></tr><tr><td class='mono'>Priority inversion</td><td>High-priority task blocked by low-priority task holding a shared resource; PI mutexes mitigate this.</td></tr></tbody>
+  <tbody><tr><td class='mono'>nice value</td><td>Priority hint for SCHED_OTHER tasks; range -20 (highest) to +19 (lowest). Mapped to scheduler weight.</td></tr><tr><td class='mono'>CFS</td><td>Completely Fair Scheduler: default Linux scheduler using red-black tree of vruntime values.</td></tr><tr><td class='mono'>SCHED_FIFO</td><td>Real-time first-in-first-out policy; runs until blocked/yielded; preempts all SCHED_OTHER.</td></tr><tr><td class='mono'>SCHED_RR</td><td>Real-time round-robin; like FIFO but with time-slice rotation among same-priority tasks.</td></tr><tr><td class='mono'>SCHED_DEADLINE</td><td>Earliest-deadline-first for tasks with declared (runtime, deadline, period) parameters.</td></tr><tr><td class='mono'>sched_setaffinity</td><td>Restricts a task to run on a specific set of CPUs (cpu_set_t bitmask).</td></tr><tr><td class='mono'>Priority inversion</td><td>High-priority task blocked by low-priority task holding a shared resource; PI mutexes mitigate this.</td></tr></tbody>
 </table>
         </div>
 
@@ -129,16 +129,16 @@
           </div>
           <details class="accordion">
   <summary>Nice values and CFS weight</summary>
-  <div class="content"><ul><li>Nice differences are multiplicative, not additive: each nice level is roughly 1.25x weight difference. Nice 0 vs nice 1 = ~10% less CPU.</li><li>getpriority() can legitimately return -1 (nice = -1). Always clear errno before calling and check errno after.</li><li>RLIMIT_NICE (since Linux 2.6.12) allows unprivileged users to set nice values down to a configured floor without CAP_SYS_NICE.</li><li>In a cgroup with cpu.shares, nice values only affect distribution within that cgroup — not across cgroups.</li></ul></div>
+  <div class="content"><ul><li>Nice differences are multiplicative, not additive: each nice level is roughly 1.25x weight difference. Nice 0 vs nice 1 = ~10% less CPU.</li><li>getpriority() can legitimately return -1 (nice = -1). Always clear errno before calling and check errno after.</li><li>RLIMIT_NICE (since Linux 2.6.12) allows unprivileged users to set nice values down to a configured floor without CAP_SYS_NICE.</li><li>In a cgroup with cpu.shares, nice values only affect distribution within that cgroup: not across cgroups.</li></ul></div>
 </details><details class="accordion">
   <summary>Real-time scheduling hazards</summary>
-  <div class="content"><ul><li>A SCHED_FIFO task at priority 99 that never blocks will starve all other tasks, including the login shell.</li><li>Linux has RT throttling: /proc/sys/kernel/sched_rt_runtime_us (default 950000) limits RT tasks to 95% of each period (1s).</li><li>Setting sched_rt_runtime_us to -1 disables throttling — dangerous in production; do this only in hard-RT environments.</li><li>Priority inversion: use PTHREAD_PRIO_INHERIT (PI mutexes) so the low-priority lock holder temporarily inherits the waiter's priority.</li><li>RT priorities are per-CPU: a priority-50 task on CPU 0 does not preempt a priority-40 task on CPU 1.</li></ul></div>
+  <div class="content"><ul><li>A SCHED_FIFO task at priority 99 that never blocks will starve all other tasks, including the login shell.</li><li>Linux has RT throttling: /proc/sys/kernel/sched_rt_runtime_us (default 950000) limits RT tasks to 95% of each period (1s).</li><li>Setting sched_rt_runtime_us to -1 disables throttling: dangerous in production; do this only in hard-RT environments.</li><li>Priority inversion: use PTHREAD_PRIO_INHERIT (PI mutexes) so the low-priority lock holder temporarily inherits the waiter's priority.</li><li>RT priorities are per-CPU: a priority-50 task on CPU 0 does not preempt a priority-40 task on CPU 1.</li></ul></div>
 </details><details class="accordion">
   <summary>CPU affinity and NUMA</summary>
-  <div class="content"><ul><li>sched_setaffinity sets a "hard" mask, but cpuset cgroups can further restrict it. The effective mask is the intersection.</li><li>On NUMA systems, pinning to remote CPUs means memory accesses cross the interconnect — higher latency, lower bandwidth.</li><li>The scheduler's load balancer respects affinity masks; overly restrictive masks prevent balancing and can cause hotspots.</li><li>Use numactl --cpunodebind / --membind for combined CPU+memory NUMA pinning in production.</li></ul></div>
+  <div class="content"><ul><li>sched_setaffinity sets a "hard" mask, but cpuset cgroups can further restrict it. The effective mask is the intersection.</li><li>On NUMA systems, pinning to remote CPUs means memory accesses cross the interconnect: higher latency, lower bandwidth.</li><li>The scheduler's load balancer respects affinity masks; overly restrictive masks prevent balancing and can cause hotspots.</li><li>Use numactl --cpunodebind / --membind for combined CPU+memory NUMA pinning in production.</li></ul></div>
 </details><details class="accordion">
   <summary>Debugging scheduling issues</summary>
-  <div class="content"><ul><li>chrt -p &lt;pid&gt; shows current policy and priority. chrt -f -p 50 &lt;pid&gt; sets SCHED_FIFO priority 50.</li><li>/proc/&lt;pid&gt;/sched shows nr_switches, wait_sum, exec_runtime — useful for detecting scheduling starvation.</li><li>perf sched record/latency reveals scheduler wake-up latency and preemption delays.</li><li>For tail-latency issues, check if the task is being migrated across CPUs (context_switches in /proc/&lt;pid&gt;/status).</li></ul></div>
+  <div class="content"><ul><li>chrt -p &lt;pid&gt; shows current policy and priority. chrt -f -p 50 &lt;pid&gt; sets SCHED_FIFO priority 50.</li><li>/proc/&lt;pid&gt;/sched shows nr_switches, wait_sum, exec_runtime: useful for detecting scheduling starvation.</li><li>perf sched record/latency reveals scheduler wake-up latency and preemption delays.</li><li>For tail-latency issues, check if the task is being migrated across CPUs (context_switches in /proc/&lt;pid&gt;/status).</li></ul></div>
 </details>
         </div>
 
@@ -218,7 +218,7 @@ void set_realtime_affinity(int cpu, int priority) {
 </div></div>
   <div class="feedback muted2 small"></div>
 </div><div class="q" data-quiz data-answer="2" data-explain="SCHED_FIFO and SCHED_RR always preempt SCHED_OTHER regardless of nice values. RT priorities (1-99) are in a completely separate class.">
-  <div class="qp">Q2. A SCHED_FIFO task with priority 1 vs a nice -20 SCHED_OTHER task — who wins CPU?</div>
+  <div class="qp">Q2. A SCHED_FIFO task with priority 1 vs a nice -20 SCHED_OTHER task: who wins CPU?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
   <div><div style="font-weight:750">The nice -20 task (lower nice = higher priority)</div></div>
@@ -287,7 +287,7 @@ void set_realtime_affinity(int cpu, int priority) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch35", n:35, subtitle:"Chapter 35 \u2014 Process Priorities and Scheduling"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch35", n:35, subtitle:"Chapter 35: Process Priorities and Scheduling"});
     TLPIWidgets.mountKernelGraph("kg_ch35", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 08 — Users and Groups</title>
+  <title>TLPI v2, Chapter 08, Users and Groups</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 08 — Users and Groups</div>
+          <div class="sub" id="subTitle">Chapter 08: Users and Groups</div>
         </div>
       </div>
       <div class="actions">
@@ -56,20 +56,20 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 08 — Users and Groups
+            Chapter 08: Users and Groups
           </h2>
           <div class="subtitle">
-            <p>Identity management in Linux — how the kernel maps UIDs to names, password storage and hashing, NSS (Name Service Switch), and safe credential lookup patterns. The kernel operates entirely on integer UIDs/GIDs; translating between names and numbers is a user-space concern handled by NSS and the passwd/group databases.</p>
+            <p>Identity management in Linux: how the kernel maps UIDs to names, password storage and hashing, NSS (Name Service Switch), and safe credential lookup patterns. The kernel operates entirely on integer UIDs/GIDs; translating between names and numbers is a user-space concern handled by NSS and the passwd/group databases.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">The kernel only knows UIDs/GIDs as integers; name&#x2192;UID mapping is purely user-space (NSS).</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">getpwnam/getpwuid return pointers to static buffers — not thread-safe; use the _r variants in any multithreaded code.</div>
+  <div class="v">getpwnam/getpwuid return pointers to static buffers: not thread-safe; use the _r variants in any multithreaded code.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">id(1), groups(1), and getent passwd/group query the actual NSS sources — use them to verify what your process will see.</div>
+  <div class="v">id(1), groups(1), and getent passwd/group query the actual NSS sources: use them to verify what your process will see.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><strong>UIDs and GIDs are kernel-level integers.</strong> Every permission check, file ownership test, and signal delivery uses raw numeric IDs — never strings.</li><li><strong>Names are a user-space convention resolved via NSS.</strong> The Name Service Switch (/etc/nsswitch.conf) determines where lookups go: local files, LDAP, SSSD, NIS, etc.</li><li><strong>/etc/passwd has a fixed 7-field format:</strong> <code>login:x:uid:gid:gecos:home:shell</code>. The <code>x</code> in the password field means "look in /etc/shadow".</li><li><strong>The shadow file separates password hashes from the world-readable passwd file.</strong> Only root (or shadow group) can read /etc/shadow, preventing offline brute-force by unprivileged users.</li><li><strong>Supplementary groups extend the primary GID.</strong> A process can belong to up to NGROUPS_MAX groups (typically 65536 on Linux); all are checked during permission evaluation.</li><li><strong>NSS plugins (files, ldap, sss) control where lookups go.</strong> Ordering in nsswitch.conf matters — a slow or failing LDAP backend can stall getpwnam() for every login.</li></ul>
+            <ul><li><strong>UIDs and GIDs are kernel-level integers.</strong> Every permission check, file ownership test, and signal delivery uses raw numeric IDs: never strings.</li><li><strong>Names are a user-space convention resolved via NSS.</strong> The Name Service Switch (/etc/nsswitch.conf) determines where lookups go: local files, LDAP, SSSD, NIS, etc.</li><li><strong>/etc/passwd has a fixed 7-field format:</strong> <code>login:x:uid:gid:gecos:home:shell</code>. The <code>x</code> in the password field means "look in /etc/shadow".</li><li><strong>The shadow file separates password hashes from the world-readable passwd file.</strong> Only root (or shadow group) can read /etc/shadow, preventing offline brute-force by unprivileged users.</li><li><strong>Supplementary groups extend the primary GID.</strong> A process can belong to up to NGROUPS_MAX groups (typically 65536 on Linux); all are checked during permission evaluation.</li><li><strong>NSS plugins (files, ldap, sss) control where lookups go.</strong> Ordering in nsswitch.conf matters: a slow or failing LDAP backend can stall getpwnam() for every login.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>UID</td><td>User ID — 32-bit unsigned integer identifying a user to the kernel. Stored in process credentials and inode metadata.</td></tr><tr><td class='mono'>GID</td><td>Group ID — 32-bit unsigned integer for group membership. Primary GID comes from /etc/passwd; supplementary GIDs from /etc/group.</td></tr><tr><td class='mono'>/etc/passwd</td><td>World-readable user database (7 colon-separated fields). Does not contain actual password hashes on modern systems.</td></tr><tr><td class='mono'>/etc/shadow</td><td>Root-readable file storing password hashes, aging info, and account expiry. Keyed by username.</td></tr><tr><td class='mono'>NSS</td><td>Name Service Switch — glibc framework that dispatches getpw*/getgr* calls to configured backends (files, LDAP, SSSD).</td></tr><tr><td class='mono'>getpwnam_r</td><td>Thread-safe reentrant version of getpwnam(). Caller supplies the buffer; no static data races.</td></tr><tr><td class='mono'>crypt(3)</td><td>One-way password hashing function. Supports multiple algorithms via prefix ($6$ = SHA-512, $y$ = yescrypt).</td></tr><tr><td class='mono'>Supplementary groups</td><td>Additional GIDs beyond the primary GID. Set via initgroups()/setgroups(); checked by the kernel on every access() and open().</td></tr></tbody>
+  <tbody><tr><td class='mono'>UID</td><td>User ID: 32-bit unsigned integer identifying a user to the kernel. Stored in process credentials and inode metadata.</td></tr><tr><td class='mono'>GID</td><td>Group ID: 32-bit unsigned integer for group membership. Primary GID comes from /etc/passwd; supplementary GIDs from /etc/group.</td></tr><tr><td class='mono'>/etc/passwd</td><td>World-readable user database (7 colon-separated fields). Does not contain actual password hashes on modern systems.</td></tr><tr><td class='mono'>/etc/shadow</td><td>Root-readable file storing password hashes, aging info, and account expiry. Keyed by username.</td></tr><tr><td class='mono'>NSS</td><td>Name Service Switch: glibc framework that dispatches getpw*/getgr* calls to configured backends (files, LDAP, SSSD).</td></tr><tr><td class='mono'>getpwnam_r</td><td>Thread-safe reentrant version of getpwnam(). Caller supplies the buffer; no static data races.</td></tr><tr><td class='mono'>crypt(3)</td><td>One-way password hashing function. Supports multiple algorithms via prefix ($6$ = SHA-512, $y$ = yescrypt).</td></tr><tr><td class='mono'>Supplementary groups</td><td>Additional GIDs beyond the primary GID. Set via initgroups()/setgroups(); checked by the kernel on every access() and open().</td></tr></tbody>
 </table>
         </div>
 
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>getpwnam</td><td class='mono'>struct passwd *getpwnam(const char *name);</td><td class='mono muted2'>ENOENT, ENOMEM</td><td>Returns static buffer — not thread-safe. Returns NULL on not-found (errno unchanged) or error (errno set).</td></tr><tr><td class='mono'>getpwnam_r</td><td class='mono'>int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result);</td><td class='mono muted2'>ERANGE, ENOENT</td><td>Thread-safe reentrant variant. Retry with larger buffer on ERANGE.</td></tr><tr><td class='mono'>getpwuid</td><td class='mono'>struct passwd *getpwuid(uid_t uid);</td><td class='mono muted2'>—</td><td>Lookup by numeric UID. Same static-buffer caveat as getpwnam.</td></tr><tr><td class='mono'>getgrnam</td><td class='mono'>struct group *getgrnam(const char *name);</td><td class='mono muted2'>—</td><td>Group DB lookup; not thread-safe unless using getgrnam_r().</td></tr><tr><td class='mono'>getgrgid</td><td class='mono'>struct group *getgrgid(gid_t gid);</td><td class='mono muted2'>—</td><td>Group lookup by numeric GID. Same static-buffer issue.</td></tr><tr><td class='mono'>crypt</td><td class='mono'>char *crypt(const char *key, const char *salt);</td><td class='mono muted2'>ENOSYS, EINVAL</td><td>One-way hash. Salt prefix selects algorithm ($6$ = SHA-512). Link with -lcrypt.</td></tr><tr><td class='mono'>getgrouplist</td><td class='mono'>int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);</td><td class='mono muted2'>—</td><td>Retrieves all supplementary groups for a user. Returns -1 if buffer too small (ngroups updated).</td></tr><tr><td class='mono'>initgroups</td><td class='mono'>int initgroups(const char *user, gid_t group);</td><td class='mono muted2'>EPERM, ENOMEM</td><td>Sets supplementary group list for current process. Requires CAP_SETGID.</td></tr>
+    <tr><td class='mono'>getpwnam</td><td class='mono'>struct passwd *getpwnam(const char *name);</td><td class='mono muted2'>ENOENT, ENOMEM</td><td>Returns static buffer: not thread-safe. Returns NULL on not-found (errno unchanged) or error (errno set).</td></tr><tr><td class='mono'>getpwnam_r</td><td class='mono'>int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result);</td><td class='mono muted2'>ERANGE, ENOENT</td><td>Thread-safe reentrant variant. Retry with larger buffer on ERANGE.</td></tr><tr><td class='mono'>getpwuid</td><td class='mono'>struct passwd *getpwuid(uid_t uid);</td><td class='mono muted2'>N/A</td><td>Lookup by numeric UID. Same static-buffer caveat as getpwnam.</td></tr><tr><td class='mono'>getgrnam</td><td class='mono'>struct group *getgrnam(const char *name);</td><td class='mono muted2'>N/A</td><td>Group DB lookup; not thread-safe unless using getgrnam_r().</td></tr><tr><td class='mono'>getgrgid</td><td class='mono'>struct group *getgrgid(gid_t gid);</td><td class='mono muted2'>N/A</td><td>Group lookup by numeric GID. Same static-buffer issue.</td></tr><tr><td class='mono'>crypt</td><td class='mono'>char *crypt(const char *key, const char *salt);</td><td class='mono muted2'>ENOSYS, EINVAL</td><td>One-way hash. Salt prefix selects algorithm ($6$ = SHA-512). Link with -lcrypt.</td></tr><tr><td class='mono'>getgrouplist</td><td class='mono'>int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);</td><td class='mono muted2'>N/A</td><td>Retrieves all supplementary groups for a user. Returns -1 if buffer too small (ngroups updated).</td></tr><tr><td class='mono'>initgroups</td><td class='mono'>int initgroups(const char *user, gid_t group);</td><td class='mono muted2'>EPERM, ENOMEM</td><td>Sets supplementary group list for current process. Requires CAP_SETGID.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -127,13 +127,13 @@
           </div>
           <details class="accordion">
   <summary>Thread safety of passwd/group functions</summary>
-  <div class="content"><ul><li>getpwnam(), getpwuid(), getgrnam(), getgrgid() all return pointers to a single static struct — a second call from any thread overwrites the previous result.</li><li>Even in single-threaded code, calling getpwnam() inside a loop where you also call getgrnam() can corrupt the first result since they may share internal buffers.</li><li>Always use the _r (reentrant) variants in libraries and multithreaded programs. Start with sysconf(_SC_GETPW_R_SIZE_MAX) for initial buffer size, and retry on ERANGE.</li><li>setpwent()/getpwent()/endpwent() for iteration are inherently non-reentrant — serialize access or use fgetpwent_r() on a private FILE*.</li></ul></div>
+  <div class="content"><ul><li>getpwnam(), getpwuid(), getgrnam(), getgrgid() all return pointers to a single static struct: a second call from any thread overwrites the previous result.</li><li>Even in single-threaded code, calling getpwnam() inside a loop where you also call getgrnam() can corrupt the first result since they may share internal buffers.</li><li>Always use the _r (reentrant) variants in libraries and multithreaded programs. Start with sysconf(_SC_GETPW_R_SIZE_MAX) for initial buffer size, and retry on ERANGE.</li><li>setpwent()/getpwent()/endpwent() for iteration are inherently non-reentrant: serialize access or use fgetpwent_r() on a private FILE*.</li></ul></div>
 </details><details class="accordion">
   <summary>NSS ordering and failures</summary>
-  <div class="content"><ul><li>nsswitch.conf controls lookup order: <code>passwd: files sss ldap</code>. Each source is tried in order until a definitive answer is found.</li><li>Action items like [NOTFOUND=return] or [UNAVAIL=continue] control fallback behavior — misconfiguration here causes silent lookup failures.</li><li>A hung LDAP/SSSD backend blocks getpwnam() — this can stall login, sudo, and any daemon doing user lookups. Set timeouts in SSSD/nslcd config.</li><li>NSS modules are loaded as shared libraries into the calling process. A buggy NSS module can crash your application.</li></ul></div>
+  <div class="content"><ul><li>nsswitch.conf controls lookup order: <code>passwd: files sss ldap</code>. Each source is tried in order until a definitive answer is found.</li><li>Action items like [NOTFOUND=return] or [UNAVAIL=continue] control fallback behavior: misconfiguration here causes silent lookup failures.</li><li>A hung LDAP/SSSD backend blocks getpwnam(): this can stall login, sudo, and any daemon doing user lookups. Set timeouts in SSSD/nslcd config.</li><li>NSS modules are loaded as shared libraries into the calling process. A buggy NSS module can crash your application.</li></ul></div>
 </details><details class="accordion">
   <summary>UID overflow and sentinel values</summary>
-  <div class="content"><ul><li>Linux UIDs are 32-bit (0 to 4294967294). UID 65534 is conventionally "nobody" — used by NFS and the kernel when no valid mapping exists.</li><li>Some legacy systems and protocols (NFSv2) only support 16-bit UIDs (0–65535). Files owned by UIDs &gt;65535 appear as "nobody" on these systems.</li><li>UID 0 is always root — this is hardcoded in the kernel, not configurable via NSS.</li><li>(uid_t)-1 (== 4294967295) is reserved as an error sentinel by setuid/setgid and should never be assigned to a real user.</li><li>The "nobody" user (65534) and "nogroup" group (65534) are kernel fallback values — do not use them for application service accounts.</li></ul></div>
+  <div class="content"><ul><li>Linux UIDs are 32-bit (0 to 4294967294). UID 65534 is conventionally "nobody": used by NFS and the kernel when no valid mapping exists.</li><li>Some legacy systems and protocols (NFSv2) only support 16-bit UIDs (0–65535). Files owned by UIDs &gt;65535 appear as "nobody" on these systems.</li><li>UID 0 is always root: this is hardcoded in the kernel, not configurable via NSS.</li><li>(uid_t)-1 (== 4294967295) is reserved as an error sentinel by setuid/setgid and should never be assigned to a real user.</li><li>The "nobody" user (65534) and "nogroup" group (65534) are kernel fallback values: do not use them for application service accounts.</li></ul></div>
 </details>
         </div>
 
@@ -153,7 +153,7 @@
 #include &lt;stdio.h&gt;
 #include &lt;unistd.h&gt;
 
-/* Lookup user by name — reentrant, safe for threads */
+/* Lookup user by name: reentrant, safe for threads */
 int lookup_user(const char *name) {
     struct passwd pwd, *result;
     long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
@@ -198,7 +198,7 @@ int lookup_user(const char *name) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use getpwnam_r / getgrnam_r (never the non-reentrant versions) in any multithreaded or library code.</li><li>Handle ERANGE from _r functions by retrying with a larger buffer — do not assume sysconf gives a sufficient size.</li><li>Distinguish "not found" (result == NULL, return == 0) from "error" (return != 0) in getpwnam_r results.</li><li>Never hardcode UID/GID values — resolve at runtime via NSS. Exception: UID 0 is always root.</li><li>Verify NSS configuration (nsswitch.conf) and set timeouts on remote backends (LDAP/SSSD) to avoid stalling user lookups.</li><li>Use crypt() with strong salt prefixes ($6$ for SHA-512 or $y$ for yescrypt) — never MD5 ($1$) or DES.</li><li>Log the resolved UID/GID at process startup for debuggability in production incidents.</li></ul>
+            <ul><li>Use getpwnam_r / getgrnam_r (never the non-reentrant versions) in any multithreaded or library code.</li><li>Handle ERANGE from _r functions by retrying with a larger buffer: do not assume sysconf gives a sufficient size.</li><li>Distinguish "not found" (result == NULL, return == 0) from "error" (return != 0) in getpwnam_r results.</li><li>Never hardcode UID/GID values: resolve at runtime via NSS. Exception: UID 0 is always root.</li><li>Verify NSS configuration (nsswitch.conf) and set timeouts on remote backends (LDAP/SSSD) to avoid stalling user lookups.</li><li>Use crypt() with strong salt prefixes ($6$ for SHA-512 or $y$ for yescrypt): never MD5 ($1$) or DES.</li><li>Log the resolved UID/GID at process startup for debuggability in production incidents.</li></ul>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ int lookup_user(const char *name) {
             Hands-on tasks to make the chapter "stick". These are intentionally practical and debugging-heavy.
           </div>
           <div class="prose">
-            <ul><li>Write a C program that calls getpwnam_r for the current user and prints all 7 passwd fields. Run it under strace and confirm it opens /etc/passwd (or contacts SSSD).</li><li>Demonstrate the static-buffer bug: call getpwnam("root"), save the pointer, call getpwnam("nobody"), then print the first pointer's pw_name. Explain the result.</li><li>Use <code>getent passwd</code> and <code>getent group</code> to enumerate all NSS-visible users/groups. Compare with raw <code>cat /etc/passwd</code> — note any entries from LDAP/SSSD that only appear via getent.</li><li>Write a program that calls getgrouplist() for a user and prints all supplementary group names (resolve each GID via getgrgid_r).</li><li>Modify /etc/nsswitch.conf (in a VM) to put a nonexistent source first (<code>passwd: notreal files</code>). Observe login behavior and strace output.</li></ul>
+            <ul><li>Write a C program that calls getpwnam_r for the current user and prints all 7 passwd fields. Run it under strace and confirm it opens /etc/passwd (or contacts SSSD).</li><li>Demonstrate the static-buffer bug: call getpwnam("root"), save the pointer, call getpwnam("nobody"), then print the first pointer's pw_name. Explain the result.</li><li>Use <code>getent passwd</code> and <code>getent group</code> to enumerate all NSS-visible users/groups. Compare with raw <code>cat /etc/passwd</code>: note any entries from LDAP/SSSD that only appear via getent.</li><li>Write a program that calls getgrouplist() for a user and prints all supplementary group names (resolve each GID via getgrgid_r).</li><li>Modify /etc/nsswitch.conf (in a VM) to put a nonexistent source first (<code>passwd: notreal files</code>). Observe login behavior and strace output.</li></ul>
           </div>
         </div>
 
@@ -319,7 +319,7 @@ int lookup_user(const char *name) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch08", n:8, subtitle:"Chapter 08 \u2014 Users and Groups"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch08", n:8, subtitle:"Chapter 08: Users and Groups"});
     TLPIWidgets.mountKernelGraph("kg_ch08", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (sys). Click to pin a tooltip.",

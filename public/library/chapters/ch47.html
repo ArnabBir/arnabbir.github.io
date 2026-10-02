@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 47 — System V Semaphores</title>
+  <title>TLPI v2, Chapter 47, System V Semaphores</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 47 — System V Semaphores</div>
+          <div class="sub" id="subTitle">Chapter 47: System V Semaphores</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 47 — System V Semaphores
+            Chapter 47: System V Semaphores
           </h2>
           <div class="subtitle">
-            <p>System V semaphores are kernel-persistent counting semaphores that support atomic operations on sets &mdash; used for multi-resource locking and producer/consumer patterns across processes. Unlike POSIX semaphores, a single System V semaphore object can contain multiple semaphores operated on atomically in a single call.</p><p>The key trade-off: System V semaphores are powerful (atomic multi-semaphore operations, SEM_UNDO for crash safety) but complex (obtuse API, kernel-persistent lifetime requiring explicit cleanup, race conditions around initialization).</p>
+            <p>System V semaphores are kernel-persistent counting semaphores that support atomic operations on sets: used for multi-resource locking and producer/consumer patterns across processes. Unlike POSIX semaphores, a single System V semaphore object can contain multiple semaphores operated on atomically in a single call.</p><p>The key trade-off: System V semaphores are powerful (atomic multi-semaphore operations, SEM_UNDO for crash safety) but complex (obtuse API, kernel-persistent lifetime requiring explicit cleanup, race conditions around initialization).</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">semop() atomically adjusts one or more semaphores in a set; the kernel blocks or proceeds based on resulting values.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Semaphore creation and initialization are separate steps &mdash; a race window exists between semget() and semctl(SETVAL).</div>
+  <div class="v">Semaphore creation and initialization are separate steps: a race window exists between semget() and semctl(SETVAL).</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use ipcs -s to list semaphore sets and ipcrm -s to remove them; check ncount/zcount for blocked processes.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>semget() creates or opens a semaphore set containing N semaphores in one kernel object, identified by a key_t.</li><li>semop() atomically adjusts semaphore values via an array of sembuf structs: {sem_num, sem_op, sem_flg}.</li><li>sem_op &gt; 0: increment value (V / signal / release) &mdash; never blocks.</li><li>sem_op &lt; 0: decrement or block until value &ge; |sem_op| (P / wait / acquire).</li><li>sem_op == 0: wait until semaphore value becomes exactly zero (used for barrier-like patterns).</li><li>SEM_UNDO flag: kernel tracks adjustments per-process and reverses them on exit, preventing deadlock from crashed holders.</li><li>semctl(SETVAL) initializes a single semaphore; semctl(SETALL) initializes entire set &mdash; must be done before first semop().</li><li>Binary semaphore (value 0 or 1) acts as a mutex; counting semaphore (value 0..N) controls access to N identical resources.</li></ul>
+            <ul><li>semget() creates or opens a semaphore set containing N semaphores in one kernel object, identified by a key_t.</li><li>semop() atomically adjusts semaphore values via an array of sembuf structs: {sem_num, sem_op, sem_flg}.</li><li>sem_op &gt; 0: increment value (V / signal / release): never blocks.</li><li>sem_op &lt; 0: decrement or block until value &ge; |sem_op| (P / wait / acquire).</li><li>sem_op == 0: wait until semaphore value becomes exactly zero (used for barrier-like patterns).</li><li>SEM_UNDO flag: kernel tracks adjustments per-process and reverses them on exit, preventing deadlock from crashed holders.</li><li>semctl(SETVAL) initializes a single semaphore; semctl(SETALL) initializes entire set: must be done before first semop().</li><li>Binary semaphore (value 0 or 1) acts as a mutex; counting semaphore (value 0..N) controls access to N identical resources.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>semget</td><td>Creates or opens a System V semaphore set; returns semid.</td></tr><tr><td class='mono'>semop</td><td>Performs atomic operations on one or more semaphores in a set.</td></tr><tr><td class='mono'>semctl</td><td>Control operations: SETVAL (init), GETVAL (read), IPC_RMID (delete), IPC_STAT (query).</td></tr><tr><td class='mono'>sembuf</td><td>Operation descriptor: {sem_num, sem_op, sem_flg} &mdash; identifies which semaphore, the operation, and flags.</td></tr><tr><td class='mono'>SEM_UNDO</td><td>Flag requesting kernel to reverse this process's adjustments on exit; prevents deadlock on crash.</td></tr><tr><td class='mono'>Binary semaphore</td><td>Semaphore with max value 1; used as inter-process mutex (P to lock, V to unlock).</td></tr></tbody>
+  <tbody><tr><td class='mono'>semget</td><td>Creates or opens a System V semaphore set; returns semid.</td></tr><tr><td class='mono'>semop</td><td>Performs atomic operations on one or more semaphores in a set.</td></tr><tr><td class='mono'>semctl</td><td>Control operations: SETVAL (init), GETVAL (read), IPC_RMID (delete), IPC_STAT (query).</td></tr><tr><td class='mono'>sembuf</td><td>Operation descriptor: {sem_num, sem_op, sem_flg}: identifies which semaphore, the operation, and flags.</td></tr><tr><td class='mono'>SEM_UNDO</td><td>Flag requesting kernel to reverse this process's adjustments on exit; prevents deadlock on crash.</td></tr><tr><td class='mono'>Binary semaphore</td><td>Semaphore with max value 1; used as inter-process mutex (P to lock, V to unlock).</td></tr></tbody>
 </table>
         </div>
 
@@ -116,7 +116,7 @@
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: semop() with SEM_UNDO adds per-process adjustment tracking &mdash; essential for crash safety but adds kernel overhead.
+            Tip: semop() with SEM_UNDO adds per-process adjustment tracking: essential for crash safety but adds kernel overhead.
           </div>
         </div>
 
@@ -127,10 +127,10 @@
           </div>
           <details class="accordion">
   <summary>Initialization race condition</summary>
-  <div class="content"><ul><li>semget(IPC_CREAT) and semctl(SETVAL) are separate calls &mdash; another process can semop() between them on uninitialized values.</li><li>Solution: use IPC_CREAT | IPC_EXCL; the creator initializes, others retry until sem_otime becomes nonzero (indicates first semop completed).</li><li>Alternatively, use a separate flag (file lock or shared memory flag) to coordinate initialization.</li><li>POSIX named semaphores avoid this because sem_open() creates and initializes atomically.</li></ul></div>
+  <div class="content"><ul><li>semget(IPC_CREAT) and semctl(SETVAL) are separate calls: another process can semop() between them on uninitialized values.</li><li>Solution: use IPC_CREAT | IPC_EXCL; the creator initializes, others retry until sem_otime becomes nonzero (indicates first semop completed).</li><li>Alternatively, use a separate flag (file lock or shared memory flag) to coordinate initialization.</li><li>POSIX named semaphores avoid this because sem_open() creates and initializes atomically.</li></ul></div>
 </details><details class="accordion">
   <summary>SEM_UNDO limits and behavior</summary>
-  <div class="content"><ul><li>SEM_UNDO adjustments are tracked per-process per-semaphore; on exit, the kernel applies the reverse adjustment.</li><li>The undo value can overflow SEMVMX (max semaphore value); in that case the kernel silently caps or ignores the undo.</li><li>SEM_UNDO does not work across exec() &mdash; undo adjustments are cleared on exec.</li><li>If multiple threads in a process use SEM_UNDO, the undo is process-wide, not per-thread &mdash; can lead to incorrect adjustments.</li></ul></div>
+  <div class="content"><ul><li>SEM_UNDO adjustments are tracked per-process per-semaphore; on exit, the kernel applies the reverse adjustment.</li><li>The undo value can overflow SEMVMX (max semaphore value); in that case the kernel silently caps or ignores the undo.</li><li>SEM_UNDO does not work across exec(): undo adjustments are cleared on exec.</li><li>If multiple threads in a process use SEM_UNDO, the undo is process-wide, not per-thread: can lead to incorrect adjustments.</li></ul></div>
 </details><details class="accordion">
   <summary>Semaphore limits (SEMMNI, SEMMSL, SEMMNS)</summary>
   <div class="content"><ul><li>SEMMNI: max number of semaphore sets system-wide. SEMMSL: max semaphores per set. SEMMNS: max semaphores system-wide.</li><li>These are tunable via /proc/sys/kernel/sem (four space-separated values: SEMMSL SEMMNS SEMOPM SEMMNI).</li><li>Hitting limits returns ENOSPC from semget(); check ipcs -ls for current limits.</li><li>Leaked semaphore sets (creator exits without IPC_RMID) consume kernel resources indefinitely.</li></ul></div>
@@ -186,7 +186,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always use SEM_UNDO for lock operations so the kernel releases on process crash.</li><li>Handle EINTR from semop() &mdash; signals interrupt blocking waits; retry in a loop.</li><li>Use semtimedop() instead of semop() to avoid indefinite hangs.</li><li>Define clear ownership: one process creates + initializes + destroys with IPC_RMID.</li><li>Clean up stale semaphore sets on startup (check sem_otime == 0 for uninitialized sets).</li></ul>
+            <ul><li>Always use SEM_UNDO for lock operations so the kernel releases on process crash.</li><li>Handle EINTR from semop(): signals interrupt blocking waits; retry in a loop.</li><li>Use semtimedop() instead of semop() to avoid indefinite hangs.</li><li>Define clear ownership: one process creates + initializes + destroys with IPC_RMID.</li><li>Clean up stale semaphore sets on startup (check sem_otime == 0 for uninitialized sets).</li></ul>
           </div>
         </div>
 
@@ -234,7 +234,7 @@ int main(void) {
   <div><div style="font-weight:750">Wait for semaphore to reach zero</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Error &mdash; sem_op must be positive</div></div>
+  <div><div style="font-weight:750">Error: sem_op must be positive</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div><div class="q" data-quiz data-answer="3" data-explain="semget() creates/opens the set but does NOT initialize values. semctl(SETVAL) must be called separately, creating a race window where another process could call semop() on uninitialized semaphores.">
@@ -291,7 +291,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch47", n:47, subtitle:"Chapter 47 \u2014 System V Semaphores"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch47", n:47, subtitle:"Chapter 47: System V Semaphores"});
     TLPIWidgets.mountKernelGraph("kg_ch47", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

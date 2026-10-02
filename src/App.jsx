@@ -16,7 +16,7 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const AllBlogs = lazy(() => import("./pages/AllBlogs"));
 const PaperLab = lazy(() => import('./pages/simulations/labs/PaperLab'));
 
-// Simulation pages — lazy loaded for code splitting
+// Simulation pages: lazy loaded for code splitting
 const AnycastLoadBalancingSimulation = lazy(() => import("./pages/simulations/AnycastLoadBalancingSimulation"));
 const BitcoinSimulation = lazy(() => import("./pages/simulations/BitcoinSimulation"));
 const BloomParadoxSimulation = lazy(() => import("./pages/simulations/BloomParadoxSimulation"));

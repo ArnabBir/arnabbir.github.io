@@ -108,7 +108,7 @@ const CONFIG = {
       "log": "State machine advanced.",
       "message": {
         "from": "Replicas",
-        "to": "—",
+        "to": "N/A",
         "label": "Apply"
       }
     },

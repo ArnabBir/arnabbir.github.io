@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 8: The Trouble with Distributed Systems</title>
+  <title>DDIA Atlas: Chapter 8: The Trouble with Distributed Systems</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -82,10 +82,10 @@
   </div>
   <div class="lab-grid">
     <div class="controls">
-      <label>Clock skew (ms) <span class="kbd"><span data-val="skew">—</span></span></label>
+      <label>Clock skew (ms) <span class="kbd"><span data-val="skew">N/A</span></span></label>
       <input type="range" min="0" max="500" value="70" data-k="skew" oninput="this.parentElement.querySelector('[data-val=skew]').textContent=this.value"/>
 
-      <label>Network delay (ms) <span class="kbd"><span data-val="delay">—</span></span></label>
+      <label>Network delay (ms) <span class="kbd"><span data-val="delay">N/A</span></span></label>
       <input type="range" min="1" max="800" value="120" data-k="delay" oninput="this.parentElement.querySelector('[data-val=delay]').textContent=this.value"/>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
@@ -93,7 +93,7 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Ordering-risk</span><span class="v" data-out="risk">—</span></div>
+      <div class="metric"><span class="k">Ordering-risk</span><span class="v" data-out="risk">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -106,7 +106,7 @@
 Distributed systems are systems where the computer can’t know the truth in time.
 You don’t get reliable clocks, reliable networks, or reliable failure signals.
 You get: partial failure, reordering, duplication, delay, and partitions.
-The “trouble” is not the bugs — it’s the physics.
+The “trouble” is not the bugs: it’s the physics.
 </p>
 
 <div class="grid2">
@@ -197,7 +197,7 @@ Backpressure is the discipline of rejecting work early and predictably.
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — “Did it happen?” problem</summary>
+  <summary>Drill 1: “Did it happen?” problem</summary>
   <p>
     A client times out on a write. List three possible realities.
     How does your API let the client discover the truth? (idempotency key, read-your-writes, status endpoint).
@@ -205,7 +205,7 @@ Backpressure is the discipline of rejecting work early and predictably.
 </details>
 
 <details>
-  <summary>Drill 2 — Deadline propagation</summary>
+  <summary>Drill 2: Deadline propagation</summary>
   <p>
     You have a request that fans out to 5 services. Total budget is 300ms.
     Allocate per-service budgets. What happens if one hop uses 300ms alone?
@@ -214,7 +214,7 @@ Backpressure is the discipline of rejecting work early and predictably.
 </details>
 
 <details>
-  <summary>Drill 3 — Clock skew incident</summary>
+  <summary>Drill 3: Clock skew incident</summary>
   <p>
     One node’s clock jumps forward by 10 minutes. Your system uses timestamps for “last write wins”.
     What happens? How do you prevent data loss? Consider logical clocks, fencing tokens, or hybrid logical clocks.

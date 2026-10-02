@@ -5,9 +5,11 @@ import { createHash } from 'node:crypto';
 import { createServer } from 'vite';
 import { playbooks, playbookPaths } from '../src/content/playbooks.js';
 import { LibraryItemSchema } from '../src/content/schema.js';
+import { normalizeBytes, NORMALIZATION } from './text-normalization.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const manifest = JSON.parse(await readFile('public/library/playbooks/manifest.json', 'utf8'));
+assert.equal(manifest.normalization, NORMALIZATION);
 assert.equal(playbooks.length, 24);
 assert.equal(manifest.files.length, 24);
 assert.equal(new Set(playbooks.map(item => item.id)).size, 24);
@@ -32,10 +34,16 @@ for (const item of playbooks) {
   const bytes = await readFile(`public${item.contentPath}`);
   assert.equal(bytes.length, record.bytes);
   assert.equal(hash(bytes), record.sha256);
+  assert.match(record.sourceSha256, /^[a-f0-9]{64}$/);
+  assert.ok(record.sourceBytes > 0);
+  assert.deepEqual(normalizeBytes(bytes, item.sourceFile), bytes);
   assert.match(bytes.toString(), /<title[\s>]/i);
   if (process.argv[2]) {
     for (const name of [item.sourceFile, ...record.aliases]) {
-      assert.equal(hash(await readFile(resolve(process.argv[2], name))), record.sha256, name);
+      const source = await readFile(resolve(process.argv[2], name));
+      assert.equal(hash(source), record.sourceSha256, name);
+      assert.equal(source.length, record.sourceBytes);
+      assert.deepEqual(normalizeBytes(source, name), bytes);
     }
   }
 }

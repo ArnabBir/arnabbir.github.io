@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 32 — Threads: Thread Cancellation</title>
+  <title>TLPI v2, Chapter 32, Threads: Thread Cancellation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 32 — Threads: Thread Cancellation</div>
+          <div class="sub" id="subTitle">Chapter 32: Threads: Thread Cancellation</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 32 — Threads: Thread Cancellation
+            Chapter 32: Threads: Thread Cancellation
           </h2>
           <div class="subtitle">
             <p>Thread cancellation is tricky -- it must respect resource cleanup. Deferred cancellation at defined cancellation points is the safe default; asynchronous cancellation is almost never correct because the thread could be cancelled in the middle of any instruction, including malloc or mutex operations.</p><p>The pattern: use pthread_cleanup_push/pop to register cleanup handlers that release locks and free resources, then rely on deferred cancellation happening only at well-defined cancellation points like read(), write(), sleep(), and pthread_cond_wait().</p>
@@ -296,7 +296,7 @@ int main(void){
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch32", n:32, subtitle:"Chapter 32 \u2014 Threads: Thread Cancellation"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch32", n:32, subtitle:"Chapter 32: Threads: Thread Cancellation"});
     TLPIWidgets.mountKernelGraph("kg_ch32", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (threads). Click to pin a tooltip.",

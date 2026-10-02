@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 22 — Signals: Advanced Features</title>
+  <title>TLPI v2, Chapter 22, Signals: Advanced Features</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 22 — Signals: Advanced Features</div>
+          <div class="sub" id="subTitle">Chapter 22: Signals: Advanced Features</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 22 — Signals: Advanced Features
+            Chapter 22: Signals: Advanced Features
           </h2>
           <div class="subtitle">
-            <p>Beyond basic signals — real-time signals provide queuing and ordering, sigsuspend atomically waits for signals, and signalfd converts signals into file descriptor events for clean epoll integration.</p><p>Standard signals have a fundamental limitation: they do not queue. If the same signal is delivered multiple times while blocked, only one instance is recorded as pending. Real-time signals (SIGRTMIN through SIGRTMAX) solve this with proper queuing, priority ordering, and the ability to carry an integer or pointer payload via sigqueue().</p>
+            <p>Beyond basic signals: real-time signals provide queuing and ordering, sigsuspend atomically waits for signals, and signalfd converts signals into file descriptor events for clean epoll integration.</p><p>Standard signals have a fundamental limitation: they do not queue. If the same signal is delivered multiple times while blocked, only one instance is recorded as pending. Real-time signals (SIGRTMIN through SIGRTMAX) solve this with proper queuing, priority ordering, and the ability to carry an integer or pointer payload via sigqueue().</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -296,7 +296,7 @@ sigqueue(target_pid, SIGRTMIN, val);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch22", n:22, subtitle:"Chapter 22 \u2014 Signals: Advanced Features"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch22", n:22, subtitle:"Chapter 22: Signals: Advanced Features"});
     TLPIWidgets.mountKernelGraph("kg_ch22", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (signals). Click to pin a tooltip.",

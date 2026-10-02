@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 61 — Sockets: Advanced Topics</title>
+  <title>TLPI v2, Chapter 61, Sockets: Advanced Topics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 61 — Sockets: Advanced Topics</div>
+          <div class="sub" id="subTitle">Chapter 61: Sockets: Advanced Topics</div>
         </div>
       </div>
       <div class="actions">
@@ -56,20 +56,20 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 61 — Sockets: Advanced Topics
+            Chapter 61: Sockets: Advanced Topics
           </h2>
           <div class="subtitle">
-            <p>Advanced socket topics — handling partial I/O, graceful shutdown with shutdown(2), disabling Nagle with TCP_NODELAY, connection health with SO_KEEPALIVE, and scatter-gather I/O with sendmsg/recvmsg.</p><p>Once basic socket communication works, production demands mastery of partial reads/writes, per-operation flags like MSG_PEEK and MSG_DONTWAIT, corking writes with TCP_CORK, and the nonblocking connect dance with EINPROGRESS.</p>
+            <p>Advanced socket topics: handling partial I/O, graceful shutdown with shutdown(2), disabling Nagle with TCP_NODELAY, connection health with SO_KEEPALIVE, and scatter-gather I/O with sendmsg/recvmsg.</p><p>Once basic socket communication works, production demands mastery of partial reads/writes, per-operation flags like MSG_PEEK and MSG_DONTWAIT, corking writes with TCP_CORK, and the nonblocking connect dance with EINPROGRESS.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Partial reads/writes are NORMAL on sockets — always loop until the full message is sent or received.</div>
+  <div class="v">Partial reads/writes are NORMAL on sockets: always loop until the full message is sent or received.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">shutdown(fd, SHUT_WR) sends FIN without closing the fd — you can still read; close() does both.</div>
+  <div class="v">shutdown(fd, SHUT_WR) sends FIN without closing the fd: you can still read; close() does both.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">TCP_NODELAY disables Nagle; TCP_CORK batches — misusing both causes latency spikes or tiny packets.</div>
+  <div class="v">TCP_NODELAY disables Nagle; TCP_CORK batches: misusing both causes latency spikes or tiny packets.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Partial reads/writes are NORMAL on stream sockets — the kernel may transfer fewer bytes than requested; you must loop (write_all / read_exact patterns).</li><li>shutdown(fd, SHUT_WR) sends a FIN to the peer without closing the file descriptor — the process can still read incoming data (half-close).</li><li>TCP_NODELAY disables the Nagle algorithm: each write() becomes a packet immediately, reducing latency for small interactive messages at the cost of bandwidth efficiency.</li><li>TCP_CORK (Linux) batches small writes into fewer packets — set cork, write multiple chunks, then uncork to flush; useful for HTTP headers + body.</li><li>SO_KEEPALIVE enables periodic probes on idle connections to detect dead peers; tunable via TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT.</li><li>sendmsg/recvmsg support scatter-gather I/O (multiple buffers in one syscall) and ancillary data (fd passing over Unix sockets, IP_PKTINFO).</li><li>Nonblocking connect returns EINPROGRESS; poll/epoll for writability, then getsockopt(SO_ERROR) to check success.</li><li>MSG_PEEK reads data without consuming it from the receive buffer; MSG_DONTWAIT makes a single operation nonblocking without changing the fd.</li></ul>
+            <ul><li>Partial reads/writes are NORMAL on stream sockets: the kernel may transfer fewer bytes than requested; you must loop (write_all / read_exact patterns).</li><li>shutdown(fd, SHUT_WR) sends a FIN to the peer without closing the file descriptor: the process can still read incoming data (half-close).</li><li>TCP_NODELAY disables the Nagle algorithm: each write() becomes a packet immediately, reducing latency for small interactive messages at the cost of bandwidth efficiency.</li><li>TCP_CORK (Linux) batches small writes into fewer packets: set cork, write multiple chunks, then uncork to flush; useful for HTTP headers + body.</li><li>SO_KEEPALIVE enables periodic probes on idle connections to detect dead peers; tunable via TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT.</li><li>sendmsg/recvmsg support scatter-gather I/O (multiple buffers in one syscall) and ancillary data (fd passing over Unix sockets, IP_PKTINFO).</li><li>Nonblocking connect returns EINPROGRESS; poll/epoll for writability, then getsockopt(SO_ERROR) to check success.</li><li>MSG_PEEK reads data without consuming it from the receive buffer; MSG_DONTWAIT makes a single operation nonblocking without changing the fd.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>shutdown()</td><td>Half-close a connection: SHUT_RD stops reads, SHUT_WR sends FIN, SHUT_RDWR does both — without closing the fd.</td></tr><tr><td class='mono'>TCP_NODELAY</td><td>Socket option that disables Nagle algorithm — send data immediately instead of waiting to coalesce small writes.</td></tr><tr><td class='mono'>TCP_CORK</td><td>Linux socket option that holds data until uncorked or MSS reached — batches multiple small writes into one segment.</td></tr><tr><td class='mono'>SO_KEEPALIVE</td><td>Enables TCP keepalive probes on idle connections to detect dead peers without application-level heartbeats.</td></tr><tr><td class='mono'>sendmsg/recvmsg</td><td>Advanced I/O: scatter-gather buffers (struct iovec) plus ancillary data (cmsg) for fd passing and packet info.</td></tr><tr><td class='mono'>EINPROGRESS</td><td>Nonblocking connect in progress; wait for writability then check SO_ERROR for the result.</td></tr></tbody>
+  <tbody><tr><td class='mono'>shutdown()</td><td>Half-close a connection: SHUT_RD stops reads, SHUT_WR sends FIN, SHUT_RDWR does both: without closing the fd.</td></tr><tr><td class='mono'>TCP_NODELAY</td><td>Socket option that disables Nagle algorithm: send data immediately instead of waiting to coalesce small writes.</td></tr><tr><td class='mono'>TCP_CORK</td><td>Linux socket option that holds data until uncorked or MSS reached: batches multiple small writes into one segment.</td></tr><tr><td class='mono'>SO_KEEPALIVE</td><td>Enables TCP keepalive probes on idle connections to detect dead peers without application-level heartbeats.</td></tr><tr><td class='mono'>sendmsg/recvmsg</td><td>Advanced I/O: scatter-gather buffers (struct iovec) plus ancillary data (cmsg) for fd passing and packet info.</td></tr><tr><td class='mono'>EINPROGRESS</td><td>Nonblocking connect in progress; wait for writability then check SO_ERROR for the result.</td></tr></tbody>
 </table>
         </div>
 
@@ -129,16 +129,16 @@
           </div>
           <details class="accordion">
   <summary>Partial reads and writes</summary>
-  <div class="content"><ul><li>write() on a TCP socket may return fewer bytes than requested — the kernel send buffer may be full or the segment size limits the transfer.</li><li>read() likewise returns whatever is available, which may be less than requested — you must loop (read_exact pattern) for fixed-size messages.</li><li>On nonblocking sockets, EAGAIN/EWOULDBLOCK means "try again later" — not an error. Resume when poll/epoll reports readiness.</li><li>EINTR means a signal interrupted the call before any data transferred — retry immediately.</li></ul></div>
+  <div class="content"><ul><li>write() on a TCP socket may return fewer bytes than requested: the kernel send buffer may be full or the segment size limits the transfer.</li><li>read() likewise returns whatever is available, which may be less than requested: you must loop (read_exact pattern) for fixed-size messages.</li><li>On nonblocking sockets, EAGAIN/EWOULDBLOCK means "try again later": not an error. Resume when poll/epoll reports readiness.</li><li>EINTR means a signal interrupted the call before any data transferred: retry immediately.</li></ul></div>
 </details><details class="accordion">
   <summary>shutdown vs close</summary>
-  <div class="content"><ul><li>close(fd) decrements the fd reference count; the connection may persist if another process shares the fd (fork).</li><li>shutdown(fd, SHUT_WR) sends FIN immediately regardless of reference count — the peer sees EOF on read.</li><li>After SHUT_WR you can still read from the socket — this is the half-close pattern used in HTTP/1.0 length detection.</li><li>shutdown(fd, SHUT_RD) causes further reads to return 0 (EOF) and may send RST if data arrives.</li></ul></div>
+  <div class="content"><ul><li>close(fd) decrements the fd reference count; the connection may persist if another process shares the fd (fork).</li><li>shutdown(fd, SHUT_WR) sends FIN immediately regardless of reference count: the peer sees EOF on read.</li><li>After SHUT_WR you can still read from the socket: this is the half-close pattern used in HTTP/1.0 length detection.</li><li>shutdown(fd, SHUT_RD) causes further reads to return 0 (EOF) and may send RST if data arrives.</li></ul></div>
 </details><details class="accordion">
   <summary>TCP_NODELAY, TCP_CORK, and Nagle</summary>
-  <div class="content"><ul><li>Nagle algorithm (default on): coalesce small writes until ACK received or MSS worth of data buffered. Reduces small-packet overhead.</li><li>TCP_NODELAY disables Nagle: each write becomes a segment immediately. Essential for interactive protocols (SSH, gaming, RPC).</li><li>TCP_CORK (Linux): hold all data until cork is removed or MSS is reached. Ideal for writev-like batching (HTTP response headers + body).</li><li>Nagle + delayed ACK interaction causes 40ms latency spikes when doing write-write-read patterns — set TCP_NODELAY or use writev.</li></ul></div>
+  <div class="content"><ul><li>Nagle algorithm (default on): coalesce small writes until ACK received or MSS worth of data buffered. Reduces small-packet overhead.</li><li>TCP_NODELAY disables Nagle: each write becomes a segment immediately. Essential for interactive protocols (SSH, gaming, RPC).</li><li>TCP_CORK (Linux): hold all data until cork is removed or MSS is reached. Ideal for writev-like batching (HTTP response headers + body).</li><li>Nagle + delayed ACK interaction causes 40ms latency spikes when doing write-write-read patterns: set TCP_NODELAY or use writev.</li></ul></div>
 </details><details class="accordion">
   <summary>Nonblocking connect and MSG flags</summary>
-  <div class="content"><ul><li>Nonblocking connect() returns -1/EINPROGRESS. Poll for POLLOUT, then getsockopt(SOL_SOCKET, SO_ERROR) — 0 means connected, nonzero is the errno.</li><li>Connect may succeed immediately (returns 0) for loopback or cached routes — handle both paths.</li><li>MSG_PEEK reads data without removing it from the receive queue — useful for protocol sniffing or framing decisions.</li><li>MSG_DONTWAIT makes a single send/recv nonblocking without fcntl(O_NONBLOCK) — convenient for optional reads.</li></ul></div>
+  <div class="content"><ul><li>Nonblocking connect() returns -1/EINPROGRESS. Poll for POLLOUT, then getsockopt(SOL_SOCKET, SO_ERROR): 0 means connected, nonzero is the errno.</li><li>Connect may succeed immediately (returns 0) for loopback or cached routes: handle both paths.</li><li>MSG_PEEK reads data without removing it from the receive queue: useful for protocol sniffing or framing decisions.</li><li>MSG_DONTWAIT makes a single send/recv nonblocking without fcntl(O_NONBLOCK): convenient for optional reads.</li></ul></div>
 </details>
         </div>
 
@@ -202,7 +202,7 @@ else if (errno == EINPROGRESS) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="shutdown(SHUT_WR) sends FIN but keeps the fd open for reading — half-close pattern.">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="shutdown(SHUT_WR) sends FIN but keeps the fd open for reading: half-close pattern.">
   <div class="qp">Q1. What does shutdown(fd, SHUT_WR) do?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -218,7 +218,7 @@ else if (errno == EINPROGRESS) {
   <div><div style="font-weight:750">Disables the Nagle algorithm</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="TCP_NODELAY disables Nagle — each write goes out immediately as its own segment.">
+</div><div class="q" data-quiz data-answer="1" data-explain="TCP_NODELAY disables Nagle: each write goes out immediately as its own segment.">
   <div class="qp">Q2. What does TCP_NODELAY control?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -247,7 +247,7 @@ else if (errno == EINPROGRESS) {
   <div><div style="font-weight:750">Call read() to check connection</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Ignore it — the connection will complete on its own</div></div>
+  <div><div style="font-weight:750">Ignore it: the connection will complete on its own</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
 </div></div>
@@ -288,7 +288,7 @@ else if (errno == EINPROGRESS) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch61", n:61, subtitle:"Chapter 61 \u2014 Sockets: Advanced Topics"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch61", n:61, subtitle:"Chapter 61: Sockets: Advanced Topics"});
     TLPIWidgets.mountKernelGraph("kg_ch61", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (net). Click to pin a tooltip.",

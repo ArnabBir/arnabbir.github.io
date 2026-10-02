@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 9: Consistency & Consensus</title>
+  <title>DDIA Atlas: Chapter 9: Consistency & Consensus</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,7 +75,7 @@
 <div class="lab" data-lab="consensus">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Leader Election — Why Timeouts Matter</h3>
+      <h3 class="lab-title">Lab: Leader Election: Why Timeouts Matter</h3>
       <p class="lab-sub">Simulate elections. With low timeout jitter, nodes time out together → split votes → more terms.</p>
     </div>
     <div class="pill"><span class="dot"></span> Coordination</div>
@@ -84,11 +84,11 @@
     <div class="controls">
       <div class="row">
         <div>
-          <label>Cluster size <span class="kbd"><span data-val="n">—</span></span></label>
+          <label>Cluster size <span class="kbd"><span data-val="n">N/A</span></span></label>
           <input type="range" min="3" max="9" value="5" data-k="n" oninput="this.parentElement.querySelector('[data-val=n]').textContent=this.value"/>
         </div>
         <div>
-          <label>Timeout jitter <span class="kbd"><span data-val="jitter">—</span>%</span></label>
+          <label>Timeout jitter <span class="kbd"><span data-val="jitter">N/A</span>%</span></label>
           <input type="range" min="0" max="100" value="35" data-k="jitter" oninput="this.parentElement.querySelector('[data-val=jitter]').textContent=this.value"/>
         </div>
       </div>
@@ -96,14 +96,14 @@
       <button class="button" type="button" data-action="tick">Run election</button>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
-        This is not a full Raft implementation — it’s a compact intuition pump:
+        This is not a full Raft implementation: it’s a compact intuition pump:
         stable leadership requires timeouts that are not too synchronized.
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Leader</span><span class="v" data-out="leader">—</span></div>
-      <div class="metric"><span class="k">Term</span><span class="v" data-out="term">—</span></div>
-      <div class="metric"><span class="k">Split vote?</span><span class="v" data-out="split">—</span></div>
+      <div class="metric"><span class="k">Leader</span><span class="v" data-out="leader">N/A</span></div>
+      <div class="metric"><span class="k">Term</span><span class="v" data-out="term">N/A</span></div>
+      <div class="metric"><span class="k">Split vote?</span><span class="v" data-out="split">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -142,7 +142,7 @@ leader election, configuration management, distributed locks, and replicated log
 <p>
 A system is linearizable if each operation appears to take effect at a single point in time between its invocation and response.
 This is the mental model most developers expect from a single machine variable.
-It’s powerful — and costly under partitions, because it typically requires coordination with a leader/quorum.
+It’s powerful: and costly under partitions, because it typically requires coordination with a leader/quorum.
 </p>
 
 <h3>Consensus via a replicated log</h3>
@@ -204,7 +204,7 @@ The real design work is deciding which invariants demand coordination.
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Identify coordination boundaries</summary>
+  <summary>Drill 1: Identify coordination boundaries</summary>
   <p>
     List 5 things your system wants to coordinate: leader, schema version, shard map, rate limits, feature flags.
     Which must be strongly consistent? Which can be cached and eventually consistent?
@@ -212,7 +212,7 @@ The real design work is deciding which invariants demand coordination.
 </details>
 
 <details>
-  <summary>Drill 2 — Fencing token scenario</summary>
+  <summary>Drill 2: Fencing token scenario</summary>
   <p>
     A “primary” node writes to an external database. A partition occurs; a new primary is elected.
     How do you prevent the old primary from continuing to write? Describe how the DB checks the token.
@@ -220,7 +220,7 @@ The real design work is deciding which invariants demand coordination.
 </details>
 
 <details>
-  <summary>Drill 3 — Read guarantees</summary>
+  <summary>Drill 3: Read guarantees</summary>
   <p>
     Clients read from followers for latency. They then perform writes through the leader.
     What anomalies can users observe? How would you provide read-your-writes (session stickiness, causal tokens)?

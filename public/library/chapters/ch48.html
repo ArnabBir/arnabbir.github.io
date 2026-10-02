@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 48 — System V Shared Memory</title>
+  <title>TLPI v2, Chapter 48, System V Shared Memory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 48 — System V Shared Memory</div>
+          <div class="sub" id="subTitle">Chapter 48: System V Shared Memory</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 48 — System V Shared Memory
+            Chapter 48: System V Shared Memory
           </h2>
           <div class="subtitle">
-            <p>System V shared memory is the fastest IPC mechanism &mdash; data is mapped directly into multiple process address spaces with no kernel copy on read or write. The trade-off: you must handle synchronization yourself, typically with semaphores.</p><p>Once attached, shared memory behaves like regular memory (pointer arithmetic, structs, arrays). The kernel only intervenes during creation, attachment, detachment, and removal &mdash; actual data access is pure user-space memory operations at RAM speed.</p>
+            <p>System V shared memory is the fastest IPC mechanism: data is mapped directly into multiple process address spaces with no kernel copy on read or write. The trade-off: you must handle synchronization yourself, typically with semaphores.</p><p>Once attached, shared memory behaves like regular memory (pointer arithmetic, structs, arrays). The kernel only intervenes during creation, attachment, detachment, and removal: actual data access is pure user-space memory operations at RAM speed.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">Shared memory segments persist in the kernel until explicitly removed with IPC_RMID, even after the creator exits.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">No built-in synchronization &mdash; concurrent reads/writes without semaphores or mutexes cause data races and corruption.</div>
+  <div class="v">No built-in synchronization: concurrent reads/writes without semaphores or mutexes cause data races and corruption.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">ipcs -m shows segments with size, nattch (attached process count), and status; ipcrm -m removes leaked segments.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>shmget() creates a shared memory segment (size rounded up to PAGE_SIZE); returns shmid.</li><li>shmat() maps the segment into the calling process's address space; returns a pointer you use like malloc'd memory.</li><li>shmdt() unmaps the segment from the process; the segment still exists in the kernel.</li><li>shmctl(IPC_RMID) marks the segment for deletion; it is actually destroyed when the last process detaches (nattch drops to 0).</li><li>No kernel involvement during reads/writes &mdash; this is what makes shared memory the fastest IPC.</li><li>You MUST synchronize access with semaphores, mutexes in shared memory (PTHREAD_PROCESS_SHARED), or other mechanisms.</li><li>SHM_RDONLY flag on shmat() prevents writes; useful for read-only consumers.</li><li>Segments persist across process lifetimes &mdash; leaked segments consume kernel memory until reboot or ipcrm.</li></ul>
+            <ul><li>shmget() creates a shared memory segment (size rounded up to PAGE_SIZE); returns shmid.</li><li>shmat() maps the segment into the calling process's address space; returns a pointer you use like malloc'd memory.</li><li>shmdt() unmaps the segment from the process; the segment still exists in the kernel.</li><li>shmctl(IPC_RMID) marks the segment for deletion; it is actually destroyed when the last process detaches (nattch drops to 0).</li><li>No kernel involvement during reads/writes: this is what makes shared memory the fastest IPC.</li><li>You MUST synchronize access with semaphores, mutexes in shared memory (PTHREAD_PROCESS_SHARED), or other mechanisms.</li><li>SHM_RDONLY flag on shmat() prevents writes; useful for read-only consumers.</li><li>Segments persist across process lifetimes: leaked segments consume kernel memory until reboot or ipcrm.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -116,7 +116,7 @@
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always check shmat() return against (void *)-1, not NULL &mdash; address 0 is a valid (though unlikely) mapping address.
+            Tip: always check shmat() return against (void *)-1, not NULL: address 0 is a valid (though unlikely) mapping address.
           </div>
         </div>
 
@@ -127,16 +127,16 @@
           </div>
           <details class="accordion">
   <summary>Segment lifecycle and IPC_RMID</summary>
-  <div class="content"><ul><li>IPC_RMID marks the segment for deletion but does not immediately free it &mdash; the kernel waits until nattch drops to 0.</li><li>After IPC_RMID, new shmat() calls fail; only already-attached processes can still use the segment.</li><li>If the creator crashes without IPC_RMID, the segment leaks permanently (visible in ipcs -m).</li><li>Always call shmctl(IPC_RMID) immediately after all processes have attached &mdash; this ensures cleanup even if processes crash later.</li></ul></div>
+  <div class="content"><ul><li>IPC_RMID marks the segment for deletion but does not immediately free it: the kernel waits until nattch drops to 0.</li><li>After IPC_RMID, new shmat() calls fail; only already-attached processes can still use the segment.</li><li>If the creator crashes without IPC_RMID, the segment leaks permanently (visible in ipcs -m).</li><li>Always call shmctl(IPC_RMID) immediately after all processes have attached: this ensures cleanup even if processes crash later.</li></ul></div>
 </details><details class="accordion">
   <summary>Synchronization requirements</summary>
-  <div class="content"><ul><li>Shared memory has zero built-in synchronization. Two processes writing the same offset simultaneously cause data corruption.</li><li>Use System V semaphores (ch47), POSIX semaphores, or a pthread mutex with PTHREAD_PROCESS_SHARED attribute.</li><li>For lock-free patterns, use C11 atomics (__atomic builtins) and memory barriers &mdash; but only if you deeply understand the memory model.</li><li>Even read-only consumers need synchronization if the data structure is being updated (partial reads of multi-field structs).</li></ul></div>
+  <div class="content"><ul><li>Shared memory has zero built-in synchronization. Two processes writing the same offset simultaneously cause data corruption.</li><li>Use System V semaphores (ch47), POSIX semaphores, or a pthread mutex with PTHREAD_PROCESS_SHARED attribute.</li><li>For lock-free patterns, use C11 atomics (__atomic builtins) and memory barriers: but only if you deeply understand the memory model.</li><li>Even read-only consumers need synchronization if the data structure is being updated (partial reads of multi-field structs).</li></ul></div>
 </details><details class="accordion">
   <summary>Size, alignment, and addressing</summary>
-  <div class="content"><ul><li>shmget() rounds size up to PAGE_SIZE; requesting 100 bytes allocates 4096 bytes.</li><li>shmat() with shmaddr==NULL lets the kernel choose the virtual address &mdash; always prefer this for portability.</li><li>The returned pointer can be used with structs, but beware: different processes may compile with different struct padding. Use fixed-layout types.</li><li>Across fork(), the child inherits all attached segments at the same addresses &mdash; both parent and child access the same physical pages.</li></ul></div>
+  <div class="content"><ul><li>shmget() rounds size up to PAGE_SIZE; requesting 100 bytes allocates 4096 bytes.</li><li>shmat() with shmaddr==NULL lets the kernel choose the virtual address: always prefer this for portability.</li><li>The returned pointer can be used with structs, but beware: different processes may compile with different struct padding. Use fixed-layout types.</li><li>Across fork(), the child inherits all attached segments at the same addresses: both parent and child access the same physical pages.</li></ul></div>
 </details><details class="accordion">
   <summary>Debugging shared memory issues</summary>
-  <div class="content"><ul><li>ipcs -m lists all segments: key, shmid, owner, perms, bytes, nattch, and status.</li><li>Check /proc/&lt;pid&gt;/maps for SysV shm entries (shown as /SYSV&lt;key&gt;).</li><li>A segment with nattch==0 and no IPC_RMID pending is leaked &mdash; remove with ipcrm -m &lt;shmid&gt;.</li><li>For data corruption, add a magic number or checksum to the shared structure and validate on each access.</li></ul></div>
+  <div class="content"><ul><li>ipcs -m lists all segments: key, shmid, owner, perms, bytes, nattch, and status.</li><li>Check /proc/&lt;pid&gt;/maps for SysV shm entries (shown as /SYSV&lt;key&gt;).</li><li>A segment with nattch==0 and no IPC_RMID pending is leaked: remove with ipcrm -m &lt;shmid&gt;.</li><li>For data corruption, add a magic number or checksum to the shared structure and validate on each access.</li></ul></div>
 </details>
         </div>
 
@@ -195,7 +195,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always pair shared memory with explicit synchronization (semaphores, mutexes, atomics).</li><li>Call shmctl(IPC_RMID) as early as possible &mdash; ideally right after all processes attach.</li><li>Check shmat() return against (void *)-1, not NULL.</li><li>Use fixed-layout data types in shared memory to avoid struct padding mismatches across compilers.</li><li>Monitor for leaked segments: add startup cleanup that removes stale segments by known key values.</li></ul>
+            <ul><li>Always pair shared memory with explicit synchronization (semaphores, mutexes, atomics).</li><li>Call shmctl(IPC_RMID) as early as possible: ideally right after all processes attach.</li><li>Check shmat() return against (void *)-1, not NULL.</li><li>Use fixed-layout data types in shared memory to avoid struct padding mismatches across compilers.</li><li>Monitor for leaked segments: add startup cleanup that removes stale segments by known key values.</li></ul>
           </div>
         </div>
 
@@ -234,7 +234,7 @@ int main(void) {
   <div class="qp">Q2. Why is shared memory the fastest IPC?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">No kernel copy &mdash; processes access the same physical pages directly</div></div>
+  <div><div style="font-weight:750">No kernel copy: processes access the same physical pages directly</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
   <div><div style="font-weight:750">The kernel optimizes data transfer with DMA</div></div>
@@ -300,7 +300,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch48", n:48, subtitle:"Chapter 48 \u2014 System V Shared Memory"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch48", n:48, subtitle:"Chapter 48: System V Shared Memory"});
     TLPIWidgets.mountKernelGraph("kg_ch48", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

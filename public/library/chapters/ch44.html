@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 44 — Pipes and FIFOs</title>
+  <title>TLPI v2, Chapter 44, Pipes and FIFOs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 44 — Pipes and FIFOs</div>
+          <div class="sub" id="subTitle">Chapter 44: Pipes and FIFOs</div>
         </div>
       </div>
       <div class="actions">
@@ -56,14 +56,14 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 44 — Pipes and FIFOs
+            Chapter 44: Pipes and FIFOs
           </h2>
           <div class="subtitle">
-            <p>Pipes are the simplest IPC — a unidirectional byte stream between related processes. FIFOs extend this to unrelated processes via filesystem names. Both are stream-oriented (no message boundaries), kernel-buffered, and automatically cleaned up when all file descriptors are closed.</p><p>The key constraints to internalize: PIPE_BUF atomicity for writes, SIGPIPE/EPIPE when readers vanish, and the default 64 KB capacity limit that creates natural backpressure.</p>
+            <p>Pipes are the simplest IPC: a unidirectional byte stream between related processes. FIFOs extend this to unrelated processes via filesystem names. Both are stream-oriented (no message boundaries), kernel-buffered, and automatically cleaned up when all file descriptors are closed.</p><p>The key constraints to internalize: PIPE_BUF atomicity for writes, SIGPIPE/EPIPE when readers vanish, and the default 64 KB capacity limit that creates natural backpressure.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Writes of PIPE_BUF bytes or fewer (4096 on Linux) are atomic — they will never interleave with other writers on the same pipe.</div>
+  <div class="v">Writes of PIPE_BUF bytes or fewer (4096 on Linux) are atomic: they will never interleave with other writers on the same pipe.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v">Writing to a pipe with no readers delivers SIGPIPE (default: terminate) and returns EPIPE. Handle or ignore SIGPIPE in long-running servers.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><strong>pipe()</strong> creates two file descriptors: pfd[0] for reading, pfd[1] for writing. Data flows in one direction only. For bidirectional communication, use two pipes or a socketpair.</li><li><strong>pipe2(pfd, O_CLOEXEC | O_NONBLOCK)</strong> sets flags atomically at creation — critical for avoiding races where a concurrent fork+exec leaks the pipe fd to a child, or a concurrent thread blocks on a read.</li><li><strong>Write atomicity</strong>: writes &le; PIPE_BUF (4096 bytes on Linux) are guaranteed atomic. Writes &gt; PIPE_BUF may be interleaved with data from other writers. This matters when multiple children write to a shared pipe.</li><li><strong>Pipe capacity</strong>: default 64 KB on Linux (16 pages). Adjustable per-pipe via fcntl(F_SETPIPE_SZ) up to /proc/sys/fs/pipe-max-size. When the pipe is full, write() blocks (or returns EAGAIN with O_NONBLOCK).</li><li><strong>FIFOs (named pipes)</strong>: created with mkfifo(path, mode). They have a filesystem name so unrelated processes can open them. open() on a FIFO blocks until both a reader and writer have opened it (unless O_NONBLOCK).</li><li><strong>SIGPIPE / EPIPE</strong>: writing to a pipe whose read end is closed delivers SIGPIPE to the writer (default action: terminate). If SIGPIPE is blocked or ignored, write() returns -1 with errno=EPIPE. This is how shell pipelines terminate cleanly.</li><li><strong>Pipes are stream-oriented</strong>: no message boundaries. Two writes of 100 bytes may be read as one read of 200 bytes, or 50+150, or any other split. You must frame messages yourself (length prefix, delimiter, or fixed-size records).</li><li><strong>splice() and tee()</strong>: zero-copy data transfer between a pipe and another fd (splice) or between two pipes (tee). Avoids user-space buffer copies for high-throughput scenarios like proxying.</li></ul>
+            <ul><li><strong>pipe()</strong> creates two file descriptors: pfd[0] for reading, pfd[1] for writing. Data flows in one direction only. For bidirectional communication, use two pipes or a socketpair.</li><li><strong>pipe2(pfd, O_CLOEXEC | O_NONBLOCK)</strong> sets flags atomically at creation: critical for avoiding races where a concurrent fork+exec leaks the pipe fd to a child, or a concurrent thread blocks on a read.</li><li><strong>Write atomicity</strong>: writes &le; PIPE_BUF (4096 bytes on Linux) are guaranteed atomic. Writes &gt; PIPE_BUF may be interleaved with data from other writers. This matters when multiple children write to a shared pipe.</li><li><strong>Pipe capacity</strong>: default 64 KB on Linux (16 pages). Adjustable per-pipe via fcntl(F_SETPIPE_SZ) up to /proc/sys/fs/pipe-max-size. When the pipe is full, write() blocks (or returns EAGAIN with O_NONBLOCK).</li><li><strong>FIFOs (named pipes)</strong>: created with mkfifo(path, mode). They have a filesystem name so unrelated processes can open them. open() on a FIFO blocks until both a reader and writer have opened it (unless O_NONBLOCK).</li><li><strong>SIGPIPE / EPIPE</strong>: writing to a pipe whose read end is closed delivers SIGPIPE to the writer (default action: terminate). If SIGPIPE is blocked or ignored, write() returns -1 with errno=EPIPE. This is how shell pipelines terminate cleanly.</li><li><strong>Pipes are stream-oriented</strong>: no message boundaries. Two writes of 100 bytes may be read as one read of 200 bytes, or 50+150, or any other split. You must frame messages yourself (length prefix, delimiter, or fixed-size records).</li><li><strong>splice() and tee()</strong>: zero-copy data transfer between a pipe and another fd (splice) or between two pipes (tee). Avoids user-space buffer copies for high-throughput scenarios like proxying.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -113,7 +113,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pipe</td><td class='mono'>int pipe(int pipefd[2]);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Creates anonymous pipe. pipefd[0]=read, pipefd[1]=write. Prefer pipe2() in new code.</td></tr><tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE, EINVAL</td><td>Atomically sets O_CLOEXEC and/or O_NONBLOCK. Avoids fcntl race window.</td></tr><tr><td class='mono'>mkfifo</td><td class='mono'>int mkfifo(const char *pathname, mode_t mode);</td><td class='mono muted2'>EEXIST, EACCES, ENOENT</td><td>Creates FIFO special file. Does not open it — call open() separately. EEXIST is common; often harmless.</td></tr><tr><td class='mono'>splice</td><td class='mono'>ssize_t splice(int fd_in, off_t *off_in, int fd_out, off_t *off_out, size_t len, unsigned int flags);</td><td class='mono muted2'>EINVAL, EBADF, ENOMEM</td><td>Zero-copy: moves data between pipe and another fd. At least one fd must be a pipe. Use SPLICE_F_NONBLOCK.</td></tr><tr><td class='mono'>tee</td><td class='mono'>ssize_t tee(int fd_in, int fd_out, size_t len, unsigned int flags);</td><td class='mono muted2'>EINVAL, ENOMEM</td><td>Duplicates data between two pipes without consuming it. Useful for logging/tapping a pipeline.</td></tr>
+    <tr><td class='mono'>pipe</td><td class='mono'>int pipe(int pipefd[2]);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Creates anonymous pipe. pipefd[0]=read, pipefd[1]=write. Prefer pipe2() in new code.</td></tr><tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE, EINVAL</td><td>Atomically sets O_CLOEXEC and/or O_NONBLOCK. Avoids fcntl race window.</td></tr><tr><td class='mono'>mkfifo</td><td class='mono'>int mkfifo(const char *pathname, mode_t mode);</td><td class='mono muted2'>EEXIST, EACCES, ENOENT</td><td>Creates FIFO special file. Does not open it: call open() separately. EEXIST is common; often harmless.</td></tr><tr><td class='mono'>splice</td><td class='mono'>ssize_t splice(int fd_in, off_t *off_in, int fd_out, off_t *off_out, size_t len, unsigned int flags);</td><td class='mono muted2'>EINVAL, EBADF, ENOMEM</td><td>Zero-copy: moves data between pipe and another fd. At least one fd must be a pipe. Use SPLICE_F_NONBLOCK.</td></tr><tr><td class='mono'>tee</td><td class='mono'>ssize_t tee(int fd_in, int fd_out, size_t len, unsigned int flags);</td><td class='mono muted2'>EINVAL, ENOMEM</td><td>Duplicates data between two pipes without consuming it. Useful for logging/tapping a pipeline.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -131,13 +131,13 @@
   <div class="content"><ul><li>Writes &le; PIPE_BUF (4096) are atomic: the kernel will not interleave them with other writes, even from concurrent processes. This is a POSIX guarantee.</li><li>Writes &gt; PIPE_BUF may be split and interleaved. If two processes each write 8192 bytes, the reader may see: 4096 from A, 4096 from B, 4096 from A, 4096 from B.</li><li>For reliable multi-writer pipes, keep messages &le; PIPE_BUF or use a mutex/lock to serialize writes.</li><li>In O_NONBLOCK mode, a write &le; PIPE_BUF that would block returns EAGAIN (all or nothing). A write &gt; PIPE_BUF may return a short write count.</li></ul></div>
 </details><details class="accordion">
   <summary>SIGPIPE handling in pipelines and servers</summary>
-  <div class="content"><ul><li>SIGPIPE's default action is to terminate the process. This is intentional for shell pipelines: <span class="mono">yes | head -1</span> needs "yes" to die when "head" closes its stdin.</li><li>In servers and daemons, you must handle SIGPIPE. Common approaches: signal(SIGPIPE, SIG_IGN) globally, then check for EPIPE on write(); or use MSG_NOSIGNAL flag with send().</li><li>In multithreaded programs, SIGPIPE is delivered to the thread that called write(). Ignoring it globally is safest.</li><li>When writing a pipeline of child processes, close unused pipe ends promptly — failing to close the write end in the reader prevents it from ever seeing EOF.</li></ul></div>
+  <div class="content"><ul><li>SIGPIPE's default action is to terminate the process. This is intentional for shell pipelines: <span class="mono">yes | head -1</span> needs "yes" to die when "head" closes its stdin.</li><li>In servers and daemons, you must handle SIGPIPE. Common approaches: signal(SIGPIPE, SIG_IGN) globally, then check for EPIPE on write(); or use MSG_NOSIGNAL flag with send().</li><li>In multithreaded programs, SIGPIPE is delivered to the thread that called write(). Ignoring it globally is safest.</li><li>When writing a pipeline of child processes, close unused pipe ends promptly: failing to close the write end in the reader prevents it from ever seeing EOF.</li></ul></div>
 </details><details class="accordion">
   <summary>Deadlocks and single-process pipes</summary>
   <div class="content"><ul><li>A single process reading and writing the same pipe can deadlock: if the pipe is full, write blocks; if it's empty, read blocks. No one can make progress.</li><li>Even with fork(), deadlock occurs if both parent and child try to read and write without proper sequencing. Close unused ends immediately after fork.</li><li>Common pattern: parent closes pfd[0] (read end), child closes pfd[1] (write end). Parent writes, child reads. Any other arrangement needs careful analysis.</li></ul></div>
 </details><details class="accordion">
   <summary>FIFO open semantics</summary>
-  <div class="content"><ul><li>Opening a FIFO for reading blocks until a writer opens it (and vice versa), unless O_NONBLOCK is set.</li><li>With O_NONBLOCK: open for reading succeeds immediately (even with no writer). Open for writing fails with ENXIO if no reader has the FIFO open.</li><li>A FIFO can have multiple readers and multiple writers. Data is interleaved — same atomicity rules as pipes (PIPE_BUF).</li><li>Removing the FIFO file (unlink) does not affect existing open file descriptors — they continue working until closed.</li></ul></div>
+  <div class="content"><ul><li>Opening a FIFO for reading blocks until a writer opens it (and vice versa), unless O_NONBLOCK is set.</li><li>With O_NONBLOCK: open for reading succeeds immediately (even with no writer). Open for writing fails with ENXIO if no reader has the FIFO open.</li><li>A FIFO can have multiple readers and multiple writers. Data is interleaved: same atomicity rules as pipes (PIPE_BUF).</li><li>Removing the FIFO file (unlink) does not affect existing open file descriptors: they continue working until closed.</li></ul></div>
 </details>
         </div>
 
@@ -188,7 +188,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always use pipe2() with O_CLOEXEC; add O_NONBLOCK for event-loop integration.</li><li>Close unused pipe ends immediately after fork — prevents fd leaks and ensures EOF propagation.</li><li>Handle or ignore SIGPIPE in daemons; check for EPIPE on write().</li><li>Keep multi-writer messages &le; PIPE_BUF (4096) for atomicity, or serialize writes externally.</li><li>Loop on read() to handle short reads; loop on write() to handle short writes on non-blocking pipes.</li><li>Consider splice() for high-throughput proxying to avoid user-space copy overhead.</li></ul>
+            <ul><li>Always use pipe2() with O_CLOEXEC; add O_NONBLOCK for event-loop integration.</li><li>Close unused pipe ends immediately after fork: prevents fd leaks and ensures EOF propagation.</li><li>Handle or ignore SIGPIPE in daemons; check for EPIPE on write().</li><li>Keep multi-writer messages &le; PIPE_BUF (4096) for atomicity, or serialize writes externally.</li><li>Loop on read() to handle short reads; loop on write() to handle short writes on non-blocking pipes.</li><li>Consider splice() for high-throughput proxying to avoid user-space copy overhead.</li></ul>
           </div>
         </div>
 
@@ -207,7 +207,7 @@ int main(void) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="POSIX guarantees that writes of PIPE_BUF bytes or fewer are atomic — they will not be interleaved with other writes. On Linux, PIPE_BUF is 4096 bytes.">
+          <div class="quiz"><div class="q" data-quiz data-answer="1" data-explain="POSIX guarantees that writes of PIPE_BUF bytes or fewer are atomic: they will not be interleaved with other writes. On Linux, PIPE_BUF is 4096 bytes.">
   <div class="qp">Q1. What guarantees atomicity for pipe writes?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -293,7 +293,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch44", n:44, subtitle:"Chapter 44 \u2014 Pipes and FIFOs"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch44", n:44, subtitle:"Chapter 44: Pipes and FIFOs"});
     TLPIWidgets.mountKernelGraph("kg_ch44", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

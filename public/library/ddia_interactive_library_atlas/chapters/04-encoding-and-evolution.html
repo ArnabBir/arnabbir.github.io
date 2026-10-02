@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 4: Encoding & Evolution</title>
+  <title>DDIA Atlas: Chapter 4: Encoding & Evolution</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -106,7 +106,7 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Compatibility verdict</span><span class="v" data-out="compat">—</span></div>
+      <div class="metric"><span class="k">Compatibility verdict</span><span class="v" data-out="compat">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -173,7 +173,7 @@ v3: { user_id: int, name: string, email?: string, locale?: string = "en-US" }</c
 <p>
 RPC makes “call-and-response” explicit. It also tends to couple clients and servers:
 method signatures, timeouts, retry behavior.
-Messaging introduces an asynchronous boundary that can decouple producers/consumers — if you treat the message schema as a stable API.
+Messaging introduces an asynchronous boundary that can decouple producers/consumers: if you treat the message schema as a stable API.
 </p>
 
 <details>
@@ -205,7 +205,7 @@ Messaging introduces an asynchronous boundary that can decouple producers/consum
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Rolling upgrade sequence</summary>
+  <summary>Drill 1: Rolling upgrade sequence</summary>
   <p>
     You add a required field. How can you roll it out without downtime?
     (Hint: you can’t add “required” directly. Make it optional + default, deploy readers, backfill, then enforce.)
@@ -213,7 +213,7 @@ Messaging introduces an asynchronous boundary that can decouple producers/consum
 </details>
 
 <details>
-  <summary>Drill 2 — Backfill strategy</summary>
+  <summary>Drill 2: Backfill strategy</summary>
   <p>
     You want to populate a new derived field for 2B records.
     Do you backfill offline (batch job) or lazily on read/write?
@@ -222,7 +222,7 @@ Messaging introduces an asynchronous boundary that can decouple producers/consum
 </details>
 
 <details>
-  <summary>Drill 3 — RPC compatibility</summary>
+  <summary>Drill 3: RPC compatibility</summary>
   <p>
     An RPC method changes from <code>getUser(id)</code> to <code>getUser(id, projection)</code>.
     How do you keep old clients working? Consider default projections, method overloading, and endpoint versioning.

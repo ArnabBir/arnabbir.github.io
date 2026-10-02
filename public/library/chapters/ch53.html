@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 53 — POSIX Semaphores</title>
+  <title>TLPI v2, Chapter 53, POSIX Semaphores</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 53 — POSIX Semaphores</div>
+          <div class="sub" id="subTitle">Chapter 53: POSIX Semaphores</div>
         </div>
       </div>
       <div class="actions">
@@ -56,14 +56,14 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 53 — POSIX Semaphores
+            Chapter 53: POSIX Semaphores
           </h2>
           <div class="subtitle">
-            <p>POSIX semaphores come in two flavors &mdash; named (persist in the filesystem, for unrelated processes) and unnamed (placed in shared memory, for threads or related processes). Both provide a simpler API than System V semaphore sets.</p><p>This chapter covers <span class="mono">sem_open</span> for named semaphores, <span class="mono">sem_init</span> for unnamed, the wait/post/trywait/timedwait operations, and key differences between the two forms.</p>
+            <p>POSIX semaphores come in two flavors: named (persist in the filesystem, for unrelated processes) and unnamed (placed in shared memory, for threads or related processes). Both provide a simpler API than System V semaphore sets.</p><p>This chapter covers <span class="mono">sem_open</span> for named semaphores, <span class="mono">sem_init</span> for unnamed, the wait/post/trywait/timedwait operations, and key differences between the two forms.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v"><span class="mono">sem_post</span> is one of the few functions that is async-signal-safe &mdash; it can be safely called from a signal handler.</div>
+  <div class="v"><span class="mono">sem_post</span> is one of the few functions that is async-signal-safe: it can be safely called from a signal handler.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v">Unnamed semaphores shared between processes must reside in shared memory (<span class="mono">MAP_SHARED</span>) with <span class="mono">pshared=1</span>. Placing one on the stack or heap and forking does not work.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><strong>Named semaphores:</strong> <span class="mono">sem_open("/name", O_CREAT, mode, initial_value)</span> creates/opens. <span class="mono">sem_close</span> releases the handle. <span class="mono">sem_unlink</span> removes the name (refcounted: destroyed when last close).</li><li><strong>Unnamed semaphores:</strong> <span class="mono">sem_init(sem, pshared, value)</span> initializes a <span class="mono">sem_t</span> in caller-allocated memory. <span class="mono">pshared=0</span> for threads, <span class="mono">pshared=1</span> for processes (must be in shared memory).</li><li><span class="mono">sem_wait()</span> decrements the counter (P operation). If counter is 0, blocks until another thread/process calls <span class="mono">sem_post</span>.</li><li><span class="mono">sem_post()</span> increments the counter (V operation). Wakes one blocked waiter. <strong>Async-signal-safe</strong> &mdash; can be called from signal handlers.</li><li><span class="mono">sem_trywait()</span> returns EAGAIN immediately if counter is 0. Non-blocking alternative.</li><li><span class="mono">sem_timedwait()</span> blocks until the counter becomes positive or the absolute deadline expires (ETIMEDOUT).</li><li><span class="mono">sem_getvalue()</span> reads the current count. If negative on some implementations, its absolute value indicates the number of waiters (but Linux returns 0 instead of negative).</li><li>Unnamed semaphores between processes: the <span class="mono">sem_t</span> must live in a <span class="mono">MAP_SHARED</span> mmap region. Allocating on stack and forking gives each process a private copy.</li></ul>
+            <ul><li><strong>Named semaphores:</strong> <span class="mono">sem_open("/name", O_CREAT, mode, initial_value)</span> creates/opens. <span class="mono">sem_close</span> releases the handle. <span class="mono">sem_unlink</span> removes the name (refcounted: destroyed when last close).</li><li><strong>Unnamed semaphores:</strong> <span class="mono">sem_init(sem, pshared, value)</span> initializes a <span class="mono">sem_t</span> in caller-allocated memory. <span class="mono">pshared=0</span> for threads, <span class="mono">pshared=1</span> for processes (must be in shared memory).</li><li><span class="mono">sem_wait()</span> decrements the counter (P operation). If counter is 0, blocks until another thread/process calls <span class="mono">sem_post</span>.</li><li><span class="mono">sem_post()</span> increments the counter (V operation). Wakes one blocked waiter. <strong>Async-signal-safe</strong>: can be called from signal handlers.</li><li><span class="mono">sem_trywait()</span> returns EAGAIN immediately if counter is 0. Non-blocking alternative.</li><li><span class="mono">sem_timedwait()</span> blocks until the counter becomes positive or the absolute deadline expires (ETIMEDOUT).</li><li><span class="mono">sem_getvalue()</span> reads the current count. If negative on some implementations, its absolute value indicates the number of waiters (but Linux returns 0 instead of negative).</li><li>Unnamed semaphores between processes: the <span class="mono">sem_t</span> must live in a <span class="mono">MAP_SHARED</span> mmap region. Allocating on stack and forking gives each process a private copy.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -130,13 +130,13 @@
   <div class="content"><ul><li>Use <strong>named</strong> semaphores when unrelated processes need to coordinate and you want filesystem-visible objects.</li><li>Use <strong>unnamed</strong> semaphores for threads within a single process (<span class="mono">pshared=0</span>) or for related processes sharing a mmap region (<span class="mono">pshared=1</span>).</li><li>Named semaphores have filesystem cleanup overhead (unlink). Unnamed semaphores are destroyed with <span class="mono">sem_destroy</span> and the shared memory region.</li><li>For high-frequency synchronization between threads, unnamed semaphores avoid the overhead of filesystem namespace operations.</li></ul></div>
 </details><details class="accordion">
   <summary>Unnamed semaphore placement</summary>
-  <div class="content"><ul><li>For inter-process use, the <span class="mono">sem_t</span> must be in <span class="mono">MAP_SHARED</span> memory (e.g., via <span class="mono">shm_open + mmap</span> or <span class="mono">mmap(MAP_SHARED|MAP_ANONYMOUS)</span>).</li><li>Common bug: allocating <span class="mono">sem_t</span> on the stack, calling <span class="mono">sem_init(..., 1, ...)</span>, then forking. Each process gets a private copy &mdash; no synchronization occurs.</li><li><span class="mono">sem_destroy</span> must be called before unmapping the shared memory. Using a destroyed semaphore is undefined behavior.</li></ul></div>
+  <div class="content"><ul><li>For inter-process use, the <span class="mono">sem_t</span> must be in <span class="mono">MAP_SHARED</span> memory (e.g., via <span class="mono">shm_open + mmap</span> or <span class="mono">mmap(MAP_SHARED|MAP_ANONYMOUS)</span>).</li><li>Common bug: allocating <span class="mono">sem_t</span> on the stack, calling <span class="mono">sem_init(..., 1, ...)</span>, then forking. Each process gets a private copy: no synchronization occurs.</li><li><span class="mono">sem_destroy</span> must be called before unmapping the shared memory. Using a destroyed semaphore is undefined behavior.</li></ul></div>
 </details><details class="accordion">
   <summary>Signal safety and sem_post</summary>
   <div class="content"><ul><li><span class="mono">sem_post</span> is async-signal-safe. Pattern: signal handler calls <span class="mono">sem_post</span>; main loop calls <span class="mono">sem_wait</span> to wake up and handle the event.</li><li><span class="mono">sem_wait</span> is NOT async-signal-safe. Never call it from a signal handler.</li><li><span class="mono">sem_wait</span> can return EINTR when interrupted by a signal. Always check and retry: <span class="mono">while (sem_wait(&amp;s) == -1 &amp;&amp; errno == EINTR) continue;</span></li></ul></div>
 </details><details class="accordion">
   <summary>Comparison with System V semaphores</summary>
-  <div class="content"><ul><li>System V semaphores operate on <em>sets</em> of semaphores atomically (semop on multiple semaphores). POSIX has one counter per semaphore.</li><li>System V supports "undo" operations (SEM_UNDO flag) that reverse on process exit. POSIX has no equivalent &mdash; a process dying while holding a semaphore leaves it in a decremented state.</li><li>POSIX semaphores have no built-in deadlock detection or undo. Design your protocol to handle process crashes explicitly.</li><li>POSIX semaphores are generally faster (futex-based on Linux) than System V semaphores (always a syscall).</li></ul></div>
+  <div class="content"><ul><li>System V semaphores operate on <em>sets</em> of semaphores atomically (semop on multiple semaphores). POSIX has one counter per semaphore.</li><li>System V supports "undo" operations (SEM_UNDO flag) that reverse on process exit. POSIX has no equivalent: a process dying while holding a semaphore leaves it in a decremented state.</li><li>POSIX semaphores have no built-in deadlock detection or undo. Design your protocol to handle process crashes explicitly.</li><li>POSIX semaphores are generally faster (futex-based on Linux) than System V semaphores (always a syscall).</li></ul></div>
 </details>
         </div>
 
@@ -286,7 +286,7 @@ if (fork() == 0) {  /* Consumer */
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch53", n:53, subtitle:"Chapter 53 \u2014 POSIX Semaphores"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch53", n:53, subtitle:"Chapter 53: POSIX Semaphores"});
     TLPIWidgets.mountKernelGraph("kg_ch53", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

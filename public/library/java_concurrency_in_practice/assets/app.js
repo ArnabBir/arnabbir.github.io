@@ -1,6 +1,6 @@
 
 /* ============================================================
-   JCIP Interactive Atlas — client-side engine (no deps)
+   JCIP Interactive Atlas: client-side engine (no deps)
    Components:
      - RaceLab (atomicity / lost updates)
      - DeadlockLab (liveness)
@@ -492,7 +492,7 @@
 
   DeadlockLab.prototype.step = function(){
     const s = this.state;
-    if(s.deadlock){ toast("Deadlock already reached — reset or change lock ordering"); return; }
+    if(s.deadlock){ toast("Deadlock already reached: reset or change lock ordering"); return; }
     // alternate A/B steps to show classic deadlock scenario
     const next = (s.trace.filter(x=>x.t).length % 2 === 0) ? s.A : s.B;
     this._advance(next);
@@ -1196,7 +1196,7 @@
           <span class="k">Upper bound</span><span class="v">×${max.toFixed(2)}</span>
         </div>
         <div class="divider"></div>
-        <div class="note"><strong>Takeaway:</strong> The serial fraction (1−p) sets a hard ceiling. If 10% is serial, speedup can never exceed ×10 — no matter how many cores you add.</div>
+        <div class="note"><strong>Takeaway:</strong> The serial fraction (1−p) sets a hard ceiling. If 10% is serial, speedup can never exceed ×10: no matter how many cores you add.</div>
       `;
     }
     this.draw();

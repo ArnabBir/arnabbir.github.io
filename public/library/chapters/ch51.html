@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 51 — Introduction to POSIX IPC</title>
+  <title>TLPI v2, Chapter 51, Introduction to POSIX IPC</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 51 — Introduction to POSIX IPC</div>
+          <div class="sub" id="subTitle">Chapter 51: Introduction to POSIX IPC</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 51 — Introduction to POSIX IPC
+            Chapter 51: Introduction to POSIX IPC
           </h2>
           <div class="subtitle">
-            <p>POSIX IPC offers a cleaner API than System V &mdash; objects have filesystem-like names (<span class="mono">/name</span>), are reference-counted, and integrate better with standard UNIX operations. Three mechanisms share this design: message queues (<span class="mono">mq_*</span>), semaphores (<span class="mono">sem_*</span>), and shared memory (<span class="mono">shm_*</span>).</p><p>This chapter covers the common design principles: naming conventions, the create/open/unlink lifecycle, reference-counting semantics, and how POSIX IPC compares to the older System V equivalents.</p>
+            <p>POSIX IPC offers a cleaner API than System V: objects have filesystem-like names (<span class="mono">/name</span>), are reference-counted, and integrate better with standard UNIX operations. Three mechanisms share this design: message queues (<span class="mono">mq_*</span>), semaphores (<span class="mono">sem_*</span>), and shared memory (<span class="mono">shm_*</span>).</p><p>This chapter covers the common design principles: naming conventions, the create/open/unlink lifecycle, reference-counting semantics, and how POSIX IPC compares to the older System V equivalents.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">POSIX IPC names start with <span class="mono">/</span> and contain no other slashes. Objects persist until explicitly unlinked, and are destroyed when the last reference closes.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Unlinking removes the name but not the object &mdash; existing descriptors remain valid until closed. Forgetting to unlink leaks objects across reboots (on tmpfs, until reboot).</div>
+  <div class="v">Unlinking removes the name but not the object: existing descriptors remain valid until closed. Forgetting to unlink leaks objects across reboots (on tmpfs, until reboot).</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Inspect <span class="mono">/dev/shm</span> and <span class="mono">/dev/mqueue</span> to see live POSIX IPC objects. Use <span class="mono">ls -la</span> to check permissions and ownership.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Three POSIX IPC types: message queues (<span class="mono">mq_*</span>), semaphores (<span class="mono">sem_*</span>), shared memory (<span class="mono">shm_*</span>). Each follows the same open/close/unlink pattern.</li><li>Names must start with <span class="mono">/</span> and contain no further path separators (e.g., <span class="mono">/myqueue</span> is valid; <span class="mono">/my/queue</span> is not, though Linux may accept it).</li><li>Objects persist in the kernel until <span class="mono">*_unlink()</span> is called. Unlinking marks the name for removal; actual destruction happens when the last reference (descriptor or mapping) is closed.</li><li>Backed by tmpfs virtual filesystems: <span class="mono">/dev/shm</span> for shared memory, <span class="mono">/dev/mqueue</span> for message queues. Named semaphores live under <span class="mono">/dev/shm</span> (as <span class="mono">sem.&lt;name&gt;</span> on Linux).</li><li>Permissions model uses standard UNIX mode bits (owner/group/other) &mdash; simpler than System V's <span class="mono">ipc_perm</span> structure.</li><li>POSIX IPC is generally preferred over System V for new code: cleaner API, no numeric key generation (<span class="mono">ftok</span>), filesystem-visible objects, and reference-counted cleanup.</li></ul>
+            <ul><li>Three POSIX IPC types: message queues (<span class="mono">mq_*</span>), semaphores (<span class="mono">sem_*</span>), shared memory (<span class="mono">shm_*</span>). Each follows the same open/close/unlink pattern.</li><li>Names must start with <span class="mono">/</span> and contain no further path separators (e.g., <span class="mono">/myqueue</span> is valid; <span class="mono">/my/queue</span> is not, though Linux may accept it).</li><li>Objects persist in the kernel until <span class="mono">*_unlink()</span> is called. Unlinking marks the name for removal; actual destruction happens when the last reference (descriptor or mapping) is closed.</li><li>Backed by tmpfs virtual filesystems: <span class="mono">/dev/shm</span> for shared memory, <span class="mono">/dev/mqueue</span> for message queues. Named semaphores live under <span class="mono">/dev/shm</span> (as <span class="mono">sem.&lt;name&gt;</span> on Linux).</li><li>Permissions model uses standard UNIX mode bits (owner/group/other): simpler than System V's <span class="mono">ipc_perm</span> structure.</li><li>POSIX IPC is generally preferred over System V for new code: cleaner API, no numeric key generation (<span class="mono">ftok</span>), filesystem-visible objects, and reference-counted cleanup.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -116,7 +116,7 @@
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: always check return values &mdash; <span class="mono">sem_open</span> returns <span class="mono">SEM_FAILED</span>, not NULL.
+            Tip: always check return values: <span class="mono">sem_open</span> returns <span class="mono">SEM_FAILED</span>, not NULL.
           </div>
         </div>
 
@@ -127,7 +127,7 @@
           </div>
           <details class="accordion">
   <summary>POSIX vs System V IPC</summary>
-  <div class="content"><ul><li>System V uses numeric keys (via <span class="mono">ftok</span>) &mdash; fragile and prone to collisions. POSIX uses readable <span class="mono">/name</span> strings.</li><li>System V objects are removed with <span class="mono">IPC_RMID</span> &mdash; immediate destruction even if processes are attached (for shm, mapping stays valid but object is gone). POSIX uses reference-counted unlink.</li><li>System V semaphores support atomic operations on sets of semaphores. POSIX semaphores are simpler: one counter, one wait/post.</li><li>System V IPC limits are system-wide and configured via <span class="mono">/proc/sys/kernel/msg*</span>, <span class="mono">sem*</span>, <span class="mono">shm*</span>. POSIX limits are per <span class="mono">/proc/sys/fs/mqueue/*</span> and filesystem size for shm.</li></ul></div>
+  <div class="content"><ul><li>System V uses numeric keys (via <span class="mono">ftok</span>): fragile and prone to collisions. POSIX uses readable <span class="mono">/name</span> strings.</li><li>System V objects are removed with <span class="mono">IPC_RMID</span>: immediate destruction even if processes are attached (for shm, mapping stays valid but object is gone). POSIX uses reference-counted unlink.</li><li>System V semaphores support atomic operations on sets of semaphores. POSIX semaphores are simpler: one counter, one wait/post.</li><li>System V IPC limits are system-wide and configured via <span class="mono">/proc/sys/kernel/msg*</span>, <span class="mono">sem*</span>, <span class="mono">shm*</span>. POSIX limits are per <span class="mono">/proc/sys/fs/mqueue/*</span> and filesystem size for shm.</li></ul></div>
 </details><details class="accordion">
   <summary>Naming rules and portability</summary>
   <div class="content"><ul><li>POSIX requires names to start with <span class="mono">/</span>. Some systems (Linux) accept further slashes; for portability use only <span class="mono">/simplename</span>.</li><li>Maximum name length is <span class="mono">NAME_MAX</span> (typically 255). Some systems limit to fewer characters.</li><li>Names are global to the system (within a namespace). Use prefixes to avoid collisions between applications.</li><li>On Linux, named semaphores appear as <span class="mono">/dev/shm/sem.&lt;name&gt;</span>; directly deleting the file is equivalent to <span class="mono">sem_unlink</span>.</li></ul></div>
@@ -173,7 +173,7 @@ shmctl(id, IPC_RMID, NULL);  /* immediate destroy */</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use POSIX IPC over System V for new code &mdash; cleaner naming, reference-counted cleanup, standard permissions.</li><li>Always call <span class="mono">*_unlink()</span> when the object is no longer needed; design idempotent startup cleanup for crash recovery.</li><li>Use a naming convention with application prefix (e.g., <span class="mono">/myapp_shm_region1</span>) to avoid collisions.</li><li>Set restrictive permissions (0600/0660) and verify with <span class="mono">ls -la /dev/shm</span>.</li><li>Link with <span class="mono">-lrt</span> (for shm_open/mq_open) and <span class="mono">-lpthread</span> (for sem_*) as needed.</li></ul>
+            <ul><li>Use POSIX IPC over System V for new code: cleaner naming, reference-counted cleanup, standard permissions.</li><li>Always call <span class="mono">*_unlink()</span> when the object is no longer needed; design idempotent startup cleanup for crash recovery.</li><li>Use a naming convention with application prefix (e.g., <span class="mono">/myapp_shm_region1</span>) to avoid collisions.</li><li>Set restrictive permissions (0600/0660) and verify with <span class="mono">ls -la /dev/shm</span>.</li><li>Link with <span class="mono">-lrt</span> (for shm_open/mq_open) and <span class="mono">-lpthread</span> (for sem_*) as needed.</li></ul>
           </div>
         </div>
 
@@ -278,7 +278,7 @@ shmctl(id, IPC_RMID, NULL);  /* immediate destroy */</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch51", n:51, subtitle:"Chapter 51 \u2014 Introduction to POSIX IPC"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch51", n:51, subtitle:"Chapter 51: Introduction to POSIX IPC"});
     TLPIWidgets.mountKernelGraph("kg_ch51", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

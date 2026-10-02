@@ -133,7 +133,7 @@ const CONFIG = {
       "log": "Shuffle completion improves tail latency.",
       "message": {
         "from": "Scheduler",
-        "to": "—",
+        "to": "N/A",
         "label": "Tail reduction"
       }
     }

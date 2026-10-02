@@ -162,7 +162,7 @@ const CONFIG = {
         "title": "Engineering lessons",
         "icon": "BookOpen",
         "bullets": [
-          "SQL usability matters for large organizations—schemas, tools, and audits.",
+          "SQL usability matters for large organizations: schemas, tools, and audits.",
           "Strong consistency simplifies application logic but demands careful latency engineering."
         ]
       }

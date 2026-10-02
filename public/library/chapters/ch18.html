@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 18 — Directories and Links</title>
+  <title>TLPI v2, Chapter 18, Directories and Links</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 18 — Directories and Links</div>
+          <div class="sub" id="subTitle">Chapter 18: Directories and Links</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 18 — Directories and Links
+            Chapter 18: Directories and Links
           </h2>
           <div class="subtitle">
             <p>Directories are just files that map names to inode numbers. A hard link is simply another name pointing to the same inode -- the file's link count tracks how many names reference it. A symbolic link is a separate inode whose data is a pathname string, providing indirection that can cross filesystem boundaries but can also dangle. Understanding this name-to-inode mapping is essential for safe path traversal, atomic file replacement, and recursive directory walking.</p><p>This chapter covers creating and removing directories (mkdir/rmdir), iterating directory contents (opendir/readdir), walking directory trees (nftw), and resolving symlinks to canonical paths (realpath). Each of these operations interacts with the kernel's dentry layer and has specific atomicity and race-condition implications.</p>
@@ -295,7 +295,7 @@ fail:
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch18", n:18, subtitle:"Chapter 18 \u2014 Directories and Links"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch18", n:18, subtitle:"Chapter 18: Directories and Links"});
     TLPIWidgets.mountKernelGraph("kg_ch18", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",

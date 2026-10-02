@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 28 — Process Creation and Program Execution in More Detail</title>
+  <title>TLPI v2, Chapter 28, Process Creation and Program Execution in More Detail</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 28 — Process Creation and Program Execution in More Detail</div>
+          <div class="sub" id="subTitle">Chapter 28: Process Creation and Program Execution in More Detail</div>
         </div>
       </div>
       <div class="actions">
@@ -56,20 +56,20 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 28 — Process Creation and Program Execution in More Detail
+            Chapter 28: Process Creation and Program Execution in More Detail
           </h2>
           <div class="subtitle">
-            <p>Beyond fork+exec — system() for shell commands, popen() for bidirectional pipe+exec, clone() for fine-grained task creation (the foundation of both threads and containers), and process accounting for auditing resource usage.</p><p>These higher-level and lower-level interfaces bracket the fork/exec primitives: system() is dangerously convenient, while clone() gives you scalpel-level control over what parent and child share.</p>
+            <p>Beyond fork+exec: system() for shell commands, popen() for bidirectional pipe+exec, clone() for fine-grained task creation (the foundation of both threads and containers), and process accounting for auditing resource usage.</p><p>These higher-level and lower-level interfaces bracket the fork/exec primitives: system() is dangerously convenient, while clone() gives you scalpel-level control over what parent and child share.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">system() = fork + exec("/bin/sh", "-c", cmd) + waitpid. popen() = pipe + fork + exec + fdopen. clone() = fork with selective sharing.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">system() passes strings to /bin/sh — shell injection via unsanitized input is trivial. Never use with user-controlled data.</div>
+  <div class="v">system() passes strings to /bin/sh: shell injection via unsanitized input is trivial. Never use with user-controlled data.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">Use strace -f to trace system()/popen() — you'll see the fork, exec of /bin/sh, and the actual command execution underneath.</div>
+  <div class="v">Use strace -f to trace system()/popen(): you'll see the fork, exec of /bin/sh, and the actual command execution underneath.</div>
 </div></div>
         </div>
 
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><code>system(cmd)</code> = fork + exec("/bin/sh", "-c", cmd) + waitpid. Convenient but dangerous: shell metacharacters are interpreted, signals must be handled carefully.</li><li>system() blocks SIGCHLD and ignores SIGINT/SIGQUIT in the parent during execution (per POSIX). This interacts poorly with custom SIGCHLD handlers.</li><li><code>popen(cmd, mode)</code> = pipe + fork + exec("/bin/sh", "-c", cmd) with one end wrapped in a FILE*. Mode "r" reads child stdout; "w" writes to child stdin.</li><li><code>pclose(fp)</code> closes the pipe and calls waitpid — you MUST use pclose (not fclose) to avoid zombie leaks and get the exit status.</li><li><code>clone(fn, stack, flags, arg)</code> is the Linux-specific syscall underlying both fork (SIGCHLD only) and pthread_create (CLONE_VM|CLONE_FILES|...).</li><li>clone flags select what to share: CLONE_VM (address space), CLONE_FILES (fd table), CLONE_NEWNS (mount namespace), CLONE_NEWPID (PID namespace), etc.</li><li><code>unshare(flags)</code> is the post-creation version: dissociate the calling process from specified shared resources without forking.</li><li>CLONE_NEWPID creates a PID namespace — the first process inside is PID 1 and must handle orphan reaping (like init).</li><li>Process accounting (acct(2)) writes a record per terminated process: CPU time, memory high-water, command name. Useful for auditing and billing.</li></ul>
+            <ul><li><code>system(cmd)</code> = fork + exec("/bin/sh", "-c", cmd) + waitpid. Convenient but dangerous: shell metacharacters are interpreted, signals must be handled carefully.</li><li>system() blocks SIGCHLD and ignores SIGINT/SIGQUIT in the parent during execution (per POSIX). This interacts poorly with custom SIGCHLD handlers.</li><li><code>popen(cmd, mode)</code> = pipe + fork + exec("/bin/sh", "-c", cmd) with one end wrapped in a FILE*. Mode "r" reads child stdout; "w" writes to child stdin.</li><li><code>pclose(fp)</code> closes the pipe and calls waitpid: you MUST use pclose (not fclose) to avoid zombie leaks and get the exit status.</li><li><code>clone(fn, stack, flags, arg)</code> is the Linux-specific syscall underlying both fork (SIGCHLD only) and pthread_create (CLONE_VM|CLONE_FILES|...).</li><li>clone flags select what to share: CLONE_VM (address space), CLONE_FILES (fd table), CLONE_NEWNS (mount namespace), CLONE_NEWPID (PID namespace), etc.</li><li><code>unshare(flags)</code> is the post-creation version: dissociate the calling process from specified shared resources without forking.</li><li>CLONE_NEWPID creates a PID namespace: the first process inside is PID 1 and must handle orphan reaping (like init).</li><li>Process accounting (acct(2)) writes a record per terminated process: CPU time, memory high-water, command name. Useful for auditing and billing.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>system()</td><td>Libc: fork+exec shell+wait. Convenient but vulnerable to shell injection.</td></tr><tr><td class='mono'>popen/pclose</td><td>Libc: pipe+fork+exec shell with FILE* interface. pclose reaps the child.</td></tr><tr><td class='mono'>clone</td><td>Linux syscall: create task with fine-grained resource sharing (threads, containers).</td></tr><tr><td class='mono'>unshare</td><td>Dissociate calling process from shared namespaces/resources without forking.</td></tr><tr><td class='mono'>CLONE_NEWNS</td><td>Create new mount namespace — basis for filesystem isolation in containers.</td></tr><tr><td class='mono'>CLONE_NEWPID</td><td>Create new PID namespace — processes inside see their own PID 1.</td></tr><tr><td class='mono'>process accounting</td><td>Kernel writes per-process resource usage record on termination (acct(2)).</td></tr></tbody>
+  <tbody><tr><td class='mono'>system()</td><td>Libc: fork+exec shell+wait. Convenient but vulnerable to shell injection.</td></tr><tr><td class='mono'>popen/pclose</td><td>Libc: pipe+fork+exec shell with FILE* interface. pclose reaps the child.</td></tr><tr><td class='mono'>clone</td><td>Linux syscall: create task with fine-grained resource sharing (threads, containers).</td></tr><tr><td class='mono'>unshare</td><td>Dissociate calling process from shared namespaces/resources without forking.</td></tr><tr><td class='mono'>CLONE_NEWNS</td><td>Create new mount namespace: basis for filesystem isolation in containers.</td></tr><tr><td class='mono'>CLONE_NEWPID</td><td>Create new PID namespace: processes inside see their own PID 1.</td></tr><tr><td class='mono'>process accounting</td><td>Kernel writes per-process resource usage record on termination (acct(2)).</td></tr></tbody>
 </table>
         </div>
 
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>system</td><td class='mono'>int system(const char *command);</td><td class='mono muted2'>—</td><td>Returns shell exit status (use WEXITSTATUS). Returns -1 on fork failure. NULL arg tests shell availability.</td></tr><tr><td class='mono'>popen</td><td class='mono'>FILE *popen(const char *command, const char *type);</td><td class='mono muted2'>ENOMEM, EMFILE</td><td>Type "r" reads stdout, "w" writes stdin. Returns NULL on failure. Stream is fully buffered.</td></tr><tr><td class='mono'>pclose</td><td class='mono'>int pclose(FILE *stream);</td><td class='mono muted2'>ECHILD</td><td>Closes pipe, waits for child, returns wait status. MUST use instead of fclose.</td></tr><tr><td class='mono'>clone</td><td class='mono'>int clone(int (*fn)(void*), void *stack, int flags, void *arg, ...);</td><td class='mono muted2'>ENOMEM, EINVAL, EPERM</td><td>Low-level: specify sharing flags. Used by pthread_create and container runtimes internally.</td></tr><tr><td class='mono'>unshare</td><td class='mono'>int unshare(int flags);</td><td class='mono muted2'>ENOMEM, EPERM</td><td>Dissociate from namespace. CLONE_NEWNS requires CAP_SYS_ADMIN (or user namespace).</td></tr>
+    <tr><td class='mono'>system</td><td class='mono'>int system(const char *command);</td><td class='mono muted2'>N/A</td><td>Returns shell exit status (use WEXITSTATUS). Returns -1 on fork failure. NULL arg tests shell availability.</td></tr><tr><td class='mono'>popen</td><td class='mono'>FILE *popen(const char *command, const char *type);</td><td class='mono muted2'>ENOMEM, EMFILE</td><td>Type "r" reads stdout, "w" writes stdin. Returns NULL on failure. Stream is fully buffered.</td></tr><tr><td class='mono'>pclose</td><td class='mono'>int pclose(FILE *stream);</td><td class='mono muted2'>ECHILD</td><td>Closes pipe, waits for child, returns wait status. MUST use instead of fclose.</td></tr><tr><td class='mono'>clone</td><td class='mono'>int clone(int (*fn)(void*), void *stack, int flags, void *arg, ...);</td><td class='mono muted2'>ENOMEM, EINVAL, EPERM</td><td>Low-level: specify sharing flags. Used by pthread_create and container runtimes internally.</td></tr><tr><td class='mono'>unshare</td><td class='mono'>int unshare(int flags);</td><td class='mono muted2'>ENOMEM, EPERM</td><td>Dissociate from namespace. CLONE_NEWNS requires CAP_SYS_ADMIN (or user namespace).</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -129,15 +129,15 @@
           </div>
           <details class="accordion">
   <summary>Shell injection via system()</summary>
-  <div class="content"><ul><li><code>system("grep " + user_input + " /etc/passwd")</code> — if user_input is "; rm -rf /", you execute arbitrary commands.</li><li>system() invokes /bin/sh -c, so all shell metacharacters (;, |, &amp;, $, `, etc.) are interpreted.</li><li>Fix: never pass unsanitized input to system(). Use fork+execvp with an explicit argv array instead.</li><li>If you must use system(), validate input against a strict allowlist (alphanumeric only) and quote arguments.</li></ul></div>
+  <div class="content"><ul><li><code>system("grep " + user_input + " /etc/passwd")</code>: if user_input is "; rm -rf /", you execute arbitrary commands.</li><li>system() invokes /bin/sh -c, so all shell metacharacters (;, |, &amp;, $, `, etc.) are interpreted.</li><li>Fix: never pass unsanitized input to system(). Use fork+execvp with an explicit argv array instead.</li><li>If you must use system(), validate input against a strict allowlist (alphanumeric only) and quote arguments.</li></ul></div>
 </details><details class="accordion">
   <summary>system() and SIGCHLD handler interaction</summary>
   <div class="content"><ul><li>POSIX requires system() to block SIGCHLD during execution. If you have a SIGCHLD handler, it won't fire for the system() child.</li><li>But: if your SIGCHLD handler calls waitpid(-1, ...), it can accidentally reap system()'s child before system() does, causing system() to return -1/ECHILD.</li><li>Fix: use waitpid with a specific PID in your handler, or avoid mixing system() with SIGCHLD handlers.</li><li>Better: avoid system() entirely in programs that manage child processes.</li></ul></div>
 </details><details class="accordion">
   <summary>popen and SIGPIPE</summary>
-  <div class="content"><ul><li>If you popen("cmd", "w") and the child exits early, writing to the FILE* generates SIGPIPE (default: terminate).</li><li>Handle or ignore SIGPIPE if using popen in write mode: <code>signal(SIGPIPE, SIG_IGN)</code> and check write/fflush errors.</li><li>popen streams are fully buffered — data may not reach the child until you fflush() or pclose().</li><li>pclose() returns the child's wait status; check it for errors (the command may have failed silently).</li></ul></div>
+  <div class="content"><ul><li>If you popen("cmd", "w") and the child exits early, writing to the FILE* generates SIGPIPE (default: terminate).</li><li>Handle or ignore SIGPIPE if using popen in write mode: <code>signal(SIGPIPE, SIG_IGN)</code> and check write/fflush errors.</li><li>popen streams are fully buffered: data may not reach the child until you fflush() or pclose().</li><li>pclose() returns the child's wait status; check it for errors (the command may have failed silently).</li></ul></div>
 </details><details class="accordion">
-  <summary>clone with CLONE_NEWPID — PID 1 responsibilities</summary>
+  <summary>clone with CLONE_NEWPID: PID 1 responsibilities</summary>
   <div class="content"><ul><li>The first process in a new PID namespace becomes PID 1 inside that namespace. It has special responsibilities.</li><li>If PID 1 in a namespace dies, all other processes in the namespace are killed with SIGKILL.</li><li>PID 1 must reap orphaned children (just like system init). Failing to do so creates zombies inside the namespace.</li><li>Container runtimes (Docker, runc) often use tini or dumb-init as PID 1 to handle signal forwarding and reaping.</li></ul></div>
 </details>
         </div>
@@ -190,7 +190,7 @@ char *capture_output(const char *cmd) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Never pass untrusted input to system() or popen(). Use fork+execvp with explicit argv for user-controlled commands.</li><li>Always use pclose() (not fclose()) with popen streams to reap the child and get the exit status.</li><li>Handle SIGPIPE when using popen in write mode — the child may exit before you finish writing.</li><li>If using clone() for namespaces, ensure PID 1 in the namespace handles reaping and signal forwarding.</li><li>Prefer posix_spawn() over system() when you need convenience but don't need shell interpretation.</li></ul>
+            <ul><li>Never pass untrusted input to system() or popen(). Use fork+execvp with explicit argv for user-controlled commands.</li><li>Always use pclose() (not fclose()) with popen streams to reap the child and get the exit status.</li><li>Handle SIGPIPE when using popen in write mode: the child may exit before you finish writing.</li><li>If using clone() for namespaces, ensure PID 1 in the namespace handles reaping and signal forwarding.</li><li>Prefer posix_spawn() over system() when you need convenience but don't need shell interpretation.</li></ul>
           </div>
         </div>
 
@@ -295,7 +295,7 @@ char *capture_output(const char *cmd) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch28", n:28, subtitle:"Chapter 28 \u2014 Process Creation and Program Execution in More Detail"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch28", n:28, subtitle:"Chapter 28: Process Creation and Program Execution in More Detail"});
     TLPIWidgets.mountKernelGraph("kg_ch28", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

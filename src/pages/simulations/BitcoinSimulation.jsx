@@ -401,7 +401,7 @@ export default function BitcoinSimulation() {
           {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — Satoshi Nakamoto, 2008
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: Satoshi Nakamoto, 2008
             </div>
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-yellow-600 via-orange-500 to-red-500 dark:from-yellow-400 dark:via-orange-400 dark:to-red-400 bg-clip-text text-transparent mb-4">
               Bitcoin: A Peer-to-Peer Electronic Cash System
@@ -428,7 +428,7 @@ export default function BitcoinSimulation() {
 
           {/* ---- Transactions ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<ArrowRight className="w-5 h-5" />} title="Transactions — Chain of Digital Signatures" />
+            <SectionTitle icon={<ArrowRight className="w-5 h-5" />} title="Transactions: Chain of Digital Signatures" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 An electronic coin is defined as a <strong className="text-yellow-600 dark:text-yellow-300">chain of digital signatures</strong>. Each owner transfers the coin by signing a hash of the previous transaction and the next owner's public key. The payee can verify the chain of ownership.
@@ -442,25 +442,25 @@ export default function BitcoinSimulation() {
 
           {/* ---- Proof of Work ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Cpu className="w-5 h-5" />} title="Proof-of-Work — One CPU, One Vote" />
+            <SectionTitle icon={<Cpu className="w-5 h-5" />} title="Proof-of-Work: One CPU, One Vote" />
             <div className="space-y-4 mb-6">
               <FlowStep num={1} color="yellow" icon={<Activity className="w-5 h-5" />} title="New transactions are broadcast to all nodes" desc="When someone sends BTC, the transaction is announced to the entire network on a best-effort basis." />
               <FlowStep num={2} color="amber" icon={<Database className="w-5 h-5" />} title="Each node collects transactions into a block" desc="Miners gather pending transactions from the mempool and package them into a candidate block." />
               <FlowStep num={3} color="orange" icon={<Cpu className="w-5 h-5" />} title="Each node works on finding a proof-of-work" desc="Miners increment a nonce until the block's SHA-256 hash starts with the required number of zero bits. The average work is exponential in the zeros required." />
               <FlowStep num={4} color="emerald" icon={<Globe className="w-5 h-5" />} title="Winner broadcasts the block" desc="When a miner finds a valid nonce, they broadcast the block. Other nodes verify it and express acceptance by working on the next block." />
-              <FlowStep num={5} color="blue" icon={<GitBranch className="w-5 h-5" />} title="Longest chain wins" desc="If two miners find blocks simultaneously (fork), the tie breaks when the next block is found. The longest chain — with the most cumulative PoW — is the truth." />
+              <FlowStep num={5} color="blue" icon={<GitBranch className="w-5 h-5" />} title="Longest chain wins" desc="If two miners find blocks simultaneously (fork), the tie breaks when the next block is found. The longest chain, with the most cumulative PoW, is the truth." />
             </div>
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-500/20 p-4 flex items-start gap-3">
               <Zap className="w-5 h-5 text-yellow-500 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                <strong className="text-yellow-700 dark:text-yellow-300">Key insight:</strong> PoW is essentially <strong>one-CPU-one-vote</strong>. The majority decision is the longest chain. An attacker would need to redo the work of the target block <em>and all blocks after it</em>, then outpace the honest network — probability drops exponentially with each confirmation.
+                <strong className="text-yellow-700 dark:text-yellow-300">Key insight:</strong> PoW is essentially <strong>one-CPU-one-vote</strong>. The majority decision is the longest chain. An attacker would need to redo the work of the target block <em>and all blocks after it</em>, then outpace the honest network: probability drops exponentially with each confirmation.
               </p>
             </div>
           </section>
 
           {/* ---- Incentive ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Zap className="w-5 h-5" />} title="Incentive — Mining Rewards & Game Theory" />
+            <SectionTitle icon={<Zap className="w-5 h-5" />} title="Incentive: Mining Rewards & Game Theory" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <div className="grid md:grid-cols-2 gap-5 mb-6">
                 <div className="rounded-xl border-2 border-yellow-200 dark:border-yellow-500/40 bg-yellow-50 dark:bg-yellow-500/10 p-5">
@@ -472,7 +472,7 @@ export default function BitcoinSimulation() {
                 </div>
                 <div className="rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10 p-5">
                   <div className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">Transaction Fees</div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">If a transaction's input exceeds its output, the difference is a fee claimed by the miner. As block rewards halve toward zero, fees become the primary incentive — making Bitcoin completely inflation-free.</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">If a transaction's input exceeds its output, the difference is a fee claimed by the miner. As block rewards halve toward zero, fees become the primary incentive: making Bitcoin completely inflation-free.</p>
                   <div className="flex flex-wrap gap-2">
                     <span className="text-[11px] font-mono px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400">input − output = fee</span>
                   </div>
@@ -498,7 +498,7 @@ export default function BitcoinSimulation() {
 
           {/* ---- Privacy ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Shield className="w-5 h-5" />} title="Privacy — New Model" />
+            <SectionTitle icon={<Shield className="w-5 h-5" />} title="Privacy: New Model" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm dark:shadow-none">
               <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <div className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4">
@@ -516,7 +516,7 @@ export default function BitcoinSimulation() {
 
           {/* ---- Attack Probability ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Target className="w-5 h-5" />} title="Security — Attacker Success Probability" />
+            <SectionTitle icon={<Target className="w-5 h-5" />} title="Security: Attacker Success Probability" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 The race between the honest chain and an attacker is a <strong className="text-yellow-600 dark:text-yellow-300">Binomial Random Walk</strong> (analogous to the Gambler's Ruin problem). The probability of catching up drops <strong>exponentially</strong> with each confirmation:
@@ -541,7 +541,7 @@ export default function BitcoinSimulation() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <UsageCard step="1" title="Start Mining" desc="Press START and watch 4 miners race to find valid nonces. Each miner shows their current hash attempt in real-time. When one succeeds, the block pulses green." color="yellow" />
               <UsageCard step="2" title="Add Transactions" desc="Click 'Add Tx' to broadcast transactions to the mempool. Miners will include them in the next block they mine. Watch them move from mempool → block." color="blue" />
-              <UsageCard step="3" title="Watch Forks" desc="If two miners find blocks at the same height, a fork appears. The chain resolves when the next block is found — the losing branch gets marked ORPHAN." color="amber" />
+              <UsageCard step="3" title="Watch Forks" desc="If two miners find blocks at the same height, a fork appears. The chain resolves when the next block is found: the losing branch gets marked ORPHAN." color="amber" />
               <UsageCard step="4" title="Adjust Difficulty" desc="Use the difficulty dots to change the number of leading zeros required. Higher = longer to find blocks. Watch average block time change in the header stats." color="emerald" />
             </div>
           </section>

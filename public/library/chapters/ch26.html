@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 26 — Monitoring Child Processes</title>
+  <title>TLPI v2, Chapter 26, Monitoring Child Processes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 26 — Monitoring Child Processes</div>
+          <div class="sub" id="subTitle">Chapter 26: Monitoring Child Processes</div>
         </div>
       </div>
       <div class="actions">
@@ -56,20 +56,20 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 26 — Monitoring Child Processes
+            Chapter 26: Monitoring Child Processes
           </h2>
           <div class="subtitle">
-            <p>After fork, the parent must reap children with wait/waitpid to collect exit status and free kernel resources. Unreaped children become zombies — they consume a PID and a slot in the process table indefinitely until the parent collects their status or itself exits.</p><p>The wait family of calls is how parents learn about child state changes: exit, signal death, stop, and continue. Mastering waitpid flags and SIGCHLD handling is essential for writing robust servers, shells, and supervisors.</p>
+            <p>After fork, the parent must reap children with wait/waitpid to collect exit status and free kernel resources. Unreaped children become zombies: they consume a PID and a slot in the process table indefinitely until the parent collects their status or itself exits.</p><p>The wait family of calls is how parents learn about child state changes: exit, signal death, stop, and continue. Mastering waitpid flags and SIGCHLD handling is essential for writing robust servers, shells, and supervisors.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">A zombie exists from child exit until parent calls wait*(). Orphans are re-parented to init (PID 1), which reaps them.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">SIGCHLD can coalesce — one signal for multiple exits. Always call waitpid() in a loop with WNOHANG.</div>
+  <div class="v">SIGCHLD can coalesce: one signal for multiple exits. Always call waitpid() in a loop with WNOHANG.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
-  <div class="v">ps aux | grep Z shows zombies. Check parent PID — if parent isn't reaping, fix the parent (or kill it to let init reap).</div>
+  <div class="v">ps aux | grep Z shows zombies. Check parent PID: if parent isn't reaping, fix the parent (or kill it to let init reap).</div>
 </div></div>
         </div>
 
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Zombie = exited child whose termination status hasn't been collected. It holds a PID + exit info, nothing else (no memory, no fds).</li><li><code>waitpid(pid, &amp;status, flags)</code> blocks until the specified child changes state. Returns child PID or -1 on error.</li><li>WNOHANG: return immediately if no child has exited (non-blocking poll). Returns 0 if nothing to reap.</li><li>WUNTRACED: also report stopped children (e.g., SIGTSTP). WCONTINUED: report continued children (SIGCONT).</li><li><code>waitid(P_PID, pid, &amp;siginfo, opts)</code> provides more detail (siginfo_t) and separates "peek" vs "consume" (WNOWAIT).</li><li>SIGCHLD is delivered to the parent when a child exits, is killed, stops, or continues. Default disposition: ignore.</li><li>Setting SIGCHLD to SIG_IGN (Linux-specific) causes automatic reaping — children never become zombies. Portable code cannot rely on this.</li><li>Double-fork trick: parent forks child, child forks grandchild then exits immediately; parent reaps child; grandchild is orphaned to init which auto-reaps it.</li><li>Orphan: a process whose parent has exited. Kernel re-parents it to the nearest subreaper (prctl PR_SET_CHILD_SUBREAPER) or PID 1.</li></ul>
+            <ul><li>Zombie = exited child whose termination status hasn't been collected. It holds a PID + exit info, nothing else (no memory, no fds).</li><li><code>waitpid(pid, &amp;status, flags)</code> blocks until the specified child changes state. Returns child PID or -1 on error.</li><li>WNOHANG: return immediately if no child has exited (non-blocking poll). Returns 0 if nothing to reap.</li><li>WUNTRACED: also report stopped children (e.g., SIGTSTP). WCONTINUED: report continued children (SIGCONT).</li><li><code>waitid(P_PID, pid, &amp;siginfo, opts)</code> provides more detail (siginfo_t) and separates "peek" vs "consume" (WNOWAIT).</li><li>SIGCHLD is delivered to the parent when a child exits, is killed, stops, or continues. Default disposition: ignore.</li><li>Setting SIGCHLD to SIG_IGN (Linux-specific) causes automatic reaping: children never become zombies. Portable code cannot rely on this.</li><li>Double-fork trick: parent forks child, child forks grandchild then exits immediately; parent reaps child; grandchild is orphaned to init which auto-reaps it.</li><li>Orphan: a process whose parent has exited. Kernel re-parents it to the nearest subreaper (prctl PR_SET_CHILD_SUBREAPER) or PID 1.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>wait</td><td class='mono'>pid_t wait(int *wstatus);</td><td class='mono muted2'>ECHILD, EINTR</td><td>Waits for any child. Equivalent to waitpid(-1, &amp;status, 0). Blocks until one child exits.</td></tr><tr><td class='mono'>waitpid</td><td class='mono'>pid_t waitpid(pid_t pid, int *wstatus, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>pid=-1: any child. pid>0: specific. pid=0: same pgrp. Options: WNOHANG|WUNTRACED|WCONTINUED.</td></tr><tr><td class='mono'>waitid</td><td class='mono'>int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>More info via siginfo_t. WNOWAIT peeks without consuming. WEXITED|WSTOPPED|WCONTINUED.</td></tr><tr><td class='mono'>SIGCHLD handler</td><td class='mono'>signal(SIGCHLD, handler) / sigaction</td><td class='mono muted2'>—</td><td>Must call waitpid in loop with WNOHANG — signal can coalesce multiple child exits into one delivery.</td></tr>
+    <tr><td class='mono'>wait</td><td class='mono'>pid_t wait(int *wstatus);</td><td class='mono muted2'>ECHILD, EINTR</td><td>Waits for any child. Equivalent to waitpid(-1, &amp;status, 0). Blocks until one child exits.</td></tr><tr><td class='mono'>waitpid</td><td class='mono'>pid_t waitpid(pid_t pid, int *wstatus, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>pid=-1: any child. pid>0: specific. pid=0: same pgrp. Options: WNOHANG|WUNTRACED|WCONTINUED.</td></tr><tr><td class='mono'>waitid</td><td class='mono'>int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>More info via siginfo_t. WNOWAIT peeks without consuming. WEXITED|WSTOPPED|WCONTINUED.</td></tr><tr><td class='mono'>SIGCHLD handler</td><td class='mono'>signal(SIGCHLD, handler) / sigaction</td><td class='mono muted2'>N/A</td><td>Must call waitpid in loop with WNOHANG: signal can coalesce multiple child exits into one delivery.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -132,13 +132,13 @@
   <div class="content"><ul><li>A server forking thousands of children without reaping will exhaust the PID space (default max ~32768, tunable via /proc/sys/kernel/pid_max).</li><li>Zombies don't consume memory or CPU, but each holds a PID and process table entry.</li><li>Fix: install a SIGCHLD handler that loops waitpid(-1, NULL, WNOHANG) until it returns 0 or -1.</li><li>Alternative: use SIG_IGN for SIGCHLD (Linux) or the double-fork pattern.</li></ul></div>
 </details><details class="accordion">
   <summary>SIGCHLD handler calling waitpid in a loop</summary>
-  <div class="content"><ul><li>SIGCHLD is a standard (non-queuing) signal — if 3 children exit while handler runs, only 1 SIGCHLD may be pending.</li><li>The handler MUST loop: <code>while (waitpid(-1, &amp;s, WNOHANG) > 0) { /* process */ }</code></li><li>Without the loop, you miss exits and zombies accumulate silently.</li><li>The handler must be async-signal-safe: no printf, malloc, or non-reentrant functions.</li></ul></div>
+  <div class="content"><ul><li>SIGCHLD is a standard (non-queuing) signal: if 3 children exit while handler runs, only 1 SIGCHLD may be pending.</li><li>The handler MUST loop: <code>while (waitpid(-1, &amp;s, WNOHANG) > 0) { /* process */ }</code></li><li>Without the loop, you miss exits and zombies accumulate silently.</li><li>The handler must be async-signal-safe: no printf, malloc, or non-reentrant functions.</li></ul></div>
 </details><details class="accordion">
   <summary>Race between fork and signal delivery</summary>
-  <div class="content"><ul><li>A child can exit before the parent even returns from fork(). SIGCHLD arrives before the parent stores the child PID.</li><li>If using a PID table, block SIGCHLD around fork + table update, then unblock (sigprocmask).</li><li>Alternative: use signalfd or a self-pipe to handle SIGCHLD synchronously in an event loop.</li><li>waitpid with a specific PID works fine even if the child already exited — the zombie is queued.</li></ul></div>
+  <div class="content"><ul><li>A child can exit before the parent even returns from fork(). SIGCHLD arrives before the parent stores the child PID.</li><li>If using a PID table, block SIGCHLD around fork + table update, then unblock (sigprocmask).</li><li>Alternative: use signalfd or a self-pipe to handle SIGCHLD synchronously in an event loop.</li><li>waitpid with a specific PID works fine even if the child already exited: the zombie is queued.</li></ul></div>
 </details><details class="accordion">
   <summary>Orphan process groups and SIGHUP</summary>
-  <div class="content"><ul><li>When a process group becomes orphaned (no member has a parent in a different pgrp in the same session) and has stopped members, the kernel sends SIGHUP then SIGCONT.</li><li>This prevents stopped processes from being permanently stuck with no one to send SIGCONT.</li><li>Shells must handle this for correct job control behavior during logout/disconnect.</li><li>A common pattern in daemons: fork, parent exits, child calls setsid() — explicitly choosing orphan status.</li></ul></div>
+  <div class="content"><ul><li>When a process group becomes orphaned (no member has a parent in a different pgrp in the same session) and has stopped members, the kernel sends SIGHUP then SIGCONT.</li><li>This prevents stopped processes from being permanently stuck with no one to send SIGCONT.</li><li>Shells must handle this for correct job control behavior during logout/disconnect.</li><li>A common pattern in daemons: fork, parent exits, child calls setsid(): explicitly choosing orphan status.</li></ul></div>
 </details>
         </div>
 
@@ -172,7 +172,7 @@ static void sigchld_handler(int sig) {
 void spawn_detached(const char *cmd) {
     pid_t pid = fork();
     if (pid == 0) {
-        // First child — fork again, then exit immediately
+        // First child: fork again, then exit immediately
         if (fork() == 0) {
             // Grandchild: orphaned to init, runs the real work
             execlp(cmd, cmd, (char*)NULL);
@@ -190,7 +190,7 @@ void spawn_detached(const char *cmd) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always reap children: SIGCHLD handler with waitpid loop, or periodic waitpid(-1, WNOHANG), or SIG_IGN, or double-fork.</li><li>Handle EINTR from waitpid — signals can interrupt the blocking call.</li><li>In SIGCHLD handlers, save and restore errno; call only async-signal-safe functions.</li><li>Block SIGCHLD around fork + bookkeeping if you maintain a child PID table to avoid races.</li><li>Monitor zombie count in production: alert if /proc shows unexpected Z-state processes.</li></ul>
+            <ul><li>Always reap children: SIGCHLD handler with waitpid loop, or periodic waitpid(-1, WNOHANG), or SIG_IGN, or double-fork.</li><li>Handle EINTR from waitpid: signals can interrupt the blocking call.</li><li>In SIGCHLD handlers, save and restore errno; call only async-signal-safe functions.</li><li>Block SIGCHLD around fork + bookkeeping if you maintain a child PID table to avoid races.</li><li>Monitor zombie count in production: alert if /proc shows unexpected Z-state processes.</li></ul>
           </div>
         </div>
 
@@ -225,7 +225,7 @@ void spawn_detached(const char *cmd) {
   <div><div style="font-weight:750">A process with no open file descriptors</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="0" data-explain="SIGCHLD can coalesce — multiple child exits may produce only one signal. Looping with WNOHANG ensures all are reaped.">
+</div><div class="q" data-quiz data-answer="0" data-explain="SIGCHLD can coalesce: multiple child exits may produce only one signal. Looping with WNOHANG ensures all are reaped.">
   <div class="qp">Q2. Why must a SIGCHLD handler call waitpid in a loop?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -295,7 +295,7 @@ void spawn_detached(const char *cmd) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch26", n:26, subtitle:"Chapter 26 \u2014 Monitoring Child Processes"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch26", n:26, subtitle:"Chapter 26: Monitoring Child Processes"});
     TLPIWidgets.mountKernelGraph("kg_ch26", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

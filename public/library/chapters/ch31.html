@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 31 — Threads: Thread Safety and Per-Thread Storage</title>
+  <title>TLPI v2, Chapter 31, Threads: Thread Safety and Per-Thread Storage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 31 — Threads: Thread Safety and Per-Thread Storage</div>
+          <div class="sub" id="subTitle">Chapter 31: Threads: Thread Safety and Per-Thread Storage</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 31 — Threads: Thread Safety and Per-Thread Storage
+            Chapter 31: Threads: Thread Safety and Per-Thread Storage
           </h2>
           <div class="subtitle">
             <p>Thread safety means a function can be called concurrently from multiple threads without corrupting shared data. The #1 source of thread-unsafety in legacy C code is functions that use static internal buffers (strtok, ctime, gethostbyname). This chapter covers making code thread-safe and two mechanisms for per-thread storage.</p><p>Reentrant functions are a stronger guarantee: safe even when called from a signal handler that interrupted the same function. The _r variants (strtok_r, localtime_r) are the standard solution. For custom per-thread state, use pthread_key (destructor support) or the simpler __thread keyword.</p>
@@ -290,7 +290,7 @@ void *worker(void *arg){
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch31", n:31, subtitle:"Chapter 31 \u2014 Threads: Thread Safety and Per-Thread Storage"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch31", n:31, subtitle:"Chapter 31: Threads: Thread Safety and Per-Thread Storage"});
     TLPIWidgets.mountKernelGraph("kg_ch31", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (threads). Click to pin a tooltip.",

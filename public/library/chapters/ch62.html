@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 62 — Terminals</title>
+  <title>TLPI v2, Chapter 62, Terminals</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 62 — Terminals</div>
+          <div class="sub" id="subTitle">Chapter 62: Terminals</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 62 — Terminals
+            Chapter 62: Terminals
           </h2>
           <div class="subtitle">
-            <p>Terminals are the interface between users and processes — line disciplines control echo and editing, canonical mode provides line buffering, raw mode gives per-character input. Pseudo-terminals enable SSH, tmux, and terminal emulators.</p><p>The terminal subsystem is a layered stack: hardware or pty device, line discipline for input processing, and the termios API for configuration. Understanding the three I/O modes (canonical, noncanonical, raw) is essential for writing editors, shells, and interactive tools.</p>
+            <p>Terminals are the interface between users and processes: line disciplines control echo and editing, canonical mode provides line buffering, raw mode gives per-character input. Pseudo-terminals enable SSH, tmux, and terminal emulators.</p><p>The terminal subsystem is a layered stack: hardware or pty device, line discipline for input processing, and the termios API for configuration. Understanding the three I/O modes (canonical, noncanonical, raw) is essential for writing editors, shells, and interactive tools.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">Terminal = tty device + line discipline + process group. The line discipline decides what the process sees.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Failing to restore termios on exit (or crash) leaves the terminal in raw mode — breaking the user&#x27;s shell.</div>
+  <div class="v">Failing to restore termios on exit (or crash) leaves the terminal in raw mode: breaking the user&#x27;s shell.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">stty -a shows all termios flags; strace on tcsetattr reveals exactly what your program changes.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A terminal is a tty device + line discipline + associated process group. The line discipline sits between the device driver and user-space reads/writes.</li><li>Canonical mode (ICANON): the kernel buffers input until newline or EOF — the line discipline handles backspace, Ctrl-U, and other editing. This is the default mode.</li><li>Noncanonical mode (~ICANON): input is available based on VMIN (minimum bytes) and VTIME (timeout in tenths of a second). Four combinations: blocking read (VMIN>0, VTIME=0), timed read, polling read (both 0), etc.</li><li>Raw mode: no processing at all — no echo, no signal generation, no CR/NL translation. Used by editors (vim), shells (zsh line editor), and SSH. Achieved by cfmakeraw() which clears ICANON, ECHO, ISIG, IEXTEN, and sets CS8.</li><li>The termios struct controls all attributes across four flag fields: c_iflag (input), c_oflag (output), c_cflag (control), c_lflag (local). tcgetattr/tcsetattr read and modify these.</li><li>Key c_lflag bits: ECHO (echo input), ICANON (canonical mode), ISIG (generate signals from Ctrl-C/Ctrl-Z/Ctrl-\).</li><li>A pseudo-terminal pair (master + slave) virtualizes a terminal: the master side (via /dev/ptmx) is controlled by an application; the slave (/dev/pts/N) looks like a real terminal to the child process.</li><li>PTYs are the foundation of remote shells (sshd), terminal multiplexers (tmux/screen), the script(1) command, and expect-like automation tools.</li></ul>
+            <ul><li>A terminal is a tty device + line discipline + associated process group. The line discipline sits between the device driver and user-space reads/writes.</li><li>Canonical mode (ICANON): the kernel buffers input until newline or EOF: the line discipline handles backspace, Ctrl-U, and other editing. This is the default mode.</li><li>Noncanonical mode (~ICANON): input is available based on VMIN (minimum bytes) and VTIME (timeout in tenths of a second). Four combinations: blocking read (VMIN>0, VTIME=0), timed read, polling read (both 0), etc.</li><li>Raw mode: no processing at all: no echo, no signal generation, no CR/NL translation. Used by editors (vim), shells (zsh line editor), and SSH. Achieved by cfmakeraw() which clears ICANON, ECHO, ISIG, IEXTEN, and sets CS8.</li><li>The termios struct controls all attributes across four flag fields: c_iflag (input), c_oflag (output), c_cflag (control), c_lflag (local). tcgetattr/tcsetattr read and modify these.</li><li>Key c_lflag bits: ECHO (echo input), ICANON (canonical mode), ISIG (generate signals from Ctrl-C/Ctrl-Z/Ctrl-\).</li><li>A pseudo-terminal pair (master + slave) virtualizes a terminal: the master side (via /dev/ptmx) is controlled by an application; the slave (/dev/pts/N) looks like a real terminal to the child process.</li><li>PTYs are the foundation of remote shells (sshd), terminal multiplexers (tmux/screen), the script(1) command, and expect-like automation tools.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>tty</td><td>A terminal device — physical (serial port) or virtual (pty slave). Identified by /dev/ttyN or /dev/pts/N.</td></tr><tr><td class='mono'>pty</td><td>Pseudo-terminal: a master/slave pair that emulates a hardware terminal in software.</td></tr><tr><td class='mono'>termios</td><td>Struct containing all terminal attributes: input/output/control/local flags and special characters (VMIN, VTIME, VEOF, etc.).</td></tr><tr><td class='mono'>Canonical mode</td><td>Line-buffered input: kernel handles editing (backspace, Ctrl-U); read() returns complete lines.</td></tr><tr><td class='mono'>Noncanonical mode</td><td>Character-oriented input: behavior controlled by VMIN (min bytes) and VTIME (timeout in 0.1s units).</td></tr><tr><td class='mono'>Raw mode</td><td>All processing disabled (cfmakeraw): no echo, no signals, no editing — bytes pass through unmodified.</td></tr></tbody>
+  <tbody><tr><td class='mono'>tty</td><td>A terminal device: physical (serial port) or virtual (pty slave). Identified by /dev/ttyN or /dev/pts/N.</td></tr><tr><td class='mono'>pty</td><td>Pseudo-terminal: a master/slave pair that emulates a hardware terminal in software.</td></tr><tr><td class='mono'>termios</td><td>Struct containing all terminal attributes: input/output/control/local flags and special characters (VMIN, VTIME, VEOF, etc.).</td></tr><tr><td class='mono'>Canonical mode</td><td>Line-buffered input: kernel handles editing (backspace, Ctrl-U); read() returns complete lines.</td></tr><tr><td class='mono'>Noncanonical mode</td><td>Character-oriented input: behavior controlled by VMIN (min bytes) and VTIME (timeout in 0.1s units).</td></tr><tr><td class='mono'>Raw mode</td><td>All processing disabled (cfmakeraw): no echo, no signals, no editing: bytes pass through unmodified.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>tcgetattr</td><td class='mono'>int tcgetattr(int fd, struct termios *termios_p);</td><td class='mono muted2'>ENOTTY, EBADF</td><td>Reads current terminal attributes. Only meaningful on tty/pty fds (ENOTTY on pipes/sockets).</td></tr><tr><td class='mono'>tcsetattr</td><td class='mono'>int tcsetattr(int fd, int actions, const struct termios *t);</td><td class='mono muted2'>ENOTTY, EINVAL</td><td>Sets terminal attributes. actions: TCSANOW (immediate), TCSADRAIN (after output drained), TCSAFLUSH (drain + discard input).</td></tr><tr><td class='mono'>cfmakeraw</td><td class='mono'>void cfmakeraw(struct termios *termios_p);</td><td class='mono muted2'>n/a</td><td>Configures raw mode: clears ICANON, ECHO, ISIG, IEXTEN, input processing flags; sets CS8. Not a syscall — modifies struct in place.</td></tr><tr><td class='mono'>openpty</td><td class='mono'>int openpty(int *amaster, int *aslave, char *name, const struct termios *termp, const struct winsize *winp);</td><td class='mono muted2'>ENOMEM, ENOENT</td><td>Opens a pty pair (master + slave) in one call. BSD/glibc convenience — wraps posix_openpt + grantpt + unlockpt.</td></tr>
+    <tr><td class='mono'>tcgetattr</td><td class='mono'>int tcgetattr(int fd, struct termios *termios_p);</td><td class='mono muted2'>ENOTTY, EBADF</td><td>Reads current terminal attributes. Only meaningful on tty/pty fds (ENOTTY on pipes/sockets).</td></tr><tr><td class='mono'>tcsetattr</td><td class='mono'>int tcsetattr(int fd, int actions, const struct termios *t);</td><td class='mono muted2'>ENOTTY, EINVAL</td><td>Sets terminal attributes. actions: TCSANOW (immediate), TCSADRAIN (after output drained), TCSAFLUSH (drain + discard input).</td></tr><tr><td class='mono'>cfmakeraw</td><td class='mono'>void cfmakeraw(struct termios *termios_p);</td><td class='mono muted2'>n/a</td><td>Configures raw mode: clears ICANON, ECHO, ISIG, IEXTEN, input processing flags; sets CS8. Not a syscall: modifies struct in place.</td></tr><tr><td class='mono'>openpty</td><td class='mono'>int openpty(int *amaster, int *aslave, char *name, const struct termios *termp, const struct winsize *winp);</td><td class='mono muted2'>ENOMEM, ENOENT</td><td>Opens a pty pair (master + slave) in one call. BSD/glibc convenience: wraps posix_openpt + grantpt + unlockpt.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -127,13 +127,13 @@
           </div>
           <details class="accordion">
   <summary>Canonical vs noncanonical vs raw</summary>
-  <div class="content"><ul><li>Canonical mode: read() blocks until a full line (newline, EOF, or EOL). The line discipline handles backspace, Ctrl-W (word erase), and Ctrl-U (line kill).</li><li>Noncanonical mode: VMIN=1, VTIME=0 gives single-character blocking reads. VMIN=0, VTIME>0 gives timed polling. VMIN=0, VTIME=0 gives pure polling (returns immediately with 0 if nothing available).</li><li>Raw mode (cfmakeraw): disables everything — ICANON, ECHO, ISIG, IEXTEN, ICRNL, OPOST, etc. Bytes arrive exactly as typed. You must handle Ctrl-C yourself.</li><li>tcsetattr with TCSAFLUSH is safest when switching modes — it drains output and discards pending input to avoid stale characters.</li></ul></div>
+  <div class="content"><ul><li>Canonical mode: read() blocks until a full line (newline, EOF, or EOL). The line discipline handles backspace, Ctrl-W (word erase), and Ctrl-U (line kill).</li><li>Noncanonical mode: VMIN=1, VTIME=0 gives single-character blocking reads. VMIN=0, VTIME>0 gives timed polling. VMIN=0, VTIME=0 gives pure polling (returns immediately with 0 if nothing available).</li><li>Raw mode (cfmakeraw): disables everything: ICANON, ECHO, ISIG, IEXTEN, ICRNL, OPOST, etc. Bytes arrive exactly as typed. You must handle Ctrl-C yourself.</li><li>tcsetattr with TCSAFLUSH is safest when switching modes: it drains output and discards pending input to avoid stale characters.</li></ul></div>
 </details><details class="accordion">
   <summary>VMIN and VTIME combinations</summary>
-  <div class="content"><ul><li>VMIN>0, VTIME=0: blocking read, returns when at least VMIN bytes available. Most common for character-at-a-time input.</li><li>VMIN=0, VTIME>0: pure timed read — returns after VTIME*0.1 seconds even if no data. Returns 0 on timeout.</li><li>VMIN>0, VTIME>0: interbyte timer — VTIME starts after first byte; returns when VMIN reached OR timer expires.</li><li>VMIN=0, VTIME=0: polling mode — returns immediately with whatever is available (0 bytes if nothing).</li></ul></div>
+  <div class="content"><ul><li>VMIN>0, VTIME=0: blocking read, returns when at least VMIN bytes available. Most common for character-at-a-time input.</li><li>VMIN=0, VTIME>0: pure timed read: returns after VTIME*0.1 seconds even if no data. Returns 0 on timeout.</li><li>VMIN>0, VTIME>0: interbyte timer: VTIME starts after first byte; returns when VMIN reached OR timer expires.</li><li>VMIN=0, VTIME=0: polling mode: returns immediately with whatever is available (0 bytes if nothing).</li></ul></div>
 </details><details class="accordion">
   <summary>Controlling terminal and signals</summary>
-  <div class="content"><ul><li>A session has at most one controlling terminal. The first tty opened by the session leader (after setsid) typically becomes the controlling terminal.</li><li>Ctrl-C generates SIGINT, Ctrl-Z generates SIGTSTP, Ctrl-\ generates SIGQUIT — all sent to the foreground process group by the tty driver.</li><li>Background processes that try to read from the controlling terminal receive SIGTTIN; writing may trigger SIGTTOU if TOSTOP is set.</li><li>Daemons call setsid() + close all ttys to detach from the controlling terminal — no more job control signals.</li></ul></div>
+  <div class="content"><ul><li>A session has at most one controlling terminal. The first tty opened by the session leader (after setsid) typically becomes the controlling terminal.</li><li>Ctrl-C generates SIGINT, Ctrl-Z generates SIGTSTP, Ctrl-\ generates SIGQUIT: all sent to the foreground process group by the tty driver.</li><li>Background processes that try to read from the controlling terminal receive SIGTTIN; writing may trigger SIGTTOU if TOSTOP is set.</li><li>Daemons call setsid() + close all ttys to detach from the controlling terminal: no more job control signals.</li></ul></div>
 </details><details class="accordion">
   <summary>Pseudo-terminals overview</summary>
   <div class="content"><ul><li>A pty master/slave pair emulates a terminal: writes to master appear as input on slave; writes to slave appear as output on master.</li><li>The slave side supports full termios: the child process can call tcgetattr/tcsetattr, isatty() returns true, and line discipline processing applies.</li><li>sshd creates a pty per session: remote keystrokes go to master, program output comes back through master to the network.</li><li>tmux creates one pty per pane: the master side is managed by the tmux server, each pane's shell sees a real terminal.</li></ul></div>
@@ -179,7 +179,7 @@ void enable_raw(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always save original termios with tcgetattr before modification; restore via atexit() AND signal handlers (SIGINT, SIGTERM).</li><li>Use TCSAFLUSH when switching to raw mode to discard any buffered input from canonical mode.</li><li>Set VMIN/VTIME deliberately — document which of the four noncanonical behaviors you intend.</li><li>Test that isatty(fd) returns true before calling tcgetattr — pipes and redirections are not terminals.</li><li>For pty-based tools, handle SIGWINCH to propagate terminal resize events from master to slave.</li></ul>
+            <ul><li>Always save original termios with tcgetattr before modification; restore via atexit() AND signal handlers (SIGINT, SIGTERM).</li><li>Use TCSAFLUSH when switching to raw mode to discard any buffered input from canonical mode.</li><li>Set VMIN/VTIME deliberately: document which of the four noncanonical behaviors you intend.</li><li>Test that isatty(fd) returns true before calling tcgetattr: pipes and redirections are not terminals.</li><li>For pty-based tools, handle SIGWINCH to propagate terminal resize events from master to slave.</li></ul>
           </div>
         </div>
 
@@ -198,7 +198,7 @@ void enable_raw(void) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Canonical mode buffers input in the line discipline until newline or EOF — the process sees complete lines.">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Canonical mode buffers input in the line discipline until newline or EOF: the process sees complete lines.">
   <div class="qp">Q1. In canonical mode, when does read() on a terminal return?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -214,7 +214,7 @@ void enable_raw(void) {
   <div><div style="font-weight:750">After the buffer is full</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="cfmakeraw disables ICANON, ECHO, ISIG, IEXTEN, and input processing — bytes pass through unmodified.">
+</div><div class="q" data-quiz data-answer="1" data-explain="cfmakeraw disables ICANON, ECHO, ISIG, IEXTEN, and input processing: bytes pass through unmodified.">
   <div class="qp">Q2. What does cfmakeraw() disable?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -230,7 +230,7 @@ void enable_raw(void) {
   <div><div style="font-weight:750">Output processing only</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="0" data-explain="VMIN=1, VTIME=0 means read() blocks until at least 1 byte is available — single-character blocking read.">
+</div><div class="q" data-quiz data-answer="0" data-explain="VMIN=1, VTIME=0 means read() blocks until at least 1 byte is available: single-character blocking read.">
   <div class="qp">Q3. With VMIN=1 and VTIME=0 in noncanonical mode, read() will:</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -284,7 +284,7 @@ void enable_raw(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch62", n:62, subtitle:"Chapter 62 \u2014 Terminals"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch62", n:62, subtitle:"Chapter 62: Terminals"});
     TLPIWidgets.mountKernelGraph("kg_ch62", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (tty). Click to pin a tooltip.",

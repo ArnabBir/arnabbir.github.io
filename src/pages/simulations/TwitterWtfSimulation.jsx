@@ -120,7 +120,7 @@ const CONFIG = {
       "log": "Recommendations served at low latency.",
       "message": {
         "from": "Serving API",
-        "to": "—",
+        "to": "N/A",
         "label": "Serve"
       }
     },

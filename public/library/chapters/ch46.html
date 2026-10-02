@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 46 — System V Message Queues</title>
+  <title>TLPI v2, Chapter 46, System V Message Queues</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 46 — System V Message Queues</div>
+          <div class="sub" id="subTitle">Chapter 46: System V Message Queues</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 46 — System V Message Queues
+            Chapter 46: System V Message Queues
           </h2>
           <div class="subtitle">
-            <p>System V message queues provide typed message passing — each message has a long mtype field enabling selective receipt. This makes client-server multiplexing possible on a single queue: the server reads requests by one type, and each client reads responses by its own unique type (typically its PID).</p><p>Unlike pipes, message queues preserve message boundaries and support priority-like retrieval via the type field. However, they lack file-descriptor-based interfaces, making integration with poll/epoll impossible.</p>
+            <p>System V message queues provide typed message passing: each message has a long mtype field enabling selective receipt. This makes client-server multiplexing possible on a single queue: the server reads requests by one type, and each client reads responses by its own unique type (typically its PID).</p><p>Unlike pipes, message queues preserve message boundaries and support priority-like retrieval via the type field. However, they lack file-descriptor-based interfaces, making integration with poll/epoll impossible.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -127,16 +127,16 @@
           </div>
           <details class="accordion">
   <summary>Queue full: blocking vs non-blocking</summary>
-  <div class="content"><ul><li>When total bytes in queue reach MSGMNB, msgsnd() blocks by default. The process sleeps until space is available or the queue is destroyed (EIDRM).</li><li>With IPC_NOWAIT, msgsnd returns -1 with errno=EAGAIN immediately. Use this for non-blocking designs, but you must implement your own retry/backoff logic.</li><li>A single large message can also be rejected if it exceeds MSGMAX — this returns EINVAL regardless of available space.</li><li>EINTR is returned if msgsnd/msgrcv is interrupted by a signal while blocked. Always retry on EINTR.</li></ul></div>
+  <div class="content"><ul><li>When total bytes in queue reach MSGMNB, msgsnd() blocks by default. The process sleeps until space is available or the queue is destroyed (EIDRM).</li><li>With IPC_NOWAIT, msgsnd returns -1 with errno=EAGAIN immediately. Use this for non-blocking designs, but you must implement your own retry/backoff logic.</li><li>A single large message can also be rejected if it exceeds MSGMAX: this returns EINVAL regardless of available space.</li><li>EINTR is returned if msgsnd/msgrcv is interrupted by a signal while blocked. Always retry on EINTR.</li></ul></div>
 </details><details class="accordion">
   <summary>Client-server multiplexing with message types</summary>
-  <div class="content"><ul><li>Pattern: server reads type=1 requests. Each request includes the client's PID. Server sends response with mtype=client_pid.</li><li>Each client does msgrcv(qid, &amp;msg, size, getpid(), 0) — receiving only messages addressed to it.</li><li>Risk: if a client crashes without reading its response, that message remains in the queue consuming MSGMNB space.</li><li>Mitigation: server can set a timeout or periodically clean up unclaimed messages. Or use MSG_NOERROR and bound message sizes tightly.</li></ul></div>
+  <div class="content"><ul><li>Pattern: server reads type=1 requests. Each request includes the client's PID. Server sends response with mtype=client_pid.</li><li>Each client does msgrcv(qid, &amp;msg, size, getpid(), 0): receiving only messages addressed to it.</li><li>Risk: if a client crashes without reading its response, that message remains in the queue consuming MSGMNB space.</li><li>Mitigation: server can set a timeout or periodically clean up unclaimed messages. Or use MSG_NOERROR and bound message sizes tightly.</li></ul></div>
 </details><details class="accordion">
   <summary>Message size limits and E2BIG</summary>
   <div class="content"><ul><li>If a message in the queue is larger than the msgsz argument to msgrcv(), the call fails with E2BIG by default.</li><li>The MSG_NOERROR flag tells msgrcv to truncate the message silently to msgsz bytes instead of failing. The excess data is lost.</li><li>MSGMAX (default 8192) limits individual message payload size at send time. Increase via /proc/sys/kernel/msgmax if needed.</li><li>Design messages with fixed or bounded sizes to avoid E2BIG surprises. Include a size field in your protocol header.</li></ul></div>
 </details><details class="accordion">
   <summary>Priority inversion with negative type selection</summary>
-  <div class="content"><ul><li>msgrcv with type &lt; 0 selects the message with the lowest mtype &le; |type|. This enables priority-queue semantics: lower mtype = higher priority.</li><li>Risk: if many low-type (high-priority) messages arrive continuously, higher-type (lower-priority) messages may starve and never be received.</li><li>Mitigation: bound the range of mtype values. Periodically drain all types. Or use separate queues for different priority levels.</li><li>With type=0, messages are received in FIFO order regardless of mtype — simplest but no prioritization.</li></ul></div>
+  <div class="content"><ul><li>msgrcv with type &lt; 0 selects the message with the lowest mtype &le; |type|. This enables priority-queue semantics: lower mtype = higher priority.</li><li>Risk: if many low-type (high-priority) messages arrive continuously, higher-type (lower-priority) messages may starve and never be received.</li><li>Mitigation: bound the range of mtype values. Periodically drain all types. Or use separate queues for different priority levels.</li><li>With type=0, messages are received in FIFO order regardless of mtype: simplest but no prioritization.</li></ul></div>
 </details>
         </div>
 
@@ -213,7 +213,7 @@ void client(int qid) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="When msgrcv is called with type > 0, it returns the first message whose mtype exactly matches the specified value. This enables selective receive — each client reads only messages addressed to it.">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="When msgrcv is called with type > 0, it returns the first message whose mtype exactly matches the specified value. This enables selective receive: each client reads only messages addressed to it.">
   <div class="qp">Q1. What does msgrcv do when the type argument is greater than 0?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -299,7 +299,7 @@ void client(int qid) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch46", n:46, subtitle:"Chapter 46 \u2014 System V Message Queues"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch46", n:46, subtitle:"Chapter 46: System V Message Queues"});
     TLPIWidgets.mountKernelGraph("kg_ch46", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

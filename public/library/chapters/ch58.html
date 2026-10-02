@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 58 — Sockets: Fundamentals of TCP/IP Networks</title>
+  <title>TLPI v2, Chapter 58, Sockets: Fundamentals of TCP/IP Networks</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 58 — Sockets: Fundamentals of TCP/IP Networks</div>
+          <div class="sub" id="subTitle">Chapter 58: Sockets: Fundamentals of TCP/IP Networks</div>
         </div>
       </div>
       <div class="actions">
@@ -56,14 +56,14 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 58 — Sockets: Fundamentals of TCP/IP Networks
+            Chapter 58: Sockets: Fundamentals of TCP/IP Networks
           </h2>
           <div class="subtitle">
             <p>TCP/IP is the network protocol stack that underlies the internet. IP routes packets between hosts, TCP provides reliable ordered byte streams on top, and UDP provides lightweight unreliable datagrams. Understanding the layered architecture is essential for socket programming.</p><p>This chapter covers IP addressing, port numbers, the distinction between TCP and UDP, network byte order conversions, and the socket address structures (sockaddr_in, sockaddr_in6) that tie it all together at the system call level.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Addresses and ports must be in network byte order (big-endian) in all socket structures &mdash; use htonl/htons/ntohl/ntohs consistently.</div>
+  <div class="v">Addresses and ports must be in network byte order (big-endian) in all socket structures: use htonl/htons/ntohl/ntohs consistently.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v">Forgetting byte-order conversion silently corrupts addresses/ports. On little-endian hosts, port 80 (0x0050) becomes 20480 (0x5000) without htons().</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Four layers: link (Ethernet/WiFi frames), network (IP datagrams &mdash; routing between hosts), transport (TCP/UDP &mdash; multiplexing via ports), application (HTTP, DNS, etc.).</li><li>IP addresses identify hosts on the network; ports identify services within a host. Together they form a socket address.</li><li>TCP provides a reliable, ordered, bidirectional byte stream with flow control and congestion control. Connection-oriented: requires a 3-way handshake.</li><li>UDP provides unreliable datagrams: no connection setup, no ordering guarantees, no retransmission. Lower overhead, used for DNS, gaming, video.</li><li>Network byte order is big-endian. All multi-byte fields in socket address structures (addresses, ports) must be converted: htonl() for 32-bit, htons() for 16-bit.</li><li>struct sockaddr_in holds IPv4 (sin_family=AF_INET, sin_port, sin_addr). struct sockaddr_in6 holds IPv6. Both cast to generic struct sockaddr for syscalls.</li><li>MTU (Maximum Transmission Unit) limits packet size at the link layer (typically 1500 bytes for Ethernet). IP fragments oversized packets; TCP uses MSS to avoid fragmentation.</li></ul>
+            <ul><li>Four layers: link (Ethernet/WiFi frames), network (IP datagrams, routing between hosts), transport (TCP/UDP, multiplexing via ports), application (HTTP, DNS, etc.).</li><li>IP addresses identify hosts on the network; ports identify services within a host. Together they form a socket address.</li><li>TCP provides a reliable, ordered, bidirectional byte stream with flow control and congestion control. Connection-oriented: requires a 3-way handshake.</li><li>UDP provides unreliable datagrams: no connection setup, no ordering guarantees, no retransmission. Lower overhead, used for DNS, gaming, video.</li><li>Network byte order is big-endian. All multi-byte fields in socket address structures (addresses, ports) must be converted: htonl() for 32-bit, htons() for 16-bit.</li><li>struct sockaddr_in holds IPv4 (sin_family=AF_INET, sin_port, sin_addr). struct sockaddr_in6 holds IPv6. Both cast to generic struct sockaddr for syscalls.</li><li>MTU (Maximum Transmission Unit) limits packet size at the link layer (typically 1500 bytes for Ethernet). IP fragments oversized packets; TCP uses MSS to avoid fragmentation.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>TCP</td><td>Transmission Control Protocol. Reliable, ordered byte stream over IP. Connection-oriented with handshake, retransmission, and flow control.</td></tr><tr><td class='mono'>UDP</td><td>User Datagram Protocol. Unreliable, connectionless datagrams. No ordering, no retransmission &mdash; application must handle loss.</td></tr><tr><td class='mono'>IP address</td><td>32-bit (IPv4) or 128-bit (IPv6) identifier for a network host. Stored in network byte order in socket structures.</td></tr><tr><td class='mono'>Port</td><td>16-bit number identifying a service on a host. Ports 0-1023 are privileged (require root). Stored in network byte order.</td></tr><tr><td class='mono'>htonl / htons</td><td>Host-to-network byte order conversion for 32-bit (long) and 16-bit (short) values. ntohl/ntohs for the reverse.</td></tr><tr><td class='mono'>sockaddr_in</td><td>IPv4 socket address structure: sin_family (AF_INET), sin_port, sin_addr. Cast to sockaddr* for syscalls.</td></tr><tr><td class='mono'>MTU / MSS</td><td>MTU: max link-layer payload (typically 1500). MSS: max TCP segment data (MTU minus IP+TCP headers, typically 1460).</td></tr></tbody>
+  <tbody><tr><td class='mono'>TCP</td><td>Transmission Control Protocol. Reliable, ordered byte stream over IP. Connection-oriented with handshake, retransmission, and flow control.</td></tr><tr><td class='mono'>UDP</td><td>User Datagram Protocol. Unreliable, connectionless datagrams. No ordering, no retransmission: application must handle loss.</td></tr><tr><td class='mono'>IP address</td><td>32-bit (IPv4) or 128-bit (IPv6) identifier for a network host. Stored in network byte order in socket structures.</td></tr><tr><td class='mono'>Port</td><td>16-bit number identifying a service on a host. Ports 0-1023 are privileged (require root). Stored in network byte order.</td></tr><tr><td class='mono'>htonl / htons</td><td>Host-to-network byte order conversion for 32-bit (long) and 16-bit (short) values. ntohl/ntohs for the reverse.</td></tr><tr><td class='mono'>sockaddr_in</td><td>IPv4 socket address structure: sin_family (AF_INET), sin_port, sin_addr. Cast to sockaddr* for syscalls.</td></tr><tr><td class='mono'>MTU / MSS</td><td>MTU: max link-layer payload (typically 1500). MSS: max TCP segment data (MTU minus IP+TCP headers, typically 1460).</td></tr></tbody>
 </table>
         </div>
 
@@ -114,7 +114,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>inet_pton</td><td class='mono'>int inet_pton(int af, const char *src, void *dst);</td><td class='mono muted2'>EAFNOSUPPORT</td><td>Parses text IP address to binary. Returns 1 on success, 0 if invalid format, -1 on error. Handles IPv4 and IPv6.</td></tr><tr><td class='mono'>inet_ntop</td><td class='mono'>const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);</td><td class='mono muted2'>EAFNOSUPPORT, ENOSPC</td><td>Converts binary address to text string. Use INET_ADDRSTRLEN (16) for IPv4, INET6_ADDRSTRLEN (46) for IPv6 buffer.</td></tr><tr><td class='mono'>htonl / htons</td><td class='mono'>uint32_t htonl(uint32_t); uint16_t htons(uint16_t);</td><td class='mono muted2'>n/a</td><td>Host to network byte order. No-op on big-endian systems. Always use &mdash; code must be portable.</td></tr><tr><td class='mono'>getaddrinfo</td><td class='mono'>int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);</td><td class='mono muted2'>EAI_AGAIN, EAI_FAIL, EAI_NONAME</td><td>Protocol-independent name/service resolution. Returns linked list of results. Use gai_strerror() for errors.</td></tr>
+    <tr><td class='mono'>inet_pton</td><td class='mono'>int inet_pton(int af, const char *src, void *dst);</td><td class='mono muted2'>EAFNOSUPPORT</td><td>Parses text IP address to binary. Returns 1 on success, 0 if invalid format, -1 on error. Handles IPv4 and IPv6.</td></tr><tr><td class='mono'>inet_ntop</td><td class='mono'>const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);</td><td class='mono muted2'>EAFNOSUPPORT, ENOSPC</td><td>Converts binary address to text string. Use INET_ADDRSTRLEN (16) for IPv4, INET6_ADDRSTRLEN (46) for IPv6 buffer.</td></tr><tr><td class='mono'>htonl / htons</td><td class='mono'>uint32_t htonl(uint32_t); uint16_t htons(uint16_t);</td><td class='mono muted2'>n/a</td><td>Host to network byte order. No-op on big-endian systems. Always use: code must be portable.</td></tr><tr><td class='mono'>getaddrinfo</td><td class='mono'>int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);</td><td class='mono muted2'>EAI_AGAIN, EAI_FAIL, EAI_NONAME</td><td>Protocol-independent name/service resolution. Returns linked list of results. Use gai_strerror() for errors.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -132,13 +132,13 @@
   <div class="content"><ul><li>On x86 (little-endian), forgetting htons(80) stores 0x5000 (20480) instead of 0x0050 (80). Connections silently go to the wrong port.</li><li>htonl/htons are no-ops on big-endian architectures but must still be used for portability.</li><li>INADDR_ANY (0) and INADDR_LOOPBACK (127.0.0.1) still need htonl() wrapping in sockaddr_in.sin_addr.s_addr.</li><li>The same byte-order rules apply to IPv6 addresses in sockaddr_in6, though inet_pton handles conversion for you.</li></ul></div>
 </details><details class="accordion">
   <summary>IPv4 vs IPv6 dual-stack</summary>
-  <div class="content"><ul><li>AF_INET6 sockets can accept IPv4 connections via IPv4-mapped addresses (::ffff:a.b.c.d) if IPV6_V6ONLY is not set.</li><li>IPV6_V6ONLY (default varies by OS) controls whether an AF_INET6 socket also accepts IPv4. Set explicitly for predictable behavior.</li><li>getaddrinfo() with AI_V4MAPPED returns IPv4-mapped IPv6 addresses when no native IPv6 address exists.</li><li>Always use getaddrinfo() instead of hard-coding AF_INET &mdash; it handles dual-stack resolution transparently.</li></ul></div>
+  <div class="content"><ul><li>AF_INET6 sockets can accept IPv4 connections via IPv4-mapped addresses (::ffff:a.b.c.d) if IPV6_V6ONLY is not set.</li><li>IPV6_V6ONLY (default varies by OS) controls whether an AF_INET6 socket also accepts IPv4. Set explicitly for predictable behavior.</li><li>getaddrinfo() with AI_V4MAPPED returns IPv4-mapped IPv6 addresses when no native IPv6 address exists.</li><li>Always use getaddrinfo() instead of hard-coding AF_INET: it handles dual-stack resolution transparently.</li></ul></div>
 </details><details class="accordion">
   <summary>TCP vs UDP trade-offs</summary>
-  <div class="content"><ul><li>TCP guarantees delivery and ordering but adds latency (handshake, retransmission timeouts, congestion windows).</li><li>UDP has no connection state &mdash; each sendto() is independent. Application must handle loss, reordering, and duplication.</li><li>TCP head-of-line blocking: one lost segment delays all subsequent segments in the stream. QUIC (UDP-based) avoids this per-stream.</li><li>UDP has no built-in flow control. Sending faster than the receiver can process leads to kernel buffer overflow and silent packet drops.</li></ul></div>
+  <div class="content"><ul><li>TCP guarantees delivery and ordering but adds latency (handshake, retransmission timeouts, congestion windows).</li><li>UDP has no connection state: each sendto() is independent. Application must handle loss, reordering, and duplication.</li><li>TCP head-of-line blocking: one lost segment delays all subsequent segments in the stream. QUIC (UDP-based) avoids this per-stream.</li><li>UDP has no built-in flow control. Sending faster than the receiver can process leads to kernel buffer overflow and silent packet drops.</li></ul></div>
 </details><details class="accordion">
   <summary>MTU, fragmentation, and path MTU discovery</summary>
-  <div class="content"><ul><li>Ethernet MTU is typically 1500 bytes. IP packets larger than MTU are fragmented (IPv4) or rejected with ICMP Packet Too Big (IPv6).</li><li>TCP uses MSS negotiation to avoid fragmentation: MSS = MTU - 40 (IPv4) or MTU - 60 (IPv6) for headers.</li><li>Path MTU Discovery (PMTUD) sets DF (Don't Fragment) flag and relies on ICMP responses. Firewalls blocking ICMP break PMTUD &mdash; a common cause of "black hole" connections.</li><li>UDP applications sending large datagrams risk fragmentation and reassembly failures. Keep UDP payloads under 1400 bytes for reliability.</li></ul></div>
+  <div class="content"><ul><li>Ethernet MTU is typically 1500 bytes. IP packets larger than MTU are fragmented (IPv4) or rejected with ICMP Packet Too Big (IPv6).</li><li>TCP uses MSS negotiation to avoid fragmentation: MSS = MTU - 40 (IPv4) or MTU - 60 (IPv6) for headers.</li><li>Path MTU Discovery (PMTUD) sets DF (Don't Fragment) flag and relies on ICMP responses. Firewalls blocking ICMP break PMTUD: a common cause of "black hole" connections.</li><li>UDP applications sending large datagrams risk fragmentation and reassembly failures. Keep UDP payloads under 1400 bytes for reliability.</li></ul></div>
 </details>
         </div>
 
@@ -177,7 +177,7 @@ printf("addr=%s port=%d\n", buf, ntohs(addr.sin_port));</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use htons/htonl for every port and address assignment &mdash; even constants like INADDR_ANY.</li><li>Use inet_pton/inet_ntop instead of deprecated inet_aton/inet_ntoa for thread safety and IPv6 support.</li><li>Use getaddrinfo() for all name resolution &mdash; it handles IPv4/IPv6, service names, and AI_PASSIVE for servers.</li><li>Always memset sockaddr structures to zero before filling to avoid undefined padding bytes.</li><li>Explicitly set IPV6_V6ONLY when using AF_INET6 sockets to control dual-stack behavior portably.</li></ul>
+            <ul><li>Use htons/htonl for every port and address assignment: even constants like INADDR_ANY.</li><li>Use inet_pton/inet_ntop instead of deprecated inet_aton/inet_ntoa for thread safety and IPv6 support.</li><li>Use getaddrinfo() for all name resolution: it handles IPv4/IPv6, service names, and AI_PASSIVE for servers.</li><li>Always memset sockaddr structures to zero before filling to avoid undefined padding bytes.</li><li>Explicitly set IPV6_V6ONLY when using AF_INET6 sockets to control dual-stack behavior portably.</li></ul>
           </div>
         </div>
 
@@ -212,7 +212,7 @@ printf("addr=%s port=%d\n", buf, ntohs(addr.sin_port));</code></pre>
   <div><div style="font-weight:750">getaddrinfo()</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="UDP is connectionless and unreliable &mdash; it provides no ordering, retransmission, or flow control.">
+</div><div class="q" data-quiz data-answer="1" data-explain="UDP is connectionless and unreliable: it provides no ordering, retransmission, or flow control.">
   <div class="qp">Q2. Which transport protocol provides NO delivery guarantee?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -282,7 +282,7 @@ printf("addr=%s port=%d\n", buf, ntohs(addr.sin_port));</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch58", n:58, subtitle:"Chapter 58 \u2014 Sockets: Fundamentals of TCP/IP Networks"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch58", n:58, subtitle:"Chapter 58: Sockets: Fundamentals of TCP/IP Networks"});
     TLPIWidgets.mountKernelGraph("kg_ch58", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (net). Click to pin a tooltip.",

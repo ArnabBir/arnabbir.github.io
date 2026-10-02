@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 14 — File Systems</title>
+  <title>TLPI v2, Chapter 14, File Systems</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 14 — File Systems</div>
+          <div class="sub" id="subTitle">Chapter 14: File Systems</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 14 — File Systems
+            Chapter 14: File Systems
           </h2>
           <div class="subtitle">
-            <p>How files actually live on disk — partitions, superblocks, inode tables, data blocks, and the VFS abstraction. A disk is just a linear array of blocks; the filesystem imposes structure (superblock, inode table, data region) that makes those blocks addressable by name. The VFS layer abstracts over concrete filesystem implementations so that open/read/write work identically whether the backing store is ext4, xfs, btrfs, or NFS.</p><p>Understanding disk layout explains why you can run out of inodes with free space remaining, why journaling prevents corruption after crashes, and why mount() is the mechanism that attaches a filesystem into the global namespace.</p>
+            <p>How files actually live on disk: partitions, superblocks, inode tables, data blocks, and the VFS abstraction. A disk is just a linear array of blocks; the filesystem imposes structure (superblock, inode table, data region) that makes those blocks addressable by name. The VFS layer abstracts over concrete filesystem implementations so that open/read/write work identically whether the backing store is ext4, xfs, btrfs, or NFS.</p><p>Understanding disk layout explains why you can run out of inodes with free space remaining, why journaling prevents corruption after crashes, and why mount() is the mechanism that attaches a filesystem into the global namespace.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">VFS provides a uniform interface; concrete filesystems implement superblock/inode/dentry operations behind it.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Inode exhaustion: a filesystem can have free blocks but zero free inodes — no new files can be created.</div>
+  <div class="v">Inode exhaustion: a filesystem can have free blocks but zero free inodes: no new files can be created.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use df -i for inode usage, dumpe2fs for superblock info, mount | grep for mount options.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>VFS is a uniform interface: every filesystem registers super_operations, inode_operations, file_operations. User code never touches concrete FS directly.</li><li>The superblock tracks filesystem-wide metadata: block size, total/free blocks, total/free inodes, mount state, journal location.</li><li>An inode contains all file metadata (size, permissions, timestamps, block pointers) but NOT the filename — filenames live in directory entries.</li><li>Journaling (ext3/ext4) writes metadata changes to a log before committing; on crash, replay the journal to restore consistency without full fsck.</li><li>mount() attaches a filesystem's root inode to a directory in the namespace; mount namespaces allow per-process views.</li><li>statfs()/statvfs() query filesystem parameters (block size, free space, free inodes) — essential for capacity monitoring.</li></ul>
+            <ul><li>VFS is a uniform interface: every filesystem registers super_operations, inode_operations, file_operations. User code never touches concrete FS directly.</li><li>The superblock tracks filesystem-wide metadata: block size, total/free blocks, total/free inodes, mount state, journal location.</li><li>An inode contains all file metadata (size, permissions, timestamps, block pointers) but NOT the filename: filenames live in directory entries.</li><li>Journaling (ext3/ext4) writes metadata changes to a log before committing; on crash, replay the journal to restore consistency without full fsck.</li><li>mount() attaches a filesystem's root inode to a directory in the namespace; mount namespaces allow per-process views.</li><li>statfs()/statvfs() query filesystem parameters (block size, free space, free inodes): essential for capacity monitoring.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>VFS</td><td>Virtual File System — kernel abstraction layer dispatching file ops to concrete filesystem drivers.</td></tr><tr><td class='mono'>Superblock</td><td>Per-filesystem metadata: block size, inode count, free lists, journal location, mount count.</td></tr><tr><td class='mono'>Inode</td><td>On-disk structure holding file metadata and block pointers; identified by inode number within a filesystem.</td></tr><tr><td class='mono'>Block group</td><td>ext2/3/4 divides disk into groups each with its own inode table and block bitmap for locality.</td></tr><tr><td class='mono'>Journal</td><td>Write-ahead log for metadata (and optionally data); enables crash recovery without full fsck.</td></tr><tr><td class='mono'>Mount point</td><td>Directory where a filesystem's root is grafted into the namespace via mount().</td></tr></tbody>
+  <tbody><tr><td class='mono'>VFS</td><td>Virtual File System: kernel abstraction layer dispatching file ops to concrete filesystem drivers.</td></tr><tr><td class='mono'>Superblock</td><td>Per-filesystem metadata: block size, inode count, free lists, journal location, mount count.</td></tr><tr><td class='mono'>Inode</td><td>On-disk structure holding file metadata and block pointers; identified by inode number within a filesystem.</td></tr><tr><td class='mono'>Block group</td><td>ext2/3/4 divides disk into groups each with its own inode table and block bitmap for locality.</td></tr><tr><td class='mono'>Journal</td><td>Write-ahead log for metadata (and optionally data); enables crash recovery without full fsck.</td></tr><tr><td class='mono'>Mount point</td><td>Directory where a filesystem's root is grafted into the namespace via mount().</td></tr></tbody>
 </table>
         </div>
 
@@ -113,7 +113,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>mount</td><td class='mono'>int mount(const char *source, const char *target, const char *fstype, unsigned long flags, const void *data);</td><td class='mono muted2'>EBUSY, EPERM, ENODEV, EINVAL</td><td>Attaches filesystem; requires CAP_SYS_ADMIN; flags control ro/noexec/nosuid.</td></tr><tr><td class='mono'>umount2</td><td class='mono'>int umount2(const char *target, int flags);</td><td class='mono muted2'>EBUSY, EPERM, EINVAL</td><td>MNT_DETACH for lazy unmount; MNT_FORCE for NFS. EBUSY if files open.</td></tr><tr><td class='mono'>statfs</td><td class='mono'>int statfs(const char *path, struct statfs *buf);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Returns f_bsize, f_blocks, f_bfree, f_bavail, f_files, f_ffree. Use for capacity checks.</td></tr><tr><td class='mono'>sync</td><td class='mono'>void sync(void);</td><td class='mono muted2'>—</td><td>Flushes all dirty buffers to disk; syncfs() scopes to one filesystem.</td></tr>
+    <tr><td class='mono'>mount</td><td class='mono'>int mount(const char *source, const char *target, const char *fstype, unsigned long flags, const void *data);</td><td class='mono muted2'>EBUSY, EPERM, ENODEV, EINVAL</td><td>Attaches filesystem; requires CAP_SYS_ADMIN; flags control ro/noexec/nosuid.</td></tr><tr><td class='mono'>umount2</td><td class='mono'>int umount2(const char *target, int flags);</td><td class='mono muted2'>EBUSY, EPERM, EINVAL</td><td>MNT_DETACH for lazy unmount; MNT_FORCE for NFS. EBUSY if files open.</td></tr><tr><td class='mono'>statfs</td><td class='mono'>int statfs(const char *path, struct statfs *buf);</td><td class='mono muted2'>ENOENT, EACCES</td><td>Returns f_bsize, f_blocks, f_bfree, f_bavail, f_files, f_ffree. Use for capacity checks.</td></tr><tr><td class='mono'>sync</td><td class='mono'>void sync(void);</td><td class='mono muted2'>N/A</td><td>Flushes all dirty buffers to disk; syncfs() scopes to one filesystem.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -128,7 +128,7 @@
           </div>
           <details class="accordion">
   <summary>Inode exhaustion vs space exhaustion</summary>
-  <div class="content"><ul><li>A filesystem can report free blocks but have zero free inodes (common with many tiny files, e.g. mail spools).</li><li>df -i shows inode usage; ext4 inode count is fixed at mkfs time (unless flex_bg/resize).</li><li>XFS allocates inodes dynamically — less prone to this issue but can still hit limits.</li><li>Symptoms: ENOSPC on creat() despite df showing free space.</li></ul></div>
+  <div class="content"><ul><li>A filesystem can report free blocks but have zero free inodes (common with many tiny files, e.g. mail spools).</li><li>df -i shows inode usage; ext4 inode count is fixed at mkfs time (unless flex_bg/resize).</li><li>XFS allocates inodes dynamically: less prone to this issue but can still hit limits.</li><li>Symptoms: ENOSPC on creat() despite df showing free space.</li></ul></div>
 </details><details class="accordion">
   <summary>Journal replay and crash recovery</summary>
   <div class="content"><ul><li>On unclean shutdown, the filesystem replays the journal to restore consistent metadata state.</li><li>journal=data mode journals file data too (slower but stronger guarantees); default is journal=ordered (data written before metadata commit).</li><li>Journal replay is automatic at mount time; if it fails the FS may require manual fsck.</li><li>Barriers (write ordering) must be honored by the disk; disable write cache or use barriers=1.</li></ul></div>
@@ -137,7 +137,7 @@
   <div class="content"><ul><li>unshare(CLONE_NEWNS) creates a new mount namespace; mounts/unmounts in child are invisible to parent.</li><li>Containers rely on mount namespaces to provide isolated filesystem views.</li><li>pivot_root() or chroot() combined with mount namespaces implements root filesystem isolation.</li><li>Shared vs private vs slave mount propagation controls visibility of mount events across namespaces.</li></ul></div>
 </details><details class="accordion">
   <summary>Filesystem type differences</summary>
-  <div class="content"><ul><li>ext4: mature, fixed inode count, journaling, max file 16TB, max FS 1EB. Good general-purpose.</li><li>XFS: excellent for large files, dynamic inode allocation, extent-based, online defrag/resize (grow only).</li><li>Btrfs: copy-on-write, snapshots, checksums, multi-device, but still less battle-tested for some workloads.</li><li>Behavior of O_DIRECT, fallocate, hole-punching varies by FS — always test your assumptions.</li></ul></div>
+  <div class="content"><ul><li>ext4: mature, fixed inode count, journaling, max file 16TB, max FS 1EB. Good general-purpose.</li><li>XFS: excellent for large files, dynamic inode allocation, extent-based, online defrag/resize (grow only).</li><li>Btrfs: copy-on-write, snapshots, checksums, multi-device, but still less battle-tested for some workloads.</li><li>Behavior of O_DIRECT, fallocate, hole-punching varies by FS: always test your assumptions.</li></ul></div>
 </details>
         </div>
 
@@ -172,7 +172,7 @@ umount2(&quot;/mnt/data&quot;, MNT_DETACH);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Monitor both block usage AND inode usage (df -i) — alert on either approaching limits.</li><li>Understand your journal mode (ordered vs data vs writeback) and its crash guarantees.</li><li>Use mount options appropriate for workload: noatime for read-heavy, nosuid/nodev for untrusted data.</li><li>Test filesystem behavior under crash (power-cut simulation) for data integrity code paths.</li><li>For containers: understand mount propagation (shared/private/slave) to avoid mount leaks.</li></ul>
+            <ul><li>Monitor both block usage AND inode usage (df -i): alert on either approaching limits.</li><li>Understand your journal mode (ordered vs data vs writeback) and its crash guarantees.</li><li>Use mount options appropriate for workload: noatime for read-heavy, nosuid/nodev for untrusted data.</li><li>Test filesystem behavior under crash (power-cut simulation) for data integrity code paths.</li><li>For containers: understand mount propagation (shared/private/slave) to avoid mount leaks.</li></ul>
           </div>
         </div>
 
@@ -277,7 +277,7 @@ umount2(&quot;/mnt/data&quot;, MNT_DETACH);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch14", n:14, subtitle:"Chapter 14 \u2014 File Systems"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch14", n:14, subtitle:"Chapter 14: File Systems"});
     TLPIWidgets.mountKernelGraph("kg_ch14", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",

@@ -1,4 +1,5 @@
-import { readdir, readFile, mkdir, copyFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
+import { normalizeBytes, NORMALIZATION } from './text-normalization.mjs';
 import { resolve, basename } from 'node:path';
 import { createHash } from 'node:crypto';
 import { playbooks, playbookSource } from '../src/content/playbooks.js';
@@ -16,8 +17,9 @@ const records = [];
 for (const item of playbooks) {
   if (basename(item.sourceFile) !== item.sourceFile) throw new Error('Expected a flat source filename');
   const bytes = await readFile(resolve(source, item.sourceFile));
-  const sha256 = hash(bytes);
-  records.push({ id: item.id, sourceFile: item.sourceFile, contentPath: item.contentPath, sha256, bytes: bytes.length, aliases: groups.get(sha256).filter(name => name !== item.sourceFile) });
+  const sourceSha256 = hash(bytes);
+  const output = normalizeBytes(bytes, item.sourceFile);
+  records.push({ id: item.id, sourceFile: item.sourceFile, contentPath: item.contentPath, sourceSha256, sourceBytes: bytes.length, sha256: hash(output), bytes: output.length, aliases: groups.get(sourceSha256).filter(name => name !== item.sourceFile) });
 }
 if (new Set(records.map(r => r.sha256)).size !== records.length || groups.size !== records.length) {
   throw new Error('Registry must cover every unique source HTML exactly once; review changed/new sources first.');
@@ -34,6 +36,6 @@ for (const record of records) {
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
 }
 await mkdir(destination, { recursive: true });
-for (const record of records) await copyFile(resolve(source, record.sourceFile), resolve(destination, `${record.id}.html`));
-await writeFile(resolve(destination, 'manifest.json'), JSON.stringify({ source: playbookSource, files: records }, null, 2) + '\n');
+for (const record of records) await writeFile(resolve(destination, `${record.id}.html`), normalizeBytes(await readFile(resolve(source, record.sourceFile)), record.sourceFile));
+await writeFile(resolve(destination, 'manifest.json'), JSON.stringify({ source: playbookSource, normalization: NORMALIZATION, files: records }, null, 2) + '\n');
 console.log(`Imported ${records.length} unique HTML experiences (${files.length - records.length} duplicate aliases), ${records.reduce((n, r) => n + r.bytes, 0)} bytes.`);

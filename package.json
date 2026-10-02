@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
-    "build": "vite build",
+    "build": "vite build && node scripts/check-build.mjs",
+    "test": "node --test scripts/tests/*.test.mjs && node scripts/check-playbooks.mjs && node scripts/check-frontend-atlas.mjs && node scripts/normalize-text.mjs --check",
+    "test:browser": "node scripts/check-recovery-browser.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"

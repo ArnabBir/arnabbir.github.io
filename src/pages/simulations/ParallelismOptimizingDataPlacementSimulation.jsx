@@ -119,7 +119,7 @@ const CONFIG = {
       "log": "Tail latency improves.",
       "message": {
         "from": "Query Router",
-        "to": "—",
+        "to": "N/A",
         "label": "Tail ↓"
       }
     },
@@ -159,7 +159,7 @@ const CONFIG = {
         "title": "Practical implications",
         "icon": "BookOpen",
         "bullets": [
-          "Placement is a first-class performance lever—separate from indexing or caching.",
+          "Placement is a first-class performance lever: separate from indexing or caching.",
           "Systems like OLAP stores and search engines can benefit from workload-aware placement."
         ]
       }

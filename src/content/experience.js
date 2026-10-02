@@ -95,7 +95,7 @@ export default [
     tech: ["Java", "Full Stack", "Data Pipeline", "Supply Chain"],
     links: [
       {
-        label: "Flipkart Tech — Services Fulfilment Cockpit",
+        label: "Flipkart Tech: Services Fulfilment Cockpit",
         href: "https://blog.flipkart.tech/services-fulfilment-cockpit-why-passengers-within-flipkarts-airport-never-miss-a-flight-693855697f45",
       },
     ],
@@ -126,7 +126,7 @@ export default [
     logo: "/images/axio-logo.png",
     website: "https://www.axio.co.in/",
     summary:
-      "End-to-end POC work spanning fraud detection, location intelligence, lending automation, and early warning systems — at Capital Float (now axio, acquired by Amazon in 2025).",
+      "End-to-end POC work spanning fraud detection, location intelligence, lending automation, and early warning systems at Capital Float (now axio, acquired by Amazon in 2025).",
     highlights: [
       "Built an end-to-end POC for tracking artificial bank statements and expenditure estimates based on SMS data, later branded as Walnut.",
       "Created a location profiling dashboard using Google Maps API with features for landmarks, transportation, and traffic for credit risk modelling.",
@@ -143,7 +143,7 @@ export default [
   },
   {
     company: "Indian Statistical Institute",
-    role: "Research Intern — Machine Intelligence Unit",
+    role: "Research Intern: Machine Intelligence Unit",
     location: "Kolkata, India",
     start: "May 2016",
     end: "Jul 2016",

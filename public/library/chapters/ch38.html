@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 38 — Writing Secure Privileged Programs</title>
+  <title>TLPI v2, Chapter 38, Writing Secure Privileged Programs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 38 — Writing Secure Privileged Programs</div>
+          <div class="sub" id="subTitle">Chapter 38: Writing Secure Privileged Programs</div>
         </div>
       </div>
       <div class="actions">
@@ -56,14 +56,14 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 38 — Writing Secure Privileged Programs
+            Chapter 38: Writing Secure Privileged Programs
           </h2>
           <div class="subtitle">
             <p>Writing secure privileged code means minimizing the window of privilege, validating all inputs, avoiding TOCTOU races, and never trusting the environment. A setuid binary inherits attacker-controlled state through environment variables, file descriptors, signal dispositions, and the filesystem itself.</p><p>Privilege is a liability, not an asset. The secure program acquires privileges late, drops them early, holds them briefly, and verifies the drop succeeded before processing untrusted data.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Privilege is a liability — acquire late, drop early, hold briefly. Every line of code running with elevated rights expands the attack surface.</div>
+  <div class="v">Privilege is a liability: acquire late, drop early, hold briefly. Every line of code running with elevated rights expands the attack surface.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v">TOCTOU: checking access() then calling open() creates a race window an attacker can exploit by swapping the target via symlink between the two calls.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Principle of least privilege: drop privileges immediately after acquiring the resource that requires them; use setresuid(uid,uid,uid) to permanently discard the saved-set-user-ID so privilege cannot be regained.</li><li>TOCTOU races on the filesystem: never stat a path then open it — instead open first (with O_NOFOLLOW) then fstat the file descriptor; the fd pins the inode regardless of subsequent path manipulation.</li><li>Environment sanitization: clear PATH, IFS, LD_PRELOAD, LD_LIBRARY_PATH, and all LD_* variables before doing any work; rebuild environ from a known-safe whitelist of values.</li><li>Input validation: enforce strict length bounds, reject unexpected encodings, detect embedded null bytes that truncate C strings, and block path traversal sequences (../) before any use.</li><li>Secure temporary files: use mkstemp() which atomically creates and opens with a unique name, or O_TMPFILE (Linux 3.11+) for anonymous inodes; never use the deprecated mktemp() which is inherently racy.</li><li>Avoid shell invocations in privileged code: system() and popen() spawn /bin/sh which interprets PATH, IFS, and metacharacters; use execve() with an absolute path and a fully sanitized environment array instead.</li></ul>
+            <ul><li>Principle of least privilege: drop privileges immediately after acquiring the resource that requires them; use setresuid(uid,uid,uid) to permanently discard the saved-set-user-ID so privilege cannot be regained.</li><li>TOCTOU races on the filesystem: never stat a path then open it: instead open first (with O_NOFOLLOW) then fstat the file descriptor; the fd pins the inode regardless of subsequent path manipulation.</li><li>Environment sanitization: clear PATH, IFS, LD_PRELOAD, LD_LIBRARY_PATH, and all LD_* variables before doing any work; rebuild environ from a known-safe whitelist of values.</li><li>Input validation: enforce strict length bounds, reject unexpected encodings, detect embedded null bytes that truncate C strings, and block path traversal sequences (../) before any use.</li><li>Secure temporary files: use mkstemp() which atomically creates and opens with a unique name, or O_TMPFILE (Linux 3.11+) for anonymous inodes; never use the deprecated mktemp() which is inherently racy.</li><li>Avoid shell invocations in privileged code: system() and popen() spawn /bin/sh which interprets PATH, IFS, and metacharacters; use execve() with an absolute path and a fully sanitized environment array instead.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -298,7 +298,7 @@ static int create_secure_temp(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch38", n:38, subtitle:"Chapter 38 \u2014 Writing Secure Privileged Programs"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch38", n:38, subtitle:"Chapter 38: Writing Secure Privileged Programs"});
     TLPIWidgets.mountKernelGraph("kg_ch38", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (security). Click to pin a tooltip.",

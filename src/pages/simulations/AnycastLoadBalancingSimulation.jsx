@@ -349,32 +349,32 @@ export default function AnycastLoadBalancingSimulation() {
           {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — Google SRE / Networking
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: Google SRE / Networking
             </div>
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 dark:from-purple-400 dark:via-pink-400 dark:to-rose-400 bg-clip-text text-transparent mb-4">
               Anycast as a Load Balancing Feature
             </h2>
             <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              How Google's IT infrastructure uses <strong className="text-slate-900 dark:text-slate-200">IP Anycast</strong> with BGP to provide automatic, distance-aware failover for global services — DNS, LDAP, HTTP proxy, and more — without changing a single DNS record.
+              How Google's IT infrastructure uses <strong className="text-slate-900 dark:text-slate-200">IP Anycast</strong> with BGP to provide automatic, distance-aware failover for global services, DNS, LDAP, HTTP proxy, and more, without changing a single DNS record.
             </p>
           </div>
 
           {/* ---- The Problem ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<AlertTriangle className="w-5 h-5" />} title="The Problem — Why Traditional Failover Fails" />
+            <SectionTitle icon={<AlertTriangle className="w-5 h-5" />} title="The Problem: Why Traditional Failover Fails" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 The paper walks through a progression of failure scenarios. Each one exposes a gap in traditional load balancing:
               </p>
               <div className="space-y-4 mb-6">
-                <FailureStep num={1} title="Backend failure" desc="The load balancer is healthy, but all backends behind it are down. The LB can redirect to a remote site via proxy — but this adds latency, loses client IP, and requires complex cross-site configuration." status="partial" />
+                <FailureStep num={1} title="Backend failure" desc="The load balancer is healthy, but all backends behind it are down. The LB can redirect to a remote site via proxy: but this adds latency, loses client IP, and requires complex cross-site configuration." status="partial" />
                 <FailureStep num={2} title="Load balancer failure" desc="The LB itself is down. Now there's nothing to redirect traffic. DNS-based failover is the fallback, but DNS TTL propagation takes minutes, and you need a distributed monitoring system across hundreds of sites." status="broken" />
-                <FailureStep num={3} title="Site-wide failure" desc="Network or power failure at the entire site. DNS is too slow and too centralized. You need something at the routing layer — something that makes traffic automatically flow somewhere else." status="critical" />
+                <FailureStep num={3} title="Site-wide failure" desc="Network or power failure at the entire site. DNS is too slow and too centralized. You need something at the routing layer: something that makes traffic automatically flow somewhere else." status="critical" />
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-500/20 p-4 flex items-start gap-3">
                 <Zap className="w-5 h-5 text-purple-500 dark:text-purple-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-purple-700 dark:text-purple-300">The insight:</strong> Instead of bolting failover onto DNS or application-layer proxies, push it down to the <strong>network routing layer</strong> itself. If the route disappears, traffic automatically goes somewhere else — in under 1 second.
+                  <strong className="text-purple-700 dark:text-purple-300">The insight:</strong> Instead of bolting failover onto DNS or application-layer proxies, push it down to the <strong>network routing layer</strong> itself. If the route disappears, traffic automatically goes somewhere else: in under 1 second.
                 </p>
               </div>
             </div>
@@ -417,7 +417,7 @@ export default function AnycastLoadBalancingSimulation() {
 
           {/* ---- Architecture ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Layers className="w-5 h-5" />} title="Architecture — Anycast on Load Balancers" />
+            <SectionTitle icon={<Layers className="w-5 h-5" />} title="Architecture: Anycast on Load Balancers" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 The key design decision: <strong className="text-purple-600 dark:text-purple-300">Anycast is deployed at the Load Balancer level, not per-service.</strong> This reduces BGP complexity from hundreds of service instances down to a handful of LB pairs.
@@ -425,13 +425,13 @@ export default function AnycastLoadBalancingSimulation() {
               <div className="grid md:grid-cols-2 gap-5 mb-6">
                 <HwCard icon={<Server className="w-6 h-6" />} color="purple" title="Load Balancer (HA Pair)" specs={["ip_vs (IPVS) kernel module", "Direct Routing (DR) mode"]} desc="Each site runs a high-availability pair of LBs using Heartbeat (Linux-HA). They manage VIPs for all services and handle health checking via ldirectord." />
                 <HwCard icon={<Network className="w-6 h-6" />} color="blue" title="Quagga BGP Speaker" specs={["Peers with site routers", "/32 route advertisements"]} desc="Quagga runs on each LB, advertising Anycast VIPs via BGP when backends are healthy. Route withdrawal happens within 1 second when backends fail." />
-                <HwCard icon={<Activity className="w-6 h-6" />} color="emerald" title="ldirectord Health Checks" specs={["Service-specific probes", "Fallback command trigger"]} desc="ldirectord monitors backends per-VIP. When the last backend fails, it triggers a 'fallback command' that brings the Anycast IP interface down — causing Quagga to withdraw the route." />
+                <HwCard icon={<Activity className="w-6 h-6" />} color="emerald" title="ldirectord Health Checks" specs={["Service-specific probes", "Fallback command trigger"]} desc="ldirectord monitors backends per-VIP. When the last backend fails, it triggers a 'fallback command' that brings the Anycast IP interface down: causing Quagga to withdraw the route." />
                 <HwCard icon={<Lock className="w-6 h-6" />} color="amber" title="Network Protection" specs={["ACL-protected /32 subnet", "Controlled route advertisers"]} desc="Routers accept /32 advertisements only from the designated Anycast subnet. ACLs prevent misconfiguration or accidental IP space takeover." />
               </div>
               <div className="bg-slate-50 dark:bg-slate-900/80 rounded-xl border border-blue-200 dark:border-blue-500/20 p-4 flex items-start gap-3">
                 <Info className="w-5 h-5 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-blue-700 dark:text-blue-300">Adding a new service is trivial:</strong> Configure backends in a VIP on an Anycast-enabled LB. The network configuration is already in place. Expanding to new sites follows the same process — Anycast routing handles the rest.
+                  <strong className="text-blue-700 dark:text-blue-300">Adding a new service is trivial:</strong> Configure backends in a VIP on an Anycast-enabled LB. The network configuration is already in place. Expanding to new sites follows the same process: Anycast routing handles the rest.
                 </p>
               </div>
             </div>
@@ -474,7 +474,7 @@ export default function AnycastLoadBalancingSimulation() {
               <BenefitCard num="1" title="Reduced Complexity" desc="One BGP peering point per site vs. one per service instance. Network configuration doesn't grow with service count." color="purple" />
               <BenefitCard num="2" title="No Proxy Overhead" desc="Clients connect directly to the failover location. No proxy chain means no lost client identity and lower latency." color="blue" />
               <BenefitCard num="3" title="Fewer Routing Changes" desc="The LB aggregates service health into a single VIP. Route changes only happen on site-level failures, not individual backend flaps." color="emerald" />
-              <BenefitCard num="4" title="TCP + UDP Support" desc="By having LBs handle application health checks, Anycast works for TCP services too — not just connectionless UDP like DNS." color="amber" />
+              <BenefitCard num="4" title="TCP + UDP Support" desc="By having LBs handle application health checks, Anycast works for TCP services too: not just connectionless UDP like DNS." color="amber" />
             </div>
           </section>
 
@@ -483,8 +483,8 @@ export default function AnycastLoadBalancingSimulation() {
             <SectionTitle icon={<Eye className="w-5 h-5" />} title="Using the Simulator Above" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <UsageCard step="1" title="Watch Traffic Flow" desc="Colored packets stream from users to the nearest PoP. Each PoP's request counter increments in real-time. Traffic naturally distributes geographically." color="purple" />
-              <UsageCard step="2" title="Kill a PoP" desc="Click the power icon on any PoP to simulate a BGP withdrawal. Watch traffic reroute to the next-nearest PoP instantly — this is Anycast failover in action." color="red" />
-              <UsageCard step="3" title="Click a User" desc="Click any user dot on the map to see their BGP routing table — which PoPs are reachable, their metrics, and which one is the active best path." color="blue" />
+              <UsageCard step="2" title="Kill a PoP" desc="Click the power icon on any PoP to simulate a BGP withdrawal. Watch traffic reroute to the next-nearest PoP instantly: this is Anycast failover in action." color="red" />
+              <UsageCard step="3" title="Click a User" desc="Click any user dot on the map to see their BGP routing table: which PoPs are reachable, their metrics, and which one is the active best path." color="blue" />
               <UsageCard step="4" title="Watch Load Shift" desc="After killing a PoP, the Live Stats panel shows load redistributing. Restore the PoP and watch traffic rebalance as the route is re-advertised." color="emerald" />
             </div>
           </section>

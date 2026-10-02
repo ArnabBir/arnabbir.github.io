@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 16 — Extended Attributes</title>
+  <title>TLPI v2, Chapter 16, Extended Attributes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 16 — Extended Attributes</div>
+          <div class="sub" id="subTitle">Chapter 16: Extended Attributes</div>
         </div>
       </div>
       <div class="actions">
@@ -56,10 +56,10 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 16 — Extended Attributes
+            Chapter 16: Extended Attributes
           </h2>
           <div class="subtitle">
-            <p>Extended attributes add arbitrary key-value metadata to files beyond traditional inode fields — used for SELinux labels, file capabilities, and custom application metadata. Each xattr is a namespace-prefixed key (e.g., "user.mime_type") with an opaque byte-string value.</p><p>The four namespaces (user, security, system, trusted) have different access rules. user.* xattrs are freely readable/writable by the file owner; security.* requires CAP_SYS_ADMIN and is used by SELinux/AppArmor; system.* stores POSIX ACLs; trusted.* requires CAP_SYS_ADMIN and is invisible to unprivileged users.</p>
+            <p>Extended attributes add arbitrary key-value metadata to files beyond traditional inode fields: used for SELinux labels, file capabilities, and custom application metadata. Each xattr is a namespace-prefixed key (e.g., "user.mime_type") with an opaque byte-string value.</p><p>The four namespaces (user, security, system, trusted) have different access rules. user.* xattrs are freely readable/writable by the file owner; security.* requires CAP_SYS_ADMIN and is used by SELinux/AppArmor; system.* stores POSIX ACLs; trusted.* requires CAP_SYS_ADMIN and is invisible to unprivileged users.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
@@ -128,13 +128,13 @@
           </div>
           <details class="accordion">
   <summary>Filesystem support varies</summary>
-  <div class="content"><ul><li>ext4, XFS, Btrfs: full xattr support. FAT/VFAT: no xattr support at all (ENOTSUP).</li><li>NFS: xattr support depends on server filesystem and NFS version (NFSv4 with server support).</li><li>tmpfs: supports xattrs but they consume memory; no persistence across reboot.</li><li>Always handle ENOTSUP gracefully — your code may run on a filesystem without xattr support.</li></ul></div>
+  <div class="content"><ul><li>ext4, XFS, Btrfs: full xattr support. FAT/VFAT: no xattr support at all (ENOTSUP).</li><li>NFS: xattr support depends on server filesystem and NFS version (NFSv4 with server support).</li><li>tmpfs: supports xattrs but they consume memory; no persistence across reboot.</li><li>Always handle ENOTSUP gracefully: your code may run on a filesystem without xattr support.</li></ul></div>
 </details><details class="accordion">
   <summary>Size limits and storage</summary>
   <div class="content"><ul><li>ext4: max value size ~64KB; total xattr space per inode limited (one block, typically 4KB, unless large EA inode feature).</li><li>XFS: attribute values up to 64KB; stored inline in inode or in separate extents for large values.</li><li>Btrfs: xattrs stored as regular tree items; practical limit per value is 64KB.</li><li>ENOSPC from setxattr can mean the xattr storage area (not the filesystem) is full.</li></ul></div>
 </details><details class="accordion">
   <summary>Security implications</summary>
-  <div class="content"><ul><li>SELinux labels (security.selinux) are critical for MAC enforcement; incorrect labels break access.</li><li>File capabilities (security.capability) grant specific privileges without full setuid-root — verify with getcap.</li><li>Backup/restore tools may not preserve security.* xattrs unless run as root with --xattrs flag.</li><li>Container images must preserve xattrs; tar --xattrs --xattrs-include='*' is needed.</li></ul></div>
+  <div class="content"><ul><li>SELinux labels (security.selinux) are critical for MAC enforcement; incorrect labels break access.</li><li>File capabilities (security.capability) grant specific privileges without full setuid-root: verify with getcap.</li><li>Backup/restore tools may not preserve security.* xattrs unless run as root with --xattrs flag.</li><li>Container images must preserve xattrs; tar --xattrs --xattrs-include='*' is needed.</li></ul></div>
 </details><details class="accordion">
   <summary>Backup and preservation</summary>
   <div class="content"><ul><li>cp by default does NOT copy xattrs; use cp --preserve=xattr or cp -a (which includes xattr).</li><li>rsync requires -X (--xattrs) flag to transfer extended attributes.</li><li>tar: use --xattrs to store and --xattrs-include='*' to restore all namespaces.</li><li>Some network transfers (scp, sftp) do not preserve xattrs at all.</li></ul></div>
@@ -179,7 +179,7 @@ for (char *p = list; p &lt; list + llen; p += strlen(p) + 1)
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always handle ENOTSUP — not all filesystems or mount configurations support xattrs.</li><li>Use the two-call pattern (size query then read) to avoid buffer overflows with getxattr/listxattr.</li><li>Verify backup/restore pipelines preserve xattrs (test with getfattr before and after).</li><li>For SELinux environments: restorecon after file operations that may lose security context.</li><li>Be aware of xattr size limits per-value and per-inode; don't use xattrs as a general-purpose database.</li></ul>
+            <ul><li>Always handle ENOTSUP: not all filesystems or mount configurations support xattrs.</li><li>Use the two-call pattern (size query then read) to avoid buffer overflows with getxattr/listxattr.</li><li>Verify backup/restore pipelines preserve xattrs (test with getfattr before and after).</li><li>For SELinux environments: restorecon after file operations that may lose security context.</li><li>Be aware of xattr size limits per-value and per-inode; don't use xattrs as a general-purpose database.</li></ul>
           </div>
         </div>
 
@@ -284,7 +284,7 @@ for (char *p = list; p &lt; list + llen; p += strlen(p) + 1)
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch16", n:16, subtitle:"Chapter 16 \u2014 Extended Attributes"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch16", n:16, subtitle:"Chapter 16: Extended Attributes"});
     TLPIWidgets.mountKernelGraph("kg_ch16", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",

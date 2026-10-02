@@ -1,6 +1,6 @@
 
 /* =========================================================
-   DDIA Interactive Library — app.js
+   DDIA Interactive Library: app.js
    Offline-first, no external libraries.
    ========================================================= */
 

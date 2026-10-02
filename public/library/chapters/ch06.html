@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 06 — Processes</title>
+  <title>TLPI v2, Chapter 06, Processes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 06 — Processes</div>
+          <div class="sub" id="subTitle">Chapter 06: Processes</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 06 — Processes
+            Chapter 06: Processes
           </h2>
           <div class="subtitle">
             <p>Processes are isolated execution contexts with their own PID, address space, credentials, and resource tables. The kernel keeps a surprisingly rich *process state machine*: runnable, sleeping, stopped, zombie, and more. Understanding how a process *moves* through states is the key to debugging leaks, zombies, and deadlocks.</p><p>In practice, process control is about composing a small set of primitives (fork/exec/wait, signals, pipes, dup2, setpgid/setsid) into reliable patterns: supervisors, daemons, pipelines, sandboxes, and service managers.</p>
@@ -111,7 +111,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr><tr><td class='mono'>waitpid</td><td class='mono'>pid_t waitpid(pid_t pid, int *wstatus, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>Reaps children and collects exit status. Handle EINTR; use WNOHANG for nonblocking polls.</td></tr><tr><td class='mono'>_exit</td><td class='mono'>void _exit(int status);</td><td class='mono muted2'>—</td><td>Terminates immediately without flushing stdio buffers; use after fork in child if exec fails.</td></tr><tr><td class='mono'>exit</td><td class='mono'>void exit(int status);</td><td class='mono muted2'>—</td><td>Flushes stdio and runs atexit handlers; can deadlock in child after fork in multithreaded programs.</td></tr>
+    <tr><td class='mono'>fork</td><td class='mono'>pid_t fork(void);</td><td class='mono muted2'>EAGAIN, ENOMEM</td><td>Child gets a new PID; address space is copy-on-write. Only async-signal-safe operations between fork and exec in multithreaded programs.</td></tr><tr><td class='mono'>execve</td><td class='mono'>int execve(const char *filename, char *const argv[], char *const envp[]);</td><td class='mono muted2'>ENOENT, EACCES, ENOEXEC, E2BIG</td><td>Replaces process image. PID stays; many attributes preserved (cwd, fds unless CLOEXEC).</td></tr><tr><td class='mono'>waitpid</td><td class='mono'>pid_t waitpid(pid_t pid, int *wstatus, int options);</td><td class='mono muted2'>ECHILD, EINTR, EINVAL</td><td>Reaps children and collects exit status. Handle EINTR; use WNOHANG for nonblocking polls.</td></tr><tr><td class='mono'>_exit</td><td class='mono'>void _exit(int status);</td><td class='mono muted2'>N/A</td><td>Terminates immediately without flushing stdio buffers; use after fork in child if exec fails.</td></tr><tr><td class='mono'>exit</td><td class='mono'>void exit(int status);</td><td class='mono muted2'>N/A</td><td>Flushes stdio and runs atexit handlers; can deadlock in child after fork in multithreaded programs.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -131,8 +131,8 @@
   <summary>Signals and job control interactions</summary>
   <div class="content"><ul><li>SIGCHLD is how the kernel tells a parent that a child changed state. Always write robust SIGCHLD handling or a wait loop.</li><li>Process groups and sessions matter for terminals: Ctrl-C sends SIGINT to the foreground process group.</li><li>Stopping/continuing (SIGTSTP/SIGCONT) creates state transitions you must handle in shells and supervisors.</li><li>Avoid sending signals by PID alone in long-lived systems; PIDs can be recycled. Consider pidfds (newer kernels) when available.</li></ul></div>
 </details><details class="accordion">
-  <summary>Scheduling and priorities — practical view</summary>
-  <div class="content"><ul><li>nice/priority influence the scheduler, but do not replace correct design. CPU-bound work needs backpressure and sometimes isolation.</li><li>Real-time policies (SCHED_FIFO/RR) can starve the system. Only use with strict limits and watchdogs.</li><li>Affinity and cgroups are often a better lever for performance isolation than priority tweaks.</li><li>Measure: CPU usage, context switches, run queue length, and tail latency — then decide.</li></ul></div>
+  <summary>Scheduling and priorities: practical view</summary>
+  <div class="content"><ul><li>nice/priority influence the scheduler, but do not replace correct design. CPU-bound work needs backpressure and sometimes isolation.</li><li>Real-time policies (SCHED_FIFO/RR) can starve the system. Only use with strict limits and watchdogs.</li><li>Affinity and cgroups are often a better lever for performance isolation than priority tweaks.</li><li>Measure: CPU usage, context switches, run queue length, and tail latency: then decide.</li></ul></div>
 </details><details class="accordion">
   <summary>Debugging workflow</summary>
   <div class="content"><ul><li>Use ps/top/htop for state; look for Z (zombie), D (uninterruptible sleep), or stopped tasks.</li><li>Inspect /proc/&lt;pid&gt;/status (state, threads, signals), /proc/&lt;pid&gt;/cmdline, and /proc/&lt;pid&gt;/fd.</li><li>strace -f for process trees; add -e trace=process for fork/exec/wait focus.</li><li>For elusive deadlocks, capture stack traces (gdb, pstack) and correlate with futex waits.</li></ul></div>
@@ -278,7 +278,7 @@ while (waitpid(pid, &amp;status, 0) == -1) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch06", n:6, subtitle:"Chapter 06 \u2014 Processes"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch06", n:6, subtitle:"Chapter 06: Processes"});
     TLPIWidgets.mountKernelGraph("kg_ch06", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

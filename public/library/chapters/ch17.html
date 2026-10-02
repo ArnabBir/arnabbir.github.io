@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 17 — Access Control Lists</title>
+  <title>TLPI v2, Chapter 17, Access Control Lists</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 17 — Access Control Lists</div>
+          <div class="sub" id="subTitle">Chapter 17: Access Control Lists</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 17 — Access Control Lists
+            Chapter 17: Access Control Lists
           </h2>
           <div class="subtitle">
-            <p>ACLs extend the basic user/group/other permission model with fine-grained per-user and per-group entries. Traditional Unix permissions allow only one owner and one group; ACLs let you grant read access to alice, write access to the dev group, and deny access to bob — all on the same file.</p><p>POSIX ACLs add complexity through the mask entry (which caps effective permissions of named entries), default ACLs (which propagate to newly created files in a directory), and subtle interactions with chmod. Understanding these mechanics prevents the common surprise where chmod silently truncates your carefully-set ACL permissions.</p>
+            <p>ACLs extend the basic user/group/other permission model with fine-grained per-user and per-group entries. Traditional Unix permissions allow only one owner and one group; ACLs let you grant read access to alice, write access to the dev group, and deny access to bob: all on the same file.</p><p>POSIX ACLs add complexity through the mask entry (which caps effective permissions of named entries), default ACLs (which propagate to newly created files in a directory), and subtle interactions with chmod. Understanding these mechanics prevents the common surprise where chmod silently truncates your carefully-set ACL permissions.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">The mask entry defines the maximum permissions for all named user/group entries and the owning group entry.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">chmod sets the ACL mask to the group permission bits — silently reducing effective ACL permissions.</div>
+  <div class="v">chmod sets the ACL mask to the group permission bits: silently reducing effective ACL permissions.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use getfacl to inspect ACLs; look for #effective comments showing mask-limited permissions.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A minimal ACL has exactly three entries (owner, group, other) and is equivalent to traditional Unix permissions.</li><li>An extended ACL adds named user and/or named group entries, plus a mandatory mask entry.</li><li>The mask entry limits the effective permissions of all named user entries, named group entries, AND the owning group entry. Only owner and other are unaffected by the mask.</li><li>Default ACLs on directories are templates: new files/subdirectories created within inherit the default ACL as their access ACL.</li><li>chmod(path, mode) sets the ACL mask to the group bits of mode — this is why chmod can silently reduce ACL permissions.</li><li>Permission check algorithm: if process is file owner, use owner entry; else if process matches a named user entry, use that (masked); else if process is in owning group or a named group, use the best match (masked); else use other entry.</li></ul>
+            <ul><li>A minimal ACL has exactly three entries (owner, group, other) and is equivalent to traditional Unix permissions.</li><li>An extended ACL adds named user and/or named group entries, plus a mandatory mask entry.</li><li>The mask entry limits the effective permissions of all named user entries, named group entries, AND the owning group entry. Only owner and other are unaffected by the mask.</li><li>Default ACLs on directories are templates: new files/subdirectories created within inherit the default ACL as their access ACL.</li><li>chmod(path, mode) sets the ACL mask to the group bits of mode: this is why chmod can silently reduce ACL permissions.</li><li>Permission check algorithm: if process is file owner, use owner entry; else if process matches a named user entry, use that (masked); else if process is in owning group or a named group, use the best match (masked); else use other entry.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>ACL_USER_OBJ</td><td>Owner entry — corresponds to traditional owner permission bits. Not affected by mask.</td></tr><tr><td class='mono'>ACL_USER</td><td>Named user entry — grants specific permissions to a non-owner user. Limited by mask.</td></tr><tr><td class='mono'>ACL_GROUP_OBJ</td><td>Owning group entry — corresponds to traditional group bits. Limited by mask in extended ACLs.</td></tr><tr><td class='mono'>ACL_GROUP</td><td>Named group entry — grants specific permissions to an additional group. Limited by mask.</td></tr><tr><td class='mono'>ACL_MASK</td><td>Maximum effective permissions for named users, named groups, and owning group. Mapped to chmod group bits.</td></tr><tr><td class='mono'>ACL_OTHER</td><td>Other/world entry — permissions for everyone else. Not affected by mask.</td></tr></tbody>
+  <tbody><tr><td class='mono'>ACL_USER_OBJ</td><td>Owner entry: corresponds to traditional owner permission bits. Not affected by mask.</td></tr><tr><td class='mono'>ACL_USER</td><td>Named user entry: grants specific permissions to a non-owner user. Limited by mask.</td></tr><tr><td class='mono'>ACL_GROUP_OBJ</td><td>Owning group entry: corresponds to traditional group bits. Limited by mask in extended ACLs.</td></tr><tr><td class='mono'>ACL_GROUP</td><td>Named group entry: grants specific permissions to an additional group. Limited by mask.</td></tr><tr><td class='mono'>ACL_MASK</td><td>Maximum effective permissions for named users, named groups, and owning group. Mapped to chmod group bits.</td></tr><tr><td class='mono'>ACL_OTHER</td><td>Other/world entry: permissions for everyone else. Not affected by mask.</td></tr></tbody>
 </table>
         </div>
 
@@ -128,16 +128,16 @@
           </div>
           <details class="accordion">
   <summary>chmod truncating ACL mask</summary>
-  <div class="content"><ul><li>chmod(path, 0750) sets the ACL mask to r-x — any named entry with write permission loses effective write access.</li><li>getfacl shows this as "user:alice:rwx  #effective:r-x" — the #effective comment reveals mask limitation.</li><li>This is the most common ACL surprise: "I set ACL to rwx but alice can't write" — check if someone ran chmod.</li><li>To fix: setfacl -m m::rwx to restore the mask, or use setfacl -m which auto-recalculates mask.</li></ul></div>
+  <div class="content"><ul><li>chmod(path, 0750) sets the ACL mask to r-x: any named entry with write permission loses effective write access.</li><li>getfacl shows this as "user:alice:rwx  #effective:r-x": the #effective comment reveals mask limitation.</li><li>This is the most common ACL surprise: "I set ACL to rwx but alice can't write": check if someone ran chmod.</li><li>To fix: setfacl -m m::rwx to restore the mask, or use setfacl -m which auto-recalculates mask.</li></ul></div>
 </details><details class="accordion">
   <summary>Default ACL inheritance</summary>
-  <div class="content"><ul><li>Default ACLs on a directory are applied as the access ACL of newly created files within that directory.</li><li>For new subdirectories, the default ACL is also inherited as their default ACL (recursive propagation).</li><li>The umask does NOT affect permissions of files created in a directory with a default ACL — the default ACL completely replaces umask's role.</li><li>Existing files are NOT affected by changing a directory's default ACL — only future files.</li></ul></div>
+  <div class="content"><ul><li>Default ACLs on a directory are applied as the access ACL of newly created files within that directory.</li><li>For new subdirectories, the default ACL is also inherited as their default ACL (recursive propagation).</li><li>The umask does NOT affect permissions of files created in a directory with a default ACL: the default ACL completely replaces umask's role.</li><li>Existing files are NOT affected by changing a directory's default ACL: only future files.</li></ul></div>
 </details><details class="accordion">
   <summary>ACL-aware applications</summary>
   <div class="content"><ul><li>cp -a / cp --preserve=all preserves ACLs; plain cp does not.</li><li>rsync -A (--acls) is needed to transfer ACLs; without it, only traditional permissions are synced.</li><li>tar does NOT preserve ACLs by default; use star or tar with --acls on supported versions.</li><li>mv within the same filesystem preserves ACLs (same inode); mv across filesystems may lose them.</li></ul></div>
 </details><details class="accordion">
   <summary>Permission check algorithm detail</summary>
-  <div class="content"><ul><li>Kernel checks in order: 1) owner match (use owner entry, no mask), 2) named user match (use that entry AND mask), 3) group match (owning or named group, use best entry AND mask), 4) other entry.</li><li>If a named user entry exists for the process UID but denies access, the check STOPS — group entries are NOT consulted.</li><li>This means a deny ACL for a specific user is effective even if that user is in a group with broader access.</li><li>Root (CAP_DAC_OVERRIDE) bypasses all ACL checks for read/write; CAP_DAC_READ_SEARCH for read/execute on directories.</li></ul></div>
+  <div class="content"><ul><li>Kernel checks in order: 1) owner match (use owner entry, no mask), 2) named user match (use that entry AND mask), 3) group match (owning or named group, use best entry AND mask), 4) other entry.</li><li>If a named user entry exists for the process UID but denies access, the check STOPS: group entries are NOT consulted.</li><li>This means a deny ACL for a specific user is effective even if that user is in a group with broader access.</li><li>Root (CAP_DAC_OVERRIDE) bypasses all ACL checks for read/write; CAP_DAC_READ_SEARCH for read/execute on directories.</li></ul></div>
 </details>
         </div>
 
@@ -180,7 +180,7 @@ acl_free(acl);
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>After setting ACLs, verify with getfacl and check #effective comments for mask interactions.</li><li>Avoid running chmod on files with extended ACLs unless you intend to reset the mask.</li><li>Set default ACLs on shared directories to ensure consistent permissions on new files.</li><li>Ensure backup/restore tools preserve ACLs: rsync -A, cp --preserve=all, tar --acls.</li><li>Document ACL usage — they are invisible to ls -l (only shows a "+" indicator); use getfacl for the full picture.</li></ul>
+            <ul><li>After setting ACLs, verify with getfacl and check #effective comments for mask interactions.</li><li>Avoid running chmod on files with extended ACLs unless you intend to reset the mask.</li><li>Set default ACLs on shared directories to ensure consistent permissions on new files.</li><li>Ensure backup/restore tools preserve ACLs: rsync -A, cp --preserve=all, tar --acls.</li><li>Document ACL usage: they are invisible to ls -l (only shows a "+" indicator); use getfacl for the full picture.</li></ul>
           </div>
         </div>
 
@@ -225,7 +225,7 @@ acl_free(acl);
   <div><div style="font-weight:750">The ACL mask is set to the chmod group bits</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Nothing — chmod ignores ACLs</div></div>
+  <div><div style="font-weight:750">Nothing: chmod ignores ACLs</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
   <div><div style="font-weight:750">All named entries are removed</div></div>
@@ -285,7 +285,7 @@ acl_free(acl);
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch17", n:17, subtitle:"Chapter 17 \u2014 Access Control Lists"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch17", n:17, subtitle:"Chapter 17: Access Control Lists"});
     TLPIWidgets.mountKernelGraph("kg_ch17", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",

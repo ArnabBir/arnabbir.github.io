@@ -171,7 +171,7 @@
     <div class="card" data-searchable="Hidden coupling: tasks and their environment 
           Some tasks implicitly depend on the executor configuration. Examples:
           
-            A task submits subtasks and blocks waiting for them — dangerous on small bounded pools (thread s">
+            A task submits subtasks and blocks waiting for them: dangerous on small bounded pools (thread s">
       <div class="card-header">
         <h3>Hidden coupling: tasks and their environment</h3>
         <span class="badge danger">pitfall</span>
@@ -180,7 +180,7 @@
         
           <p>Some tasks implicitly depend on the executor configuration. Examples:</p>
           <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.7">
-            <li>A task submits subtasks and blocks waiting for them — dangerous on small bounded pools (thread starvation deadlock).</li>
+            <li>A task submits subtasks and blocks waiting for them: dangerous on small bounded pools (thread starvation deadlock).</li>
             <li>Tasks assume they will not run concurrently (unsafe shared mutable state).</li>
             <li>Tasks assume FIFO ordering (not always guaranteed under contention).</li>
           </ul>

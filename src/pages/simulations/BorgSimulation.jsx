@@ -328,7 +328,7 @@ export default function BorgSimulation() {
               <strong className="block mb-2 text-indigo-800 dark:text-indigo-200 flex items-center gap-2"><Zap size={14} /> Simulation Mode</strong>
               <p className="leading-relaxed">
                 Jobs arrive and finish randomly. Prod tasks get priority and can <strong>preempt</strong> batch tasks.
-                Click the <XOctagon size={10} className="inline" /> on any machine to simulate a hardware failure — watch Borg reschedule prod tasks automatically.
+                Click the <XOctagon size={10} className="inline" /> on any machine to simulate a hardware failure: watch Borg reschedule prod tasks automatically.
               </p>
             </div>
           </div>
@@ -343,13 +343,13 @@ export default function BorgSimulation() {
           {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-4">
-              <BookOpen className="w-3.5 h-3.5" /> Deep Dive — EuroSys 2015
+              <BookOpen className="w-3.5 h-3.5" /> Deep Dive: EuroSys 2015
             </div>
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent mb-4">
               Large-Scale Cluster Management at Google with Borg
             </h2>
             <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-              Borg runs hundreds of thousands of jobs from thousands of applications across clusters of up to tens of thousands of machines — the system that inspired Kubernetes.
+              Borg runs hundreds of thousands of jobs from thousands of applications across clusters of up to tens of thousands of machines: the system that inspired Kubernetes.
             </p>
           </div>
 
@@ -398,7 +398,7 @@ export default function BorgSimulation() {
 
           {/* ---- Workload ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Activity className="w-5 h-5" />} title="The Workload — Prod vs Batch" />
+            <SectionTitle icon={<Activity className="w-5 h-5" />} title="The Workload: Prod vs Batch" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div className="rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10 p-5">
@@ -425,7 +425,7 @@ export default function BorgSimulation() {
               <div className="bg-slate-50 dark:bg-slate-900/80 rounded-xl border border-amber-200 dark:border-amber-500/20 p-4 flex items-start gap-3">
                 <Info className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-amber-700 dark:text-amber-300">Key insight:</strong> Prod jobs are allocated ~70% of CPU but use ~60%. Batch jobs fill the gap — this <strong className="text-slate-900 dark:text-slate-200">over-commitment</strong> strategy achieves significantly higher utilization than segregating workloads.
+                  <strong className="text-amber-700 dark:text-amber-300">Key insight:</strong> Prod jobs are allocated ~70% of CPU but use ~60%. Batch jobs fill the gap: this <strong className="text-slate-900 dark:text-slate-200">over-commitment</strong> strategy achieves significantly higher utilization than segregating workloads.
                 </p>
               </div>
             </div>
@@ -433,7 +433,7 @@ export default function BorgSimulation() {
 
           {/* ---- Scheduling Flow ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="Scheduling — How Tasks Get Placed" />
+            <SectionTitle icon={<ArrowDown className="w-5 h-5" />} title="Scheduling: How Tasks Get Placed" />
             <div className="space-y-4">
               <FlowStep num={1} color="blue" icon={<Terminal className="w-5 h-5" />} title="Job submission"
                 desc="User submits a job via borgcfg (BCL config) or RPC. The BorgMaster records it in the Paxos store and adds tasks to the pending queue."
@@ -463,7 +463,7 @@ export default function BorgSimulation() {
               <div className="grid md:grid-cols-2 gap-4">
                 <FeatureCard title="BorgMaster Replication" desc="5 replicas with Paxos-based leader election. Handles master failures in ~10 seconds. State persisted in Paxos-based store and periodic checkpoints." color="indigo" />
                 <FeatureCard title="Automatic Rescheduling" desc="When a machine fails, prod tasks are automatically rescheduled on healthy machines. Batch tasks may be rescheduled or simply re-queued." color="blue" />
-                <FeatureCard title="Spreading Tasks" desc="Tasks of a job are spread across failure domains — racks, power domains, machines — to reduce correlated failures." color="emerald" />
+                <FeatureCard title="Spreading Tasks" desc="Tasks of a job are spread across failure domains, racks, power domains, machines, to reduce correlated failures." color="emerald" />
                 <FeatureCard title="Rate-Limited Updates" desc="Rolling updates ensure that only a small fraction of tasks in a job are disrupted at any time, limiting the blast radius of bad pushes." color="amber" />
               </div>
             </div>
@@ -471,7 +471,7 @@ export default function BorgSimulation() {
 
           {/* ---- Utilization ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Zap className="w-5 h-5" />} title="Utilization — Lessons from a Decade" />
+            <SectionTitle icon={<Zap className="w-5 h-5" />} title="Utilization: Lessons from a Decade" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <MetricCard label="Cell Compaction" value="~20-30%" sub="fewer machines needed vs segregated" color="indigo" />
               <MetricCard label="Shared Cells" value="Better" sub="than separating prod/non-prod" color="emerald" />
@@ -482,7 +482,7 @@ export default function BorgSimulation() {
               <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-500/20 p-4 flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-emerald-700 dark:text-emerald-300">The shared-cell advantage:</strong> Segregating prod and non-prod work into separate cells would require 20-30% more machines. Sharing cells lets batch work fill the gaps left by over-provisioned prod jobs — the single biggest driver of Borg's efficiency.
+                  <strong className="text-emerald-700 dark:text-emerald-300">The shared-cell advantage:</strong> Segregating prod and non-prod work into separate cells would require 20-30% more machines. Sharing cells lets batch work fill the gaps left by over-provisioned prod jobs: the single biggest driver of Borg's efficiency.
                 </p>
               </div>
             </div>
@@ -490,7 +490,7 @@ export default function BorgSimulation() {
 
           {/* ---- Legacy ---- */}
           <section className="mb-16">
-            <SectionTitle icon={<Globe className="w-5 h-5" />} title="Legacy — From Borg to Kubernetes" />
+            <SectionTitle icon={<Globe className="w-5 h-5" />} title="Legacy: From Borg to Kubernetes" />
             <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-none">
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
                 Borg directly inspired <strong className="text-blue-600 dark:text-blue-300">Kubernetes</strong>, the open-source container orchestration system. Several lessons were applied:
@@ -498,7 +498,7 @@ export default function BorgSimulation() {
               <div className="grid md:grid-cols-3 gap-4">
                 <LessonCard title="Jobs → Pods" desc="Borg's concept of a job with multiple tasks became Kubernetes pods and deployments." color="blue" />
                 <LessonCard title="Allocs → Namespaces" desc="Borg allocs (resource reservations) influenced Kubernetes resource quotas and namespaces." color="indigo" />
-                <LessonCard title="Labels, not IPs" desc="Instead of relying on machine IPs, Kubernetes adopted labels and selectors — a lesson from Borg's name service evolution." color="emerald" />
+                <LessonCard title="Labels, not IPs" desc="Instead of relying on machine IPs, Kubernetes adopted labels and selectors: a lesson from Borg's name service evolution." color="emerald" />
               </div>
             </div>
           </section>

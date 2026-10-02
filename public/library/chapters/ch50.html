@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 50 — Virtual Memory Operations</title>
+  <title>TLPI v2, Chapter 50, Virtual Memory Operations</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 50 — Virtual Memory Operations</div>
+          <div class="sub" id="subTitle">Chapter 50: Virtual Memory Operations</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 50 — Virtual Memory Operations
+            Chapter 50: Virtual Memory Operations
           </h2>
           <div class="subtitle">
             <p>Advanced VM operations give you fine-grained control over page permissions, residency, and behavior. Guard pages with mprotect catch buffer overflows at the hardware level. mlock prevents sensitive data (crypto keys, real-time buffers) from being swapped to disk. madvise tunes kernel paging strategy for your access pattern.</p><p>These APIs operate at the page granularity and interact with kernel memory management policies (overcommit, OOM killer, swap). Understanding them is essential for security-sensitive applications, real-time systems, and high-performance data processing.</p>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>mprotect(addr, len, prot) changes page permissions: PROT_NONE creates guard pages (any access causes SIGSEGV), PROT_READ|PROT_WRITE restores normal access. Used for stack overflow detection and buffer overflow hardening.</li><li>mlock(addr, len) pins pages in RAM &mdash; they cannot be evicted to swap. Essential for cryptographic keys (prevent swap exposure) and real-time audio/video (prevent page fault latency spikes).</li><li>mlockall(MCL_CURRENT | MCL_FUTURE) locks all current and future pages &mdash; used by real-time processes to guarantee no page faults after startup.</li><li>mincore(addr, len, vec) queries page residency: each byte in vec indicates whether the corresponding page is in RAM (bit 0 set) or not.</li><li>madvise(addr, len, advice) gives the kernel paging hints: MADV_SEQUENTIAL enables aggressive readahead, MADV_DONTNEED immediately discards pages (anonymous pages are zeroed on next access), MADV_FREE marks pages as reclaimable but keeps them until memory pressure.</li><li>RLIMIT_MEMLOCK limits how much memory an unprivileged process can lock; CAP_IPC_LOCK bypasses this limit.</li><li>Overcommit policy (/proc/sys/vm/overcommit_memory): 0 = heuristic (default), 1 = always allow, 2 = strict (commit &le; swap + ratio*RAM). When overcommit is exhausted, the OOM killer terminates processes.</li></ul>
+            <ul><li>mprotect(addr, len, prot) changes page permissions: PROT_NONE creates guard pages (any access causes SIGSEGV), PROT_READ|PROT_WRITE restores normal access. Used for stack overflow detection and buffer overflow hardening.</li><li>mlock(addr, len) pins pages in RAM: they cannot be evicted to swap. Essential for cryptographic keys (prevent swap exposure) and real-time audio/video (prevent page fault latency spikes).</li><li>mlockall(MCL_CURRENT | MCL_FUTURE) locks all current and future pages: used by real-time processes to guarantee no page faults after startup.</li><li>mincore(addr, len, vec) queries page residency: each byte in vec indicates whether the corresponding page is in RAM (bit 0 set) or not.</li><li>madvise(addr, len, advice) gives the kernel paging hints: MADV_SEQUENTIAL enables aggressive readahead, MADV_DONTNEED immediately discards pages (anonymous pages are zeroed on next access), MADV_FREE marks pages as reclaimable but keeps them until memory pressure.</li><li>RLIMIT_MEMLOCK limits how much memory an unprivileged process can lock; CAP_IPC_LOCK bypasses this limit.</li><li>Overcommit policy (/proc/sys/vm/overcommit_memory): 0 = heuristic (default), 1 = always allow, 2 = strict (commit &le; swap + ratio*RAM). When overcommit is exhausted, the OOM killer terminates processes.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -116,7 +116,7 @@
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
-            Tip: mlock() immediately faults in all pages in the range &mdash; this can cause a latency spike. Pre-fault during initialization, not in hot paths.
+            Tip: mlock() immediately faults in all pages in the range: this can cause a latency spike. Pre-fault during initialization, not in hot paths.
           </div>
         </div>
 
@@ -127,16 +127,16 @@
           </div>
           <details class="accordion">
   <summary>Guard pages and mprotect patterns</summary>
-  <div class="content"><ul><li>Allocate N+1 pages; set the last page to PROT_NONE. Any buffer overflow into the guard page triggers SIGSEGV immediately.</li><li>The stack guard page is set up automatically by the kernel &mdash; stack overflow hits PROT_NONE and raises SIGSEGV (stack smashing detected).</li><li>mprotect can also implement W^X (write XOR execute) &mdash; pages are writable during JIT compilation, then switched to PROT_READ|PROT_EXEC.</li><li>mprotect on a MAP_SHARED file mapping cannot add PROT_WRITE if the file was opened O_RDONLY &mdash; returns EACCES.</li></ul></div>
+  <div class="content"><ul><li>Allocate N+1 pages; set the last page to PROT_NONE. Any buffer overflow into the guard page triggers SIGSEGV immediately.</li><li>The stack guard page is set up automatically by the kernel: stack overflow hits PROT_NONE and raises SIGSEGV (stack smashing detected).</li><li>mprotect can also implement W^X (write XOR execute): pages are writable during JIT compilation, then switched to PROT_READ|PROT_EXEC.</li><li>mprotect on a MAP_SHARED file mapping cannot add PROT_WRITE if the file was opened O_RDONLY: returns EACCES.</li></ul></div>
 </details><details class="accordion">
   <summary>mlock for crypto and real-time</summary>
-  <div class="content"><ul><li>Crypto keys in swap can be read by an attacker with disk access. mlock() the key buffer, then mlock + explicit_bzero + munlock when done.</li><li>Real-time audio: mlockall(MCL_CURRENT|MCL_FUTURE) during init ensures no page faults during playback &mdash; page faults cause audible glitches.</li><li>mlock does NOT prevent the data from appearing in core dumps &mdash; use madvise(MADV_DONTDUMP) or prctl(PR_SET_DUMPABLE, 0) for that.</li><li>After fork(), locked pages are NOT locked in the child &mdash; the child must call mlock() again if needed.</li></ul></div>
+  <div class="content"><ul><li>Crypto keys in swap can be read by an attacker with disk access. mlock() the key buffer, then mlock + explicit_bzero + munlock when done.</li><li>Real-time audio: mlockall(MCL_CURRENT|MCL_FUTURE) during init ensures no page faults during playback: page faults cause audible glitches.</li><li>mlock does NOT prevent the data from appearing in core dumps: use madvise(MADV_DONTDUMP) or prctl(PR_SET_DUMPABLE, 0) for that.</li><li>After fork(), locked pages are NOT locked in the child: the child must call mlock() again if needed.</li></ul></div>
 </details><details class="accordion">
   <summary>Overcommit and OOM killer</summary>
   <div class="content"><ul><li>Default overcommit (mode 0): kernel uses heuristics to reject "obviously" excessive allocations but generally allows more than physical memory.</li><li>Mode 1 (always overcommit): malloc never fails; OOM killer is the only safety net. Dangerous for production.</li><li>Mode 2 (strict): total commit &le; swap + (overcommit_ratio/100) * RAM. malloc fails with ENOMEM when exceeded. Safest but may reject valid workloads.</li><li>OOM killer selects victim by oom_score (RSS-based heuristic); tune with /proc/&lt;pid&gt;/oom_score_adj (-1000 to +1000).</li></ul></div>
 </details><details class="accordion">
   <summary>madvise performance patterns</summary>
-  <div class="content"><ul><li>MADV_SEQUENTIAL: kernel reads ahead aggressively and drops pages after they're read &mdash; ideal for log processing, sequential scans.</li><li>MADV_RANDOM: disables readahead &mdash; better for hash table or B-tree lookups in mapped files.</li><li>MADV_DONTNEED: immediately releases pages; anonymous pages are zeroed on re-access; file pages are re-read from disk. Used for cache eviction.</li><li>MADV_FREE (Linux 4.5+): marks pages as reclaimable but keeps them if no memory pressure &mdash; cheaper than DONTNEED for ephemeral caches.</li></ul></div>
+  <div class="content"><ul><li>MADV_SEQUENTIAL: kernel reads ahead aggressively and drops pages after they're read: ideal for log processing, sequential scans.</li><li>MADV_RANDOM: disables readahead: better for hash table or B-tree lookups in mapped files.</li><li>MADV_DONTNEED: immediately releases pages; anonymous pages are zeroed on re-access; file pages are re-read from disk. Used for cache eviction.</li><li>MADV_FREE (Linux 4.5+): marks pages as reclaimable but keeps them if no memory pressure: cheaper than DONTNEED for ephemeral caches.</li></ul></div>
 </details>
         </div>
 
@@ -181,7 +181,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use guard pages (mprotect PROT_NONE) around sensitive buffers in custom allocators.</li><li>mlock all crypto key material; explicit_bzero before munlock; also set MADV_DONTDUMP.</li><li>For real-time processes: mlockall(MCL_CURRENT|MCL_FUTURE) during init; pre-fault all memory before entering the real-time loop.</li><li>Check RLIMIT_MEMLOCK before calling mlock &mdash; raise it with setrlimit() or configure in /etc/security/limits.conf.</li><li>Set oom_score_adj to -1000 for critical services that must not be OOM-killed; monitor /proc/meminfo for memory pressure.</li></ul>
+            <ul><li>Use guard pages (mprotect PROT_NONE) around sensitive buffers in custom allocators.</li><li>mlock all crypto key material; explicit_bzero before munlock; also set MADV_DONTDUMP.</li><li>For real-time processes: mlockall(MCL_CURRENT|MCL_FUTURE) during init; pre-fault all memory before entering the real-time loop.</li><li>Check RLIMIT_MEMLOCK before calling mlock: raise it with setrlimit() or configure in /etc/security/limits.conf.</li><li>Set oom_score_adj to -1000 for critical services that must not be OOM-killed; monitor /proc/meminfo for memory pressure.</li></ul>
           </div>
         </div>
 
@@ -286,7 +286,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch50", n:50, subtitle:"Chapter 50 \u2014 Virtual Memory Operations"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch50", n:50, subtitle:"Chapter 50: Virtual Memory Operations"});
     TLPIWidgets.mountKernelGraph("kg_ch50", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (mem). Click to pin a tooltip.",

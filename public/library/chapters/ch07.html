@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 07 — Memory Allocation</title>
+  <title>TLPI v2, Chapter 07, Memory Allocation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 07 — Memory Allocation</div>
+          <div class="sub" id="subTitle">Chapter 07: Memory Allocation</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 07 — Memory Allocation
+            Chapter 07: Memory Allocation
           </h2>
           <div class="subtitle">
             <p>Virtual memory is the operating system’s trick for turning physical RAM into a flexible illusion. Your program sees a flat address space; the kernel tracks mappings (VMAs), page tables, and backing stores (anonymous memory or files). Most memory performance problems are really about page faults, cache locality, and the cost of moving pages between RAM and disk.</p><p>This guide emphasizes the operational view: how malloc relates to brk/mmap, what RSS/VIRT mean, how copy-on-write works, and which VM syscalls matter when you build allocators, caches, and high-throughput servers.</p>
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>malloc</td><td class='mono'>void *malloc(size_t size);</td><td class='mono muted2'>—</td><td>Heap allocation (libc); may use brk/sbrk or mmap under the hood; failure returns NULL and sets errno.</td></tr><tr><td class='mono'>free</td><td class='mono'>void free(void *ptr);</td><td class='mono muted2'>—</td><td>Releases heap memory; double-free/use-after-free are critical bugs; consider sanitizers.</td></tr><tr><td class='mono'>mmap</td><td class='mono'>void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);</td><td class='mono muted2'>ENOMEM, EACCES, EINVAL, EBADF</td><td>Maps file/anon memory. Page faults happen on first touch; mind MAP_PRIVATE vs MAP_SHARED.</td></tr><tr><td class='mono'>munmap</td><td class='mono'>int munmap(void *addr, size_t length);</td><td class='mono muted2'>EINVAL</td><td>Unmaps region; dangling pointers become invalid; in multithreaded code coordinate safely.</td></tr><tr><td class='mono'>brk</td><td class='mono'>int brk(void *addr);</td><td class='mono muted2'>ENOMEM, EINVAL</td><td>Adjusts process break (heap end). Rarely used directly; malloc manages it.</td></tr>
+    <tr><td class='mono'>malloc</td><td class='mono'>void *malloc(size_t size);</td><td class='mono muted2'>N/A</td><td>Heap allocation (libc); may use brk/sbrk or mmap under the hood; failure returns NULL and sets errno.</td></tr><tr><td class='mono'>free</td><td class='mono'>void free(void *ptr);</td><td class='mono muted2'>N/A</td><td>Releases heap memory; double-free/use-after-free are critical bugs; consider sanitizers.</td></tr><tr><td class='mono'>mmap</td><td class='mono'>void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);</td><td class='mono muted2'>ENOMEM, EACCES, EINVAL, EBADF</td><td>Maps file/anon memory. Page faults happen on first touch; mind MAP_PRIVATE vs MAP_SHARED.</td></tr><tr><td class='mono'>munmap</td><td class='mono'>int munmap(void *addr, size_t length);</td><td class='mono muted2'>EINVAL</td><td>Unmaps region; dangling pointers become invalid; in multithreaded code coordinate safely.</td></tr><tr><td class='mono'>brk</td><td class='mono'>int brk(void *addr);</td><td class='mono muted2'>ENOMEM, EINVAL</td><td>Adjusts process break (heap end). Rarely used directly; malloc manages it.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -186,7 +186,7 @@ close(fd);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="RSS (Resident Set Size) counts only pages physically in RAM. VIRT includes all mapped regions — file-backed, shared libs, mmap'd but untouched pages. A process can have 10 GB VIRT but only 50 MB RSS.">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="RSS (Resident Set Size) counts only pages physically in RAM. VIRT includes all mapped regions: file-backed, shared libs, mmap'd but untouched pages. A process can have 10 GB VIRT but only 50 MB RSS.">
   <div class="qp">Q1. What is the difference between RSS and VIRT in process memory?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -222,7 +222,7 @@ close(fd);</code></pre>
   <div class="qp">Q3. After madvise(addr, len, MADV_DONTNEED) on a private anonymous mapping, what value do you get when reading the memory?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Zero — pages are freed and re-faulted as zeroes</div></div>
+  <div><div style="font-weight:750">Zero: pages are freed and re-faulted as zeroes</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
   <div><div style="font-weight:750">The old data remains unchanged</div></div>
@@ -272,7 +272,7 @@ close(fd);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch07", n:7, subtitle:"Chapter 07 \u2014 Memory Allocation"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch07", n:7, subtitle:"Chapter 07: Memory Allocation"});
     TLPIWidgets.mountKernelGraph("kg_ch07", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (mem). Click to pin a tooltip.",

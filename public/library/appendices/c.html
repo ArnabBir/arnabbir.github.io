@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Appendix C — Casting the NULL Pointer</title>
+  <title>TLPI v2, Appendix C, Casting the NULL Pointer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Appendix C — Casting the NULL Pointer</div>
+          <div class="sub" id="subTitle">Appendix C: Casting the NULL Pointer</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Appendix C — Casting the NULL Pointer
+            Appendix C: Casting the NULL Pointer
           </h2>
           <div class="subtitle"><p>NULL is defined as ((void*)0) in C, but variadic functions and old-style declarations require careful casting. The modern answer: always use (void*)NULL or explicit casts in variadic calls. On LP64, passing bare 0 where a pointer is expected can silently pass 4 bytes instead of 8.</p><p>This appendix explains when NULL casts matter, why the exec family needs (char*)NULL sentinels, and how C23's nullptr keyword finally resolves the ambiguity.</p></div>
           <div class="callouts"><div class="callout good">
@@ -239,7 +239,7 @@ execl(&quot;/bin/ls&quot;, &quot;ls&quot;, &quot;-l&quot;, nullptr);     /* safe
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"appendix", id:"appC", letter:"C", subtitle:"Appendix C \u2014 Casting the NULL Pointer"});
+    TLPIUI.initChapterPage({kind:"appendix", id:"appC", letter:"C", subtitle:"Appendix C: Casting the NULL Pointer"});
     TLPIWidgets.mountKernelGraph("kg_appC", {
       title: "Kernel object map (appendix context)",
       subtitle: "Appendices reinforce the same kernel object model; hover nodes and connect concepts across chapters.",

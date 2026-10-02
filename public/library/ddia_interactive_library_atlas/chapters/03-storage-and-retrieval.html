@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 3: Storage & Retrieval</title>
+  <title>DDIA Atlas: Chapter 3: Storage & Retrieval</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,7 +75,7 @@
 <div class="lab" data-lab="storage">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Storage Engines — Write Path vs Read Path</h3>
+      <h3 class="lab-title">Lab: Storage Engines: Write Path vs Read Path</h3>
       <p class="lab-sub">LSM trees trade background compaction for sequential writes; B‑trees trade random writes for predictable reads.</p>
     </div>
     <div class="pill"><span class="dot"></span> IO economics</div>
@@ -88,10 +88,10 @@
         <option value="btree">B‑tree (in‑place updates)</option>
       </select>
 
-      <label>Write intensity <span class="kbd"><span data-val="writes">—</span>%</span></label>
+      <label>Write intensity <span class="kbd"><span data-val="writes">N/A</span>%</span></label>
       <input type="range" min="0" max="100" value="55" data-k="writes" oninput="this.parentElement.querySelector('[data-val=writes]').textContent=this.value"/>
 
-      <label>Memory budget for cache/buffer <span class="kbd"><span data-val="mem">—</span>%</span></label>
+      <label>Memory budget for cache/buffer <span class="kbd"><span data-val="mem">N/A</span>%</span></label>
       <input type="range" min="0" max="100" value="60" data-k="mem" oninput="this.parentElement.querySelector('[data-val=mem]').textContent=this.value"/>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
@@ -99,9 +99,9 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Write amplification</span><span class="v" data-out="wa">—</span></div>
-      <div class="metric"><span class="k">Read cost (relative)</span><span class="v" data-out="read">—</span></div>
-      <div class="metric"><span class="k">Write cost (relative)</span><span class="v" data-out="write">—</span></div>
+      <div class="metric"><span class="k">Write amplification</span><span class="v" data-out="wa">N/A</span></div>
+      <div class="metric"><span class="k">Read cost (relative)</span><span class="v" data-out="read">N/A</span></div>
+      <div class="metric"><span class="k">Write cost (relative)</span><span class="v" data-out="write">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -166,7 +166,7 @@ Background compaction merges SSTables to keep read costs bounded.
 </p>
 
 <p>
-Core idea: convert random writes into sequential writes — then pay the bill later via compaction.
+Core idea: convert random writes into sequential writes: then pay the bill later via compaction.
 That “later bill” is <strong>write amplification</strong>:
 one logical write can be rewritten multiple times as it moves through levels.
 </p>
@@ -220,7 +220,7 @@ if the index is partitioned differently from the primary key, writes require cro
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Compaction budget</summary>
+  <summary>Drill 1: Compaction budget</summary>
   <p>
     Suppose you ingest 200MB/s sustained. How much compaction throughput do you need if write amplification is 5×?
     What happens if you only have 500MB/s disk bandwidth available for compaction and reads together?
@@ -228,7 +228,7 @@ if the index is partitioned differently from the primary key, writes require cro
 </details>
 
 <details>
-  <summary>Drill 2 — Index tradeoff</summary>
+  <summary>Drill 2: Index tradeoff</summary>
   <p>
     You add a secondary index that doubles write cost but reduces a critical query from 800ms to 20ms.
     When is that worth it? Consider cache hit rate, query frequency, and SLA penalties.
@@ -236,7 +236,7 @@ if the index is partitioned differently from the primary key, writes require cro
 </details>
 
 <details>
-  <summary>Drill 3 — Data layout for scans</summary>
+  <summary>Drill 3: Data layout for scans</summary>
   <p>
     Compare row-oriented and column-oriented layouts for analytics.
     Which one minimizes IO for “scan 3 columns across 1B rows”? What compression opportunities exist?

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 02 — Fundamental Concepts</title>
+  <title>TLPI v2, Chapter 02, Fundamental Concepts</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 02 — Fundamental Concepts</div>
+          <div class="sub" id="subTitle">Chapter 02: Fundamental Concepts</div>
         </div>
       </div>
       <div class="actions">
@@ -56,14 +56,14 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 02 — Fundamental Concepts
+            Chapter 02: Fundamental Concepts
           </h2>
           <div class="subtitle">
-            <p>This chapter lays the conceptual foundation for everything that follows. The kernel is the privileged resource manager that arbitrates access to the CPU, memory, and devices on behalf of all processes. Every process runs in its own isolated virtual address space — a fiction maintained by hardware page tables — and interacts with the outside world exclusively through system calls: the narrow gate between user mode and kernel mode.</p><p>The file descriptor is Linux's universal I/O handle: a small integer that can point to a regular file, a pipe, a socket, or a device. The permissions model (uid/gid/mode bits) governs who may do what. Mastering these abstractions — kernel as arbiter, processes as containers, virtual memory as illusion, file descriptors as uniform handles, and permissions as access gates — is the prerequisite for every chapter ahead.</p>
+            <p>This chapter lays the conceptual foundation for everything that follows. The kernel is the privileged resource manager that arbitrates access to the CPU, memory, and devices on behalf of all processes. Every process runs in its own isolated virtual address space, a fiction maintained by hardware page tables, and interacts with the outside world exclusively through system calls: the narrow gate between user mode and kernel mode.</p><p>The file descriptor is Linux's universal I/O handle: a small integer that can point to a regular file, a pipe, a socket, or a device. The permissions model (uid/gid/mode bits) governs who may do what. Mastering these abstractions, kernel as arbiter, processes as containers, virtual memory as illusion, file descriptors as uniform handles, and permissions as access gates, is the prerequisite for every chapter ahead.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">Every user-space operation that touches hardware goes through a syscall — there are no shortcuts.</div>
+  <div class="v">Every user-space operation that touches hardware goes through a syscall: there are no shortcuts.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v">User mode cannot access kernel memory directly; attempted access triggers SIGSEGV.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>The kernel is the resource arbitrator: it owns all hardware and exposes controlled operations via syscalls. User code never touches a disk controller or NIC directly.</li><li>The user/kernel mode boundary is enforced by the CPU itself. A mode switch (trap/interrupt) is required to enter kernel code; this has measurable cost (~100ns+ per syscall).</li><li>A process is an isolated resource container: it has its own PID, virtual address space, file descriptor table, signal dispositions, credentials (uid/gid), and resource limits.</li><li>The virtual address space is divided into segments: text (read-only code), initialized data, BSS (zero-initialized), heap (grows up via brk/mmap), memory-mapped regions, and stack (grows down). The kernel maintains page tables mapping virtual to physical pages.</li><li>File descriptors are uniform I/O handles — small non-negative integers indexing into a per-process table. Whether the underlying object is a file, pipe, socket, or device, the same read()/write()/close() interface applies.</li><li>The permission model combines user IDs (real, effective, saved), group IDs, and per-file mode bits (rwx for owner/group/other). The superuser (uid 0) bypasses most checks — a powerful but dangerous privilege.</li></ul>
+            <ul><li>The kernel is the resource arbitrator: it owns all hardware and exposes controlled operations via syscalls. User code never touches a disk controller or NIC directly.</li><li>The user/kernel mode boundary is enforced by the CPU itself. A mode switch (trap/interrupt) is required to enter kernel code; this has measurable cost (~100ns+ per syscall).</li><li>A process is an isolated resource container: it has its own PID, virtual address space, file descriptor table, signal dispositions, credentials (uid/gid), and resource limits.</li><li>The virtual address space is divided into segments: text (read-only code), initialized data, BSS (zero-initialized), heap (grows up via brk/mmap), memory-mapped regions, and stack (grows down). The kernel maintains page tables mapping virtual to physical pages.</li><li>File descriptors are uniform I/O handles: small non-negative integers indexing into a per-process table. Whether the underlying object is a file, pipe, socket, or device, the same read()/write()/close() interface applies.</li><li>The permission model combines user IDs (real, effective, saved), group IDs, and per-file mode bits (rwx for owner/group/other). The superuser (uid 0) bypasses most checks: a powerful but dangerous privilege.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>getpid</td><td class='mono'>pid_t getpid(void);</td><td class='mono muted2'>—</td><td>Always succeeds. Returns the PID of the calling process. Cached by glibc since 2.25.</td></tr><tr><td class='mono'>getuid / geteuid</td><td class='mono'>uid_t getuid(void); uid_t geteuid(void);</td><td class='mono muted2'>—</td><td>Always succeed. Real UID is who you are; effective UID is what permissions you have right now.</td></tr><tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>EINVAL</td><td>Queries system limits/options at runtime (e.g., _SC_OPEN_MAX, _SC_PAGE_SIZE). Returns -1 without setting errno if the limit is indeterminate.</td></tr><tr><td class='mono'>open</td><td class='mono'>int open(const char *path, int flags, mode_t mode);</td><td class='mono muted2'>ENOENT, EACCES, EMFILE, ENFILE</td><td>Returns a file descriptor. Always set O_CLOEXEC. The fd is the lowest available non-negative integer.</td></tr><tr><td class='mono'>read / write</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF</td><td>Short reads/writes are normal. Loop until done. Handle EINTR for signal interruption.</td></tr><tr><td class='mono'>close</td><td class='mono'>int close(int fd);</td><td class='mono muted2'>EBADF, EINTR, EIO</td><td>Releases the fd. Do NOT retry on EINTR (the fd is already closed on Linux). Double-close is a bug.</td></tr>
+    <tr><td class='mono'>getpid</td><td class='mono'>pid_t getpid(void);</td><td class='mono muted2'>N/A</td><td>Always succeeds. Returns the PID of the calling process. Cached by glibc since 2.25.</td></tr><tr><td class='mono'>getuid / geteuid</td><td class='mono'>uid_t getuid(void); uid_t geteuid(void);</td><td class='mono muted2'>N/A</td><td>Always succeed. Real UID is who you are; effective UID is what permissions you have right now.</td></tr><tr><td class='mono'>sysconf</td><td class='mono'>long sysconf(int name);</td><td class='mono muted2'>EINVAL</td><td>Queries system limits/options at runtime (e.g., _SC_OPEN_MAX, _SC_PAGE_SIZE). Returns -1 without setting errno if the limit is indeterminate.</td></tr><tr><td class='mono'>open</td><td class='mono'>int open(const char *path, int flags, mode_t mode);</td><td class='mono muted2'>ENOENT, EACCES, EMFILE, ENFILE</td><td>Returns a file descriptor. Always set O_CLOEXEC. The fd is the lowest available non-negative integer.</td></tr><tr><td class='mono'>read / write</td><td class='mono'>ssize_t read(int fd, void *buf, size_t count);</td><td class='mono muted2'>EINTR, EAGAIN, EBADF</td><td>Short reads/writes are normal. Loop until done. Handle EINTR for signal interruption.</td></tr><tr><td class='mono'>close</td><td class='mono'>int close(int fd);</td><td class='mono muted2'>EBADF, EINTR, EIO</td><td>Releases the fd. Do NOT retry on EINTR (the fd is already closed on Linux). Double-close is a bug.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -127,13 +127,13 @@
           </div>
           <details class="accordion">
   <summary>User/kernel boundary crossing cost</summary>
-  <div class="content"><ul><li>Every syscall requires a mode switch: saving user registers, switching to kernel stack, executing the handler, restoring state, and returning. This costs ~100-300ns even for trivial calls like getpid().</li><li>vDSO (virtual dynamic shared object) optimizes a few read-only syscalls (gettimeofday, clock_gettime) by mapping kernel data into user space — no actual mode switch needed.</li><li>Batching I/O (e.g., buffered stdio, readv/writev, io_uring) amortizes crossing cost. Never call write() per byte in a hot loop.</li><li>Context switches between processes are even more expensive: TLB flushes, cache pollution, and scheduler overhead add up.</li></ul></div>
+  <div class="content"><ul><li>Every syscall requires a mode switch: saving user registers, switching to kernel stack, executing the handler, restoring state, and returning. This costs ~100-300ns even for trivial calls like getpid().</li><li>vDSO (virtual dynamic shared object) optimizes a few read-only syscalls (gettimeofday, clock_gettime) by mapping kernel data into user space: no actual mode switch needed.</li><li>Batching I/O (e.g., buffered stdio, readv/writev, io_uring) amortizes crossing cost. Never call write() per byte in a hot loop.</li><li>Context switches between processes are even more expensive: TLB flushes, cache pollution, and scheduler overhead add up.</li></ul></div>
 </details><details class="accordion">
   <summary>Virtual vs physical memory misconceptions</summary>
   <div class="content"><ul><li>malloc() returning non-NULL does not mean physical memory is available. Linux overcommits by default: pages are backed by physical RAM only on first write (demand paging).</li><li>The OOM killer may terminate your process long after allocation "succeeded" if the system runs out of physical memory.</li><li>A process's virtual size (VSZ) can be much larger than its resident set (RSS). Reading VSZ alone is misleading.</li><li>Stack size is limited (typically 8MB via ulimit); exceeding it causes SIGSEGV, not a graceful error. Deep recursion or large stack allocations are dangerous.</li></ul></div>
 </details><details class="accordion">
   <summary>Permission inheritance subtleties</summary>
-  <div class="content"><ul><li>fork() copies the parent's credentials (real/effective/saved UIDs and GIDs) to the child. The child inherits the same permissions.</li><li>execve() of a set-uid binary changes the effective UID to the file's owner — this is how programs like passwd gain temporary privilege.</li><li>File descriptors survive fork() and (unless O_CLOEXEC) execve(). A privileged fd leaked to an unprivileged child is a security hole.</li><li>umask subtracts permission bits from the mode argument of open()/mkdir(). A permissive umask (0000) in production can expose files unintentionally.</li></ul></div>
+  <div class="content"><ul><li>fork() copies the parent's credentials (real/effective/saved UIDs and GIDs) to the child. The child inherits the same permissions.</li><li>execve() of a set-uid binary changes the effective UID to the file's owner: this is how programs like passwd gain temporary privilege.</li><li>File descriptors survive fork() and (unless O_CLOEXEC) execve(). A privileged fd leaked to an unprivileged child is a security hole.</li><li>umask subtracts permission bits from the mode argument of open()/mkdir(). A permissive umask (0000) in production can expose files unintentionally.</li></ul></div>
 </details>
         </div>
 
@@ -145,7 +145,7 @@
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
     These are compact patterns to internalize. Treat them as starting points: add proper error handling, timeouts, and logging.
   </div>
-  <pre id="code_ch02"><code class="mono">/* ch02_fundamentals.c — Query process identity and system limits */
+  <pre id="code_ch02"><code class="mono">/* ch02_fundamentals.c: Query process identity and system limits */
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;unistd.h&gt;
@@ -153,7 +153,7 @@
 #include &lt;string.h&gt;
 
 int main(void) {
-    /* Process identity — these calls always succeed */
+    /* Process identity: these calls always succeed */
     printf("PID  = %ld\n", (long)getpid());
     printf("PPID = %ld\n", (long)getppid());
     printf("UID  = %ld  (effective = %ld)\n",
@@ -161,7 +161,7 @@ int main(void) {
     printf("GID  = %ld  (effective = %ld)\n",
            (long)getgid(), (long)getegid());
 
-    /* System limits via sysconf — proper error handling */
+    /* System limits via sysconf: proper error handling */
     errno = 0;
     long open_max = sysconf(_SC_OPEN_MAX);
     if (open_max == -1) {
@@ -190,7 +190,7 @@ int main(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Set O_CLOEXEC on every open() to prevent file descriptor leaks across exec boundaries.</li><li>Never assume malloc() success means physical memory is available; handle OOM gracefully or use mlockall() for critical pages.</li><li>Check and set umask explicitly in daemons; do not rely on the inherited value.</li><li>Run as a non-root user with minimal capabilities instead of full superuser privileges.</li><li>Use /proc/PID/maps and /proc/PID/fd/ to audit memory layout and open descriptors in production.</li><li>Validate sysconf() return values before using them as array sizes or loop bounds — indeterminate limits return -1 without setting errno.</li><li>Prefer getresuid()/getresgid() to inspect all three UID/GID values when debugging permission issues.</li></ul>
+            <ul><li>Set O_CLOEXEC on every open() to prevent file descriptor leaks across exec boundaries.</li><li>Never assume malloc() success means physical memory is available; handle OOM gracefully or use mlockall() for critical pages.</li><li>Check and set umask explicitly in daemons; do not rely on the inherited value.</li><li>Run as a non-root user with minimal capabilities instead of full superuser privileges.</li><li>Use /proc/PID/maps and /proc/PID/fd/ to audit memory layout and open descriptors in production.</li><li>Validate sysconf() return values before using them as array sizes or loop bounds: indeterminate limits return -1 without setting errno.</li><li>Prefer getresuid()/getresgid() to inspect all three UID/GID values when debugging permission issues.</li></ul>
           </div>
         </div>
 
@@ -241,7 +241,7 @@ int main(void) {
   <div><div style="font-weight:750">Heap, text, data, stack (no kernel mapping)</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="3" data-explain="System calls like read() and write() work uniformly on file descriptors regardless of the underlying object — regular files, pipes, sockets, terminals, and devices all share the same fd-based interface. This is a core Unix design principle.">
+</div><div class="q" data-quiz data-answer="3" data-explain="System calls like read() and write() work uniformly on file descriptors regardless of the underlying object: regular files, pipes, sockets, terminals, and devices all share the same fd-based interface. This is a core Unix design principle.">
   <div class="qp">Q3. Why are file descriptors considered a "uniform I/O interface"?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -295,7 +295,7 @@ int main(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch02", n:2, subtitle:"Chapter 02 \u2014 Fundamental Concepts"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch02", n:2, subtitle:"Chapter 02: Fundamental Concepts"});
     TLPIWidgets.mountKernelGraph("kg_ch02", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fundamentals). Click to pin a tooltip.",

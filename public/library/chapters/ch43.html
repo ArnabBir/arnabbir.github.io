@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 43 — Interprocess Communication Overview</title>
+  <title>TLPI v2, Chapter 43, Interprocess Communication Overview</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 43 — Interprocess Communication Overview</div>
+          <div class="sub" id="subTitle">Chapter 43: Interprocess Communication Overview</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 43 — Interprocess Communication Overview
+            Chapter 43: Interprocess Communication Overview
           </h2>
           <div class="subtitle">
-            <p>IPC lets processes share data and coordinate. Linux offers pipes, FIFOs, message queues, semaphores, shared memory, and sockets — each with different trade-offs in latency, bandwidth, and complexity. The fundamental division is between data-transfer IPC (where the kernel copies bytes between processes) and shared-memory IPC (where processes access the same physical pages directly).</p><p>This chapter surveys every major IPC mechanism, classifies them, and provides a decision framework so you can pick the right one for your use case.</p>
+            <p>IPC lets processes share data and coordinate. Linux offers pipes, FIFOs, message queues, semaphores, shared memory, and sockets: each with different trade-offs in latency, bandwidth, and complexity. The fundamental division is between data-transfer IPC (where the kernel copies bytes between processes) and shared-memory IPC (where processes access the same physical pages directly).</p><p>This chapter surveys every major IPC mechanism, classifies them, and provides a decision framework so you can pick the right one for your use case.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">Data-transfer IPC (pipes, message queues, sockets) involves kernel-mediated copies; shared-memory IPC avoids copies but requires explicit synchronization.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">System V IPC objects persist in the kernel until explicitly removed (IPC_RMID) or reboot — they are not reference-counted like pipes.</div>
+  <div class="v">System V IPC objects persist in the kernel until explicitly removed (IPC_RMID) or reboot: they are not reference-counted like pipes.</div>
 </div><div class="callout tip">
   <div class="k">Tip</div>
   <div class="v">AF_UNIX sockets are the most versatile local IPC: bidirectional, support fd-passing, datagrams, and integrate with poll/epoll.</div>
@@ -85,7 +85,7 @@
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>pipe</td><td>Unidirectional byte stream; anonymous, only between related processes (via fork). Kernel-buffered, reference-counted — gone when all fds close.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe with a filesystem path (mkfifo). Connects unrelated processes. Same byte-stream semantics as pipes.</td></tr><tr><td class='mono'>message queue</td><td>Kernel-managed queue of discrete, typed messages. SysV (msgget) or POSIX (mq_open). Preserves message boundaries.</td></tr><tr><td class='mono'>semaphore</td><td>Counting synchronization primitive. SysV (semget/semop) or POSIX (sem_open/sem_wait). Used to guard shared resources.</td></tr><tr><td class='mono'>shared memory</td><td>Multiple processes map the same physical pages. SysV (shmget/shmat) or POSIX (shm_open + mmap). No kernel copy overhead.</td></tr><tr><td class='mono'>AF_UNIX socket</td><td>Local socket: bidirectional, supports streams/datagrams, fd-passing (SCM_RIGHTS), credentials (SO_PEERCRED). Works with epoll.</td></tr><tr><td class='mono'>POSIX IPC</td><td>Modern IPC APIs: mq_open, sem_open, shm_open. Name-based ("/name"), fd-oriented, cleaner than System V.</td></tr><tr><td class='mono'>System V IPC</td><td>Legacy IPC APIs: msgget, semget, shmget. Key-based (ftok), no fd interface, kernel-persistent until IPC_RMID.</td></tr></tbody>
+  <tbody><tr><td class='mono'>pipe</td><td>Unidirectional byte stream; anonymous, only between related processes (via fork). Kernel-buffered, reference-counted: gone when all fds close.</td></tr><tr><td class='mono'>FIFO</td><td>Named pipe with a filesystem path (mkfifo). Connects unrelated processes. Same byte-stream semantics as pipes.</td></tr><tr><td class='mono'>message queue</td><td>Kernel-managed queue of discrete, typed messages. SysV (msgget) or POSIX (mq_open). Preserves message boundaries.</td></tr><tr><td class='mono'>semaphore</td><td>Counting synchronization primitive. SysV (semget/semop) or POSIX (sem_open/sem_wait). Used to guard shared resources.</td></tr><tr><td class='mono'>shared memory</td><td>Multiple processes map the same physical pages. SysV (shmget/shmat) or POSIX (shm_open + mmap). No kernel copy overhead.</td></tr><tr><td class='mono'>AF_UNIX socket</td><td>Local socket: bidirectional, supports streams/datagrams, fd-passing (SCM_RIGHTS), credentials (SO_PEERCRED). Works with epoll.</td></tr><tr><td class='mono'>POSIX IPC</td><td>Modern IPC APIs: mq_open, sem_open, shm_open. Name-based ("/name"), fd-oriented, cleaner than System V.</td></tr><tr><td class='mono'>System V IPC</td><td>Legacy IPC APIs: msgget, semget, shmget. Key-based (ftok), no fd interface, kernel-persistent until IPC_RMID.</td></tr></tbody>
 </table>
         </div>
 
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Creates pipe with O_CLOEXEC | O_NONBLOCK atomically. Always prefer over pipe().</td></tr><tr><td class='mono'>socketpair</td><td class='mono'>int socketpair(int domain, int type, int protocol, int sv[2]);</td><td class='mono muted2'>EAFNOSUPPORT, EMFILE</td><td>Creates connected AF_UNIX socket pair. Bidirectional — often better than two pipes.</td></tr><tr><td class='mono'>mq_open</td><td class='mono'>mqd_t mq_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT</td><td>POSIX message queue. Returns fd usable with poll/epoll (via mq_getattr). Visible in /dev/mqueue.</td></tr><tr><td class='mono'>shm_open</td><td class='mono'>int shm_open(const char *name, int oflag, mode_t mode);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT</td><td>POSIX shared memory. Returns fd for mmap. Visible in /dev/shm. shm_unlink removes the name.</td></tr>
+    <tr><td class='mono'>pipe2</td><td class='mono'>int pipe2(int pipefd[2], int flags);</td><td class='mono muted2'>EMFILE, ENFILE</td><td>Creates pipe with O_CLOEXEC | O_NONBLOCK atomically. Always prefer over pipe().</td></tr><tr><td class='mono'>socketpair</td><td class='mono'>int socketpair(int domain, int type, int protocol, int sv[2]);</td><td class='mono muted2'>EAFNOSUPPORT, EMFILE</td><td>Creates connected AF_UNIX socket pair. Bidirectional: often better than two pipes.</td></tr><tr><td class='mono'>mq_open</td><td class='mono'>mqd_t mq_open(const char *name, int oflag, ...);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT</td><td>POSIX message queue. Returns fd usable with poll/epoll (via mq_getattr). Visible in /dev/mqueue.</td></tr><tr><td class='mono'>shm_open</td><td class='mono'>int shm_open(const char *name, int oflag, mode_t mode);</td><td class='mono muted2'>EACCES, EEXIST, ENOENT</td><td>POSIX shared memory. Returns fd for mmap. Visible in /dev/shm. shm_unlink removes the name.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -127,16 +127,16 @@
           </div>
           <details class="accordion">
   <summary>Data-transfer vs shared-memory trade-offs</summary>
-  <div class="content"><ul><li>Data-transfer IPC (pipes, sockets, message queues) involves at least two copies: sender→kernel, kernel→receiver. For small messages the overhead is negligible; for large transfers (MB+) it dominates.</li><li>Shared memory eliminates copies but you must synchronize access. A missing memory barrier or lock causes silent corruption — the hardest bugs to find.</li><li>Hybrid approach: use shared memory for data, use a pipe or eventfd for notification ("data is ready"). This combines zero-copy with event-loop integration.</li></ul></div>
+  <div class="content"><ul><li>Data-transfer IPC (pipes, sockets, message queues) involves at least two copies: sender→kernel, kernel→receiver. For small messages the overhead is negligible; for large transfers (MB+) it dominates.</li><li>Shared memory eliminates copies but you must synchronize access. A missing memory barrier or lock causes silent corruption: the hardest bugs to find.</li><li>Hybrid approach: use shared memory for data, use a pipe or eventfd for notification ("data is ready"). This combines zero-copy with event-loop integration.</li></ul></div>
 </details><details class="accordion">
   <summary>POSIX IPC vs System V IPC</summary>
-  <div class="content"><ul><li>POSIX IPC names are paths ("/myqueue") visible in /dev/mqueue or /dev/shm. System V IPC keys are integers from ftok() — prone to collisions and harder to debug.</li><li>POSIX IPC objects are reference-counted after unlink (like files): existing users keep access. System V IPC_RMID on a message queue destroys it immediately, possibly losing messages.</li><li>POSIX message queues support mq_notify for async notification (SIGEV_THREAD or SIGEV_SIGNAL). System V message queues have no notification mechanism.</li><li>System V semaphores support atomic operations on multiple semaphores in one semop() call. POSIX semaphores are simpler but only operate on one at a time.</li></ul></div>
+  <div class="content"><ul><li>POSIX IPC names are paths ("/myqueue") visible in /dev/mqueue or /dev/shm. System V IPC keys are integers from ftok(): prone to collisions and harder to debug.</li><li>POSIX IPC objects are reference-counted after unlink (like files): existing users keep access. System V IPC_RMID on a message queue destroys it immediately, possibly losing messages.</li><li>POSIX message queues support mq_notify for async notification (SIGEV_THREAD or SIGEV_SIGNAL). System V message queues have no notification mechanism.</li><li>System V semaphores support atomic operations on multiple semaphores in one semop() call. POSIX semaphores are simpler but only operate on one at a time.</li></ul></div>
 </details><details class="accordion">
   <summary>AF_UNIX sockets as universal IPC</summary>
-  <div class="content"><ul><li>AF_UNIX SOCK_STREAM gives bidirectional reliable byte stream — like TCP but local, with lower overhead.</li><li>AF_UNIX SOCK_DGRAM gives message boundaries without the complexity of message queues. No need for length-prefix framing.</li><li>SCM_RIGHTS ancillary messages let you pass open file descriptors between processes — essential for privilege separation (e.g., passing a bound socket from a privileged parent to an unprivileged child).</li><li>SO_PEERCRED lets you authenticate the peer process (get its PID, UID, GID) without application-level auth.</li></ul></div>
+  <div class="content"><ul><li>AF_UNIX SOCK_STREAM gives bidirectional reliable byte stream: like TCP but local, with lower overhead.</li><li>AF_UNIX SOCK_DGRAM gives message boundaries without the complexity of message queues. No need for length-prefix framing.</li><li>SCM_RIGHTS ancillary messages let you pass open file descriptors between processes: essential for privilege separation (e.g., passing a bound socket from a privileged parent to an unprivileged child).</li><li>SO_PEERCRED lets you authenticate the peer process (get its PID, UID, GID) without application-level auth.</li></ul></div>
 </details><details class="accordion">
   <summary>Choosing IPC: decision checklist</summary>
-  <div class="content"><ul><li>Related processes only? pipe() or socketpair() are simplest — no naming, auto-cleanup on close.</li><li>Unrelated processes? Use AF_UNIX socket (most flexible), FIFO (simplest), or named POSIX IPC objects.</li><li>Need message boundaries? Use SOCK_DGRAM, POSIX mq, or System V msgqueue. Pipes/SOCK_STREAM are byte streams — you must frame yourself.</li><li>Need lowest latency for bulk data? Shared memory + eventfd notification.</li><li>Need to pass file descriptors? Only AF_UNIX sockets support SCM_RIGHTS.</li><li>Need persistence across process restarts? System V IPC objects or POSIX named objects persist until explicit removal.</li></ul></div>
+  <div class="content"><ul><li>Related processes only? pipe() or socketpair() are simplest: no naming, auto-cleanup on close.</li><li>Unrelated processes? Use AF_UNIX socket (most flexible), FIFO (simplest), or named POSIX IPC objects.</li><li>Need message boundaries? Use SOCK_DGRAM, POSIX mq, or System V msgqueue. Pipes/SOCK_STREAM are byte streams: you must frame yourself.</li><li>Need lowest latency for bulk data? Shared memory + eventfd notification.</li><li>Need to pass file descriptors? Only AF_UNIX sockets support SCM_RIGHTS.</li><li>Need persistence across process restarts? System V IPC objects or POSIX named objects persist until explicit removal.</li></ul></div>
 </details>
         </div>
 
@@ -146,9 +146,9 @@
     <button class="btn small" data-copy="#code_ch43">Copy</button>
   </div>
   <div class="muted" style="margin-top:-4px; margin-bottom:12px">
-    Comparison: pipe vs AF_UNIX socket — showing when each is appropriate.
+    Comparison: pipe vs AF_UNIX socket: showing when each is appropriate.
   </div>
-  <pre id="code_ch43"><code class="mono">// Option A: pipe — simple, unidirectional, related processes
+  <pre id="code_ch43"><code class="mono">// Option A: pipe: simple, unidirectional, related processes
 int pfd[2];
 pipe2(pfd, O_CLOEXEC);           // pfd[0]=read, pfd[1]=write
 if (fork() == 0) {               // child reads
@@ -159,7 +159,7 @@ if (fork() == 0) {               // child reads
 close(pfd[0]);                   // parent writes
 write(pfd[1], "hello", 5);
 
-// Option B: AF_UNIX socketpair — bidirectional, fd-passing capable
+// Option B: AF_UNIX socketpair: bidirectional, fd-passing capable
 int sv[2];
 socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
 if (fork() == 0) {               // child: full duplex on sv[1]
@@ -179,7 +179,7 @@ write(sv[0], "response", 8);</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Classify your IPC need: stream vs message vs shared memory. Pick the simplest mechanism that fits.</li><li>For shared memory: always pair with explicit synchronization (mutex, semaphore, or atomic + barrier). Document the protocol.</li><li>For named IPC objects (FIFO, POSIX mq/shm, SysV): define who creates, who unlinks, and handle stale objects on startup.</li><li>Prefer POSIX IPC over System V for new code — cleaner API, fd-based, better cleanup semantics.</li><li>Use AF_UNIX sockets as default for local IPC between unrelated processes unless you have a specific reason for alternatives.</li></ul>
+            <ul><li>Classify your IPC need: stream vs message vs shared memory. Pick the simplest mechanism that fits.</li><li>For shared memory: always pair with explicit synchronization (mutex, semaphore, or atomic + barrier). Document the protocol.</li><li>For named IPC objects (FIFO, POSIX mq/shm, SysV): define who creates, who unlinks, and handle stale objects on startup.</li><li>Prefer POSIX IPC over System V for new code: cleaner API, fd-based, better cleanup semantics.</li><li>Use AF_UNIX sockets as default for local IPC between unrelated processes unless you have a specific reason for alternatives.</li></ul>
           </div>
         </div>
 
@@ -198,7 +198,7 @@ write(sv[0], "response", 8);</code></pre>
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Shared memory maps the same physical pages into multiple address spaces — no kernel copy on each transfer. The kernel is only involved at setup (mmap/shmat).">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="Shared memory maps the same physical pages into multiple address spaces: no kernel copy on each transfer. The kernel is only involved at setup (mmap/shmat).">
   <div class="qp">Q1. Which IPC mechanism avoids kernel-mediated data copying during transfer?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -284,7 +284,7 @@ write(sv[0], "response", 8);</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch43", n:43, subtitle:"Chapter 43 \u2014 Interprocess Communication Overview"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch43", n:43, subtitle:"Chapter 43: Interprocess Communication Overview"});
     TLPIWidgets.mountKernelGraph("kg_ch43", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (ipc). Click to pin a tooltip.",

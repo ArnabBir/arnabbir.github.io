@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 42 — Advanced Features of Shared Libraries</title>
+  <title>TLPI v2, Chapter 42, Advanced Features of Shared Libraries</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 42 — Advanced Features of Shared Libraries</div>
+          <div class="sub" id="subTitle">Chapter 42: Advanced Features of Shared Libraries</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 42 — Advanced Features of Shared Libraries
+            Chapter 42: Advanced Features of Shared Libraries
           </h2>
           <div class="subtitle">
-            <p>dlopen enables plugin architectures — load code at runtime, resolve symbols dynamically, and control visibility. This is the foundation of extensible applications: database engines loading storage backends, web servers loading protocol modules, and audio frameworks loading codec plugins.</p><p>LD_PRELOAD enables transparent function interposition — inject wrapper libraries that intercept malloc, open, write, or any other function without modifying or relinking the target binary. Combined with constructor/destructor attributes and symbol versioning, these mechanisms provide fine-grained control over shared library behavior.</p>
+            <p>dlopen enables plugin architectures: load code at runtime, resolve symbols dynamically, and control visibility. This is the foundation of extensible applications: database engines loading storage backends, web servers loading protocol modules, and audio frameworks loading codec plugins.</p><p>LD_PRELOAD enables transparent function interposition: inject wrapper libraries that intercept malloc, open, write, or any other function without modifying or relinking the target binary. Combined with constructor/destructor attributes and symbol versioning, these mechanisms provide fine-grained control over shared library behavior.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">dlopen() returns a handle to a loaded shared object; dlsym() resolves symbols within that scope. Always check dlerror() after both calls.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">dlclose() can unload code while threads still hold function pointers into it — use-after-unload causes silent corruption or SIGSEGV.</div>
+  <div class="v">dlclose() can unload code while threads still hold function pointers into it: use-after-unload causes silent corruption or SIGSEGV.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use LD_DEBUG=bindings to trace runtime symbol resolution; nm -D to list exported symbols; objdump -T for symbol versions.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>dlopen(path, RTLD_LAZY|RTLD_NOW) loads a shared library at runtime, returning an opaque handle. RTLD_LAZY defers symbol resolution; RTLD_NOW resolves all symbols immediately (fail-fast).</li><li>dlsym(handle, "name") looks up a symbol in the loaded library. Returns a void pointer — cast to the appropriate function pointer type. Always call dlerror() first to clear, then check after.</li><li>dlclose() decrements the reference count; the library is unmapped when it reaches zero. Dangerous if callbacks, threads, or function pointers still reference the code.</li><li>RTLD_GLOBAL makes a library's symbols available for subsequent dlopen() calls' symbol resolution; RTLD_LOCAL (default) keeps them private to that handle.</li><li>LD_PRELOAD interposes functions: the preloaded library's symbols take priority in the global scope. Useful for malloc debugging, fd leak tracking, and testing.</li><li>__attribute__((constructor)) and __attribute__((destructor)) mark functions to run at library load and unload — analogous to C++ global constructors.</li><li>-fvisibility=hidden hides all symbols by default; selectively export with __attribute__((visibility("default"))) for a clean, minimal public API.</li><li>Symbol versioning (via version scripts or .symver directive) allows multiple ABI-incompatible implementations of the same symbol to coexist in one library.</li></ul>
+            <ul><li>dlopen(path, RTLD_LAZY|RTLD_NOW) loads a shared library at runtime, returning an opaque handle. RTLD_LAZY defers symbol resolution; RTLD_NOW resolves all symbols immediately (fail-fast).</li><li>dlsym(handle, "name") looks up a symbol in the loaded library. Returns a void pointer: cast to the appropriate function pointer type. Always call dlerror() first to clear, then check after.</li><li>dlclose() decrements the reference count; the library is unmapped when it reaches zero. Dangerous if callbacks, threads, or function pointers still reference the code.</li><li>RTLD_GLOBAL makes a library's symbols available for subsequent dlopen() calls' symbol resolution; RTLD_LOCAL (default) keeps them private to that handle.</li><li>LD_PRELOAD interposes functions: the preloaded library's symbols take priority in the global scope. Useful for malloc debugging, fd leak tracking, and testing.</li><li>__attribute__((constructor)) and __attribute__((destructor)) mark functions to run at library load and unload: analogous to C++ global constructors.</li><li>-fvisibility=hidden hides all symbols by default; selectively export with __attribute__((visibility("default"))) for a clean, minimal public API.</li><li>Symbol versioning (via version scripts or .symver directive) allows multiple ABI-incompatible implementations of the same symbol to coexist in one library.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -112,7 +112,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td class='mono'>dlopen</td><td class='mono'>void *dlopen(const char *filename, int flags);</td><td class='mono muted2'>—</td><td>flags: RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL. NULL filename returns handle to main program. Check dlerror() on NULL return.</td></tr><tr><td class='mono'>dlsym</td><td class='mono'>void *dlsym(void *handle, const char *symbol);</td><td class='mono muted2'>—</td><td>RTLD_DEFAULT searches global scope; RTLD_NEXT finds next occurrence (for interposition wrappers). Clear dlerror() before calling.</td></tr><tr><td class='mono'>dlclose</td><td class='mono'>int dlclose(void *handle);</td><td class='mono muted2'>—</td><td>Returns 0 on success. Library not unloaded if other handles or RTLD_NODELETE prevent it. Never dlclose if threads may still call into it.</td></tr><tr><td class='mono'>dlerror</td><td class='mono'>char *dlerror(void);</td><td class='mono muted2'>—</td><td>Returns human-readable error string for last dl* failure, or NULL if no error. Clears the error state on each call.</td></tr>
+    <tr><td class='mono'>dlopen</td><td class='mono'>void *dlopen(const char *filename, int flags);</td><td class='mono muted2'>N/A</td><td>flags: RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL. NULL filename returns handle to main program. Check dlerror() on NULL return.</td></tr><tr><td class='mono'>dlsym</td><td class='mono'>void *dlsym(void *handle, const char *symbol);</td><td class='mono muted2'>N/A</td><td>RTLD_DEFAULT searches global scope; RTLD_NEXT finds next occurrence (for interposition wrappers). Clear dlerror() before calling.</td></tr><tr><td class='mono'>dlclose</td><td class='mono'>int dlclose(void *handle);</td><td class='mono muted2'>N/A</td><td>Returns 0 on success. Library not unloaded if other handles or RTLD_NODELETE prevent it. Never dlclose if threads may still call into it.</td></tr><tr><td class='mono'>dlerror</td><td class='mono'>char *dlerror(void);</td><td class='mono muted2'>N/A</td><td>Returns human-readable error string for last dl* failure, or NULL if no error. Clears the error state on each call.</td></tr>
   </tbody>
 </table>
           <div class="muted2 small" style="margin-top:12px">
@@ -127,13 +127,13 @@
           </div>
           <details class="accordion">
   <summary>dlopen/dlclose lifecycle hazards</summary>
-  <div class="content"><ul><li>dlclose() can unmap code while threads still execute it — this causes SIGSEGV or silent memory corruption. In practice, many plugin systems never call dlclose().</li><li>RTLD_NODELETE flag (or __attribute__((constructor)) with persistent state) prevents unloading even after dlclose().</li><li>If a library's constructor fails (e.g., resource allocation), there's no standard way to report the error — dlopen() still succeeds. Use an explicit init function instead.</li><li>Recursive dlopen() from within a constructor can deadlock on the dynamic linker's internal lock on some implementations.</li></ul></div>
+  <div class="content"><ul><li>dlclose() can unmap code while threads still execute it: this causes SIGSEGV or silent memory corruption. In practice, many plugin systems never call dlclose().</li><li>RTLD_NODELETE flag (or __attribute__((constructor)) with persistent state) prevents unloading even after dlclose().</li><li>If a library's constructor fails (e.g., resource allocation), there's no standard way to report the error: dlopen() still succeeds. Use an explicit init function instead.</li><li>Recursive dlopen() from within a constructor can deadlock on the dynamic linker's internal lock on some implementations.</li></ul></div>
 </details><details class="accordion">
   <summary>LD_PRELOAD interposition patterns</summary>
   <div class="content"><ul><li>LD_PRELOAD loads libraries before all others, making their symbols take priority in the flat global namespace.</li><li>Use RTLD_NEXT in the wrapper to call the original function: real_malloc = dlsym(RTLD_NEXT, "malloc").</li><li>LD_PRELOAD is ignored for setuid/setgid binaries (security measure by ld.so).</li><li>Common uses: memory leak detectors (replacing malloc/free), fd leak tracking (wrapping open/close), and test mocking (faking time(), random()).</li></ul></div>
 </details><details class="accordion">
   <summary>Symbol visibility and versioning</summary>
-  <div class="content"><ul><li>-fvisibility=hidden makes all symbols internal by default; explicitly export only the public API with __attribute__((visibility("default"))).</li><li>Fewer exported symbols means faster load time (less work for ld.so) and a cleaner ABI surface.</li><li>Symbol versioning (via linker version scripts) lets you ship libfoo.so.1 with both foo_v1() and foo_v2() implementations bound to the same symbol name "foo" for different version tags.</li><li>Applications linked against the old version continue to resolve foo@VER_1; new applications get foo@VER_2 — no soname bump needed.</li></ul></div>
+  <div class="content"><ul><li>-fvisibility=hidden makes all symbols internal by default; explicitly export only the public API with __attribute__((visibility("default"))).</li><li>Fewer exported symbols means faster load time (less work for ld.so) and a cleaner ABI surface.</li><li>Symbol versioning (via linker version scripts) lets you ship libfoo.so.1 with both foo_v1() and foo_v2() implementations bound to the same symbol name "foo" for different version tags.</li><li>Applications linked against the old version continue to resolve foo@VER_1; new applications get foo@VER_2: no soname bump needed.</li></ul></div>
 </details>
         </div>
 
@@ -178,7 +178,7 @@ int load_plugin(const char *path) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Always check dlerror() after dlopen() and dlsym() — NULL return from dlsym may be a valid symbol value.</li><li>Use RTLD_NOW for plugins in production to fail fast on missing symbols rather than crashing later on first call.</li><li>Prefer RTLD_LOCAL to avoid polluting the global symbol namespace with plugin internals.</li><li>Never dlclose() a library if any thread might still hold function pointers or callbacks into it.</li><li>Use -fvisibility=hidden and explicit exports to minimize your library's public ABI surface and improve load performance.</li></ul>
+            <ul><li>Always check dlerror() after dlopen() and dlsym(): NULL return from dlsym may be a valid symbol value.</li><li>Use RTLD_NOW for plugins in production to fail fast on missing symbols rather than crashing later on first call.</li><li>Prefer RTLD_LOCAL to avoid polluting the global symbol namespace with plugin internals.</li><li>Never dlclose() a library if any thread might still hold function pointers or callbacks into it.</li><li>Use -fvisibility=hidden and explicit exports to minimize your library's public ABI surface and improve load performance.</li></ul>
           </div>
         </div>
 
@@ -197,7 +197,7 @@ int load_plugin(const char *path) {
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="RTLD_NOW forces all symbol references to be resolved immediately at dlopen time. If any symbol is missing, dlopen fails and returns NULL — fail-fast behavior ideal for production.">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="RTLD_NOW forces all symbol references to be resolved immediately at dlopen time. If any symbol is missing, dlopen fails and returns NULL: fail-fast behavior ideal for production.">
   <div class="qp">Q1. What is the effect of RTLD_NOW vs RTLD_LAZY?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -220,16 +220,16 @@ int load_plugin(const char *path) {
   <div><div style="font-weight:750">The kernel strips the environment variable</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">ld.so ignores it for security — prevents privilege escalation via code injection</div></div>
+  <div><div style="font-weight:750">ld.so ignores it for security: prevents privilege escalation via code injection</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
   <div><div style="font-weight:750">setuid binaries are statically linked</div></div>
 </div><div class="opt" data-opt="3">
   <div class="dot"></div>
-  <div><div style="font-weight:750">It does work — this is a myth</div></div>
+  <div><div style="font-weight:750">It does work: this is a myth</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="3" data-explain="dlsym can legitimately return NULL (for a symbol whose value is NULL). The only reliable way to detect an error is to call dlerror() before dlsym to clear it, then check dlerror() after — a non-NULL string indicates failure.">
+</div><div class="q" data-quiz data-answer="3" data-explain="dlsym can legitimately return NULL (for a symbol whose value is NULL). The only reliable way to detect an error is to call dlerror() before dlsym to clear it, then check dlerror() after: a non-NULL string indicates failure.">
   <div class="qp">Q3. How do you reliably detect dlsym() failure?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -283,7 +283,7 @@ int load_plugin(const char *path) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch42", n:42, subtitle:"Chapter 42 \u2014 Advanced Features of Shared Libraries"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch42", n:42, subtitle:"Chapter 42: Advanced Features of Shared Libraries"});
     TLPIWidgets.mountKernelGraph("kg_ch42", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (libs). Click to pin a tooltip.",

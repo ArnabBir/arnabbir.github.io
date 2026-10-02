@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 11: Stream Processing</title>
+  <title>DDIA Atlas: Chapter 11: Stream Processing</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,20 +75,20 @@
 <div class="lab" data-lab="stream">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Watermarks — Completeness vs Latency</h3>
+      <h3 class="lab-title">Lab: Watermarks: Completeness vs Latency</h3>
       <p class="lab-sub">Increase allowed lateness to drop fewer late events, but pay in output latency.</p>
     </div>
     <div class="pill"><span class="dot"></span> Event-time</div>
   </div>
   <div class="lab-grid">
     <div class="controls">
-      <label>Event rate (events/sec) <span class="kbd"><span data-val="rate">—</span></span></label>
+      <label>Event rate (events/sec) <span class="kbd"><span data-val="rate">N/A</span></span></label>
       <input type="range" min="10" max="10000" value="1500" data-k="rate" oninput="this.parentElement.querySelector('[data-val=rate]').textContent=this.value"/>
 
-      <label>Late events (%) <span class="kbd"><span data-val="late">—</span></span></label>
+      <label>Late events (%) <span class="kbd"><span data-val="late">N/A</span></span></label>
       <input type="range" min="0" max="30" step="0.5" value="4" data-k="late" oninput="this.parentElement.querySelector('[data-val=late]').textContent=this.value"/>
 
-      <label>Allowed lateness / watermark (sec) <span class="kbd"><span data-val="wm">—</span></span></label>
+      <label>Allowed lateness / watermark (sec) <span class="kbd"><span data-val="wm">N/A</span></span></label>
       <input type="range" min="0" max="60" value="12" data-k="wm" oninput="this.parentElement.querySelector('[data-val=wm]').textContent=this.value"/>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
@@ -96,8 +96,8 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Dropped late fraction</span><span class="v" data-out="loss">—</span></div>
-      <div class="metric"><span class="k">Output latency (toy)</span><span class="v" data-out="lag">—</span></div>
+      <div class="metric"><span class="k">Dropped late fraction</span><span class="v" data-out="loss">N/A</span></div>
+      <div class="metric"><span class="k">Output latency (toy)</span><span class="v" data-out="lag">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -107,7 +107,7 @@
         
 <h2 id="mental-model">Mental model</h2>
 <p>
-Streams are “data in motion” — unbounded sequences of events.
+Streams are “data in motion”: unbounded sequences of events.
 Stream processing is about maintaining derived state continuously:
 counts, joins, alerts, materialized views.
 The core challenge is <strong>time</strong>: event time vs processing time, and handling out-of-order/late events.
@@ -188,7 +188,7 @@ or by coupling input offsets with output commits (transactional sinks).
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Define a watermark policy</summary>
+  <summary>Drill 1: Define a watermark policy</summary>
   <p>
     Your mobile clients can be offline for minutes.
     If you aggregate “sessions per minute”, how do you define allowed lateness?
@@ -197,7 +197,7 @@ or by coupling input offsets with output commits (transactional sinks).
 </details>
 
 <details>
-  <summary>Drill 2 — Deduplication boundary</summary>
+  <summary>Drill 2: Deduplication boundary</summary>
   <p>
     Events can be duplicated. Where do you deduplicate:
     at ingestion, in the stream processor, or in the sink?
@@ -206,7 +206,7 @@ or by coupling input offsets with output commits (transactional sinks).
 </details>
 
 <details>
-  <summary>Drill 3 — Stream-table join drift</summary>
+  <summary>Drill 3: Stream-table join drift</summary>
   <p>
     You enrich clicks with a user profile table.
     Profiles change. Do old events use old profile values (as-of time) or latest profile?

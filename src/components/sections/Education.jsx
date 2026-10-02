@@ -51,7 +51,7 @@ function EducationCard({ e }) {
             {(e.start || e.end) && (
               <p className="mt-1 text-xs text-muted-foreground">
                 {e.start ? e.start : ""}
-                {e.start && e.end ? " — " : ""}
+                {e.start && e.end ? " to " : ""}
                 {e.end ? e.end : ""}
               </p>
             )}

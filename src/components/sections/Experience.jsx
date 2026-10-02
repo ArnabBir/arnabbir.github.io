@@ -51,7 +51,7 @@ function TimelineItem({ exp, isLast }) {
             </div>
             <div className="text-left sm:text-right">
               <p className="text-sm text-muted-foreground font-medium">
-                {exp.start} — {exp.end}
+                {exp.start} to {exp.end}
               </p>
               {exp.location && (
                 <p className="text-xs text-muted-foreground/70 mt-0.5">{exp.location}</p>

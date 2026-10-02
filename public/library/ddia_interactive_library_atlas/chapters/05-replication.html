@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 5: Replication</title>
+  <title>DDIA Atlas: Chapter 5: Replication</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -75,7 +75,7 @@
 <div class="lab" data-lab="replication">
   <div class="lab-head">
     <div>
-      <h3 class="lab-title">Lab: Replication — Latency, Staleness, Availability</h3>
+      <h3 class="lab-title">Lab: Replication: Latency, Staleness, Availability</h3>
       <p class="lab-sub">Tune sync/async and quorum size. Observe how “stronger” reads/writes often cost latency or availability.</p>
     </div>
     <div class="pill"><span class="dot"></span> Quorum intuition</div>
@@ -88,10 +88,10 @@
         <option value="sync">Sync-ish (wait for followers/quorum)</option>
       </select>
 
-      <label>Replication lag / network delay (ms) <span class="kbd"><span data-val="lag">—</span></span></label>
+      <label>Replication lag / network delay (ms) <span class="kbd"><span data-val="lag">N/A</span></span></label>
       <input type="range" min="5" max="800" value="120" data-k="lag" oninput="this.parentElement.querySelector('[data-val=lag]').textContent=this.value"/>
 
-      <label>Write quorum (replicas) <span class="kbd"><span data-val="quorum">—</span></span></label>
+      <label>Write quorum (replicas) <span class="kbd"><span data-val="quorum">N/A</span></span></label>
       <input type="range" min="1" max="3" value="1" data-k="quorum" oninput="this.parentElement.querySelector('[data-val=quorum]').textContent=this.value"/>
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
@@ -99,9 +99,9 @@
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Write latency (toy)</span><span class="v" data-out="lat">—</span></div>
-      <div class="metric"><span class="k">Staleness (toy)</span><span class="v" data-out="stale">—</span></div>
-      <div class="metric"><span class="k">Availability (toy)</span><span class="v" data-out="avail">—</span></div>
+      <div class="metric"><span class="k">Write latency (toy)</span><span class="v" data-out="lat">N/A</span></div>
+      <div class="metric"><span class="k">Staleness (toy)</span><span class="v" data-out="stale">N/A</span></div>
+      <div class="metric"><span class="k">Availability (toy)</span><span class="v" data-out="avail">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -112,7 +112,7 @@
 <h2 id="mental-model">Mental model</h2>
 <p>
 Replication exists because we want more of something: availability, low latency, throughput, or geographic proximity.
-But replication introduces a new dimension: <strong>time</strong>. Copies diverge, then converge — unless you design for convergence.
+But replication introduces a new dimension: <strong>time</strong>. Copies diverge, then converge: unless you design for convergence.
 Every replicated system must choose what it means to “commit” a write and what reads are allowed to observe.
 </p>
 
@@ -128,7 +128,7 @@ Every replicated system must choose what it means to “commit” a write and wh
   <div class="panel">
     <h4>Replication is an interface</h4>
     <p>
-      The most valuable output is not “n replicas” — it’s a clear API:
+      The most valuable output is not “n replicas”: it’s a clear API:
       read-your-writes? monotonic reads? causal consistency? linearizable reads?
       Pick the contract you can actually uphold under partitions.
     </p>
@@ -210,7 +210,7 @@ The hard truth: quorums do not automatically give linearizability. Timing, concu
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Choose your commit rule</summary>
+  <summary>Drill 1: Choose your commit rule</summary>
   <p>
     For a payments ledger, can you acknowledge a write after one node fsyncs?
     Or must you replicate to a quorum? Argue your choice using RPO/RTO.
@@ -218,7 +218,7 @@ The hard truth: quorums do not automatically give linearizability. Timing, concu
 </details>
 
 <details>
-  <summary>Drill 2 — Stale read UX</summary>
+  <summary>Drill 2: Stale read UX</summary>
   <p>
     Your app shows “like counts” and “account balance”. Which can be stale?
     If likes are stale, users may not care. If balances are stale, you may lose money or trust.
@@ -227,7 +227,7 @@ The hard truth: quorums do not automatically give linearizability. Timing, concu
 </details>
 
 <details>
-  <summary>Drill 3 — Multi-region writes</summary>
+  <summary>Drill 3: Multi-region writes</summary>
   <p>
     You want fast writes in 3 regions. Can you do it with leader-based replication?
     If you use multi-leader, how do you handle conflicts for the same user profile edited in two regions?

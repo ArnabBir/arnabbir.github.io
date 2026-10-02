@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 11 — System Limits and Options</title>
+  <title>TLPI v2, Chapter 11, System Limits and Options</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 11 — System Limits and Options</div>
+          <div class="sub" id="subTitle">Chapter 11: System Limits and Options</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 11 — System Limits and Options
+            Chapter 11: System Limits and Options
           </h2>
           <div class="subtitle">
             <p>Portable programs cannot hardcode system limits. The number of open files, the maximum path length, and the page size all vary across systems and even across filesystems on the same host. POSIX defines a three-tier scheme for discovering these limits: compile-time constants in &lt;limits.h&gt;, runtime queries via sysconf() for system-wide limits, and pathconf()/fpathconf() for filesystem-specific limits.</p><p>The subtlest challenge is the indeterminate limit: when a limit has no fixed value, sysconf() returns -1 without setting errno. Your code must distinguish this from an error (which also returns -1 but sets errno). Failing to handle indeterminate limits correctly leads to silent buffer overflows or unnecessary failures.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v">sysconf() queries are always safe and never fail for valid _SC_ names&mdash;they return the limit or -1 for indeterminate (without setting errno).</div>
+  <div class="v">sysconf() queries are always safe and never fail for valid _SC_ names: they return the limit or -1 for indeterminate (without setting errno).</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Indeterminate means sysconf() returns -1 WITHOUT setting errno. No fixed limit exists. You must provide a sensible fallback default&mdash;do not treat this as an error.</div>
+  <div class="v">Indeterminate means sysconf() returns -1 WITHOUT setting errno. No fixed limit exists. You must provide a sensible fallback default: do not treat this as an error.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">The getconf command-line tool mirrors sysconf/pathconf. Run <span class="mono">getconf PATH_MAX /</span> or <span class="mono">getconf OPEN_MAX</span> to quickly check limits without writing code.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>Compile-time limits (#define in &lt;limits.h&gt;) are known at build time but may be conservative minimums. Runtime queries may reveal higher actual limits.</li><li>sysconf(name) queries system-wide runtime limits. For example, sysconf(_SC_OPEN_MAX) returns the maximum number of open file descriptors per process. This may differ from RLIMIT_NOFILE (which is per-process and adjustable via setrlimit).</li><li>pathconf(path, name) and fpathconf(fd, name) query filesystem-specific limits. For example, _PC_NAME_MAX gives the maximum filename length on a specific filesystem&mdash;255 for ext4, potentially different for NFS or FUSE mounts.</li><li>Some limits are truly indeterminate. PATH_MAX is the classic example: on procfs, FUSE, and some network filesystems, there is no fixed maximum path length. sysconf/pathconf returns -1 without setting errno.</li><li>_POSIX_* constants (e.g., _POSIX_OPEN_MAX = 20) are POSIX-mandated minimum guarantees. They are a floor, not a ceiling. Real systems almost always support higher values.</li><li>OPEN_MAX via sysconf(_SC_OPEN_MAX) reports the system default. The actual per-process limit is controlled by getrlimit(RLIMIT_NOFILE). These can disagree&mdash;always check RLIMIT_NOFILE for the authoritative per-process value.</li><li>Always have a fallback default for indeterminate limits. A common pattern: try pathconf(); if indeterminate, use a reasonable constant (e.g., 4096 for PATH_MAX) and document the assumption.</li></ul>
+            <ul><li>Compile-time limits (#define in &lt;limits.h&gt;) are known at build time but may be conservative minimums. Runtime queries may reveal higher actual limits.</li><li>sysconf(name) queries system-wide runtime limits. For example, sysconf(_SC_OPEN_MAX) returns the maximum number of open file descriptors per process. This may differ from RLIMIT_NOFILE (which is per-process and adjustable via setrlimit).</li><li>pathconf(path, name) and fpathconf(fd, name) query filesystem-specific limits. For example, _PC_NAME_MAX gives the maximum filename length on a specific filesystem: 255 for ext4, potentially different for NFS or FUSE mounts.</li><li>Some limits are truly indeterminate. PATH_MAX is the classic example: on procfs, FUSE, and some network filesystems, there is no fixed maximum path length. sysconf/pathconf returns -1 without setting errno.</li><li>_POSIX_* constants (e.g., _POSIX_OPEN_MAX = 20) are POSIX-mandated minimum guarantees. They are a floor, not a ceiling. Real systems almost always support higher values.</li><li>OPEN_MAX via sysconf(_SC_OPEN_MAX) reports the system default. The actual per-process limit is controlled by getrlimit(RLIMIT_NOFILE). These can disagree: always check RLIMIT_NOFILE for the authoritative per-process value.</li><li>Always have a fallback default for indeterminate limits. A common pattern: try pathconf(); if indeterminate, use a reasonable constant (e.g., 4096 for PATH_MAX) and document the assumption.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -194,7 +194,7 @@ char *buf = malloc(path_max + 1);
           <div class="muted" style="margin-top:-4px; margin-bottom:12px">
             Click an option to check your understanding. The explanation points to the underlying invariant.
           </div>
-          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="When sysconf returns -1 and errno is 0 (unchanged), the limit is indeterminate&mdash;no fixed maximum exists. This is not an error. Your code must supply a fallback default.">
+          <div class="quiz"><div class="q" data-quiz data-answer="2" data-explain="When sysconf returns -1 and errno is 0 (unchanged), the limit is indeterminate: no fixed maximum exists. This is not an error. Your code must supply a fallback default.">
   <div class="qp">Q1. sysconf(_SC_OPEN_MAX) returns -1 and errno is 0. What does this mean?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -280,7 +280,7 @@ char *buf = malloc(path_max + 1);
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch11", n:11, subtitle:"Chapter 11 \u2014 System Limits and Options"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch11", n:11, subtitle:"Chapter 11: System Limits and Options"});
     TLPIWidgets.mountKernelGraph("kg_ch11", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (sys). Click to pin a tooltip.",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 55 — File Locking</title>
+  <title>TLPI v2, Chapter 55, File Locking</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 55 — File Locking</div>
+          <div class="sub" id="subTitle">Chapter 55: File Locking</div>
         </div>
       </div>
       <div class="actions">
@@ -56,14 +56,14 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 55 — File Locking
+            Chapter 55: File Locking
           </h2>
           <div class="subtitle">
-            <p>File locking coordinates concurrent access to files &mdash; advisory locks rely on cooperation between processes, while mandatory locks (mostly deprecated) are enforced by the kernel. Choose <span class="mono">flock</span> for whole-file locking and <span class="mono">fcntl</span> for byte-range locking.</p><p>This chapter covers <span class="mono">flock</span>, <span class="mono">fcntl</span> record locks (F_SETLK/F_SETLKW), <span class="mono">lockf</span>, the critical differences in lock ownership semantics, OFD locks, mandatory locking, and deadlock detection.</p>
+            <p>File locking coordinates concurrent access to files: advisory locks rely on cooperation between processes, while mandatory locks (mostly deprecated) are enforced by the kernel. Choose <span class="mono">flock</span> for whole-file locking and <span class="mono">fcntl</span> for byte-range locking.</p><p>This chapter covers <span class="mono">flock</span>, <span class="mono">fcntl</span> record locks (F_SETLK/F_SETLKW), <span class="mono">lockf</span>, the critical differences in lock ownership semantics, OFD locks, mandatory locking, and deadlock detection.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
-  <div class="v"><span class="mono">flock</span> locks are tied to the open file description (OFD) &mdash; shared across <span class="mono">dup</span> and <span class="mono">fork</span>. <span class="mono">fcntl</span> locks are tied to (pid, inode) &mdash; released when ANY fd to that file is closed by that process.</div>
+  <div class="v"><span class="mono">flock</span> locks are tied to the open file description (OFD): shared across <span class="mono">dup</span> and <span class="mono">fork</span>. <span class="mono">fcntl</span> locks are tied to (pid, inode): released when ANY fd to that file is closed by that process.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
   <div class="v"><span class="mono">fcntl</span> locks have surprising close semantics: closing ANY file descriptor referring to the same inode releases ALL locks held by that process on that file, even from different <span class="mono">open</span> calls.</div>
@@ -79,13 +79,13 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li><strong>flock()</strong> operates on open file descriptions (OFDs). Locks are shared across <span class="mono">dup()</span> and inherited across <span class="mono">fork()</span>. Closing the last fd referencing the OFD releases the lock. Simple whole-file advisory lock.</li><li><strong>fcntl()</strong> F_SETLK/F_SETLKW operates on (pid, inode, byte-range). Supports read locks (F_RDLCK, shared) and write locks (F_WRLCK, exclusive). F_SETLKW blocks until the lock is available.</li><li><strong>Critical fcntl gotcha:</strong> locks are released when ANY close of that file by that process occurs. If you open the same file twice and lock via fd1, closing fd2 releases the lock. This breaks library code that opens files independently.</li><li><strong>lockf()</strong> is a simplified wrapper around fcntl &mdash; same semantics, fewer options. Locks from current position to <span class="mono">len</span> bytes.</li><li><strong>Advisory locks:</strong> the kernel does not enforce them. All processes must cooperate by checking locks before access. This is the standard model.</li><li><strong>Mandatory locks</strong> (mount -o mand + chmod g+s,-x): kernel enforces locks on read/write. Mostly deprecated and removed in Linux 5.15+. Avoid in new code.</li><li><strong>Deadlock detection:</strong> the kernel detects deadlocks for fcntl locks and returns EDEADLK from F_SETLKW. flock does not have kernel-level deadlock detection.</li><li><strong>OFD locks</strong> (F_OFD_SETLK/F_OFD_SETLKW, Linux 3.15+): fix the close semantics of fcntl locks. Tied to the open file description (like flock) but support byte ranges. Preferred for new code needing byte-range locks.</li></ul>
+            <ul><li><strong>flock()</strong> operates on open file descriptions (OFDs). Locks are shared across <span class="mono">dup()</span> and inherited across <span class="mono">fork()</span>. Closing the last fd referencing the OFD releases the lock. Simple whole-file advisory lock.</li><li><strong>fcntl()</strong> F_SETLK/F_SETLKW operates on (pid, inode, byte-range). Supports read locks (F_RDLCK, shared) and write locks (F_WRLCK, exclusive). F_SETLKW blocks until the lock is available.</li><li><strong>Critical fcntl gotcha:</strong> locks are released when ANY close of that file by that process occurs. If you open the same file twice and lock via fd1, closing fd2 releases the lock. This breaks library code that opens files independently.</li><li><strong>lockf()</strong> is a simplified wrapper around fcntl: same semantics, fewer options. Locks from current position to <span class="mono">len</span> bytes.</li><li><strong>Advisory locks:</strong> the kernel does not enforce them. All processes must cooperate by checking locks before access. This is the standard model.</li><li><strong>Mandatory locks</strong> (mount -o mand + chmod g+s,-x): kernel enforces locks on read/write. Mostly deprecated and removed in Linux 5.15+. Avoid in new code.</li><li><strong>Deadlock detection:</strong> the kernel detects deadlocks for fcntl locks and returns EDEADLK from F_SETLKW. flock does not have kernel-level deadlock detection.</li><li><strong>OFD locks</strong> (F_OFD_SETLK/F_OFD_SETLKW, Linux 3.15+): fix the close semantics of fcntl locks. Tied to the open file description (like flock) but support byte ranges. Preferred for new code needing byte-range locks.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms &amp; kernel objects</div>
           <table class="table">
   <thead><tr><th>Term / object</th><th>Meaning</th></tr></thead>
-  <tbody><tr><td class='mono'>flock</td><td>BSD-style whole-file advisory lock. Tied to open file description (shared across dup/fork).</td></tr><tr><td class='mono'>fcntl F_SETLK</td><td>POSIX record lock (byte-range). Non-blocking; returns EAGAIN/EACCES if locked.</td></tr><tr><td class='mono'>fcntl F_SETLKW</td><td>Blocking variant of F_SETLK. Waits until lock is available. Kernel detects deadlocks (EDEADLK).</td></tr><tr><td class='mono'>F_RDLCK / F_WRLCK</td><td>Read (shared) and write (exclusive) lock types for fcntl.</td></tr><tr><td class='mono'>lockf</td><td>Simplified fcntl wrapper. F_LOCK (blocking), F_TLOCK (try), F_ULOCK (unlock), F_TEST (test).</td></tr><tr><td class='mono'>OFD locks</td><td>F_OFD_SETLK/F_OFD_SETLKW (Linux 3.15+). Byte-range locks with OFD ownership &mdash; fixes fcntl close semantics.</td></tr><tr><td class='mono'>advisory vs mandatory</td><td>Advisory: processes must cooperate. Mandatory: kernel enforces (deprecated/removed).</td></tr><tr><td class='mono'>/proc/locks</td><td>Shows all active file locks system-wide with type, owner pid, inode, and range.</td></tr></tbody>
+  <tbody><tr><td class='mono'>flock</td><td>BSD-style whole-file advisory lock. Tied to open file description (shared across dup/fork).</td></tr><tr><td class='mono'>fcntl F_SETLK</td><td>POSIX record lock (byte-range). Non-blocking; returns EAGAIN/EACCES if locked.</td></tr><tr><td class='mono'>fcntl F_SETLKW</td><td>Blocking variant of F_SETLK. Waits until lock is available. Kernel detects deadlocks (EDEADLK).</td></tr><tr><td class='mono'>F_RDLCK / F_WRLCK</td><td>Read (shared) and write (exclusive) lock types for fcntl.</td></tr><tr><td class='mono'>lockf</td><td>Simplified fcntl wrapper. F_LOCK (blocking), F_TLOCK (try), F_ULOCK (unlock), F_TEST (test).</td></tr><tr><td class='mono'>OFD locks</td><td>F_OFD_SETLK/F_OFD_SETLKW (Linux 3.15+). Byte-range locks with OFD ownership: fixes fcntl close semantics.</td></tr><tr><td class='mono'>advisory vs mandatory</td><td>Advisory: processes must cooperate. Mandatory: kernel enforces (deprecated/removed).</td></tr><tr><td class='mono'>/proc/locks</td><td>Shows all active file locks system-wide with type, owner pid, inode, and range.</td></tr></tbody>
 </table>
         </div>
 
@@ -128,10 +128,10 @@
           </div>
           <details class="accordion">
   <summary>fcntl lock release on ANY close</summary>
-  <div class="content"><ul><li>If process P opens file F as fd3 and fd7 (two separate <span class="mono">open</span> calls), locks via fd3, then closes fd7 &mdash; the lock on fd3 is released. This is because fcntl locks are keyed by (pid, inode), not by fd.</li><li>This breaks library code: if a library opens a file for its own purposes and your code has a lock on the same file, the library closing its fd releases your lock.</li><li>OFD locks (F_OFD_SETLK) fix this: locks are tied to the open file description, not (pid, inode). Closing one fd does not affect locks held via a different OFD.</li><li>Rule: if you use fcntl locks, ensure only one code path opens/closes a given file in the process.</li></ul></div>
+  <div class="content"><ul><li>If process P opens file F as fd3 and fd7 (two separate <span class="mono">open</span> calls), locks via fd3, then closes fd7: the lock on fd3 is released. This is because fcntl locks are keyed by (pid, inode), not by fd.</li><li>This breaks library code: if a library opens a file for its own purposes and your code has a lock on the same file, the library closing its fd releases your lock.</li><li>OFD locks (F_OFD_SETLK) fix this: locks are tied to the open file description, not (pid, inode). Closing one fd does not affect locks held via a different OFD.</li><li>Rule: if you use fcntl locks, ensure only one code path opens/closes a given file in the process.</li></ul></div>
 </details><details class="accordion">
   <summary>flock across fork and dup</summary>
-  <div class="content"><ul><li><span class="mono">flock</span> locks are on the open file description (kernel struct file). <span class="mono">dup()</span> shares the OFD, so both fds share the lock.</li><li>After <span class="mono">fork()</span>, parent and child share the OFD &mdash; both hold the same lock. Either can unlock it, affecting the other.</li><li>Separate <span class="mono">open()</span> calls create separate OFDs. Two processes opening the same file independently have independent flock locks.</li><li><span class="mono">flock</span> is not reliable across NFS on many implementations. Use fcntl locks for NFS (NFSv4 supports them).</li></ul></div>
+  <div class="content"><ul><li><span class="mono">flock</span> locks are on the open file description (kernel struct file). <span class="mono">dup()</span> shares the OFD, so both fds share the lock.</li><li>After <span class="mono">fork()</span>, parent and child share the OFD: both hold the same lock. Either can unlock it, affecting the other.</li><li>Separate <span class="mono">open()</span> calls create separate OFDs. Two processes opening the same file independently have independent flock locks.</li><li><span class="mono">flock</span> is not reliable across NFS on many implementations. Use fcntl locks for NFS (NFSv4 supports them).</li></ul></div>
 </details><details class="accordion">
   <summary>Deadlock detection</summary>
   <div class="content"><ul><li>The kernel performs deadlock detection for fcntl F_SETLKW: if process A waits for a lock held by B, and B waits for a lock held by A, F_SETLKW returns EDEADLK (for one of them).</li><li>Detection works for simple cycles but may not catch complex multi-resource deadlocks involving non-lock waits.</li><li><span class="mono">flock</span> has NO kernel deadlock detection. Two processes can deadlock indefinitely on flock.</li><li>OFD locks (F_OFD_SETLKW) also lack deadlock detection since locks are not tied to PIDs.</li></ul></div>
@@ -184,7 +184,7 @@ fcntl(db_fd, F_SETLK, &amp;fl);   /* unlock */</code></pre>
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use <span class="mono">flock</span> for simple whole-file locking (PID files, single-instance daemons).</li><li>Use <span class="mono">fcntl</span> or OFD locks for byte-range locking (database records, concurrent file updates).</li><li>Be aware of fcntl's close-releases-all semantics. Prefer OFD locks (F_OFD_SETLK) on Linux 3.15+ for robust byte-range locking.</li><li>Handle EDEADLK from F_SETLKW: implement retry or abort logic.</li><li>Do not rely on mandatory locking &mdash; it is deprecated and removed in modern kernels.</li><li>Test locking behavior on your target filesystem (NFS, FUSE, etc.) &mdash; semantics vary.</li></ul>
+            <ul><li>Use <span class="mono">flock</span> for simple whole-file locking (PID files, single-instance daemons).</li><li>Use <span class="mono">fcntl</span> or OFD locks for byte-range locking (database records, concurrent file updates).</li><li>Be aware of fcntl's close-releases-all semantics. Prefer OFD locks (F_OFD_SETLK) on Linux 3.15+ for robust byte-range locking.</li><li>Handle EDEADLK from F_SETLKW: implement retry or abort logic.</li><li>Do not rely on mandatory locking: it is deprecated and removed in modern kernels.</li><li>Test locking behavior on your target filesystem (NFS, FUSE, etc.): semantics vary.</li></ul>
           </div>
         </div>
 
@@ -207,7 +207,7 @@ fcntl(db_fd, F_SETLK, &amp;fl);   /* unlock */</code></pre>
   <div class="qp">Q1. What happens when a process closes one fd to a file while holding an fcntl lock via a different fd to the same file?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Nothing &mdash; only closing the locking fd releases the lock</div></div>
+  <div><div style="font-weight:750">Nothing: only closing the locking fd releases the lock</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
   <div><div style="font-weight:750">The close fails with EBUSY</div></div>
@@ -289,7 +289,7 @@ fcntl(db_fd, F_SETLK, &amp;fl);   /* unlock */</code></pre>
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch55", n:55, subtitle:"Chapter 55 \u2014 File Locking"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch55", n:55, subtitle:"Chapter 55: File Locking"});
     TLPIWidgets.mountKernelGraph("kg_ch55", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (fs). Click to pin a tooltip.",

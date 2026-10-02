@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 34 — Process Groups, Sessions, and Job Control</title>
+  <title>TLPI v2, Chapter 34, Process Groups, Sessions, and Job Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 34 — Process Groups, Sessions, and Job Control</div>
+          <div class="sub" id="subTitle">Chapter 34: Process Groups, Sessions, and Job Control</div>
         </div>
       </div>
       <div class="actions">
@@ -56,17 +56,17 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 34 — Process Groups, Sessions, and Job Control
+            Chapter 34: Process Groups, Sessions, and Job Control
           </h2>
           <div class="subtitle">
-            <p>Sessions and process groups organize processes for job control — the mechanism behind Ctrl-C sending SIGINT to the foreground group, shell backgrounding, and terminal management.</p><p>A session is a set of process groups (one foreground, rest background) tied to a controlling terminal. The shell manipulates these abstractions to implement job control: suspending, resuming, and signaling groups of cooperating processes.</p>
+            <p>Sessions and process groups organize processes for job control: the mechanism behind Ctrl-C sending SIGINT to the foreground group, shell backgrounding, and terminal management.</p><p>A session is a set of process groups (one foreground, rest background) tied to a controlling terminal. The shell manipulates these abstractions to implement job control: suspending, resuming, and signaling groups of cooperating processes.</p>
           </div>
           <div class="callouts"><div class="callout good">
   <div class="k">Invariant</div>
   <div class="v">Ctrl-C/Ctrl-Z sends signal to the entire foreground process group, not a single process.</div>
 </div><div class="callout warn">
   <div class="k">Gotcha</div>
-  <div class="v">Orphaned process groups receive SIGHUP+SIGCONT when the session leader exits — easy to miss in daemon code.</div>
+  <div class="v">Orphaned process groups receive SIGHUP+SIGCONT when the session leader exits: easy to miss in daemon code.</div>
 </div><div class="callout tip">
   <div class="k">Debugging</div>
   <div class="v">Use ps -o pid,pgid,sid,tty,comm to visualize session/group membership.</div>
@@ -79,7 +79,7 @@
             Internalize these bullets. If you can explain them clearly, you can debug most real-world incidents in this area.
           </div>
           <div class="prose">
-            <ul><li>A session is a collection of process groups; exactly one group is the foreground group at any time.</li><li>A process group (pgrp) is a set of related processes — typically the stages of a single pipeline.</li><li>The controlling terminal is attached to exactly one session; terminal-generated signals (SIGINT, SIGTSTP) go to the foreground process group.</li><li>setsid() creates a new session: the caller becomes session leader with no controlling terminal — the first step of daemonization.</li><li>setpgid() moves a process into a different process group; shells use this to create job groups.</li><li>When a session leader with a controlling terminal exits, SIGHUP is sent to the foreground process group; orphaned process groups also get SIGHUP+SIGCONT.</li><li>Daemon creation pattern: fork → setsid → fork again (prevents reacquiring a terminal) → close fds → redirect stdio to /dev/null.</li></ul>
+            <ul><li>A session is a collection of process groups; exactly one group is the foreground group at any time.</li><li>A process group (pgrp) is a set of related processes: typically the stages of a single pipeline.</li><li>The controlling terminal is attached to exactly one session; terminal-generated signals (SIGINT, SIGTSTP) go to the foreground process group.</li><li>setsid() creates a new session: the caller becomes session leader with no controlling terminal: the first step of daemonization.</li><li>setpgid() moves a process into a different process group; shells use this to create job groups.</li><li>When a session leader with a controlling terminal exits, SIGHUP is sent to the foreground process group; orphaned process groups also get SIGHUP+SIGCONT.</li><li>Daemon creation pattern: fork → setsid → fork again (prevents reacquiring a terminal) → close fds → redirect stdio to /dev/null.</li></ul>
           </div>
           <hr class="sep"/>
           <div class="muted2 small" style="margin-bottom:10px">Key terms & kernel objects</div>
@@ -129,13 +129,13 @@
           </div>
           <details class="accordion">
   <summary>Orphaned process groups</summary>
-  <div class="content"><ul><li>A process group is orphaned when no member has a parent in a different process group within the same session.</li><li>If an orphaned process group has any stopped members, the kernel sends SIGHUP followed by SIGCONT to every member.</li><li>This mechanism ensures stopped jobs don't hang forever after the shell exits — they get a chance to clean up.</li><li>A common bug: background jobs that ignore SIGHUP (via nohup or signal masking) survive but may lose their terminal I/O.</li></ul></div>
+  <div class="content"><ul><li>A process group is orphaned when no member has a parent in a different process group within the same session.</li><li>If an orphaned process group has any stopped members, the kernel sends SIGHUP followed by SIGCONT to every member.</li><li>This mechanism ensures stopped jobs don't hang forever after the shell exits: they get a chance to clean up.</li><li>A common bug: background jobs that ignore SIGHUP (via nohup or signal masking) survive but may lose their terminal I/O.</li></ul></div>
 </details><details class="accordion">
   <summary>Terminal disconnect cascade</summary>
-  <div class="content"><ul><li>When a controlling terminal hangs up (SSH disconnect, terminal close), the kernel sends SIGHUP to the session leader.</li><li>The session leader (typically the shell) then sends SIGHUP to its foreground job. Default SIGHUP action is termination.</li><li>Background jobs may or may not receive SIGHUP depending on the shell (bash sends it if huponexit is set).</li><li>nohup works by ignoring SIGHUP and redirecting output — it doesn't detach from the session.</li><li>disown (bash) removes the job from the shell's job table, preventing the shell from signaling it on exit.</li></ul></div>
+  <div class="content"><ul><li>When a controlling terminal hangs up (SSH disconnect, terminal close), the kernel sends SIGHUP to the session leader.</li><li>The session leader (typically the shell) then sends SIGHUP to its foreground job. Default SIGHUP action is termination.</li><li>Background jobs may or may not receive SIGHUP depending on the shell (bash sends it if huponexit is set).</li><li>nohup works by ignoring SIGHUP and redirecting output: it doesn't detach from the session.</li><li>disown (bash) removes the job from the shell's job table, preventing the shell from signaling it on exit.</li></ul></div>
 </details><details class="accordion">
   <summary>setsid and daemon creation pitfalls</summary>
-  <div class="content"><ul><li>setsid() fails with EPERM if the caller is already a process group leader — solution: fork first, then setsid in the child.</li><li>After setsid(), the process has no controlling terminal. But opening a terminal device can reacquire one (on Linux, only if O_NOCTTY is not set and the process is a session leader).</li><li>The double-fork trick: after setsid(), fork again so the grandchild is not a session leader and cannot accidentally acquire a controlling terminal.</li><li>systemd's Type=simple makes double-fork unnecessary — systemd tracks the main PID directly.</li></ul></div>
+  <div class="content"><ul><li>setsid() fails with EPERM if the caller is already a process group leader: solution: fork first, then setsid in the child.</li><li>After setsid(), the process has no controlling terminal. But opening a terminal device can reacquire one (on Linux, only if O_NOCTTY is not set and the process is a session leader).</li><li>The double-fork trick: after setsid(), fork again so the grandchild is not a session leader and cannot accidentally acquire a controlling terminal.</li><li>systemd's Type=simple makes double-fork unnecessary: systemd tracks the main PID directly.</li></ul></div>
 </details><details class="accordion">
   <summary>Shell job control implementation</summary>
   <div class="content"><ul><li>The shell creates a new process group for each job (pipeline). It calls setpgid() in both parent and child to avoid races.</li><li>The foreground job's process group is set via tcsetpgrp(); background jobs never get terminal access.</li><li>When a background job tries to read from the terminal, it receives SIGTTIN and stops.</li><li>When a background job tries to write (with tostop set), it receives SIGTTOU and stops.</li><li>The shell must restore itself as the foreground group after each foreground job completes (tcsetpgrp back to shell's pgid).</li></ul></div>
@@ -187,7 +187,7 @@ void daemonize(void) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Use setpgid() in both parent and child after fork to avoid race conditions in group assignment.</li><li>Always restore the shell's process group as foreground after a foreground job finishes (tcsetpgrp).</li><li>Handle SIGHUP gracefully in long-running services: reload config or shut down cleanly.</li><li>For daemons, prefer systemd Type=notify or Type=simple over traditional double-fork when possible.</li><li>When using nohup or disown, ensure output is redirected — orphaned terminal writes cause SIGTTOU stops.</li></ul>
+            <ul><li>Use setpgid() in both parent and child after fork to avoid race conditions in group assignment.</li><li>Always restore the shell's process group as foreground after a foreground job finishes (tcsetpgrp).</li><li>Handle SIGHUP gracefully in long-running services: reload config or shut down cleanly.</li><li>For daemons, prefer systemd Type=notify or Type=simple over traditional double-fork when possible.</li><li>When using nohup or disown, ensure output is redirected: orphaned terminal writes cause SIGTTOU stops.</li></ul>
           </div>
         </div>
 
@@ -222,7 +222,7 @@ void daemonize(void) {
   <div><div style="font-weight:750">Only the process with the lowest PID</div></div>
 </div></div>
   <div class="feedback muted2 small"></div>
-</div><div class="q" data-quiz data-answer="1" data-explain="setsid() creates a new session with no controlling terminal — the essential first step to detach a daemon from its launching terminal.">
+</div><div class="q" data-quiz data-answer="1" data-explain="setsid() creates a new session with no controlling terminal: the essential first step to detach a daemon from its launching terminal.">
   <div class="qp">Q2. What does setsid() accomplish?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
@@ -292,7 +292,7 @@ void daemonize(void) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch34", n:34, subtitle:"Chapter 34 \u2014 Process Groups, Sessions, and Job Control"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch34", n:34, subtitle:"Chapter 34: Process Groups, Sessions, and Job Control"});
     TLPIWidgets.mountKernelGraph("kg_ch34", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (proc). Click to pin a tooltip.",

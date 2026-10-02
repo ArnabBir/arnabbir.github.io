@@ -1,6 +1,6 @@
 
 /* ============================================================
-   Java Concurrency in Practice — Interactive Atlas
+   Java Concurrency in Practice: Interactive Atlas
    Design goals: premium, technical, high-contrast, readable,
    zero external dependencies, responsive, motion-safe.
    ============================================================ */
@@ -554,7 +554,7 @@ small{ color:var(--muted); }
 .callout .t b{ color: var(--text); }
 
 /* ============================================================
-   Light theme — comprehensive overrides
+   Light theme: comprehensive overrides
    ============================================================ */
 body.theme-light{
   --bg0:#f8fafc;

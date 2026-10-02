@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TLPI v2 — Chapter 04 — File I/O: The Universal I/O Model</title>
+  <title>TLPI v2, Chapter 04, File I/O: The Universal I/O Model</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="logo"></div>
         <div style="min-width:0">
           <h1>TLPI Interactive Library <span class="muted2">v2</span></h1>
-          <div class="sub" id="subTitle">Chapter 04 — File I/O: The Universal I/O Model</div>
+          <div class="sub" id="subTitle">Chapter 04: File I/O: The Universal I/O Model</div>
         </div>
       </div>
       <div class="actions">
@@ -56,7 +56,7 @@
       <main>
         <div class="glass hero">
           <h2 style="background:linear-gradient(90deg, rgba(124,58,237,.92), rgba(6,182,212,.86)); -webkit-background-clip:text; background-clip:text; color:transparent">
-            Chapter 04 — File I/O: The Universal I/O Model
+            Chapter 04: File I/O: The Universal I/O Model
           </h2>
           <div class="subtitle">
             <p>Linux file I/O is built around a simple abstraction: an integer file descriptor that indexes a per-process table. Under the hood, the descriptor points to an *open file description* (file offset + status flags) which in turn points to an inode and the filesystem implementation. This indirection is why dup()/fork() share offsets and why O_CLOEXEC matters.</p><p>Most real bugs in I/O code come from edge cases: partial reads/writes, EINTR/EAGAIN, nonblocking mode, buffering layers (stdio vs syscalls), and durability assumptions (page cache vs stable storage). This chapter guide is designed to make those edge cases feel normal.</p>
@@ -168,7 +168,7 @@ ssize_t write_all(int fd, const void *buf, size_t len) {
             If you are shipping code in this area, try to satisfy each checklist item explicitly.
           </div>
           <div class="prose">
-            <ul><li>Set O_CLOEXEC / FD_CLOEXEC on all fds by default (use openat/pipe2/socket with CLOEXEC flags).</li><li>Handle partial I/O, EINTR, and EAGAIN in loops; never assume single-call completion.</li><li>Decide and document durability: if data must survive crash, use fsync/fdatasync and correct ordering.</li><li>Avoid mixing stdio and raw fd operations on the same underlying file descriptor unless you understand buffering.</li><li>Log errno with context (path, flags, fd) — it’s your future debugging time-saver.</li></ul>
+            <ul><li>Set O_CLOEXEC / FD_CLOEXEC on all fds by default (use openat/pipe2/socket with CLOEXEC flags).</li><li>Handle partial I/O, EINTR, and EAGAIN in loops; never assume single-call completion.</li><li>Decide and document durability: if data must survive crash, use fsync/fdatasync and correct ordering.</li><li>Avoid mixing stdio and raw fd operations on the same underlying file descriptor unless you understand buffering.</li><li>Log errno with context (path, flags, fd): it’s your future debugging time-saver.</li></ul>
           </div>
         </div>
 
@@ -191,10 +191,10 @@ ssize_t write_all(int fd, const void *buf, size_t len) {
   <div class="qp">Q1. After dup(fd), do the two fds share file offset?</div>
   <div class="opts"><div class="opt" data-opt="0">
   <div class="dot"></div>
-  <div><div style="font-weight:750">Yes — they reference the same open file description</div></div>
+  <div><div style="font-weight:750">Yes: they reference the same open file description</div></div>
 </div><div class="opt" data-opt="1">
   <div class="dot"></div>
-  <div><div style="font-weight:750">No — each fd has independent offsets</div></div>
+  <div><div style="font-weight:750">No: each fd has independent offsets</div></div>
 </div><div class="opt" data-opt="2">
   <div class="dot"></div>
   <div><div style="font-weight:750">It depends on filesystem</div></div>
@@ -273,7 +273,7 @@ ssize_t write_all(int fd, const void *buf, size_t len) {
   <script src="../assets/widgets.js"></script>
   <script src="../assets/ui.js"></script>
   <script>
-    TLPIUI.initChapterPage({kind:"chapter", id:"ch04", n:4, subtitle:"Chapter 04 \u2014 File I/O: The Universal I/O Model"});
+    TLPIUI.initChapterPage({kind:"chapter", id:"ch04", n:4, subtitle:"Chapter 04: File I/O: The Universal I/O Model"});
     TLPIWidgets.mountKernelGraph("kg_ch04", {
       title: "Kernel mental model (chapter context)",
       subtitle: "Hover nodes to see what the object means. Highlighted nodes are most relevant to this chapter theme (io). Click to pin a tooltip.",

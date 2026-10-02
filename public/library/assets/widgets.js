@@ -557,8 +557,8 @@
             h("td", {class:"mono"}, [String(fd)]),
             h("td", {class:"mono"}, [String(ofdId)]),
             h("td", {class:"mono"}, [String(off)]),
-            h("td", {}, [o ? o.path : "—"]),
-            h("td", {class:"mono muted2"}, [flags || "—"])
+            h("td", {}, [o ? o.path : "N/A"]),
+            h("td", {class:"mono muted2"}, [flags || "N/A"])
           ]);
         });
 
@@ -686,7 +686,7 @@
             h("td", {class:"mono"}, [String(o.offset)]),
             h("td", {class:"mono"}, [String(o.ref)]),
             h("td", {class:"mono muted2"}, [Array.from(o.flags).join("|")]),
-            h("td", {class:"mono"}, [inode ? String(inode.id) : "—"])
+            h("td", {class:"mono"}, [inode ? String(inode.id) : "N/A"])
           ]);
         });
 
@@ -797,7 +797,7 @@
       }
 
       function exec(){
-        if(!state.child) return log("execve(): no child yet — fork first");
+        if(!state.child) return log("execve(): no child yet: fork first");
         if(state.child.state !== "RUNNING") return log("execve(): child not running");
         state.child.prog = "/usr/bin/worker";
         log(`execve("/usr/bin/worker", ...) → replaces process image (same pid=${state.child.pid})`);
@@ -869,7 +869,7 @@
                 renderProcCard(state.parent, "Parent"),
                 state.child ? renderProcCard(state.child, "Child") : h("div", {class:"glass pad", style:"margin-top:12px"}, [
                   h("div", {style:"font-weight:900"}, ["Child"]),
-                  h("div", {class:"muted2 small", style:"margin-top:6px"}, ["No child yet — click fork()."])
+                  h("div", {class:"muted2 small", style:"margin-top:6px"}, ["No child yet: click fork()."])
                 ])
               ]),
               h("div", {}, [
@@ -1081,7 +1081,7 @@
 
       function render(){
         root.innerHTML = "";
-        const sigSel = h("select", {class:"input", style:"padding:10px 12px"}, SIGNALS.map(s=>h("option",{value:s.name},[`${s.name} — ${s.desc}`])));
+        const sigSel = h("select", {class:"input", style:"padding:10px 12px"}, SIGNALS.map(s=>h("option",{value:s.name},[`${s.name}: ${s.desc}`])));
         const modeSel = h("select", {class:"input", style:"padding:10px 12px"}, ["DEFAULT","IGNORE","HANDLER"].map(m=>h("option",{value:m},[m])));
 
         const wrap = h("div", {class:"widget"}, [

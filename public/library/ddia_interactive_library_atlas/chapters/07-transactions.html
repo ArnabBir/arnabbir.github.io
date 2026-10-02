@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="dark light"/>
-  <title>DDIA Atlas — Chapter 7: Transactions</title>
+  <title>DDIA Atlas: Chapter 7: Transactions</title>
   <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div>
           <h1>Interactive Engineering Library</h1>
-          <strong>Designing Data‑Intensive Applications — Atlas</strong>
+          <strong>Designing Data‑Intensive Applications: Atlas</strong>
         </div>
       </a>
       <nav class="nav" aria-label="Primary">
@@ -92,11 +92,11 @@
 
       <p style="margin:10px 0 0; color: var(--muted); font-size:12px; line-height:1.6;">
         Serializable is the gold standard, but achieving it may require aborts, locks, or validation.
-        Many systems default to snapshot isolation because it’s fast and avoids many anomalies — but not all.
+        Many systems default to snapshot isolation because it’s fast and avoids many anomalies: but not all.
       </p>
     </div>
     <div class="output">
-      <div class="metric"><span class="k">Anomaly surface</span><span class="v" data-out="anoms">—</span></div>
+      <div class="metric"><span class="k">Anomaly surface</span><span class="v" data-out="anoms">N/A</span></div>
       <div class="canvas-wrap"><canvas></canvas></div>
     </div>
   </div>
@@ -207,7 +207,7 @@ If an invariant spans multiple partitions/services, you can:
 <h2 id="drills">Design drills</h2>
 
 <details>
-  <summary>Drill 1 — Find the write skew</summary>
+  <summary>Drill 1: Find the write skew</summary>
   <p>
     Imagine a “seat reservation” system. Two users reserve different seats; invariant is “total reserved ≤ capacity”.
     Under snapshot isolation, can write skew occur? How would you prevent it (SELECT FOR UPDATE, materialized counter row, serializable)?
@@ -215,7 +215,7 @@ If an invariant spans multiple partitions/services, you can:
 </details>
 
 <details>
-  <summary>Drill 2 — When is 2PC acceptable?</summary>
+  <summary>Drill 2: When is 2PC acceptable?</summary>
   <p>
     Consider a workflow: create order → charge card → decrement inventory.
     If you require atomicity across all three, what is your failure story when one service is down?
@@ -224,7 +224,7 @@ If an invariant spans multiple partitions/services, you can:
 </details>
 
 <details>
-  <summary>Drill 3 — Observability for correctness</summary>
+  <summary>Drill 3: Observability for correctness</summary>
   <p>
     What metrics/logs prove that your transaction system is healthy?
     Examples: abort rate, deadlock rate, lock wait time, replication lag (if replicated), “compensation executed” count (if saga).

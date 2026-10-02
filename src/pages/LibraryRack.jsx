@@ -212,7 +212,7 @@ export default function LibraryRack() {
                   : `Chapter ${String(chapter.chapterIndex).padStart(2, "0")}`;
                 const displayTitle =
                   rack.books.length > 1 && book.chapters?.length
-                    ? `${book.title} — ${chapter.chapterTitle}`
+                    ? `${book.title}: ${chapter.chapterTitle}`
                     : chapter.chapterTitle;
                 return (
                   <AccordionItem

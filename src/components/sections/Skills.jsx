@@ -69,7 +69,7 @@ export default function Skills() {
         <SectionHeading
           eyebrow="Skills"
           title="Tools I reach for"
-          description="Languages, platforms, and practices — a curated snapshot of my technical toolkit."
+          description="Languages, platforms, and practices: a curated snapshot of my technical toolkit."
         />
 
         <motion.div

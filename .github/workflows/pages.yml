@@ -36,6 +36,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Regression checks
+        run: |
+          npm test
+          node scripts/normalize-text.mjs --check --dist
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
