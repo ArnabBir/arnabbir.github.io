@@ -1,0 +1,205 @@
+{
+  "source": "https://github.com/ArnabBir/master-playbooks",
+  "files": [
+    {
+      "id": "razorpay-engineering",
+      "sourceFile": "Razorpay_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/razorpay-engineering.html",
+      "sha256": "51bfd2bd55e0bea530b4719f8e56dc2e4a1a74d9072d4bc586b2ec6be1902b2a",
+      "bytes": 900662,
+      "aliases": [
+        "Razorpay_Engineering_Master_Playbook (1).html"
+      ]
+    },
+    {
+      "id": "stripe-payment-infrastructure",
+      "sourceFile": "stripe_api_playbook.html",
+      "contentPath": "/library/playbooks/stripe-payment-infrastructure.html",
+      "sha256": "a8bb995f6d8f383b6d2881dd19ef939b1196ab69278ba13ccd5b9d3cc912899a",
+      "bytes": 717459,
+      "aliases": []
+    },
+    {
+      "id": "cross-border-ledger-design",
+      "sourceFile": "cross_border_ledger_design.html",
+      "contentPath": "/library/playbooks/cross-border-ledger-design.html",
+      "sha256": "00bced7a9db2b0c24d6f62f9a410fa4719bbf0d48c14ebb7ec523df7810322f5",
+      "bytes": 376246,
+      "aliases": [
+        "cross_border_ledger_design (1).html"
+      ]
+    },
+    {
+      "id": "cross-border-ledger-playbook",
+      "sourceFile": "cross_border_ledger_playbook.html",
+      "contentPath": "/library/playbooks/cross-border-ledger-playbook.html",
+      "sha256": "e3612c89b81808df4efd57c783bb79b96b621f33134491f67ddc99591ecf0799",
+      "bytes": 379354,
+      "aliases": []
+    },
+    {
+      "id": "stock-exchange",
+      "sourceFile": "stock_exchange_playbook.html",
+      "contentPath": "/library/playbooks/stock-exchange.html",
+      "sha256": "4a22fd368f6751b4ce5a783c98da8f7623a285f71b8986806df3c909953e802e",
+      "bytes": 672769,
+      "aliases": []
+    },
+    {
+      "id": "google-search-engineering",
+      "sourceFile": "Google_Search_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/google-search-engineering.html",
+      "sha256": "b0df257b206131e62b00f5f9b8448ce23a0cc59cb1f810e79ca83cec7d6f7dea",
+      "bytes": 1245104,
+      "aliases": []
+    },
+    {
+      "id": "chatgpt-playbook",
+      "sourceFile": "chatgpt_master_playbook.html",
+      "contentPath": "/library/playbooks/chatgpt-playbook.html",
+      "sha256": "23357332302cc40f1adf9f58e6d8d5a0ada98daa397edf6fecffa908cd79f419",
+      "bytes": 627388,
+      "aliases": []
+    },
+    {
+      "id": "glean-playbook",
+      "sourceFile": "glean_master_playbook.html",
+      "contentPath": "/library/playbooks/glean-playbook.html",
+      "sha256": "472ab8b90d94d2a68d19f1754a2fef693f1801f02e24b780da99e76ac0e64be7",
+      "bytes": 744551,
+      "aliases": []
+    },
+    {
+      "id": "llm-engineers-handbook",
+      "sourceFile": "LLM_Engineers_Handbook_Bite_Sized_Playbook.html",
+      "contentPath": "/library/playbooks/llm-engineers-handbook.html",
+      "sha256": "d16f60913f4a5650b32f04113c4c27e5ab32989e4e6776279823b3e41abcb167",
+      "bytes": 1397913,
+      "aliases": []
+    },
+    {
+      "id": "google-maps-engineering",
+      "sourceFile": "Google_Maps_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/google-maps-engineering.html",
+      "sha256": "ac0c553ebcc265c3555d7402f59a782fdfca339e6c4a783b6b049ef914179683",
+      "bytes": 1327507,
+      "aliases": []
+    },
+    {
+      "id": "uber-engineering",
+      "sourceFile": "Uber_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/uber-engineering.html",
+      "sha256": "7ce52466ed3c15d6e984836891fe727b38e5d5e4b154ee3b7005d6d2f874f00e",
+      "bytes": 888586,
+      "aliases": []
+    },
+    {
+      "id": "doordash-engineering",
+      "sourceFile": "DoorDash_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/doordash-engineering.html",
+      "sha256": "90f52dc15d1e4297ad3a9399a11b95158587b5d5d348881ea3e17e83e9163bdf",
+      "bytes": 885540,
+      "aliases": []
+    },
+    {
+      "id": "netflix-engineering",
+      "sourceFile": "Netflix_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/netflix-engineering.html",
+      "sha256": "efe7a2f7d5b80036428905e79ae814299cceb9d08f4edf256b7058fccdde32bf",
+      "bytes": 1232716,
+      "aliases": [
+        "Netflix_Engineering_Master_Playbook (1).html"
+      ]
+    },
+    {
+      "id": "youtube-engineering",
+      "sourceFile": "YouTube_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/youtube-engineering.html",
+      "sha256": "42d4eb456fcfb2c3b3b193d52a1b71349e18f84a6f431b27c0e328a137e2b04e",
+      "bytes": 1227932,
+      "aliases": [
+        "YouTube_Engineering_Master_Playbook (1).html"
+      ]
+    },
+    {
+      "id": "whatsapp-engineering",
+      "sourceFile": "WhatsApp_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/whatsapp-engineering.html",
+      "sha256": "e16cba063110a88c96a722d61316be855b875805a7a97356d2270c91722d959e",
+      "bytes": 925442,
+      "aliases": []
+    },
+    {
+      "id": "twilio-engineering",
+      "sourceFile": "Twilio_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/twilio-engineering.html",
+      "sha256": "3808e8c6ad2aaffe44f29bb0d6762cf337e1335c91d22fd4e31c9fd28248ad33",
+      "bytes": 1399158,
+      "aliases": []
+    },
+    {
+      "id": "airflow-study-course",
+      "sourceFile": "Airflow_Bite_Sized_Study_Course.html",
+      "contentPath": "/library/playbooks/airflow-study-course.html",
+      "sha256": "36fdf6945d034d9a85ab28c364a35b99e6664ad1d5da8ce960d9216748881519",
+      "bytes": 892680,
+      "aliases": []
+    },
+    {
+      "id": "hbase-in-action",
+      "sourceFile": "HBase_in_Action_Bite_Sized_Playbook.html",
+      "contentPath": "/library/playbooks/hbase-in-action.html",
+      "sha256": "53ba23e4e96a2079b3337e8f6aae7043b65c70fc74855f2082b5b95198db50cd",
+      "bytes": 777708,
+      "aliases": []
+    },
+    {
+      "id": "cohesity-engineering",
+      "sourceFile": "cohesity_engineering_playbook.html",
+      "contentPath": "/library/playbooks/cohesity-engineering.html",
+      "sha256": "0af916d82cfd341a74458a12d00a324c8f32e5d7f7fcf9916389bd1ca5435d0f",
+      "bytes": 491504,
+      "aliases": []
+    },
+    {
+      "id": "java-to-go",
+      "sourceFile": "java-to-go-playbook.html",
+      "contentPath": "/library/playbooks/java-to-go.html",
+      "sha256": "9fa292b1dd92e064a5bd2f4181e63e972a3971ec5ffa3159b012fd1ea0b0b7ff",
+      "bytes": 477276,
+      "aliases": []
+    },
+    {
+      "id": "java-low-level-design",
+      "sourceFile": "Java_Low_Level_Design_Field_Guide.html",
+      "contentPath": "/library/playbooks/java-low-level-design.html",
+      "sha256": "d4c3727bb9ca5b5acea0fd462cee220129e54030a5929b096d00e893bdc5f5fa",
+      "bytes": 873846,
+      "aliases": []
+    },
+    {
+      "id": "java-dsa",
+      "sourceFile": "Java_DSA_Field_Guide.html",
+      "contentPath": "/library/playbooks/java-dsa.html",
+      "sha256": "b94ea86f42799bcc151261a3267989a082ae6a6d7e0e72cb4956d619166575d4",
+      "bytes": 1687206,
+      "aliases": []
+    },
+    {
+      "id": "okta-identity-platform",
+      "sourceFile": "Okta_Engineering_Master_Playbook.html",
+      "contentPath": "/library/playbooks/okta-identity-platform.html",
+      "sha256": "ff2b95df03b8d22aefe190a79689a4454724e31b6ad05b3d42e028b3d9d2cf17",
+      "bytes": 930632,
+      "aliases": []
+    },
+    {
+      "id": "postman-playbook",
+      "sourceFile": "postman_master_playbook.html",
+      "contentPath": "/library/playbooks/postman-playbook.html",
+      "sha256": "2f760ad51a6d40dfd112231780e5d438dffdf4778431ef1da6d479ee06ffbe17",
+      "bytes": 799987,
+      "aliases": []
+    }
+  ]
+}

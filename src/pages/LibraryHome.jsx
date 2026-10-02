@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { libraryContent } from "@/content";
+import { DiscoveryFilters, ExperienceCard, FeaturedPaths, matchesLibraryItem } from "@/components/library/Discovery";
 
 const gradients = [
   "from-orange-500 via-amber-500 to-yellow-500",
@@ -61,19 +62,16 @@ function RackCard({ rack, index }) {
     <Card className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 hover:shadow-xl hover:border-primary/20 card-spotlight">
       <div className={`h-2 bg-gradient-to-r ${gradient}`} />
       <CardHeader className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-xl font-bold">{rack.category}</CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="rounded-full text-xs">
-              {rack.chapterCount} chapters
-            </Badge>
-            <Badge variant="outline" className="rounded-full text-[11px]">
-              {rack.bookCount} books
+              {rack.bookCount} experiences
             </Badge>
           </div>
         </div>
         <CardDescription>
-          Each rack bundles books into chapter-by-chapter study paths.
+          {rack.books[0].description}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -83,15 +81,15 @@ function RackCard({ rack, index }) {
               <div className="flex-shrink-0 rounded-md bg-primary/10 p-1.5">
                 <BookOpen className="h-3.5 w-3.5 text-primary" />
               </div>
-              <span className="line-clamp-1 flex-1">{book.title}</span>
+              <Link to={`/library/${book.id}`} className="line-clamp-2 flex-1 hover:text-primary">{book.title}</Link>
               <span className="text-xs text-muted-foreground/60 shrink-0">
-                {book.chapters?.length || 1} ch
+                {book.chapters?.length ? `${book.chapters.length} chapters` : book.format}
               </span>
             </div>
           ))}
           {rack.books.length > previewBooks.length && (
             <div className="text-xs text-muted-foreground/60 pl-9">
-              +{rack.books.length - previewBooks.length} more books
+              +{rack.books.length - previewBooks.length} more experiences
             </div>
           )}
         </div>
@@ -117,20 +115,16 @@ function RackCard({ rack, index }) {
 
 export default function LibraryHome() {
   const [query, setQuery] = useState("");
+  const [format, setFormat] = useState("");
+  const [topic, setTopic] = useState("");
+  const [category, setCategory] = useState("");
+  const resetFilters = () => { setQuery(""); setFormat(""); setTopic(""); setCategory(""); };
+  const isFiltering = Boolean(query.trim() || format || topic || category);
   const [commandOpen, setCommandOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return libraryContent;
-    return libraryContent.filter((item) => {
-      return (
-        item.title.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        (item.tags || []).some((tag) => tag.toLowerCase().includes(q)) ||
-        (item.category || "").toLowerCase().includes(q)
-      );
-    });
-  }, [query]);
+    return libraryContent.filter(item => matchesLibraryItem(item, query, format, topic, category));
+  }, [query, format, topic, category]);
 
   const racks = useCategoryRacks(filteredItems);
 
@@ -159,12 +153,11 @@ export default function LibraryHome() {
                 <span>Full Library</span>
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-                Engineering Library Racks
+                An engineering library for curious builders.
               </h1>
               <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
-                Browse racks by content name, then open a book for a deep dive. Each
-                book contains concept-by-concept explanations, visualizations, and
-                interactive tools to help you learn faster.
+                Follow a system end to end, work through a book, or experiment with a research-paper model.
+                Browse by topic and format, then settle into a complete reading experience.
               </p>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -172,9 +165,10 @@ export default function LibraryHome() {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
+                    aria-label="Search library"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search racks or books (e.g., GC, Streams, JVM)"
+                    placeholder="Search payments, Go, recovery, search systems…"
                     className="w-full rounded-full border border-border bg-background/80 backdrop-blur-sm pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow"
                   />
                 </div>
@@ -185,16 +179,20 @@ export default function LibraryHome() {
                   </Link>
                 </Button>
               </div>
+              <DiscoveryFilters items={libraryContent} format={format} topic={topic} category={category} onFormat={setFormat} onTopic={setTopic} onCategory={setCategory} onClear={resetFilters} />
             </motion.div>
           </Container>
         </section>
 
         <Container className="py-12">
+          {!isFiltering && <div className="mb-12"><FeaturedPaths /></div>}
+          <p role="status" className="mb-6 text-sm text-muted-foreground">{filteredItems.length} experiences · {racks.length} categories{isFiltering ? " matching your filters" : " to explore"}</p>
           {racks.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
               <Library className="h-12 w-12 mx-auto mb-4 opacity-30" />
               <p className="text-lg font-medium">No books match your search.</p>
               <p className="text-sm mt-1">Try a different keyword.</p>
+              <Button variant="outline" className="mt-4" onClick={resetFilters}>Reset filters</Button>
             </div>
           ) : (
             <motion.div
@@ -203,7 +201,7 @@ export default function LibraryHome() {
               transition={{ staggerChildren: 0.08 }}
               className="grid gap-6 lg:grid-cols-2"
             >
-              {racks.map((rack, index) => (
+              {isFiltering ? filteredItems.map(item => <ExperienceCard key={item.id} item={item} />) : racks.map((rack, index) => (
                 <motion.div key={rack.category} variants={cardVariants}>
                   <RackCard rack={rack} index={index} />
                 </motion.div>

@@ -5,8 +5,10 @@
 
 import { tlpiAppendices, tlpiChapters, tlpiMeta } from "./tlpi";
 import { paperMetadata } from "./whitepapers";
+import { playbooks } from "./playbooks";
 
 export default [
+  ...playbooks,
   {
     id: "tlpi",
     title: "The Linux Programming Interface - Interactive Companion",

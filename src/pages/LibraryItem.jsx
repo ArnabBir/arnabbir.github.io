@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useLocation, Link, Navigate } from "react-router-dom";
 import { resolvePaperChapter } from '@/content/whitepapers';
-import { ArrowLeft, BookOpen, Home, Loader2, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, BookOpen, Home, Loader2, AlertCircle, ExternalLink } from "lucide-react";
+import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
 import CommandMenu from "@/components/CommandMenu";
@@ -61,9 +61,10 @@ export default function LibraryItem() {
 
   // Send theme to iframe when it changes
   useEffect(() => {
-    if (iframeRef.current && libraryItem) {
+    if (iframeRef.current && libraryItem && libraryItem.supportsThemeMessaging !== false) {
       const currentTheme = resolvedTheme || theme || "light";
       try {
+        if (!Array.from(iframeRef.current.contentDocument?.scripts || []).some(script => script.textContent.includes("THEME_CHANGE"))) return;
         iframeRef.current.contentWindow?.postMessage(
           { type: "THEME_CHANGE", theme: currentTheme },
           window.location.origin
@@ -95,13 +96,15 @@ export default function LibraryItem() {
   }, [navigate]);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     if (!libraryItem) {
       setError("Library item not found");
       setLoading(false);
       return;
     }
     // Loading state will be handled by iframe onLoad/onError events
-  }, [libraryItem]);
+  }, [libraryItem, activeContentPath]);
 
   // Scroll to top when chapter changes
   useEffect(() => {
@@ -145,7 +148,7 @@ export default function LibraryItem() {
       {/* Breadcrumb Navigation */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Container className="py-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -186,6 +189,15 @@ export default function LibraryItem() {
       </div>
 
       {/* Content Area */}
+      <Container className="py-5 space-y-3">
+        <h1 className="text-2xl font-bold tracking-tight">{activeTitle}</h1>
+        <p className="max-w-4xl text-sm leading-relaxed text-muted-foreground">{libraryItem.description}</p>
+        <div className="flex flex-wrap items-center gap-4">
+          <Button asChild className="gap-2"><a href={activeContentPath} target="_blank" rel="noopener noreferrer">Open full page <ExternalLink className="h-4 w-4" aria-hidden="true" /><span className="sr-only"> (new tab)</span></a></Button>
+          {libraryItem.sourceUrl && <a href={libraryItem.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline underline-offset-4">Source collection<span className="sr-only"> (new tab)</span></a>}
+        </div>
+        {libraryItem.collection && <p className="text-xs leading-relaxed text-muted-foreground">{libraryItem.format} · Original HTML edition. Use its own reading and theme controls. Where supported, progress is saved in this browser and shared with the full-page view. Companion downloads mentioned in the original text are not bundled here.</p>}
+      </Container>
       <main className="flex-1 relative">
         {/* Loading Overlay */}
         {loading && (
@@ -270,12 +282,13 @@ export default function LibraryItem() {
                 src={activeContentPath}
                 className="w-full border-0 bg-background"
                 style={{
-                  minHeight: "calc(100vh - 200px)",
+                   height: "80dvh",
+                   minHeight: "360px",
                   display: "block",
                   width: "100%",
                 }}
                 title={activeTitle}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"
                 onLoad={() => {
                   setLoading(false);
                   setError(null);
@@ -283,34 +296,14 @@ export default function LibraryItem() {
                   // Send initial theme to iframe
                   const currentTheme = resolvedTheme || theme || "light";
                   try {
-                    iframeRef.current.contentWindow?.postMessage(
+                    if (libraryItem.supportsThemeMessaging !== false && Array.from(iframeRef.current.contentDocument?.scripts || []).some(script => script.textContent.includes("THEME_CHANGE"))) iframeRef.current.contentWindow?.postMessage(
                       { type: "THEME_CHANGE", theme: currentTheme },
-                      "*"
+                      window.location.origin
                     );
                   } catch (e) {
                     // Ignore
                   }
                   
-                  // Adjust height after load
-                  if (iframeRef.current) {
-                    setTimeout(() => {
-                      try {
-                        const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document;
-                        const body = iframeDoc.body;
-                        const html = iframeDoc.documentElement;
-                        const height = Math.max(
-                          body.scrollHeight,
-                          body.offsetHeight,
-                          html.clientHeight,
-                          html.scrollHeight,
-                          html.offsetHeight
-                        );
-                        iframeRef.current.style.height = `${Math.max(height, 800)}px`;
-                      } catch (e) {
-                        iframeRef.current.style.height = "100vh";
-                      }
-                    }, 500);
-                  }
                 }}
                 onError={() => {
                   setError("Failed to load content. Please check the console for details.");

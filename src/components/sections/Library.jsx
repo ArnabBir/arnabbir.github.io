@@ -17,6 +17,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { libraryContent } from "@/content";
+import { FeaturedPaths } from "@/components/library/Discovery";
 
 const CAROUSEL_OPTS = {
   align: "start",
@@ -171,6 +172,7 @@ export default function Library() {
             </Link>
           </div>
 
+          <FeaturedPaths compact />
           {featured.length > 0 && (
             <div className="relative mt-10 md:px-12">
               <Carousel opts={CAROUSEL_OPTS} aria-label="Study materials">

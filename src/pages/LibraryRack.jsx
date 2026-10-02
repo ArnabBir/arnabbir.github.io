@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { libraryContent } from "@/content";
 import WhitepaperRack from './WhitepaperRack';
+import { DiscoveryFilters, ExperienceCard, matchesLibraryItem } from "@/components/library/Discovery";
 
 const slugify = (value) =>
   value
@@ -43,13 +44,15 @@ export default function LibraryRack() {
   const navigate = useNavigate();
   const [commandOpen, setCommandOpen] = useState(false);
   const [chapterQuery, setChapterQuery] = useState("");
+  const [format, setFormat] = useState("");
+  const [topic, setTopic] = useState("");
 
   const racks = useRackData();
   const rack = racks.find((r) => r.rackId === rackId);
 
   const chapterItems = useMemo(() => {
     if (!rack) return [];
-    return rack.books.flatMap((book, bookIndex) => {
+    return rack.books.filter(book => !book.collection).flatMap((book, bookIndex) => {
       if (book.chapters?.length) {
         return book.chapters.map((chapter, chapterIndex) => {
           const chapterTitle =
@@ -83,8 +86,8 @@ export default function LibraryRack() {
 
   const filteredChapters = useMemo(() => {
     const q = chapterQuery.trim().toLowerCase();
-    if (!q) return chapterItems;
     return chapterItems.filter((item) => {
+      if (!matchesLibraryItem(item.book, "", format, topic)) return false;
       const haystack = [
         item.chapterTitle,
         item.book.title,
@@ -96,7 +99,11 @@ export default function LibraryRack() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [chapterItems, chapterQuery]);
+  }, [chapterItems, chapterQuery, format, topic]);
+
+  const experiences = rack?.books.filter(book => book.collection) || [];
+  const filteredExperiences = experiences.filter(book => matchesLibraryItem(book, chapterQuery, format, topic));
+  const resetFilters = () => { setChapterQuery(""); setFormat(""); setTopic(""); };
 
   if (rackId === 'whitepapers' && rack) return <WhitepaperRack papers={rack.books[0].chapters} />;
 
@@ -148,14 +155,15 @@ export default function LibraryRack() {
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">{rack.category}</h1>
               <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
-                This rack contains {chapterItems.length} chapters across {rack.books.length} books.
-                Pick a chapter to preview the content, then open the full book experience.
+                {rack.books.length} complete experiences to explore.
+                {experiences.length > 0 ? " Open a study below; its chapters and reading tools stay together inside." : " Pick a chapter to preview the content, then open the full book experience."}
               </p>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="text"
+                    aria-label="Search this rack"
                     value={chapterQuery}
                     onChange={(e) => setChapterQuery(e.target.value)}
                     placeholder="Search chapters, topics, or book titles..."
@@ -167,28 +175,29 @@ export default function LibraryRack() {
                   Back to racks
                 </Button>
               </div>
+              <DiscoveryFilters items={rack.books} format={format} topic={topic} onFormat={setFormat} onTopic={setTopic} onClear={resetFilters} />
             </motion.div>
           </Container>
         </section>
 
         <Container className="py-10">
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
+          <div role="status" className="flex items-center justify-between text-sm text-muted-foreground mb-6">
             <span>
-              Showing <span className="font-medium text-foreground">{filteredChapters.length}</span> of{" "}
-              {chapterItems.length} chapters
+              {filteredExperiences.length} studies and {filteredChapters.length} companion chapters match
             </span>
           </div>
 
-          {filteredChapters.length === 0 ? (
+          {filteredExperiences.length > 0 && <div className="mb-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filteredExperiences.map(item => <ExperienceCard key={item.id} item={item} />)}</div>}
+          {filteredChapters.length === 0 && filteredExperiences.length === 0 ? (
             <Card className="max-w-xl mx-auto border-border/50 bg-card/50 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>No chapters found</CardTitle>
+                <CardTitle>No matching experiences or chapters</CardTitle>
                 <CardDescription>
                   Try a different keyword or clear the search to view all chapters.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" onClick={() => setChapterQuery("")} className="rounded-full">
+                <Button variant="outline" onClick={resetFilters} className="rounded-full">
                   Clear search
                 </Button>
               </CardContent>
