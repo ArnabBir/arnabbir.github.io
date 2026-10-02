@@ -196,7 +196,7 @@ export default function LibraryItem() {
           <Button asChild className="gap-2"><a href={activeContentPath} target="_blank" rel="noopener noreferrer">Open full page <ExternalLink className="h-4 w-4" aria-hidden="true" /><span className="sr-only"> (new tab)</span></a></Button>
           {libraryItem.sourceUrl && <a href={libraryItem.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm underline underline-offset-4">Source collection<span className="sr-only"> (new tab)</span></a>}
         </div>
-        {libraryItem.collection && <p className="text-xs leading-relaxed text-muted-foreground">{libraryItem.format} · Original HTML edition. Use its own reading and theme controls. Where supported, progress is saved in this browser and shared with the full-page view. Companion downloads mentioned in the original text are not bundled here.</p>}
+        {libraryItem.collection && <p className="text-xs leading-relaxed text-muted-foreground">{libraryItem.format} · {libraryItem.readerNote || "Original HTML edition. Use its own reading and theme controls. Where supported, progress is saved in this browser and shared with the full-page view. Companion downloads mentioned in the original text are not bundled here."}</p>}
       </Container>
       <main className="flex-1 relative">
         {/* Loading Overlay */}

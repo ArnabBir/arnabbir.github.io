@@ -6,9 +6,11 @@
 import { tlpiAppendices, tlpiChapters, tlpiMeta } from "./tlpi";
 import { paperMetadata } from "./whitepapers";
 import { playbooks } from "./playbooks";
+import { frontendAtlas } from "./frontend-atlas";
 
 export default [
   ...playbooks,
+  frontendAtlas,
   {
     id: "tlpi",
     title: "The Linux Programming Interface - Interactive Companion",

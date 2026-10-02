@@ -1,5 +1,7 @@
 # Master playbooks: import and maintenance
 
+The additional Frontend course is maintained separately: [Frontend Atlas import, provenance and verification](frontend-atlas-import.md). Its complete offline application and Taskflow download use their own manifest; this document's 24-file master-playbook contract remains unchanged.
+
 ## Catalog contract
 
 `src/content/playbooks.js` is the curated registry for 24 complete HTML experiences from

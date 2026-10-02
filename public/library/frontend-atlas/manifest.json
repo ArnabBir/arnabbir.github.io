@@ -1,0 +1,21 @@
+{
+  "id": "frontend-atlas",
+  "sourceRepository": "https://github.com/ArnabBir/frontend-atlas.git",
+  "sourceCommit": "4cce6f464c16c3d0b3331cc663d8a2126e33b0f9",
+  "sourceDirty": false,
+  "note": "Existing offline build, copied without modification. Hashes identify the exact artifacts independently of the source commit.",
+  "files": [
+    {
+      "sourceFile": "dist/index.html",
+      "contentPath": "/library/frontend-atlas/index.html",
+      "bytes": 4118729,
+      "sha256": "6168083c46cf1d11224d6de22f99de9efd9eb820ce91d973000ff4d61889d08e"
+    },
+    {
+      "sourceFile": "dist/taskflow-reference.zip",
+      "contentPath": "/library/frontend-atlas/taskflow-reference.zip",
+      "bytes": 18040,
+      "sha256": "b9ddf9a3c65c8ee2445e705b222830882b00f196a9c2744dd6c9992cb9880125"
+    }
+  ]
+}

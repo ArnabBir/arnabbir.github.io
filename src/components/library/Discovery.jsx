@@ -2,6 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, BookOpen } from "lucide-react";
 import { playbooks, playbookPaths } from "@/content/playbooks";
+import { frontendAtlas, frontendPath } from "@/content/frontend-atlas";
+
+const experiences = [...playbooks, frontendAtlas];
+const readingPaths = [...playbookPaths, frontendPath];
 
 export const itemFormat = item => item.id === "whitepapers" ? "Paper labs & walkthroughs" : item.format || "Interactive companion";
 export const matchesLibraryItem = (item, query, format = "", topic = "", category = "") =>
@@ -39,11 +43,11 @@ export function ExperienceCard({ item }) {
 
 export function FeaturedPaths({ compact = false }) {
   return <section aria-label="Suggested reading paths" className="space-y-5">
-    <div><p className="text-xs font-semibold uppercase tracking-widest text-primary">Master playbooks · {playbooks.length} experiences</p><h2 className="mt-2 text-2xl font-bold">Choose a thread. Follow it deeper.</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Independent architecture studies, product guides, and book companions.</p></div>
-    <div className="grid gap-4 md:grid-cols-3">{playbookPaths.map(path => <article key={path.title} className="rounded-2xl border bg-gradient-to-br from-primary/5 to-card p-5">
+    <div><p className="text-xs font-semibold uppercase tracking-widest text-primary">Playbooks & courses · {experiences.length} experiences</p><h2 className="mt-2 text-2xl font-bold">Choose a thread. Follow it deeper.</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Independent architecture studies, product guides, book companions, and hands-on frontend learning.</p></div>
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{readingPaths.map(path => <article key={path.title} className="rounded-2xl border bg-gradient-to-br from-primary/5 to-card p-5">
       <h3 className="font-semibold">{path.title}</h3><p className="my-3 text-sm text-muted-foreground">{path.description}</p>
-      <ol className="space-y-3">{path.ids.slice(0, compact ? 1 : 3).map((id, index) => <li key={id}><Link to={`/library/${id}`} className="flex gap-3 text-sm hover:text-primary"><span className="text-primary tabular-nums">0{index + 1}</span>{playbooks.find(item => item.id === id).title}</Link></li>)}</ol>
+      <ol className="space-y-3">{path.ids.slice(0, compact ? 1 : 3).map((id, index) => <li key={id}><Link to={`/library/${id}`} className="flex gap-3 text-sm hover:text-primary"><span className="text-primary tabular-nums">0{index + 1}</span>{experiences.find(item => item.id === id).title}</Link></li>)}</ol>
     </article>)}</div>
   </section>;
 }

@@ -108,6 +108,7 @@ export const SkillGroupSchema = z.object({
 export const LibraryItemSchema = z.object({
   format: z.string().default("Interactive companion"),
   collection: z.string().optional(),
+  readerNote: z.string().optional(),
   sourceFile: z.string().optional(),
   sourceUrl: z.string().url().optional(),
   supportsThemeMessaging: z.boolean().optional(),
