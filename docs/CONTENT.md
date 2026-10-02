@@ -97,8 +97,10 @@ Edit `src/content/projects.js`:
 ```
 
 Allowed `kind` values are `"featured"`, `"open-source"`, and `"lab"`. They
-control which project tab contains the entry. `tags`, `highlights`, and
-`links` may be empty arrays.
+are used for project tabs. The Featured tab displays all entries with
+`kind: "featured"` or `featured: true`, with no card limit. Its count updates automatically.
+
+`tags`, `highlights`, and `links` may be empty arrays.
 
 ## Writing
 

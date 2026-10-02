@@ -210,7 +210,26 @@ export default [
       "Practical examples: schemas, table configs, SQL queries, and observability configurations.",
       "Visual explanations and diagrams to build mental models for Pinot's distributed query execution.",
     ],
-    links: [{ label: "GitHub", href: "https://github.com/ArnabBir/apache-pinot-playbook" }],
+    links: [
+      { label: "Live", href: "https://arnabbir.github.io/apache-pinot-playbook/" },
+      { label: "GitHub", href: "https://github.com/ArnabBir/apache-pinot-playbook" },
+    ],
+    featured: true,
+    kind: "featured",
+  },
+  {
+    name: "AI Engineering Explained",
+    description:
+      "A visual study companion for building AI applications with foundation models, covering evaluation, prompt engineering, RAG, agents, finetuning, and production architecture.",
+    tags: ["AI Engineering", "LLMs", "RAG", "Agents"],
+    highlights: [
+      "Ten chapters with architecture diagrams and practitioner checklists.",
+      "Decision frameworks for evaluation, inference optimization, and production feedback loops.",
+    ],
+    links: [
+      { label: "Live", href: "https://arnabbir.github.io/ai-engineering-explained/" },
+      { label: "GitHub", href: "https://github.com/ArnabBir/ai-engineering-explained" },
+    ],
     featured: true,
     kind: "featured",
   },
