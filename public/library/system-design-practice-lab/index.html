@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="theme-color" content="#172725"><meta name="description" content="Original, source-linked system design practice. Reason through requirements, architecture, concurrency and staff-level trade-offs.">
+ <title>Design Gym: Practice engineering judgment</title>
+ <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+ <link rel="stylesheet" href="styles.css"><script type="module" src="app.mjs"></script>
+</head>
+<body>
+ <a class="skip" href="#main">Skip to content</a>
+ <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+  <button class="nav-close mobile-only" id="close-menu" aria-label="Close navigation">×</button>
+  <a class="brand" href="#/"><span class="brand-mark" aria-hidden="true">dg<span>.</span></span><span>Design Gym<small>SYSTEM DESIGN PRACTICE</small></span></a>
+  <nav class="main-nav" aria-label="Workspace"><a href="#/" data-nav="home">Practice studio <span>01</span></a><a href="#/library" data-nav="library">Question library <span>02</span></a><a href="#/review" data-nav="review">Review queue <span id="due-count">0</span></a><a href="#/progress" data-nav="progress">Your progress <span>04</span></a></nav>
+  <div class="nav-caption">THE CURRICULUM</div><nav id="track-nav" class="track-nav" aria-label="Practice topics"></nav>
+  <div class="side-bottom"><a href="#/sources">Research & methodology ↗</a><button id="theme" type="button">Switch to dark mode</button><span>Private progress · stored on this device</span></div>
+ </aside>
+ <div class="workspace">
+  <header class="topbar"><button id="menu" class="icon-button mobile-only" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">☰</button><div id="breadcrumb">Your practice studio</div><div class="top-right"><span class="local-label"><i></i>LOCAL-FIRST</span><a class="search-link" href="#/library">Find a question <kbd>/</kbd></a></div></header>
+  <main id="main" tabindex="-1"><div class="loading"><span class="eyebrow">DESIGN GYM</span><h1>Preparing your practice studio.</h1><p>Loading the question bank and your local progress.</p></div></main>
+  <footer class="site-footer"><span>Good answers start with good assumptions.</span><a href="#/sources">Original scenarios. Primary references. Explicit trade-offs.</a></footer>
+ </div>
+ <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+ <div id="storage-warning" class="storage-warning" role="alert" hidden>Browser storage is unavailable. Practice still works, but export a backup before closing this page.</div>
+ <dialog id="settings-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close dialog">×</button></form><div id="dialog-content"></div></dialog>
+ <input type="file" id="import-file" accept="application/json,.json" hidden>
+</body></html>

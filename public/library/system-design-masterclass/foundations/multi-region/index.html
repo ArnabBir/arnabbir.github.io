@@ -1,0 +1,10931 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="An interview-focused system design course for L5 and L6 engineers.">
+      
+      
+      
+        <link rel="canonical" href="https://arnabbir.github.io/library/system-design-masterclass/foundations/multi-region/">
+      
+      
+        <link rel="prev" href="../reliability/">
+      
+      
+        <link rel="next" href="../security-architecture/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Multi-Region Architecture - System Design Masterclass</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/reader.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/diagrams.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#multi-region-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="System Design Masterclass" class="md-header__button md-logo" aria-label="System Design Masterclass" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            System Design Masterclass
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Multi-Region Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/arnabbir/system-design-masterclass" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    arnabbir/system-design-masterclass
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../overview/" class="md-tabs__link">
+          
+  
+  
+  Course Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../system-design-readiness/" class="md-tabs__link">
+          
+  
+  
+  Foundations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../engineering/" class="md-tabs__link">
+          
+  
+  
+  Engineering Foundations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../patterns/scaling-reads/" class="md-tabs__link">
+          
+  
+  
+  Patterns
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../networks/" class="md-tabs__link">
+          
+  
+  
+  Networks (L5/L6)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../applied-ai/" class="md-tabs__link">
+          
+  
+  
+  Applied AI Systems (L5/L6)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../practice/" class="md-tabs__link">
+          
+  
+  
+  Practice Lab
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../lld/java-concurrency/" class="md-tabs__link">
+          
+  
+  
+  Java Concurrency (LLD)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../case-studies/commerce/payment-system/" class="md-tabs__link">
+          
+  
+  
+  Case Studies
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../staff/" class="md-tabs__link">
+          
+  
+  
+  Staff Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../specialist/" class="md-tabs__link">
+          
+  
+  
+  Specialist Electives
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tools/capacity-lab/" class="md-tabs__link">
+          
+  
+  
+  Learning Tools
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/glossary/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="System Design Masterclass" class="md-nav__button md-logo" aria-label="System Design Masterclass" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    System Design Masterclass
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/arnabbir/system-design-masterclass" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    arnabbir/system-design-masterclass
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Course Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Course Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../study-plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Study Plans
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/reading-diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reading Diagrams
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Foundations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Foundations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design-readiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Design Readiness
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../delivery-framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Delivery Framework
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../estimation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Estimation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-and-data-modeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API and Data Modeling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Networking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Indexing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relational-databases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Relational Databases
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../non-relational-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Non-Relational Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../consistency-and-cap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Consistency, Consensus, and CAP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../partitioning-and-sharding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Partitioning and Sharding
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../messaging-and-streams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Messaging and Streams
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Transactions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reliability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reliability Engineering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Multi-Region Architecture
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Multi-Region Architecture
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#begin-with-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      Begin with objectives
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failover-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failover protocol
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conflict-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflict policy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-semantics-and-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failure semantics and operations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#separate-traffic-compute-and-data-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      Separate traffic, compute, and data topology
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-a-topology-from-operation-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Choose a topology from operation contracts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-residency-and-sovereignty" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data residency and sovereignty
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-freshness-and-session-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      Replication, freshness, and session guarantees
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fencing-prevents-two-primaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fencing prevents two primaries
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-regional-failover" class="md-nav__link">
+    <span class="md-ellipsis">
+      Worked regional failover
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#returning-home-and-moving-tenant-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returning home and moving tenant ownership
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capacity-and-overload-during-evacuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Capacity and overload during evacuation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-writer-conflict-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-writer conflict examples
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-readiness-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operational readiness checklist
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cost-engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cost Engineering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Engineering Foundations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Engineering Foundations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Track Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Wave 1 - Mechanisms
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Wave 1 - Mechanisms
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/machine-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Machine and Runtime
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/distributed-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Theory and Clocks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/performance-science/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Performance Science
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/storage-internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Storage Recovery and Execution
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Wave 2 - Contracts and Operations
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Wave 2 - Contracts and Operations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/temporal-modeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Temporal and General Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/api-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Contract Lifecycle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/authorization-privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authorization and Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/service-operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Service Operations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Wave 3 - Evolution and Evidence
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            Wave 3 - Evolution and Evidence
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/architecture-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture Decisions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/brownfield-migrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Brownfield Migrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/correctness-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Correctness and Fault Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Practice
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
+            <span class="md-nav__icon md-icon"></span>
+            Practice
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/labs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Eight Executable Fault Labs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/capstone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Atlas Longitudinal Capstone
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/assessment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Assessment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../engineering/coverage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Concept Coverage Registry
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Patterns
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Patterns
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/scaling-reads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scaling Reads
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/scaling-writes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scaling Writes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/handling-contention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Handling Contention
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/feed-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feed Generation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/realtime-updates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Realtime Updates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/long-running-tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Long-Running Tasks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/multi-step-workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Multi-Step Workflows
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/search-and-indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search and Indexing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/proximity-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Proximity Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/large-blob-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Large Blob Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/streaming-aggregation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Streaming Aggregation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/probabilistic-data-structures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Probabilistic Data Structures
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../patterns/distributed-coordination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Coordination
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Networks (L5/L6)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Networks (L5/L6)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Track Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/01-request-packet-journey/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    01 - Request and Packet Journey
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/02-ip-cidr-routing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    02 - IP, CIDR, and Routing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/03-transport-sockets-congestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    03 - Transport, Sockets, and Congestion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/04-mtu-pmtu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    04 - MTU and Path MTU
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/05-dns-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    05 - DNS and Service Discovery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/06-http-semantics-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    06 - HTTP Semantics and Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/07-http2-http3-quic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    07 - HTTP/2, HTTP/3, and QUIC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/08-tls-pki/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    08 - TLS and PKI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/09-proxies-load-balancing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    09 - Proxies and Load Balancing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/10-deadlines-retries-pools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    10 - Deadlines, Retries, and Pools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/11-grpc-rpc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    11 - gRPC and RPC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/12-realtime-media/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    12 - Realtime and Media
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/13-nat-cloud-networking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    13 - NAT and Cloud Networking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/14-bgp-anycast-global-routing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    14 - BGP, Anycast, and Global Routing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/15-service-mesh-zero-trust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    15 - Service Mesh and Zero Trust
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/16-observability-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    16 - Observability and Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_18" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_18" id="__nav_6_18_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Practice
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_18_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_18">
+            <span class="md-nav__icon md-icon"></span>
+            Practice
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/01-request-trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 01 - Request Trace
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/02-command-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 02 - Command Evidence
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/03-network-math/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 03 - Network Math
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/04-proxy-headers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 04 - Proxy Headers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/05-dns-failure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 05 - DNS Failure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/06-tls-handshake/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 06 - TLS Handshake
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/07-connection-pool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 07 - Connection Pool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/08-retry-storm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 08 - Retry Storm
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/09-http2-multiplexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 09 - HTTP/2 Multiplexing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/10-quic-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 10 - QUIC Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/11-load-balancer-draining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 11 - Load-Balancer Draining
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/12-nat-exhaustion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 12 - NAT Exhaustion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/13-bgp-anycast/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 13 - BGP Anycast
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/14-websocket-reconnect/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 14 - WebSocket Reconnect
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/15-service-mesh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 15 - Service Mesh
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/labs/16-mtls-rotation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 16 - mTLS Rotation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/calculations-workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calculations Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/failure-cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Cards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/l5-l6-rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    L5/L6 Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_19" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_19" id="__nav_6_19_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Scenario Packs
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_19_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_19">
+            <span class="md-nav__icon md-icon"></span>
+            Scenario Packs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_19_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_19_1" id="__nav_6_19_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Checkout Edge Brownout
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_19_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_19_1">
+            <span class="md-nav__icon md-icon"></span>
+            Checkout Edge Brownout
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/checkout-edge-brownout/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_19_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_19_2" id="__nav_6_19_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Mesh Certificate Rotation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_19_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_19_2">
+            <span class="md-nav__icon md-icon"></span>
+            Mesh Certificate Rotation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/mesh-certificate-rotation/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_19_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_19_3" id="__nav_6_19_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Global Realtime Failover
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_19_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_19_3">
+            <span class="md-nav__icon md-icon"></span>
+            Global Realtime Failover
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../networks/scenarios/global-realtime-failover/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Applied AI Systems (L5/L6)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Applied AI Systems (L5/L6)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Track Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Chapters
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            Chapters
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/01-ai-system-design-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    01 - Applied AI System Design Method
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/02-ai-workload-taxonomy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    02 - AI Workload Taxonomy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/03-ml-ai-pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    03 - ML and AI Pipelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/04-batch-bulk-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    04 - Batch and Bulk Inference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/05-online-model-serving/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    05 - Online Model Serving
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/06-embeddings-vector-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    06 - Embeddings and Vector Retrieval
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/07-hybrid-search-reranking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    07 - Hybrid Search and Reranking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/08-production-rag-systems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    08 - Production RAG Systems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/09-multimodal-document-pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    09 - Multimodal Document Pipelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/10-workflows-and-bounded-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    10 - Workflows and Bounded Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/11-typed-tools-and-mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    11 - Typed Tool Calling and MCP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/12-durable-agents-memory-hitl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    12 - Durable Agents, Memory, and HITL
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/13-evaluation-engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    13 - Evaluation Engineering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/14-ai-security-guardrails/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    14 - AI Security and Guardrails
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/15-ai-observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    15 - AI Observability
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/16-ai-reliability-capacity-cost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    16 - AI Reliability, Capacity, and Cost
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/17-model-adaptation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    17 - Model Adaptation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/18-ai-platforms-data-flywheels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    18 - AI Platforms and Data Flywheels
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_3" id="__nav_7_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Practice
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_3">
+            <span class="md-nav__icon md-icon"></span>
+            Practice
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/01-token-context-budget/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 01 - Token and Context Budget
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/02-model-gateway/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 02 - Model Gateway
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/03-vector-index-tradeoffs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 03 - Vector Index Tradeoffs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/04-hybrid-search-reranking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 04 - Hybrid Search and Reranking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/05-rag-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 05 - RAG Evaluation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/06-document-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 06 - Document Ingestion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/07-workflow-versus-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 07 - Workflow Versus Agent
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/08-tool-idempotency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 08 - Tool Idempotency
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/09-durable-agent-replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 09 - Durable Agent Replay
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/10-evaluation-release-gate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 10 - Evaluation Release Gate
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/11-prompt-injection-defense/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 11 - Prompt-Injection Defense
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/labs/12-ai-capacity-incident/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lab 12 - AI Capacity Incident
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/calculations-workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calculations Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/failure-cards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Cards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/l5-l6-rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    L5/L6 Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_4" id="__nav_7_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Scenario Packs
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_4">
+            <span class="md-nav__icon md-icon"></span>
+            Scenario Packs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_4_1" id="__nav_7_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Enterprise Knowledge Assistant
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Enterprise Knowledge Assistant
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/enterprise-knowledge-assistant/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_4_2" id="__nav_7_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Incident Response Copilot
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Incident Response Copilot
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/incident-response-copilot/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_4_3" id="__nav_7_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Support Resolution Agent
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Support Resolution Agent
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applied-ai/scenarios/support-resolution-agent/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Practice Lab
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Practice Lab
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Practice System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Assess Your Skills
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2">
+            <span class="md-nav__icon md-icon"></span>
+            Assess Your Skills
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/competency-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Competency Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/entry-diagnostic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entry Diagnostic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/learner-scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Learner Scorecard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_3" id="__nav_8_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Build and Test Skills
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_3">
+            <span class="md-nav__icon md-icon"></span>
+            Build and Test Skills
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/progressive-drills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Drills
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/failure-labs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Labs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/migration-labs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Labs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/spaced-repetition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Spaced Repetition
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/interviewer-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_4" id="__nav_8_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Scenario Packs
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_4">
+            <span class="md-nav__icon md-icon"></span>
+            Scenario Packs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_4_1" id="__nav_8_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Payment Orchestration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Payment Orchestration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Progressive Hints
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/payment-orchestration/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_4_2" id="__nav_8_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Notification Platform
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Notification Platform
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hint Ladder
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/notification-platform/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_8_4_3" id="__nav_8_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Distributed Job Scheduler
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Distributed Job Scheduler
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pack Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/prompt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Prompt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/workbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Candidate Workbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hint Ladder
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/rubric/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evidence Rubric
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/interviewer-packet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interviewer Packet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/exemplars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotated Exemplars
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/failure-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Failure Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration Exercise
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../practice/scenarios/job-scheduler/design-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design Review
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Java Concurrency (LLD)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Java Concurrency (LLD)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Track Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/01-interview-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    01 · Interview Method
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/02-threads-tasks-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    02 · Threads, Tasks, and Lifecycle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/03-thread-safety-memory-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    03 · Thread Safety and the Memory Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/04-synchronization-locks-conditions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    04 · Synchronization, Locks, and Conditions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/05-coordination-primitives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    05 · Coordination Primitives
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/06-atomics-concurrent-collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    06 · Atomics and Concurrent Collections
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/07-executors-backpressure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    07 · Executors and Backpressure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/08-async-parallel-virtual-threads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    08 · Async, Parallel, and Virtual Threads
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/09-liveness-debugging-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    09 · Liveness, Debugging, and Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/10-concurrency-patterns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    10 · Concurrency Patterns
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/11-classic-problems-solutions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    11 · Classic Problems and Solutions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lld/java-concurrency/12-lld-problems-solutions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    12 · LLD Problems and Solutions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Case Studies
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            Case Studies
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Commerce and Marketplaces
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_1">
+            <span class="md-nav__icon md-icon"></span>
+            Commerce and Marketplaces
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/payment-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Payment System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/ecommerce-checkout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    E-commerce Checkout
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/inventory-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Inventory Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/ticketmaster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ticketing Platform
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/flash-sale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Flash Sale
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/online-auction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Online Auction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/hotel-booking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hotel Booking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/food-delivery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Food Delivery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/commerce/ride-hailing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ride Hailing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Social and Collaboration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_2">
+            <span class="md-nav__icon md-icon"></span>
+            Social and Collaboration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/facebook-news-feed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Facebook News Feed
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/instagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Instagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/fitness-tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fitness Tracking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/twitter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Twitter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/tinder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tinder
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/whatsapp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    WhatsApp
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/slack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Slack
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/email-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/notification-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Notification System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/live-comments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Live Comments
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/video-conferencing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Video Conferencing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/collaborative-document/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Collaborative Document
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/social/reddit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reddit
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/calendar-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Calendar Service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Content, Media, and Search
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            Content, Media, and Search
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/url-shortener/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    URL Shortener
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/pastebin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pastebin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/dropbox/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dropbox
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/youtube/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/netflix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Netflix
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/web-crawler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Crawler
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/web-search-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Search Engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/autocomplete/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Autocomplete
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/google-news/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Google News
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/price-tracker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Price Tracker
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/maps-and-navigation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Maps and Navigation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/content/code-hosting-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Hosting Platform
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Infrastructure
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_4">
+            <span class="md-nav__icon md-icon"></span>
+            Infrastructure
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/api-gateway/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Gateway
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/service-discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Service Discovery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/distributed-rate-limiter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Rate Limiter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/distributed-cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Cache
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/distributed-lock-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Lock Service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/pub-sub-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Publish-Subscribe System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/job-scheduler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Job Scheduler
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/object-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Object Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/logging-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Logging Platform
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/metrics-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Metrics Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/feature-flag-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feature Flag Service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/code-execution-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Execution Platform
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/dns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Global DNS
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/content-delivery-network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Content Delivery Network
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/load-balancer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Global Load Balancer
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/distributed-key-value-store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Key-Value Store
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/infrastructure/secrets-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Secrets Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_5" id="__nav_10_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Data and Financial Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_5">
+            <span class="md-nav__icon md-icon"></span>
+            Data and Financial Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/digital-wallet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Digital Wallet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/double-entry-ledger/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Double-Entry Ledger
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/stock-brokerage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Stock Brokerage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/fraud-detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fraud Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/ad-click-aggregator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ad Click Aggregator
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/ad-serving-platform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ad Serving Platform
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/recommendation-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Recommendation System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/top-k-trending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Top-K Trending
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/data-lakehouse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Lakehouse
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/data/change-data-capture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Change Data Capture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_6" id="__nav_10_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    AI Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_6">
+            <span class="md-nav__icon md-icon"></span>
+            AI Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/ai/chatgpt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ChatGPT-Like Assistant
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_7" id="__nav_10_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Gaming
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_7">
+            <span class="md-nav__icon md-icon"></span>
+            Gaming
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/gaming/online-chess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Online Chess
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_8" id="__nav_10_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Discovery
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_8">
+            <span class="md-nav__icon md-icon"></span>
+            Discovery
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../case-studies/discovery/yelp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Yelp
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Staff Architecture
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            Staff Architecture
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Track Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/evolutionary-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evolutionary Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/multi-tenant-isolation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Multi-Tenant Isolation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/control-planes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Control Planes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/operational-readiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operational Readiness
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/distributed-systems-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Distributed Systems Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/privacy-data-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy and Data Lifecycle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/organizational-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Organizational Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../staff/capacity-and-economics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Capacity and Economics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Specialist Electives
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Specialist Electives
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Track Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/production-ai-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Production AI Lifecycle
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/rag-agent-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RAG and Agent Security
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/gpu-inference-platforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GPU Inference Platforms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/local-first-crdts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Local-First Systems and CRDTs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/edge-iot-fleets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Edge and IoT Fleets
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/data-contracts-governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Contracts and Governance
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/regulated-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regulated Evidence Systems
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specialist/formal-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Practical Formal Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Learning Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            Learning Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/capacity-lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Capacity Lab
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tools/practice-console/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Practice Console
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/interview-scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Interview Scorecard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/chapter-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Chapter Checklist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/content-tiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Content Depth Tiers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/source-standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Source Standard
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/scenario-contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Package Contract
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#begin-with-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      Begin with objectives
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failover-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failover protocol
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conflict-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflict policy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-semantics-and-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Failure semantics and operations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#separate-traffic-compute-and-data-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      Separate traffic, compute, and data topology
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-a-topology-from-operation-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Choose a topology from operation contracts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-residency-and-sovereignty" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data residency and sovereignty
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-freshness-and-session-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      Replication, freshness, and session guarantees
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fencing-prevents-two-primaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fencing prevents two primaries
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-regional-failover" class="md-nav__link">
+    <span class="md-ellipsis">
+      Worked regional failover
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#returning-home-and-moving-tenant-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returning home and moving tenant ownership
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capacity-and-overload-during-evacuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Capacity and overload during evacuation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-writer-conflict-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-writer conflict examples
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-readiness-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operational readiness checklist
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="multi-region-architecture">Multi-Region Architecture<a class="headerlink" href="#multi-region-architecture" title="Permanent link">&para;</a></h1>
+<p>Multi-region design is a business decision about latency, continuity, regulation, and cost. It adds failure modes even when no region fails: lag, routing mistakes, conflicting writes, and divergent configuration.</p>
+<h2 id="begin-with-objectives">Begin with objectives<a class="headerlink" href="#begin-with-objectives" title="Permanent link">&para;</a></h2>
+<p>For each operation define latency target, RTO, RPO, residency, and partition behavior. Example:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Latency</th>
+<th>RTO/RPO</th>
+<th>Partition policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>browse catalog</td>
+<td>200 ms</td>
+<td>5 min / 15 min</td>
+<td>serve stale locally</td>
+</tr>
+<tr>
+<td>place order</td>
+<td>800 ms</td>
+<td>10 min / 0 acknowledged orders</td>
+<td>single write home, reject if unreachable</td>
+</tr>
+<tr>
+<td>update cart</td>
+<td>300 ms</td>
+<td>1 min / 30 sec</td>
+<td>accept locally and merge</td>
+</tr>
+<tr>
+<td>admin price change</td>
+<td>2 sec</td>
+<td>1 hour / 0</td>
+<td>leader region only</td>
+</tr>
+</tbody>
+</table>
+<h2 id="deployment-models">Deployment models<a class="headerlink" href="#deployment-models" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Strength</th>
+<th>Cost and risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>active-passive</td>
+<td>simplest write ordering</td>
+<td>idle cost, failover RTO, cold dependencies</td>
+</tr>
+<tr>
+<td>active-active, single home per key</td>
+<td>local reads, no concurrent key writes</td>
+<td>home routing and evacuation</td>
+</tr>
+<tr>
+<td>active-active multi-writer</td>
+<td>local writes during partitions</td>
+<td>conflicts and invariant limits</td>
+</tr>
+<tr>
+<td>global synchronous database</td>
+<td>strong semantics</td>
+<td>WAN latency and quorum availability</td>
+</tr>
+</tbody>
+</table>
+<p>An active-passive or per-account-home design simplifies order authority. Asynchronous DR replication permits acknowledged loss and therefore does not meet the table's zero-order-loss RPO. That contract requires durable replication across the named regional failure boundary before acknowledgement, or staying unavailable until missing acknowledged data can be recovered. Route correctness-sensitive writes to the home.</p>
+<pre class="mermaid"><code>flowchart LR
+    G[Global traffic manager] --&gt; A[Region A - writer]
+    G --&gt; B[Region B - read/standby]
+    A --&gt; DA[(Primary)]
+    DA -. async log .-&gt; DB[(Replica)]
+    B --&gt; DB</code></pre>
+<h2 id="failover-protocol">Failover protocol<a class="headerlink" href="#failover-protocol" title="Permanent link">&para;</a></h2>
+<p>Failover is a state machine, not a DNS edit.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant O as Orchestrator
+    participant A as Old region
+    participant B as New region
+    O-&gt;&gt;A: revoke write authority epoch 17
+    O-&gt;&gt;O: verify durable fence at every old commit path
+    O-&gt;&gt;B: verify replay through committed offset
+    O-&gt;&gt;B: grant epoch 18
+    O-&gt;&gt;O: switch traffic
+    O-&gt;&gt;B: reconcile uncertain operations</code></pre>
+<p>If A cannot be contacted, a quorum-based lease or external fencing authority must ensure it cannot continue writing. Promotion chooses an explicit data-loss boundary. Returning traffic later requires resynchronization; never simply reverse DNS.</p>
+<h2 id="conflict-policy">Conflict policy<a class="headerlink" href="#conflict-policy" title="Permanent link">&para;</a></h2>
+<p>Multi-writer works only where domain merge is valid. Sets can often union with tombstones; counters can use CRDTs; a username claim or finite inventory cannot safely use last-write-wins. Allocate inventory rights per region or coordinate claims.</p>
+<table>
+<thead>
+<tr>
+<th>Conflict</th>
+<th>Better policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>concurrent profile edits</td>
+<td>field-level/version conflict, ask user if needed</td>
+</tr>
+<tr>
+<td>cart additions</td>
+<td>merge item quantities under documented rule</td>
+</tr>
+<tr>
+<td>duplicate payment commands</td>
+<td>globally scoped idempotency key</td>
+</tr>
+<tr>
+<td>account deletion versus update</td>
+<td>deletion tombstone dominates</td>
+</tr>
+</tbody>
+</table>
+<h2 id="failure-semantics-and-operations">Failure semantics and operations<a class="headerlink" href="#failure-semantics-and-operations" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Region isolation: local stale-safe reads continue; home writes reject or use preallocated rights.</li>
+<li>Replication lag: expose data age; prevent stale replicas from serving read-after-write using a version token.</li>
+<li>Global control-plane outage: data planes continue with last valid configuration and bounded leases.</li>
+<li>Traffic-manager error: per-region admission prevents overload.</li>
+<li>Simultaneous schema versions: expand-contract changes preserve cross-region compatibility.</li>
+</ul>
+<p>Test evacuation at production-like load and measure detection, decision, fencing, promotion, routing convergence, backlog drain, and reconciliation. Include third-party endpoints, secrets, queues, object stores, and quotas; a database replica alone is not regional resilience.</p>
+<h2 id="separate-traffic-compute-and-data-topology">Separate traffic, compute, and data topology<a class="headerlink" href="#separate-traffic-compute-and-data-topology" title="Permanent link">&para;</a></h2>
+<p>For DNS, anycast, BGP convergence, asymmetric paths, and failover capacity at this boundary, use <a href="../../networks/14-bgp-anycast-global-routing/">BGP, Anycast, and Global Routing</a>.</p>
+<p>"Active-active" is incomplete. A system can run compute in two regions while maintaining one write region, serve local reads from asynchronous replicas, or allow writes in both. Describe topology separately for each data set and operation.</p>
+<p>The global traffic layer directs users according to health, latency, residency, and tenant home. Regional ingress performs authentication and admission even if the global control plane is unavailable. Stateless compute should not require a cross-region control-plane call for every request. Canonical databases, caches, queues, object stores, secrets, and third-party dependencies each need their own regional story.</p>
+<pre class="mermaid"><code>flowchart TD
+    U[Users] --&gt; G[Global traffic policy]
+    G --&gt; EA[Region A ingress]
+    G --&gt; EB[Region B ingress]
+    EA --&gt; SA[Regional services]
+    EB --&gt; SB[Regional services]
+    SA --&gt; CA[(Regional cache A)]
+    SB --&gt; CB[(Regional cache B)]
+    SA --&gt; PA[(Canonical primary)]
+    PA -. encrypted replication .-&gt; RB[(Replica B)]
+    SB --&gt; RB
+    CP[Global control plane] -. versioned policy .-&gt; EA
+    CP -. versioned policy .-&gt; EB</code></pre>
+<p>For a commerce system, catalog content might use active-active local reads and last-writer policy, carts might merge, while orders and payments have one home writer. Applying one consistency model to every entity either weakens critical invariants or adds unnecessary WAN coordination.</p>
+<h2 id="choose-a-topology-from-operation-contracts">Choose a topology from operation contracts<a class="headerlink" href="#choose-a-topology-from-operation-contracts" title="Permanent link">&para;</a></h2>
+<p><strong>Active-passive</strong> keeps one serving writer and a standby. It has the clearest conflict model, but standby readiness determines RTO. Exercise dependencies and continuously replay production-like synthetic traffic; an idle region can have expired secrets, missing indexes, cold caches, and insufficient quotas.</p>
+<p><strong>Active-active compute with a home region per key</strong> gives local handling for users near their home and prevents concurrent writes to one key. A global directory maps <code>account_id</code> to home and carries a version. Requests arriving elsewhere proxy or redirect to home. The directory must remain available from cached, versioned state, and moving a home is a fenced migration.</p>
+<p><strong>Multi-writer</strong> accepts local writes in more than one region. It is suitable only when operations commute or conflicts have a domain-approved resolution. A CRDT counter can merge increments; finite inventory, unique usernames, and account balances cannot generally use last-write-wins. Allocate rights per region or coordinate those operations.</p>
+<p><strong>Synchronous global quorum</strong> provides stronger semantics but adds WAN latency and partition tradeoffs. If round-trip time between quorum regions is 80 ms, a write cannot complete below that coordination floor plus processing. During a partition, the minority must reject writes to preserve consistency.</p>
+<h2 id="data-residency-and-sovereignty">Data residency and sovereignty<a class="headerlink" href="#data-residency-and-sovereignty" title="Permanent link">&para;</a></h2>
+<p>Residency is a data-flow constraint, not just database placement. Classify canonical records, derived indexes, caches, logs, backups, traces, support exports, and encryption keys. "EU data remains in the EU" is violated if payloads stay local but debugging logs or backups cross the boundary.</p>
+<p>Create a policy matrix:</p>
+<table>
+<thead>
+<tr>
+<th>Data class</th>
+<th>Canonical location</th>
+<th>May replicate</th>
+<th>Derived use</th>
+<th>Deletion obligation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>account identity</td>
+<td>tenant jurisdiction</td>
+<td>approved paired region</td>
+<td>tokenized lookup only</td>
+<td>erase within policy window</td>
+</tr>
+<tr>
+<td>order ledger</td>
+<td>legal entity region</td>
+<td>approved DR region</td>
+<td>aggregate analytics</td>
+<td>retain by statutory policy</td>
+</tr>
+<tr>
+<td>product catalog</td>
+<td>global authoring region</td>
+<td>all serving regions</td>
+<td>search and cache</td>
+<td>normal lifecycle</td>
+</tr>
+<tr>
+<td>secrets and keys</td>
+<td>regional KMS boundary</td>
+<td>never export raw key</td>
+<td>envelope encryption</td>
+<td>rotate and revoke</td>
+</tr>
+</tbody>
+</table>
+<p>Route from trusted tenant metadata, not user-supplied headers. Reject a request rather than silently writing it to an unapproved fallback region. Replication filters must default deny for new fields and topics until classification is complete. Deletion propagates to replicas, projections, caches, and future restores; keep tombstones long enough that an old backup cannot resurrect deleted records without reapplying the deletion log.</p>
+<pre class="mermaid"><code>flowchart LR
+    W[Write request] --&gt; T[Trusted tenant directory]
+    T --&gt; P{Residency policy}
+    P --&gt;|EU allowed| EU[EU data plane]
+    P --&gt;|US allowed| US[US data plane]
+    P --&gt;|No eligible region| X[Reject explicitly]
+    EU --&gt; ER[(EU canonical and backup)]
+    US --&gt; UR[(US canonical and backup)]
+    ER -. tokenized aggregate only .-&gt; A[Global analytics]
+    UR -. tokenized aggregate only .-&gt; A</code></pre>
+<h2 id="replication-freshness-and-session-guarantees">Replication, freshness, and session guarantees<a class="headerlink" href="#replication-freshness-and-session-guarantees" title="Permanent link">&para;</a></h2>
+<p>Asynchronous replication yields a nonzero RPO when the source disappears before shipped changes become durable elsewhere. Measure lag in both time and log position. A replica reporting two seconds of time lag can still be millions of writes behind during a burst.</p>
+<p>For read-your-writes, return a commit version or log position with the write. A subsequent read may use a local replica only after that replica reaches the token; otherwise wait within the deadline, route to home, or report that the result is not yet visible. Do not infer freshness from wall clocks across regions.</p>
+<p>Monotonic reads require session state too. If a user first reads version 120 in home and then reaches a replica at version 115, routing should wait or choose a fresher replica. Bounded-staleness browse can instead return <code>as_of</code> and a product-approved age.</p>
+<p>Replication must preserve schema compatibility during staggered deployments. Use expand-contract formats and keep old readers tolerant of new optional fields. Regional deployment waves should not put a new writer ahead of every region capable of decoding its records.</p>
+<h2 id="fencing-prevents-two-primaries">Fencing prevents two primaries<a class="headerlink" href="#fencing-prevents-two-primaries" title="Permanent link">&para;</a></h2>
+<p>Health detection cannot prove the old region is dead; it may only prove it is unreachable. Promoting a new writer without fencing creates split brain. Use a consensus-backed external lease, storage-level epoch, or irreversible infrastructure fence. Every mutation carries the current epoch, and the canonical store rejects lower epochs.</p>
+<p>Suppose A writes under epoch 17. The failover authority reaches quorum, expires or revokes 17, and grants B epoch 18. A later reconnects and sends a delayed write with epoch 17; the database rejects it even if A's process still believes it is primary. A timestamp is insufficient because clocks can skew and old requests can arrive late.</p>
+<p>The sink must first install epoch 18 atomically with its mutation guard. Maximum-seen fencing only rejects 17 after the sink has observed 18. Separate regional databases do not share that watermark automatically: fence every old write path or use an authority check at the actual commit boundary. <a href="https://etcd.io/docs/v3.6/learning/api_guarantees/">etcd's API guarantees</a> cover its own KV operations, not an external database write (accessed 2026-09-08).</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant Q as Fencing quorum
+    participant A as Region A writer
+    participant B as Region B writer
+    participant D as Canonical store
+    A-&gt;&gt;D: write with epoch 17
+    Q-&gt;&gt;Q: revoke 17 and commit 18
+    Q-&gt;&gt;D: install epoch 18 and reject epoch 17
+    D--&gt;&gt;Q: fence durable
+    Q-&gt;&gt;B: lease epoch 18
+    B-&gt;&gt;D: write with epoch 18
+    A-&gt;&gt;D: delayed write with epoch 17
+    D--&gt;&gt;A: reject stale epoch</code></pre>
+<p>Lease duration trades failover speed against false overlap and availability. A writer that cannot renew before the safety margin must stop accepting writes, even if its local dependencies look healthy. Keep lease renewal on reserved capacity and monitor remaining lease time.</p>
+<h2 id="worked-regional-failover">Worked regional failover<a class="headerlink" href="#worked-regional-failover" title="Permanent link">&para;</a></h2>
+<p>Assume a single-home order system with RTO 10 minutes and zero loss of acknowledged orders. Region A acknowledges only after its order log is synchronously durable to a witness-approved replica set satisfying that RPO. Region B maintains a warm replica and regional dependencies.</p>
+<ol>
+<li>Detect sustained regional failure using user probes, replication signals, and infrastructure health. Record the last known durable offset.</li>
+<li>Declare incident authority. Freeze automation that might concurrently change routing or capacity.</li>
+<li>Fence A through the external lease or infrastructure control. If fencing cannot be established, preserve the invariant and keep order writes unavailable.</li>
+<li>Prove B contains and has replayed every acknowledged order through the required durable boundary. A last observed lag metric alone is insufficient evidence. If that proof fails, keep order writes unavailable under the zero-loss contract and recover the missing data. Promoting with loss would be an explicit change to the product contract, not successful zero-RPO failover.</li>
+<li>Promote B under the next epoch, run invariant checks, and allow a small write canary.</li>
+<li>Shift traffic in steps while watching capacity, errors, dependency quotas, cache misses, and queue lag. Keep browse degradation available to reserve order capacity.</li>
+<li>Reconcile requests whose clients timed out around the transition using globally stable idempotency keys.</li>
+<li>Establish new backups and replication before declaring recovery complete.</li>
+</ol>
+<p>DNS TTL does not define full RTO. Clients cache addresses, connection pools persist, queues retain destinations, and mobile clients may ignore TTLs. Regional ingress should redirect or reject stale routes, and global plus local routing convergence must be measured.</p>
+<h2 id="returning-home-and-moving-tenant-ownership">Returning home and moving tenant ownership<a class="headerlink" href="#returning-home-and-moving-tenant-ownership" title="Permanent link">&para;</a></h2>
+<p>Failback is another migration, not the reverse of failover. The old primary may contain unreplicated divergent writes and stale derived state. Rebuild it from the current authority, validate checksums and lag, add it as a fenced follower, and only then perform a planned epoch transition.</p>
+<p>Moving tenant <code>T9</code> from A to B uses the same discipline:</p>
+<ol>
+<li>Mark T9 as <code>MOVING</code> at directory version 51; route new mutations through A.</li>
+<li>Snapshot T9 at log offset 940 and copy canonical plus required derived state.</li>
+<li>Stream changes after 940 to B and verify versions and business totals.</li>
+<li>Gate new T9 writes at A, drain in-flight mutations, and durably fence A's old authority. Record final committed position F, verify B durably contains and has applied through F, then grant B home epoch 52.</li>
+<li>Routers with directory version 51 receive a redirect. A rejects all new T9 mutations after fencing, including requests carrying stale epoch 51; checking only for incoming epoch 52 would leave the old write path open. It may proxy reads to B during convergence.</li>
+<li>Observe, retain rollback data, and erase old copies according to residency policy only after the rollback window.</li>
+</ol>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; HomeA
+    HomeA --&gt; CopyingToB: directory marks moving
+    CopyingToB --&gt; CatchingUp: snapshot verified
+    CatchingUp --&gt; HomeB: fence A and grant epoch
+    HomeB --&gt; Observing: route convergence
+    Observing --&gt; StableB: validation passes
+    Observing --&gt; HomeA: reverse replay, fence B, grant fresh epoch</code></pre>
+<h2 id="capacity-and-overload-during-evacuation">Capacity and overload during evacuation<a class="headerlink" href="#capacity-and-overload-during-evacuation" title="Permanent link">&para;</a></h2>
+<p>Two regions each running at 60% cannot necessarily absorb the other; shifting all load creates 120% demand before cache-cold and retry effects. N+1 regional capacity, partial degradation, or a documented traffic-shedding policy is required. Capacity must include regional third-party rate limits and database connection ceilings, not only compute.</p>
+<p>Warm the destination gradually using bounded prefetches. A cold cache can multiply database demand exactly when replicas are catching up. Rate-limit global traffic independently from local admission so a routing mistake cannot overwhelm the destination. Preserve control and reconciliation capacity while shedding low-priority browse or analytics.</p>
+<h2 id="multi-writer-conflict-examples">Multi-writer conflict examples<a class="headerlink" href="#multi-writer-conflict-examples" title="Permanent link">&para;</a></h2>
+<p>Last-write-wins chooses a winner but does not preserve intent. Two regions selling the last item can each observe stock one and decrement successfully; merging timestamps cannot undo two promises. Allocate 60 units to A and 40 to B as regional rights, transfer rights through a coordinated ledger, and reject locally when rights are exhausted.</p>
+<p>For carts, item additions can merge by item key, but concurrent "set quantity to one" and "remove item" needs a rule, often a deletion tombstone with a version. For payments, use one globally scoped command ID and route the account to one writer. For profile fields, retain per-field versions or surface conflicts rather than overwriting an unrelated edit.</p>
+<h2 id="operational-readiness-checklist">Operational readiness checklist<a class="headerlink" href="#operational-readiness-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Specify topology per operation and data set, not one label for the service.</li>
+<li>Record latency, RTO, RPO, partition behavior, and residency policy.</li>
+<li>Inventory regional dependencies, quotas, keys, logs, backups, and projections.</li>
+<li>Use version tokens for read-your-writes and monotonic sessions.</li>
+<li>Demonstrate fencing with a stale writer, not merely planned shutdown.</li>
+<li>Calculate destination capacity under cache loss, retries, and backlog drain.</li>
+<li>Reconcile uncertain operations with stable idempotency keys.</li>
+<li>Test failover, failback, tenant movement, and control-plane loss.</li>
+<li>Audit every copy and deletion path against residency obligations.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../reliability/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Reliability Engineering">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Reliability Engineering
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../security-architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Security Architecture">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Security Architecture
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Built for deliberate L5/L6 system design practice.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tabs", "navigation.sections", "navigation.top", "navigation.footer", "toc.follow", "search.highlight", "search.share", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+        <script src="../../assets/vendor/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid.js"></script>
+      
+        <script src="../../javascripts/content-ui.js"></script>
+      
+        <script src="../../javascripts/reader.js"></script>
+      
+        <script src="../../javascripts/calculators.js"></script>
+      
+        <script src="../../javascripts/practice-console.js"></script>
+      
+    
+  </body>
+</html>

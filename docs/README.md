@@ -4,6 +4,7 @@ Use these guides to update and maintain the portfolio:
 
 - [Add or update portfolio content](CONTENT.md)
 - [Add library content](LIBRARY.md)
+- [System design course and practice imports](system-design-import.md)
 - [Whitepaper labs and authoring conventions](WHITEPAPERS.md)
 - [Deploy the site](DEPLOYMENT.md)
 - [Debug common problems](DEBUGGING.md)

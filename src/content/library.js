@@ -7,10 +7,12 @@ import { tlpiAppendices, tlpiChapters, tlpiMeta } from "./tlpi";
 import { whitepaperCatalog } from "./whitepapers";
 import { playbooks } from "./playbooks";
 import { frontendAtlas } from "./frontend-atlas";
+import { systemDesign } from "./system-design";
 
 export default [
   ...playbooks,
   frontendAtlas,
+  ...systemDesign,
   {
     id: "tlpi",
     title: "The Linux Programming Interface - Interactive Companion",

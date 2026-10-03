@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/check-build.mjs",
-    "test": "node --test scripts/tests/*.test.mjs src/pages/simulations/labs/models.test.js && node scripts/check-playbooks.mjs && node scripts/check-frontend-atlas.mjs && node scripts/normalize-text.mjs --check",
+    "test": "node --test scripts/tests/*.test.mjs src/pages/simulations/labs/models.test.js && node scripts/check-playbooks.mjs && node scripts/check-frontend-atlas.mjs && node scripts/check-system-design.mjs && node scripts/normalize-text.mjs --check",
     "papers:check-sources": "node scripts/paper-sources.mjs",
     "papers:discover": "node scripts/paper-sources.mjs --discover",
     "papers:test-browser": "node scripts/check-whitepapers-browser.mjs",

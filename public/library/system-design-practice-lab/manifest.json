@@ -1,0 +1,74 @@
+{
+  "id": "system-design-practice-lab",
+  "sourceRepository": "https://github.com/ArnabBir/system-design-practice-lab.git",
+  "sourceCommit": "6bfffc0ec51795a4b6d436a10e8d2ae0a375f7d9",
+  "sourceDirty": false,
+  "normalization": "editorial-punctuation-v1",
+  "relocation": null,
+  "files": [
+    {
+      "sourceFile": "index.html",
+      "contentPath": "/library/system-design-practice-lab/index.html",
+      "sourceBytes": 2927,
+      "sourceSha256": "c3eb073ab599be244b9c661d0b4c95e566f64c2213d803d533102f9be2a3fff7",
+      "bytes": 2924,
+      "sha256": "cce6ad2f5c8a3fac1085490cdcd6187bdbc9902c581038105f81a9fe64e59f55"
+    },
+    {
+      "sourceFile": "app.mjs",
+      "contentPath": "/library/system-design-practice-lab/app.mjs",
+      "sourceBytes": 36486,
+      "sourceSha256": "68351d49638963e61bf112db6c73ab2eb78b7e86fc57b634b904e4383d1bc0a6",
+      "bytes": 36477,
+      "sha256": "bb8e5c437f1b09ae292394a4779a2e6706d09fee897ccbfbbad705047a573593"
+    },
+    {
+      "sourceFile": "engine.mjs",
+      "contentPath": "/library/system-design-practice-lab/engine.mjs",
+      "sourceBytes": 5501,
+      "sourceSha256": "d191d5f293f109aaf439c8d604451660e33a8458d5415194d2a03a5f0bdfc806",
+      "bytes": 5501,
+      "sha256": "d191d5f293f109aaf439c8d604451660e33a8458d5415194d2a03a5f0bdfc806"
+    },
+    {
+      "sourceFile": "styles.css",
+      "contentPath": "/library/system-design-practice-lab/styles.css",
+      "sourceBytes": 24245,
+      "sourceSha256": "b18fbf3cee3241a83b82ee386ed742652cd83d8b511c9487107922dfc0678b8b",
+      "bytes": 24245,
+      "sha256": "b18fbf3cee3241a83b82ee386ed742652cd83d8b511c9487107922dfc0678b8b"
+    },
+    {
+      "sourceFile": "data/bank.json",
+      "contentPath": "/library/system-design-practice-lab/data/bank.json",
+      "sourceBytes": 4122769,
+      "sourceSha256": "841800f9ec75cd76e39f05bb4b7dc3d8e3465981b34784ba48904a45f9f89099",
+      "bytes": 4122769,
+      "sha256": "841800f9ec75cd76e39f05bb4b7dc3d8e3465981b34784ba48904a45f9f89099"
+    },
+    {
+      "sourceFile": "data/curriculum.mjs",
+      "contentPath": "/library/system-design-practice-lab/data/curriculum.mjs",
+      "sourceBytes": 4854,
+      "sourceSha256": "5dcbe199afa1fab1bd0e62ff9521249af75e0d4fbee8b44bdbb10776193f2b61",
+      "bytes": 4854,
+      "sha256": "5dcbe199afa1fab1bd0e62ff9521249af75e0d4fbee8b44bdbb10776193f2b61"
+    },
+    {
+      "sourceFile": "assets/mark.svg",
+      "contentPath": "/library/system-design-practice-lab/assets/mark.svg",
+      "sourceBytes": 275,
+      "sourceSha256": "459715b8739edac0aa134ec0c3442520c355f3a40d6c7e81ec93eb925acde902",
+      "bytes": 275,
+      "sha256": "459715b8739edac0aa134ec0c3442520c355f3a40d6c7e81ec93eb925acde902"
+    },
+    {
+      "sourceFile": "assets/preview.png",
+      "contentPath": "/library/system-design-practice-lab/assets/preview.png",
+      "sourceBytes": 106303,
+      "sourceSha256": "e1bc32f43fe266aa45b3431f15ef5df4546b2c0c6e515cbf26c16a590b533ce7",
+      "bytes": 106303,
+      "sha256": "e1bc32f43fe266aa45b3431f15ef5df4546b2c0c6e515cbf26c16a590b533ce7"
+    }
+  ]
+}

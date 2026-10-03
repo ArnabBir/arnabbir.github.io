@@ -1,0 +1,3122 @@
+{
+  "id": "system-design-masterclass",
+  "sourceRepository": "https://github.com/ArnabBir/system-design-masterclass.git",
+  "sourceCommit": "605de28e8dc4291815e51db5fee77a82cc89b188",
+  "sourceDirty": false,
+  "normalization": "editorial-punctuation-v1",
+  "relocation": "Canonical and sitemap base relocated to /library/system-design-masterclass/; relative runtime paths preserved.",
+  "files": [
+    {
+      "sourceFile": "site/404.html",
+      "contentPath": "/library/system-design-masterclass/404.html",
+      "sourceBytes": 162856,
+      "sourceSha256": "73446f0909d78bdd75f1daafdaa39c706e4e1414aaa5636f694963d1e2ee33c8",
+      "bytes": 162856,
+      "sha256": "73446f0909d78bdd75f1daafdaa39c706e4e1414aaa5636f694963d1e2ee33c8"
+    },
+    {
+      "sourceFile": "site/applied-ai/01-ai-system-design-method/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/01-ai-system-design-method/index.html",
+      "sourceBytes": 198627,
+      "sourceSha256": "da9ddbbd39da70d01b7648139ae16b60c909fbfc41308f4bf95c489883b59642",
+      "bytes": 198635,
+      "sha256": "86eb9d4a321a01a7d7a68bd152ce2468ba05a3b3361c398eb160dd96d655b3bd"
+    },
+    {
+      "sourceFile": "site/applied-ai/02-ai-workload-taxonomy/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/02-ai-workload-taxonomy/index.html",
+      "sourceBytes": 212204,
+      "sourceSha256": "1b2a3f01fc07addf6a898d02d42c4d1479963ba1f3cfd8b22ce71394119304ce",
+      "bytes": 212212,
+      "sha256": "067d794b8d4c79f42e89885abdd8b5b59d19260ae2b7abfca6fbf151a844dd22"
+    },
+    {
+      "sourceFile": "site/applied-ai/03-ml-ai-pipelines/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/03-ml-ai-pipelines/index.html",
+      "sourceBytes": 196622,
+      "sourceSha256": "9120bd169d5fb44d6258556012b8a54d91e74d8f39f2dbfed4677019c2fedd06",
+      "bytes": 196630,
+      "sha256": "197c0e434319a4a9381a22e91a726cae419bb0cf24077921542405b38c131439"
+    },
+    {
+      "sourceFile": "site/applied-ai/04-batch-bulk-inference/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/04-batch-bulk-inference/index.html",
+      "sourceBytes": 196350,
+      "sourceSha256": "5874e0edad040037938f70541c4b874b35efd09b53e454e3eb7d900d6cb3d45c",
+      "bytes": 196358,
+      "sha256": "83571266a752090c5f181bba91b4210057abbe5f65b88cb97b9b4039fba62eef"
+    },
+    {
+      "sourceFile": "site/applied-ai/05-online-model-serving/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/05-online-model-serving/index.html",
+      "sourceBytes": 221420,
+      "sourceSha256": "9c11c1e9fe779d4bb984bfed3d3cbefe905d9b494c15b0f05345b43bc69e18ae",
+      "bytes": 221428,
+      "sha256": "5ef4bbfb012bda3ec96800e67d0169a1e2a3c75280c638f893400a6b757bb8e0"
+    },
+    {
+      "sourceFile": "site/applied-ai/06-embeddings-vector-retrieval/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/06-embeddings-vector-retrieval/index.html",
+      "sourceBytes": 204062,
+      "sourceSha256": "bdcd26b03f709514b821dd873dc24b4d89366462c9d87bf9f649735a83ff482d",
+      "bytes": 204070,
+      "sha256": "0fc942a54ba3375d8551537ec29e3af0c8de3c2c6a00fbae643eb5c6b87dd1d8"
+    },
+    {
+      "sourceFile": "site/applied-ai/07-hybrid-search-reranking/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/07-hybrid-search-reranking/index.html",
+      "sourceBytes": 209946,
+      "sourceSha256": "95bde9c15844677491e4f35735f227b53380d930669e5adc53b615a81dbd4c56",
+      "bytes": 209954,
+      "sha256": "3ea720c57535bb4cf2011286a899a1304cc078534ceb6baa90fa67cf2ecf07ff"
+    },
+    {
+      "sourceFile": "site/applied-ai/08-production-rag-systems/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/08-production-rag-systems/index.html",
+      "sourceBytes": 227846,
+      "sourceSha256": "a877d0d4252a2d544d9915c6d2bb7a5a09b57e5a6c414f8dd254bf3fcb2a576a",
+      "bytes": 227854,
+      "sha256": "593e1b6c4cd521d37c68bd6b956786f5db8758531cf389e8dba47b5084e5fa2f"
+    },
+    {
+      "sourceFile": "site/applied-ai/09-multimodal-document-pipelines/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/09-multimodal-document-pipelines/index.html",
+      "sourceBytes": 220262,
+      "sourceSha256": "207a21a77213354f30a7d8265163559640a4f729e3dd80b1d5affd4d4f9d99a5",
+      "bytes": 220270,
+      "sha256": "3704314f8812419e3a0b831da34fd1146e886db0ee3b69739a60d647d8d5cbb7"
+    },
+    {
+      "sourceFile": "site/applied-ai/10-workflows-and-bounded-agents/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/10-workflows-and-bounded-agents/index.html",
+      "sourceBytes": 209422,
+      "sourceSha256": "1288d15ea42c067705899115f5988c34e9acebd0459f3c53d5be7408f99e72c4",
+      "bytes": 209430,
+      "sha256": "c4a9c82a2fcc95764f1893b235083f5c3e7f4fbf347e7e8b5696b4505d7b6366"
+    },
+    {
+      "sourceFile": "site/applied-ai/11-typed-tools-and-mcp/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/11-typed-tools-and-mcp/index.html",
+      "sourceBytes": 220318,
+      "sourceSha256": "a5cdbfbbee7247f0c8d965608e4c11e7c5ba1f81dd490eb521ff5a1d61c77517",
+      "bytes": 220326,
+      "sha256": "2c521581296e6d73f09f5bf56ba368f3e4102ed482ef0a7b130a8cf6cccb5531"
+    },
+    {
+      "sourceFile": "site/applied-ai/12-durable-agents-memory-hitl/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/12-durable-agents-memory-hitl/index.html",
+      "sourceBytes": 229515,
+      "sourceSha256": "dad19be8a19a25d22011fa6657491c5e1c33b4bcdc941703010d12c3f2e69294",
+      "bytes": 229523,
+      "sha256": "2d96a337b29eb6860406911f61a246bca0d5e08f92b5277efc3e5e4bc2bb442d"
+    },
+    {
+      "sourceFile": "site/applied-ai/13-evaluation-engineering/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/13-evaluation-engineering/index.html",
+      "sourceBytes": 190318,
+      "sourceSha256": "3fc3c81c6dda7cc8c43f2519f319551fa74c3586624b740206c9d8da2a4f81af",
+      "bytes": 190326,
+      "sha256": "f0977cce34600fb3a50588598e099a99459b1be3f7ba443ae842b0956c3090b7"
+    },
+    {
+      "sourceFile": "site/applied-ai/14-ai-security-guardrails/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/14-ai-security-guardrails/index.html",
+      "sourceBytes": 187061,
+      "sourceSha256": "7941f251893ad412c279a06cde1ae264534bb778727c258ce50bfddfe248d59c",
+      "bytes": 187069,
+      "sha256": "8835258ca3ab48fc83627f872be14ef352871183e3cbd2ceafa3da346097528f"
+    },
+    {
+      "sourceFile": "site/applied-ai/15-ai-observability/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/15-ai-observability/index.html",
+      "sourceBytes": 191622,
+      "sourceSha256": "f3812419f30b3eb12f784224892889441ab61c402fe3b13348c4ec01bc773ea5",
+      "bytes": 191630,
+      "sha256": "dd52ee44cea4e71929f9d086f2547646f0d4142c1a22adf9f9b207b2f4e93ed9"
+    },
+    {
+      "sourceFile": "site/applied-ai/16-ai-reliability-capacity-cost/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/16-ai-reliability-capacity-cost/index.html",
+      "sourceBytes": 192620,
+      "sourceSha256": "8548e6b1ef81ffe227f436c9468ae3692908b72bf793bd9acf7684dac4d05d72",
+      "bytes": 192628,
+      "sha256": "79973a997a0d1737ca2fd32441146cb4ef4878faee9451b31f19ecf72c881fce"
+    },
+    {
+      "sourceFile": "site/applied-ai/17-model-adaptation/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/17-model-adaptation/index.html",
+      "sourceBytes": 189462,
+      "sourceSha256": "0b595c740f2f75801bb4edc07454200a6e68a53385479062b49678cfd798874c",
+      "bytes": 189470,
+      "sha256": "190ae3bfc8e0426a47a38a7451343cfd5a1b1cc2b6df9dfa9ebf69e9d72d1971"
+    },
+    {
+      "sourceFile": "site/applied-ai/18-ai-platforms-data-flywheels/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/18-ai-platforms-data-flywheels/index.html",
+      "sourceBytes": 193497,
+      "sourceSha256": "8c5abc4aeb2cfad834e79cb171a4a4b38bb22fa7fbc44daae1f410f91a31a60d",
+      "bytes": 193505,
+      "sha256": "e6781db928fc3a4a29b27c2e2223be603ceda704b6eb19be95b5e266cfd2279d"
+    },
+    {
+      "sourceFile": "site/applied-ai/calculations-workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/calculations-workbook/index.html",
+      "sourceBytes": 201376,
+      "sourceSha256": "d722beff70a36e738ccbcf8972f0383a6bcdd6095113598481b38724907c254b",
+      "bytes": 201384,
+      "sha256": "6820f8052d78a15c14e9d204929c7c840b9a9b3f78377edbc5bf7f363b31ed84"
+    },
+    {
+      "sourceFile": "site/applied-ai/failure-cards/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/failure-cards/index.html",
+      "sourceBytes": 190679,
+      "sourceSha256": "4467afe008fe83dd6bdddddb51bdc21caea56d06e6e17c31bc320e482813a51f",
+      "bytes": 190687,
+      "sha256": "71d56898a0fbb47caaf5ae205dfb4e49e402da0bc233decc050582a5bd97f837"
+    },
+    {
+      "sourceFile": "site/applied-ai/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/index.html",
+      "sourceBytes": 183112,
+      "sourceSha256": "bcee38dadff0b334fb384f862e2cb974c2d03646e20d87558654b6a4d78641bb",
+      "bytes": 183120,
+      "sha256": "9d32d7c5c9e414600fcf3869e08d604aec0257046bda13681d5c05b4552c9233"
+    },
+    {
+      "sourceFile": "site/applied-ai/l5-l6-rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/l5-l6-rubric/index.html",
+      "sourceBytes": 192168,
+      "sourceSha256": "84733cadd2593151283a08bab465fc1c8c71c265eca40897224ced458e6c6a46",
+      "bytes": 192176,
+      "sha256": "dddc2429af41a486f106c81f4e5d7df52e1fe6326ce3116bce1d83b47d026759"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/01-token-context-budget/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/01-token-context-budget/index.html",
+      "sourceBytes": 169525,
+      "sourceSha256": "d4a9914935d469afcd8f8c6e3a5f362423c3c4eb4d24d2c613872e79ef192b97",
+      "bytes": 169533,
+      "sha256": "c2f156155367e9336bd7b9dc3ffc3d02ccfc718db7c2a5ae4cc7c4d189225398"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/02-model-gateway/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/02-model-gateway/index.html",
+      "sourceBytes": 168958,
+      "sourceSha256": "3b66bf2ff5ac1c01af8196f80bf84fc6e9198425ae071ec14076a60dd98d04f1",
+      "bytes": 168966,
+      "sha256": "9df1b84342588dd4fc999d34e23bb11befa9f00785122eb12b30c97fef47cf86"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/03-vector-index-tradeoffs/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/03-vector-index-tradeoffs/index.html",
+      "sourceBytes": 168996,
+      "sourceSha256": "befe49e1ce384299118ac134040ee1e3e875b033d0be70765781fd85d44d14d3",
+      "bytes": 169004,
+      "sha256": "cea92837920c03c151baaff705ea77a78d7cd741387e1e0373b75cf515782fa5"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/04-hybrid-search-reranking/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/04-hybrid-search-reranking/index.html",
+      "sourceBytes": 168543,
+      "sourceSha256": "6d3bb3c4fca7ccc2184922f3717fff4293f6e47865594e931b3b313f5b57f17f",
+      "bytes": 168551,
+      "sha256": "748a60223a9e9c0c5dac1809952b5470299e7e3929ac95129de2b657397e9ec1"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/05-rag-evaluation/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/05-rag-evaluation/index.html",
+      "sourceBytes": 169748,
+      "sourceSha256": "bd4ff03ad6174e08e523f89c77545b17541b1a4ee679dc2b5f1246f293c587ce",
+      "bytes": 169756,
+      "sha256": "380e5cfe98e82bacdc6f0ed3f2835cb90a4ce079ddab0f6dd870ba46aeafbe87"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/06-document-ingestion/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/06-document-ingestion/index.html",
+      "sourceBytes": 169745,
+      "sourceSha256": "10cadbd0bfb18bcf81800bac30645cc02f342cf44cf47fce02c7cb065ddd282e",
+      "bytes": 169753,
+      "sha256": "90672344163981fa61d0a2b5aa8e5c3884953467aad1383d8bab651230979555"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/07-workflow-versus-agent/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/07-workflow-versus-agent/index.html",
+      "sourceBytes": 169229,
+      "sourceSha256": "1b567a6fc5aded5ff83172f5b9934825fcd90b88f74001629d06fa9cd8d6533f",
+      "bytes": 169237,
+      "sha256": "1d3d5086c0c99746cd02fadc3dd3473f836ed6fe8f3043a3cbcaf612ac28aecf"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/08-tool-idempotency/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/08-tool-idempotency/index.html",
+      "sourceBytes": 169983,
+      "sourceSha256": "a87085e7c04ea8726691786c172f98e86b1cc0a6653dab28e3ce0b2e1dbc2239",
+      "bytes": 169991,
+      "sha256": "c916fe2957ff6f5d79732949c688279ba0a8ce091fd6aacd3a76fbba3700d568"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/09-durable-agent-replay/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/09-durable-agent-replay/index.html",
+      "sourceBytes": 169609,
+      "sourceSha256": "c3e5893b7c916c78229aabc6e4e178e2c5fbf5a0bff47bbda2725b8462903bd8",
+      "bytes": 169617,
+      "sha256": "685249940862dd5562ef2c42a0021b6613255df999a26da0f5533ab30d200360"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/10-evaluation-release-gate/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/10-evaluation-release-gate/index.html",
+      "sourceBytes": 169584,
+      "sourceSha256": "0d4b9830a03e95e39ba777287fb207f6683ef1025a61dc2575ef91cc32a02e09",
+      "bytes": 169592,
+      "sha256": "6c2a2e3a9e26725caca55ad868da087a7e784d47f4ce0ab6da8ea9c0a365d507"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/11-prompt-injection-defense/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/11-prompt-injection-defense/index.html",
+      "sourceBytes": 171610,
+      "sourceSha256": "cb900d9581f5649274fc397106bf2b9bdee5cbc967c09ac3c083ca8b5b50598b",
+      "bytes": 171618,
+      "sha256": "5e4bedbcbe3ad34ad89fe10341309ba4a47bfac1c67f1e97acc321cd4a6b2f71"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/12-ai-capacity-incident/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/12-ai-capacity-incident/index.html",
+      "sourceBytes": 168636,
+      "sourceSha256": "8c2d55753db50b50c43dbebc2a76b80893f011075d3491e4e11fd46c6664afee",
+      "bytes": 168644,
+      "sha256": "b0a645c9dfec366577fe272a0b20faf6c8f40c9bea494040c08a19d346623ed5"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/check-browser.mjs",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/check-browser.mjs",
+      "sourceBytes": 8597,
+      "sourceSha256": "a4698b0a62b3a78a210a0e6f83689be78257ec25f9513f6891cab504455cef90",
+      "bytes": 8597,
+      "sha256": "a4698b0a62b3a78a210a0e6f83689be78257ec25f9513f6891cab504455cef90"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/check-calculations.py",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/check-calculations.py",
+      "sourceBytes": 5588,
+      "sourceSha256": "9f58dfe670741e02a34ce84e5883327358bb0e79574b0853cf773c171fea19cd",
+      "bytes": 5588,
+      "sha256": "9f58dfe670741e02a34ce84e5883327358bb0e79574b0853cf773c171fea19cd"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/check-docs.py",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/check-docs.py",
+      "sourceBytes": 7739,
+      "sourceSha256": "66880a4391cd9423ba05529ff5341d700f794d1916e9d0980a58ec277e0233a6",
+      "bytes": 7739,
+      "sha256": "66880a4391cd9423ba05529ff5341d700f794d1916e9d0980a58ec277e0233a6"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/check-fixtures.py",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/check-fixtures.py",
+      "sourceBytes": 5986,
+      "sourceSha256": "9a449551d3928f96e4da5051ba3b7baa71a524385e2f99d7eb5315c76879fc12",
+      "bytes": 5986,
+      "sha256": "9a449551d3928f96e4da5051ba3b7baa71a524385e2f99d7eb5315c76879fc12"
+    },
+    {
+      "sourceFile": "site/applied-ai/labs/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/labs/index.html",
+      "sourceBytes": 166464,
+      "sourceSha256": "23c3f7f6cc208afab34b0c3939c7caa26e17b3ed89ee8d5cb2140c1b273cda92",
+      "bytes": 166472,
+      "sha256": "12c41c9cd39fcbcfae749d34e3df74997af356844fa493f4a221a18e2490b120"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/design-review/index.html",
+      "sourceBytes": 177258,
+      "sourceSha256": "64b042451905e2354990b3cbb84f0dc21d3a257d3c07ab5839f8b8b1574ee514",
+      "bytes": 177266,
+      "sha256": "afce3128412e2a8cb9a2372dfc5162f5d7be89f039d5ba49473ba4004508b30a"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/exemplars/index.html",
+      "sourceBytes": 178645,
+      "sourceSha256": "5fb3245e613645919feea1663645e7f9b237ff7ab0ff8645be28e2e46786998c",
+      "bytes": 178653,
+      "sha256": "9d6bf8db905f2162427e350204373e4b2d68a5cf902763d3bda25e2cb8e45531"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/failure-lab/index.html",
+      "sourceBytes": 181885,
+      "sourceSha256": "b908f6d678f5a79542f6662180a814af29309f206b6d06bd4570c0de294aabbb",
+      "bytes": 181893,
+      "sha256": "5467a0488987ee9c651bc166d84932626b32afb34bea8ff4e9f3711b5dff27de"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/hints/index.html",
+      "sourceBytes": 164145,
+      "sourceSha256": "97f87a14c88e050ae4753d503e40b86d7f6aa2c0037124c3a2f65c43262bf1ed",
+      "bytes": 164153,
+      "sha256": "39fadb1c1ccda79f9d3b85bb6b9e69812a96cf282da0de3ee7f59785bc02d914"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/index.html",
+      "sourceBytes": 166246,
+      "sourceSha256": "986febb7242eee6318258f1ff848f52fc6a346fadea94ac5316a2abbbc46b389",
+      "bytes": 166254,
+      "sha256": "dae5099dfc55d85964d24d9d3fa724c2c5e442ff5596c200d528d7d705fa7442"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/interviewer-packet/index.html",
+      "sourceBytes": 197989,
+      "sourceSha256": "1800a68fb4cc4f7c5a38e6140095d8b4e171014830a31c9492c18250e09d6244",
+      "bytes": 197997,
+      "sha256": "af195147ac6e3a5f3867b437cd60ab74a994e96fed5ca94426571f872fa3b7a0"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/migration/index.html",
+      "sourceBytes": 186911,
+      "sourceSha256": "5648d6ad58c229fa829f93b046f28d77368949f3a0d8a33b2977d1070d164a33",
+      "bytes": 186919,
+      "sha256": "3f200ccec6ade1a8146a6967d55e3d81b6ab58c156e4555b6a5869076322ab23"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/prompt/index.html",
+      "sourceBytes": 170627,
+      "sourceSha256": "f177263e27e98eaf587d2ef4deb5a4613079b946f7060834979ce9d8b2cd782c",
+      "bytes": 170635,
+      "sha256": "43ebf4a246d271c8458bdb52d44d8443ade5d9bb553fb95492ec7771146d2211"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/rubric/index.html",
+      "sourceBytes": 179784,
+      "sourceSha256": "3ae8330507af3f4de43a9d3651bc290ab4495bd747dbcd8d2399a07a0cc09d22",
+      "bytes": 179792,
+      "sha256": "3e59a52ec3dc32ac7f0e08cc3750767a0523240c5d3270e0e35f8e805c000f84"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/enterprise-knowledge-assistant/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/enterprise-knowledge-assistant/workbook/index.html",
+      "sourceBytes": 182978,
+      "sourceSha256": "bbdf62edfdd71ac1c5c231b523c40d9f5b8555feeac860d475315f36a974edae",
+      "bytes": 182986,
+      "sha256": "6328b7ac7cef18cdd7584a529f7350d469306210f0b93f2642b6cb9e57338dc7"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/design-review/index.html",
+      "sourceBytes": 181093,
+      "sourceSha256": "4b7d9ceb4999f23a30a970fab273cd8cb8bbde92a44414fdf497e4bef522275c",
+      "bytes": 181101,
+      "sha256": "5dd80902481c59e9a37710b45712a46d416ba3840dffc49e6613468164d513c9"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/exemplars/index.html",
+      "sourceBytes": 183907,
+      "sourceSha256": "f73bda789534ace256310f061c96267c46bd82edeb3edf61a05bbf40e007d673",
+      "bytes": 183915,
+      "sha256": "a54adf1e4bcd08fba0d28158a28cd0a91cd6410c9fe504249b3c4a67a5816f53"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/failure-lab/index.html",
+      "sourceBytes": 180834,
+      "sourceSha256": "3289b0fd4298c579ce89d7e5ba071c464bd3ef9c5e6502b8cca17491971a6b47",
+      "bytes": 180842,
+      "sha256": "773b1e8553986075526325877d00b3dc6b90726d68bba25dcd1186f3a1042cc5"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/hints/index.html",
+      "sourceBytes": 163051,
+      "sourceSha256": "8c53b0af641fadc2940922c49c9b04b81c3a564a7b43d24574eff12bd8bfea81",
+      "bytes": 163059,
+      "sha256": "986a3ea6d0bbbc1f3b4071134eda83e882868460f1d69531a07243a96ded33ed"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/index.html",
+      "sourceBytes": 165940,
+      "sourceSha256": "2f5bc2471f22ae3a14b12e2bf7a0c3a9f4456a1d13a391471da772639b9118e7",
+      "bytes": 165948,
+      "sha256": "8575e5ece1a85b4dd4a08835fc1a98d87df5c4de0ea1c98e95bb20d7778abaa5"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/interviewer-packet/index.html",
+      "sourceBytes": 184044,
+      "sourceSha256": "dee79554b941e0b907bff024957134940a035df7f6f0af3b7c2c44047cc62c8a",
+      "bytes": 184052,
+      "sha256": "1fe90ed8546c5af88ee35717873cf077755eb35f2b9498d03d007f6002b0227b"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/migration/index.html",
+      "sourceBytes": 182596,
+      "sourceSha256": "e0628239b0b9b9e3ac236826f374eee30e49dd4240058e5ec2b5521eb5efb53e",
+      "bytes": 182604,
+      "sha256": "97d5c3f3e79401e058557198cb4604caabf73a3b63359795b609b98fa9406da4"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/prompt/index.html",
+      "sourceBytes": 173242,
+      "sourceSha256": "8a8bc1cde0c746268fad8d54bc044411ab2d50a521d15a386a4bc6488b23b092",
+      "bytes": 173250,
+      "sha256": "38e19035732de07b550f767d577f171aa52f4c7675f7e21e553aea11b3d1ea5f"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/rubric/index.html",
+      "sourceBytes": 184788,
+      "sourceSha256": "6c1168d7893f58d41f6cf7a61d0e042cb9c981d7ec8a60be79199ac007e8b26d",
+      "bytes": 184796,
+      "sha256": "7560661d4f6a6772e6faa89ffa14c9871abd734871f03845f7c6fe8905d4d062"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/incident-response-copilot/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/incident-response-copilot/workbook/index.html",
+      "sourceBytes": 182958,
+      "sourceSha256": "d830e7c9acbc65d5eab01d658a6b06c3dab3802f9688b7d5b56681a6021f5c2b",
+      "bytes": 182966,
+      "sha256": "ca6d8d56c06fd7e9d26960788d5d68d049c5412649b3ebc03e467c81e1d65fb1"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/design-review/index.html",
+      "sourceBytes": 174719,
+      "sourceSha256": "b0374e53e32a23d14c8229e2c8382bbfd9a53bc5d68e109b346182b0d28c9154",
+      "bytes": 174727,
+      "sha256": "0d2060a11d08dc8d9d496955dba0ea66d2d204980ca2a6425ecb2e1679e78d0b"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/exemplars/index.html",
+      "sourceBytes": 178574,
+      "sourceSha256": "44bb7c664cb1118e8518068973cdeff41910ff37ec49619301b2f074c5a91b4f",
+      "bytes": 178582,
+      "sha256": "c8281aed503aeeb489323ed2efb55b0c77ef4a88d260225a716fac773b50bdd0"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/failure-lab/index.html",
+      "sourceBytes": 179787,
+      "sourceSha256": "c833d85e885dd8350ffc155f51ada4f112a331fa71a6da65b947bc659f443b39",
+      "bytes": 179795,
+      "sha256": "d201f9a9d4b0952c7e6cd7d8eab41c58e5c4ab79b3b979bce979adc7b2593196"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/hints/index.html",
+      "sourceBytes": 162706,
+      "sourceSha256": "0340828922b8c53c67dd58d3c01a25025d936d4317cd7bee938e9c18dae219d9",
+      "bytes": 162714,
+      "sha256": "825a952959d00c74276bd88d8919b1b61776ad682cdd1ab4cd7ff9d309932feb"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/index.html",
+      "sourceBytes": 168041,
+      "sourceSha256": "6bf44ade2251bfc73ec64b292b5bc98669eea8fe8e0913fe4190d0919773934a",
+      "bytes": 168049,
+      "sha256": "5137a1d3229e57d077c585db988949eb10d3d06f4fc6d7cfe1f3ac1cd406ddaf"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/interviewer-packet/index.html",
+      "sourceBytes": 180368,
+      "sourceSha256": "fa90d752370daa6fcb4fe2ce2f43d967d1d8ebfa10472cf478515d4cae65df4b",
+      "bytes": 180376,
+      "sha256": "70f6d6a9de09ee22bff30f109f8455cd65d54a01fa26eaac16dcf10cb122d5d8"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/migration/index.html",
+      "sourceBytes": 174413,
+      "sourceSha256": "ba2e8974bf4c01d80c8187843f06f9e8380d41afd5988a7430897c3ac14f39ee",
+      "bytes": 174421,
+      "sha256": "cab2ba925d908de4421a6c258c1a01486f9a58f4c0f3174fa5c1dfd4a48d898d"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/prompt/index.html",
+      "sourceBytes": 170983,
+      "sourceSha256": "63a34872c5e2e1c0e40796eee72785df2bef5026456c056936599bb940d3cf2c",
+      "bytes": 170991,
+      "sha256": "67da01b279f14c26c345ff7740c706f30523e8c2b3a896136ee8d390b0210c3b"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/rubric/index.html",
+      "sourceBytes": 179442,
+      "sourceSha256": "5ddac0e6f54589038dd1952ef46c9dc6fa155fd5c62c7b9f3c7934f71ce88240",
+      "bytes": 179450,
+      "sha256": "9efe8e0012ce14b4dfaa5cdc4c90bcca22d76c75f4456befa59d877b87caf247"
+    },
+    {
+      "sourceFile": "site/applied-ai/scenarios/support-resolution-agent/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/applied-ai/scenarios/support-resolution-agent/workbook/index.html",
+      "sourceBytes": 190948,
+      "sourceSha256": "3fb6f03589574acc0eb7c1a03bbe17da20b2070a706b168ccf49d5c95b0f07a3",
+      "bytes": 190956,
+      "sha256": "cb89ee03919d180a6b787bc3870d102ec18f4799e4fa51cabb9de807d9f99b85"
+    },
+    {
+      "sourceFile": "site/assets/images/favicon.png",
+      "contentPath": "/library/system-design-masterclass/assets/images/favicon.png",
+      "sourceBytes": 1870,
+      "sourceSha256": "023854c43fc4b25b795ee4951c8019e3de0593ffeb6f918b5d1f2a9b47a57cfe",
+      "bytes": 1870,
+      "sha256": "023854c43fc4b25b795ee4951c8019e3de0593ffeb6f918b5d1f2a9b47a57cfe"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/bundle.13a4f30d.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/bundle.13a4f30d.min.js",
+      "sourceBytes": 107918,
+      "sourceSha256": "d94c63aff1d9bb3d76b826e3e8fdc4ffbc1ca2e63ca1142ec4be9996e54cf4c6",
+      "bytes": 107918,
+      "sha256": "d94c63aff1d9bb3d76b826e3e8fdc4ffbc1ca2e63ca1142ec4be9996e54cf4c6"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.ar.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.ar.min.js",
+      "sourceBytes": 17074,
+      "sourceSha256": "89a1dcb094a8491d968c151ab254a03195c87ff2adaa2408c769928284847125",
+      "bytes": 17074,
+      "sha256": "89a1dcb094a8491d968c151ab254a03195c87ff2adaa2408c769928284847125"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.da.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.da.min.js",
+      "sourceBytes": 4654,
+      "sourceSha256": "2a12734048eae74e0a05e5c108fdf24c2b71dfcd8da712336ca9e3d27ab92956",
+      "bytes": 4654,
+      "sha256": "2a12734048eae74e0a05e5c108fdf24c2b71dfcd8da712336ca9e3d27ab92956"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.de.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.de.min.js",
+      "sourceBytes": 6119,
+      "sourceSha256": "bcaa7c5c19bc730c05bb91e22ae0e386e1ac4a0580c42b7d94f9b8757aadadab",
+      "bytes": 6119,
+      "sha256": "bcaa7c5c19bc730c05bb91e22ae0e386e1ac4a0580c42b7d94f9b8757aadadab"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.du.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.du.min.js",
+      "sourceBytes": 6208,
+      "sourceSha256": "452da04fe449b9c65c61384fec582dc63824bd4e559fae2c3926a7790b68e976",
+      "bytes": 6208,
+      "sha256": "452da04fe449b9c65c61384fec582dc63824bd4e559fae2c3926a7790b68e976"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.el.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.el.min.js",
+      "sourceBytes": 14950,
+      "sourceSha256": "a6fd5cbbb21d127407bc31c6c4298bf92ec7e1496a1ea83d5e4add14325a0c21",
+      "bytes": 14950,
+      "sha256": "a6fd5cbbb21d127407bc31c6c4298bf92ec7e1496a1ea83d5e4add14325a0c21"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.es.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.es.min.js",
+      "sourceBytes": 11499,
+      "sourceSha256": "dec4ec90bd6f478ca3e65636a8e3fedf512b23d01a51a01d7e7822f67ebbaaf8",
+      "bytes": 11499,
+      "sha256": "dec4ec90bd6f478ca3e65636a8e3fedf512b23d01a51a01d7e7822f67ebbaaf8"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.fi.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.fi.min.js",
+      "sourceBytes": 9342,
+      "sourceSha256": "681541fcf5b1987ad8b00766e9c06389ecf99c3d7ae817fa891f923f691b8668",
+      "bytes": 9342,
+      "sha256": "681541fcf5b1987ad8b00766e9c06389ecf99c3d7ae817fa891f923f691b8668"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.fr.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.fr.min.js",
+      "sourceBytes": 10669,
+      "sourceSha256": "4dd56aa2551e770ad26ef4b85092cd31447671e0e84b39514278547f54177377",
+      "bytes": 10669,
+      "sha256": "4dd56aa2551e770ad26ef4b85092cd31447671e0e84b39514278547f54177377"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.he.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.he.min.js",
+      "sourceBytes": 6882,
+      "sourceSha256": "3f7d5c28ada94d78c9bc8041e271c355800ba36dbab98ad95d57b6bc25993621",
+      "bytes": 6882,
+      "sha256": "3f7d5c28ada94d78c9bc8041e271c355800ba36dbab98ad95d57b6bc25993621"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.hi.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.hi.min.js",
+      "sourceBytes": 3383,
+      "sourceSha256": "631fff52e3623f2dfba35af076c6b8b5a450eeffe30a5cfac7458dab77cbe0a6",
+      "bytes": 3383,
+      "sha256": "631fff52e3623f2dfba35af076c6b8b5a450eeffe30a5cfac7458dab77cbe0a6"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.hu.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.hu.min.js",
+      "sourceBytes": 9437,
+      "sourceSha256": "876c969bbf4a2b84738f4e0a14922ee331cb7c2193a621f65db7f836fdd33a38",
+      "bytes": 9437,
+      "sha256": "876c969bbf4a2b84738f4e0a14922ee331cb7c2193a621f65db7f836fdd33a38"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.hy.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.hy.min.js",
+      "sourceBytes": 1264,
+      "sourceSha256": "0efbcb902bdb7ec0dddffa5e2ba347b74c49ffc5f43fd73ffed83528eba12e95",
+      "bytes": 1264,
+      "sha256": "0efbcb902bdb7ec0dddffa5e2ba347b74c49ffc5f43fd73ffed83528eba12e95"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.it.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.it.min.js",
+      "sourceBytes": 11232,
+      "sourceSha256": "00a5073df2e922e5fded1c5a4d4011aec02472ab9d9182a7c6508d60b625c453",
+      "bytes": 11232,
+      "sha256": "00a5073df2e922e5fded1c5a4d4011aec02472ab9d9182a7c6508d60b625c453"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.ja.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.ja.min.js",
+      "sourceBytes": 2313,
+      "sourceSha256": "c4fded308f633681a6ed53b6c10d8ca5916fdfd50f6b82ec914d725be0cb8bd6",
+      "bytes": 2313,
+      "sha256": "c4fded308f633681a6ed53b6c10d8ca5916fdfd50f6b82ec914d725be0cb8bd6"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.jp.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.jp.min.js",
+      "sourceBytes": 36,
+      "sourceSha256": "04114edc36dc114edce5afbb3c7f795f45c77d8673c1edcdca5675ddab5d5199",
+      "bytes": 36,
+      "sha256": "04114edc36dc114edce5afbb3c7f795f45c77d8673c1edcdca5675ddab5d5199"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.kn.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.kn.min.js",
+      "sourceBytes": 3494,
+      "sourceSha256": "a064d0d7438334957a442b626140fb72f4ede8ebe17eb5c4e25682d87c88bbf8",
+      "bytes": 3494,
+      "sha256": "a064d0d7438334957a442b626140fb72f4ede8ebe17eb5c4e25682d87c88bbf8"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.ko.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.ko.min.js",
+      "sourceBytes": 7972,
+      "sourceSha256": "73d1bdb1de4aef6c5920f516924c5ab1c440db50a6f5c6126bd0fb7cf5d37664",
+      "bytes": 7972,
+      "sha256": "73d1bdb1de4aef6c5920f516924c5ab1c440db50a6f5c6126bd0fb7cf5d37664"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.multi.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.multi.min.js",
+      "sourceBytes": 817,
+      "sourceSha256": "9761f475ae79f36420ff714df9950efb264effcf9230efd55b511a0de899e979",
+      "bytes": 817,
+      "sha256": "9761f475ae79f36420ff714df9950efb264effcf9230efd55b511a0de899e979"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.nl.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.nl.min.js",
+      "sourceBytes": 6026,
+      "sourceSha256": "399ef26d61ed2d5806f58ea723dfaca09f4a7c9b51e315bdd17482c8e3013a3e",
+      "bytes": 6026,
+      "sha256": "399ef26d61ed2d5806f58ea723dfaca09f4a7c9b51e315bdd17482c8e3013a3e"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.no.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.no.min.js",
+      "sourceBytes": 4754,
+      "sourceSha256": "57f9db9290f9ed36080755f53ee342a04f55a5954e4add915d1c301a37464573",
+      "bytes": 4754,
+      "sha256": "57f9db9290f9ed36080755f53ee342a04f55a5954e4add915d1c301a37464573"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.pt.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.pt.min.js",
+      "sourceBytes": 10171,
+      "sourceSha256": "3a25d2abaa23063cf13fc56c19ae4cc5050cb6215115e9d08f4a6f4b78780067",
+      "bytes": 10171,
+      "sha256": "3a25d2abaa23063cf13fc56c19ae4cc5050cb6215115e9d08f4a6f4b78780067"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.ro.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.ro.min.js",
+      "sourceBytes": 10958,
+      "sourceSha256": "cfa26a8ea4293d81e8547ba2321d703a0fe9881f0721fca5f33a3f80bf156ee9",
+      "bytes": 10958,
+      "sha256": "cfa26a8ea4293d81e8547ba2321d703a0fe9881f0721fca5f33a3f80bf156ee9"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.ru.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.ru.min.js",
+      "sourceBytes": 10331,
+      "sourceSha256": "50ef3c0fab4a3f2d260e8973c63363aa0dcf02b559ea9d11d5f02b6197585c17",
+      "bytes": 10331,
+      "sha256": "50ef3c0fab4a3f2d260e8973c63363aa0dcf02b559ea9d11d5f02b6197585c17"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.sa.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.sa.min.js",
+      "sourceBytes": 4901,
+      "sourceSha256": "41c558a4355c3eae8f0a27ae870712738f14b0bd88038042ac8ab8b411e5817f",
+      "bytes": 4901,
+      "sha256": "41c558a4355c3eae8f0a27ae870712738f14b0bd88038042ac8ab8b411e5817f"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.stemmer.support.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.stemmer.support.min.js",
+      "sourceBytes": 3647,
+      "sourceSha256": "2e7213605846a18014ec750910cb18a8a4c60bb23200103b3fad9ef27b10c705",
+      "bytes": 3647,
+      "sha256": "2e7213605846a18014ec750910cb18a8a4c60bb23200103b3fad9ef27b10c705"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.sv.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.sv.min.js",
+      "sourceBytes": 4523,
+      "sourceSha256": "942b165bcc8218e3246fc4735af9b1c2f66514366d0000be051bf1bb896d413e",
+      "bytes": 4523,
+      "sha256": "942b165bcc8218e3246fc4735af9b1c2f66514366d0000be051bf1bb896d413e"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.ta.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.ta.min.js",
+      "sourceBytes": 2406,
+      "sourceSha256": "17a32dc49c27c9d27945625a7e8d066d42f64ea1ce5a5b34de427723fbf9ae2a",
+      "bytes": 2406,
+      "sha256": "17a32dc49c27c9d27945625a7e8d066d42f64ea1ce5a5b34de427723fbf9ae2a"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.te.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.te.min.js",
+      "sourceBytes": 2330,
+      "sourceSha256": "079c8fcf028aeef388e98ec8607c8ea50ba9660c46797c8a119d05f8f8205838",
+      "bytes": 2330,
+      "sha256": "079c8fcf028aeef388e98ec8607c8ea50ba9660c46797c8a119d05f8f8205838"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.th.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.th.min.js",
+      "sourceBytes": 1031,
+      "sourceSha256": "348461266843e316b26820004a96d3fd87a1579829d244ce510c17293eef0439",
+      "bytes": 1031,
+      "sha256": "348461266843e316b26820004a96d3fd87a1579829d244ce510c17293eef0439"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.tr.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.tr.min.js",
+      "sourceBytes": 15009,
+      "sourceSha256": "e8bf57b1033b8bd92ea04a94c533015aa1a7f0a8d6830194b974e94e1e4aca3c",
+      "bytes": 15009,
+      "sha256": "e8bf57b1033b8bd92ea04a94c533015aa1a7f0a8d6830194b974e94e1e4aca3c"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.vi.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.vi.min.js",
+      "sourceBytes": 784,
+      "sourceSha256": "2e39c3fd7305f6e66fc0424796a7696cb8e36dc0f5c3a83ea1bc44dfe3fecb56",
+      "bytes": 784,
+      "sha256": "2e39c3fd7305f6e66fc0424796a7696cb8e36dc0f5c3a83ea1bc44dfe3fecb56"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/min/lunr.zh.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/min/lunr.zh.min.js",
+      "sourceBytes": 2158,
+      "sourceSha256": "d8c5b72c36ec9c3197602546e9ba5b57ada3f725d564a551bf16eabafb548e88",
+      "bytes": 2158,
+      "sha256": "d8c5b72c36ec9c3197602546e9ba5b57ada3f725d564a551bf16eabafb548e88"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/tinyseg.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/tinyseg.js",
+      "sourceBytes": 22878,
+      "sourceSha256": "1b044c239610ef65fceff6039567442bb1692d413f5ee8686fee81b1a3067761",
+      "bytes": 22878,
+      "sha256": "1b044c239610ef65fceff6039567442bb1692d413f5ee8686fee81b1a3067761"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/lunr/wordcut.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/lunr/wordcut.js",
+      "sourceBytes": 677463,
+      "sourceSha256": "3d38fde68af348915288e45eeb338af8256c8611fa2cfef307e6ab95808b3567",
+      "bytes": 677460,
+      "sha256": "7efe5df4b7d9a86a01d97e47f705b7ffbf53111dcbf8013562b60d9a26a25ac6"
+    },
+    {
+      "sourceFile": "site/assets/javascripts/workers/search.d50fe291.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/javascripts/workers/search.d50fe291.min.js",
+      "sourceBytes": 39563,
+      "sourceSha256": "b9331dccc969af23c2c183db39e51f86d009a65e7ffd197436c34cd8ce56d54b",
+      "bytes": 39563,
+      "sha256": "b9331dccc969af23c2c183db39e51f86d009a65e7ffd197436c34cd8ce56d54b"
+    },
+    {
+      "sourceFile": "site/assets/stylesheets/main.342714a4.min.css",
+      "contentPath": "/library/system-design-masterclass/assets/stylesheets/main.342714a4.min.css",
+      "sourceBytes": 131847,
+      "sourceSha256": "342714a4b4477ea88077064d9b13618944ae841b98ff5f2e7bd952fcb3fbb9f1",
+      "bytes": 131847,
+      "sha256": "342714a4b4477ea88077064d9b13618944ae841b98ff5f2e7bd952fcb3fbb9f1"
+    },
+    {
+      "sourceFile": "site/assets/stylesheets/palette.06af60db.min.css",
+      "contentPath": "/library/system-design-masterclass/assets/stylesheets/palette.06af60db.min.css",
+      "sourceBytes": 12522,
+      "sourceSha256": "06af60dbce60d47a167fcab982f7cfa8d2d654a2f2a13d68e5a5fe5ae66df6c0",
+      "bytes": 12522,
+      "sha256": "06af60dbce60d47a167fcab982f7cfa8d2d654a2f2a13d68e5a5fe5ae66df6c0"
+    },
+    {
+      "sourceFile": "site/assets/vendor/MERMAID-LICENSE",
+      "contentPath": "/library/system-design-masterclass/assets/vendor/MERMAID-LICENSE",
+      "sourceBytes": 1089,
+      "sourceSha256": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80",
+      "bytes": 1089,
+      "sha256": "ec9fb67dcb25eccc416ed56e1aab819222c805a2a4bfe4cb19e7556bf2ffde80"
+    },
+    {
+      "sourceFile": "site/assets/vendor/mermaid.min.js",
+      "contentPath": "/library/system-design-masterclass/assets/vendor/mermaid.min.js",
+      "sourceBytes": 3572661,
+      "sourceSha256": "581ed7d74bd9048d0e3a91363927d72ef22942d7722546b27f7cc29e35390eb8",
+      "bytes": 3572625,
+      "sha256": "9c5ee32b7bebe855a36cc37f0753d20a98252d0389e98682d48add486c5727c8"
+    },
+    {
+      "sourceFile": "site/build-manifest.json",
+      "contentPath": "/library/system-design-masterclass/build-manifest.json",
+      "sourceBytes": 41380,
+      "sourceSha256": "1679ce24cd8f930562f20566eb62808acd001ca7219607ea88a044ed3a332830",
+      "bytes": 41380,
+      "sha256": "1679ce24cd8f930562f20566eb62808acd001ca7219607ea88a044ed3a332830"
+    },
+    {
+      "sourceFile": "site/case-studies/ai/chatgpt/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/ai/chatgpt/index.html",
+      "sourceBytes": 206873,
+      "sourceSha256": "207f9f25807ee28d0334c1f2388c84ef64a9e855bbc6f90176b8fe771e71ef7a",
+      "bytes": 206881,
+      "sha256": "f9fedbfd77240e8328064569c83968231a8546b11d91b44d7e6daca2bbe94f11"
+    },
+    {
+      "sourceFile": "site/case-studies/calendar-service/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/calendar-service/index.html",
+      "sourceBytes": 196346,
+      "sourceSha256": "387801137cb9ddf7b98d363be6753409c92e13916cd887ddead2a2a9f5d6c010",
+      "bytes": 196354,
+      "sha256": "80b21e71d9f0b26c31abc2d7450a1ed814ec55afc64ec6a2509e297c78daedd4"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/ecommerce-checkout/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/ecommerce-checkout/index.html",
+      "sourceBytes": 195809,
+      "sourceSha256": "ab0a824f7018a459778c16d3f9b109670b20bdd349e62915a2b7f772fda869d5",
+      "bytes": 195817,
+      "sha256": "ee1ff9eb281cff3b00240b10f21177ce46469331095a6c17ab56d85e4d8bd929"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/flash-sale/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/flash-sale/index.html",
+      "sourceBytes": 323340,
+      "sourceSha256": "720e0d42da70206980075afe66ad3151cabf78109cb6a644ce85ae6778d83afc",
+      "bytes": 323348,
+      "sha256": "b67d754579033e2dcca27590dec8621e85b4d9c6a66e503e32a90d940c6cffc8"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/food-delivery/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/food-delivery/index.html",
+      "sourceBytes": 192291,
+      "sourceSha256": "183b0d992e1f90a1bd7538fb4c8977abefd2fdb7f73a933d08206518e485355c",
+      "bytes": 192299,
+      "sha256": "d5508c7f88281dd7755d82ff08a0c0d7762c0a34f2ed13a6a3e176695ac67125"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/hotel-booking/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/hotel-booking/index.html",
+      "sourceBytes": 193280,
+      "sourceSha256": "4eef644863a4b3d993d3b8d523f7f406701a4907090c7c44caad456ea6d6d8ef",
+      "bytes": 193288,
+      "sha256": "c8e94449a1d1ee1e7cd5b2cc145e6f4f5e4fffc14e4a651af094fd893fdae8ae"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/inventory-management/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/inventory-management/index.html",
+      "sourceBytes": 193586,
+      "sourceSha256": "eade269f8ab2f6a47c07dce410581e22ab6288db397651e9532f67926f88cbf1",
+      "bytes": 193594,
+      "sha256": "0a9a4ac6405adc7040268e46ea415ac089fa0bfba5ed725b37b534f798fb76ea"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/online-auction/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/online-auction/index.html",
+      "sourceBytes": 197498,
+      "sourceSha256": "01e47b7f552e68f20fd5dfeb85ef619312494f774eca0e48395ff3782d63dc6a",
+      "bytes": 197506,
+      "sha256": "d278ba93462097582a806dd20cf374a57789cac8430cfefb39c6324289bbf493"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/payment-system/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/payment-system/index.html",
+      "sourceBytes": 208922,
+      "sourceSha256": "47edc51e9a87ed09d43623e5930878c2576bce6196fbbb65911e51220d6f01d7",
+      "bytes": 208930,
+      "sha256": "4a29616c141494474f800792335c6a1c2dcc39e606befb9ed473a7d0c94cbac7"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/ride-hailing/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/ride-hailing/index.html",
+      "sourceBytes": 191715,
+      "sourceSha256": "6f54cdd7d231b490f368a6cb305a4e1763e236313687ee1f2ab62bf948a41df8",
+      "bytes": 191723,
+      "sha256": "bd15f00b343a69cea64cb925a918d78d55516643a350980ca7511e83d883cdd5"
+    },
+    {
+      "sourceFile": "site/case-studies/commerce/ticketmaster/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/commerce/ticketmaster/index.html",
+      "sourceBytes": 194268,
+      "sourceSha256": "4db0f612823698e3391b851cb6417c8551ac3544191b7442c9b12cdcc43c9006",
+      "bytes": 194276,
+      "sha256": "a00de6da9defbd6f6314afe10316b4e06e658664ba743029c75220d807865c74"
+    },
+    {
+      "sourceFile": "site/case-studies/content/autocomplete/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/autocomplete/index.html",
+      "sourceBytes": 187719,
+      "sourceSha256": "d9d58ebf8a6174af90eb20078d05deda2d7a5aa97dfa1f2a1268bd46a6096348",
+      "bytes": 187727,
+      "sha256": "167b0f380d93c205590f73796aa5da45109dd18d0751972d35264692df42d097"
+    },
+    {
+      "sourceFile": "site/case-studies/content/code-hosting-platform/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/code-hosting-platform/index.html",
+      "sourceBytes": 196805,
+      "sourceSha256": "c521ec2e3928191ae2d898ad2d789633856e1cca07422a718af6cf8872b18a43",
+      "bytes": 196813,
+      "sha256": "8aaebd6274bfdcee0e62e6132a65122676e8a9897a399e31086904ee7035003f"
+    },
+    {
+      "sourceFile": "site/case-studies/content/dropbox/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/dropbox/index.html",
+      "sourceBytes": 183848,
+      "sourceSha256": "cf9a128862b3cfbb7b89a3c70012a806a2263966ee9989e168db7b8394db1dff",
+      "bytes": 183856,
+      "sha256": "1335b1ae07f4ffe4c7ac90eebf87ae6f2805fb251cf64e969b2e46c9c70df707"
+    },
+    {
+      "sourceFile": "site/case-studies/content/google-news/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/google-news/index.html",
+      "sourceBytes": 309284,
+      "sourceSha256": "03bc40dc46b9885b83f3c36cb13b84a7b2bc12c6e4fcc693b723bd6d83c8dcbb",
+      "bytes": 309292,
+      "sha256": "de264eebb7b887cb6996ef0e532cc1b1ddf9e67b08b8ebd685c3dae3c15ba66f"
+    },
+    {
+      "sourceFile": "site/case-studies/content/maps-and-navigation/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/maps-and-navigation/index.html",
+      "sourceBytes": 197595,
+      "sourceSha256": "2cecc9992517c4f9e55de42ab9a18f08ef000150bf83cd3ea498f01f0513074f",
+      "bytes": 197603,
+      "sha256": "47c071943e11aab8fee8d1689f1593df99356ec8ac47e8311a6f299e499cca7c"
+    },
+    {
+      "sourceFile": "site/case-studies/content/netflix/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/netflix/index.html",
+      "sourceBytes": 195952,
+      "sourceSha256": "ac3aa209bc7862b60aef9283654e4f46debdc12fff1838c669d1247a977f04d9",
+      "bytes": 195960,
+      "sha256": "d7ab2fce25a74de33b30563ebe4a1c739ccbf7a93f8dc50528df0d1975a39241"
+    },
+    {
+      "sourceFile": "site/case-studies/content/pastebin/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/pastebin/index.html",
+      "sourceBytes": 190060,
+      "sourceSha256": "e12597eabf847a4a6810c21b2e60be62dd0b79da9cca15fceee25e5ded43fc02",
+      "bytes": 190068,
+      "sha256": "3ef80322c77157c41fff9b0c7a03da8b3196b40166a43eb8db66e855c9f65920"
+    },
+    {
+      "sourceFile": "site/case-studies/content/price-tracker/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/price-tracker/index.html",
+      "sourceBytes": 200520,
+      "sourceSha256": "fe513fc604d2ba5320eab281d8cc25ddc19b3720c34ddf4e57e645989bbebc08",
+      "bytes": 200528,
+      "sha256": "eaea9802cb38d0a1f5d0ef8308de6d8bfcaad1356a6e544d00ffe3854754a4cb"
+    },
+    {
+      "sourceFile": "site/case-studies/content/url-shortener/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/url-shortener/index.html",
+      "sourceBytes": 188743,
+      "sourceSha256": "2587ecc9ff72b1d1a72ecef038934ade57f613c2727c18336df4cee54f34feaf",
+      "bytes": 188751,
+      "sha256": "091c03262a68a38a5b3c53b8ebebc7d38aba1f82aa89caa0853c4774ed93bb32"
+    },
+    {
+      "sourceFile": "site/case-studies/content/web-crawler/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/web-crawler/index.html",
+      "sourceBytes": 187182,
+      "sourceSha256": "b3bdca711501be235c641915f510709f3a9127f1f27e3a28ebd690f1a216d74f",
+      "bytes": 187190,
+      "sha256": "60ed3819f87a9a53bd9b5e2a9d5619376fa6a7244778d7a6ee055a97a70d66a5"
+    },
+    {
+      "sourceFile": "site/case-studies/content/web-search-engine/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/web-search-engine/index.html",
+      "sourceBytes": 187612,
+      "sourceSha256": "4e556a85909cac7a74cd429da2a1cfcb16b447a97bcb8bd6ec1d922816a9a279",
+      "bytes": 187620,
+      "sha256": "f3a77dca423e488878029604fb567d709134d597649148adfb42c4240d2042ff"
+    },
+    {
+      "sourceFile": "site/case-studies/content/youtube/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/content/youtube/index.html",
+      "sourceBytes": 195294,
+      "sourceSha256": "b4ada928505a486dcbafecab70eeb05b6499fdb57f0faf8bb9e4d93198d52081",
+      "bytes": 195302,
+      "sha256": "b911407a7d3d5a07c1e1b8625e9748448d80039e7d1cb63cbe1ffc0b8900ed82"
+    },
+    {
+      "sourceFile": "site/case-studies/data/ad-click-aggregator/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/ad-click-aggregator/index.html",
+      "sourceBytes": 194523,
+      "sourceSha256": "7b5699f4cb73308102ae71cdfcf15c9335ff2cab27f6f240f0192dd6e9963d8a",
+      "bytes": 194531,
+      "sha256": "6e354b2db33a52a3cef81008fd1289bfca7c563991830166d884a9991049dae9"
+    },
+    {
+      "sourceFile": "site/case-studies/data/ad-serving-platform/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/ad-serving-platform/index.html",
+      "sourceBytes": 191842,
+      "sourceSha256": "ad8713ba31c48c441b1ebb332ebe59a4a2286535dc7dc81d0c15818b1e6f0ffc",
+      "bytes": 191850,
+      "sha256": "ad61e5da8e0b925c0e51561ec1248fff5291f0cec55ca1550ebf366d084a8856"
+    },
+    {
+      "sourceFile": "site/case-studies/data/change-data-capture/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/change-data-capture/index.html",
+      "sourceBytes": 198992,
+      "sourceSha256": "ae878f3fdbc66e25176c7227ecd6c6e0d0b758bb0e823a5c7764fc3db0445830",
+      "bytes": 199000,
+      "sha256": "4f5b6f648ccc8a77c7c5fff7a6f647e42fb07b891a417cef005dae575ed8bd3d"
+    },
+    {
+      "sourceFile": "site/case-studies/data/data-lakehouse/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/data-lakehouse/index.html",
+      "sourceBytes": 197777,
+      "sourceSha256": "272fa7ff2417cd2b0c1784c362208aea432cb1570bfa903035a5fe92bf769d6e",
+      "bytes": 197785,
+      "sha256": "0df5cce0322525e081ce151b103280adf45747ee1fdbfb1805d921c14ea1b8a3"
+    },
+    {
+      "sourceFile": "site/case-studies/data/digital-wallet/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/digital-wallet/index.html",
+      "sourceBytes": 187557,
+      "sourceSha256": "d7b76bebaf87feda31509f35a03cc061a68768b3d8a42b741501e6d5ecc785ca",
+      "bytes": 187565,
+      "sha256": "f13baa16fa7b752707050cc4c8aca2bdb214249f0e71dbba42bc0a2897c14248"
+    },
+    {
+      "sourceFile": "site/case-studies/data/double-entry-ledger/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/double-entry-ledger/index.html",
+      "sourceBytes": 191655,
+      "sourceSha256": "ecbcb38749d8d25cc9ba119678e265616a19d795ce6fb518cb76a11a6fb8133e",
+      "bytes": 191663,
+      "sha256": "ae66024bd1a0efe8b78c53412a871fc86f2900f4e585cbbcac0ceaa8c5e5af1c"
+    },
+    {
+      "sourceFile": "site/case-studies/data/fraud-detection/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/fraud-detection/index.html",
+      "sourceBytes": 192962,
+      "sourceSha256": "4f97977987f73a3039d37205e1a3439fc1ad5e48a78c684f071443a71c9c0b5c",
+      "bytes": 192970,
+      "sha256": "90c9a3e97f3a7496b5ee28e8f5037ea7d63c6b6dc3cbb461520fa9ef00e2f624"
+    },
+    {
+      "sourceFile": "site/case-studies/data/recommendation-system/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/recommendation-system/index.html",
+      "sourceBytes": 205681,
+      "sourceSha256": "b59e41a6c303b7377872a04ebf5301d7619fd513216771c44b4ae9c8cd505cbe",
+      "bytes": 205689,
+      "sha256": "5403bf97dcd16f472eb16b81b9cf8309536d79ef9256432dd7fd5e2e86da86be"
+    },
+    {
+      "sourceFile": "site/case-studies/data/stock-brokerage/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/stock-brokerage/index.html",
+      "sourceBytes": 200500,
+      "sourceSha256": "8e11cc32253e67080ea6843e725d07fd11ef4df83c13a35b6662a7aa7579e792",
+      "bytes": 200508,
+      "sha256": "42d75a9416012490209a4a496c8bb439e9f0a9fe3eba5b8526472490bd228834"
+    },
+    {
+      "sourceFile": "site/case-studies/data/top-k-trending/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/data/top-k-trending/index.html",
+      "sourceBytes": 192609,
+      "sourceSha256": "5810fd53f52524c45cce089ac2961f130f602d43b34412dd5fa95bdbdf05891a",
+      "bytes": 192617,
+      "sha256": "b37f2d6ee4071c6d9d61d7fb67e6e0c90445b386cec5187e604e84fd93f1327a"
+    },
+    {
+      "sourceFile": "site/case-studies/discovery/yelp/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/discovery/yelp/index.html",
+      "sourceBytes": 292936,
+      "sourceSha256": "e8e4c430c51bc19c689bbdb8bb10c812753e1ffba0f3cc3d0e4a68c8bb61119e",
+      "bytes": 292944,
+      "sha256": "917de98d218d94c5c29c0ff09e8c2c466ed8aa2aacc8f40bf43686bd6925522f"
+    },
+    {
+      "sourceFile": "site/case-studies/gaming/online-chess/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/gaming/online-chess/index.html",
+      "sourceBytes": 204170,
+      "sourceSha256": "2ed4573c5cbfa4ac36f973809ebf48bb934ed9494f2158200e9399d40eb38318",
+      "bytes": 204178,
+      "sha256": "3d1125592467e2612af7c156063fde480a44fbdd09ca74edafb234ada7051cef"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/api-gateway/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/api-gateway/index.html",
+      "sourceBytes": 190290,
+      "sourceSha256": "8e630a7254908a45d25925e11aabd979d8472f1733d1ffd6a64616f3391ead29",
+      "bytes": 190298,
+      "sha256": "555ecc670e27fb2e1790301fc3b3057678939d14e1508fb1e61642e8faaf317e"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/code-execution-platform/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/code-execution-platform/index.html",
+      "sourceBytes": 191847,
+      "sourceSha256": "ff0967b7ebbd3fcace690c669a363f7c83f776e8ad11bb6593e3b9e5c0fa35ca",
+      "bytes": 191855,
+      "sha256": "a10f45338c9431d6794096d943b8974df78272a901865a54eba7a6fb4304edf9"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/content-delivery-network/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/content-delivery-network/index.html",
+      "sourceBytes": 188538,
+      "sourceSha256": "ae953db487bf0fc8138369bd24ddc724e28ea358567b64ad968027b650b0bef2",
+      "bytes": 188546,
+      "sha256": "c7950659e025c62ad06d1c32a189e8146930ef2e7c3dfa91def5b32f9489d3b0"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/distributed-cache/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/distributed-cache/index.html",
+      "sourceBytes": 196981,
+      "sourceSha256": "87254d1b5a00fbbae57d752bac2efe45c5a994b4e9d8418e104acd36ffbd8f6e",
+      "bytes": 196989,
+      "sha256": "683f3789a6beec78974f1e83c71086b9b68286c30aa79ca0d8459b2c438b9cf9"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/distributed-key-value-store/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/distributed-key-value-store/index.html",
+      "sourceBytes": 188143,
+      "sourceSha256": "617a419777253ba221aedc3c67b5c04621d8dc763f466f01b78f6bcd8db082ee",
+      "bytes": 188151,
+      "sha256": "8e6645fc03cf87121b4e23b06f32819e264ce7eb7c902458e2eb6062e6696d31"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/distributed-lock-service/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/distributed-lock-service/index.html",
+      "sourceBytes": 194180,
+      "sourceSha256": "56421aa47b7233ac27ab72e1853ffbcb6ef83db1876d16ce9dde3d4e14ed48de",
+      "bytes": 194188,
+      "sha256": "600c3cf14b518becc0bcfd3acbb4a641f928c81c3a2f4250cb35683aeea6b027"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/distributed-rate-limiter/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/distributed-rate-limiter/index.html",
+      "sourceBytes": 189477,
+      "sourceSha256": "140db90e87ce465fd0fbca4bab71fb44ee581fe5de2dccb780f8e89a1bff8015",
+      "bytes": 189485,
+      "sha256": "575f9ae48712e1fdb2ed5ff956de6f66f118ab6a06a4a9c49f8e159e1ddc8f0d"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/dns/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/dns/index.html",
+      "sourceBytes": 189871,
+      "sourceSha256": "ac1c721e95ebc81720b65883aa472a35acd9dbbcf8911c54e5c2d1557a29cb10",
+      "bytes": 189879,
+      "sha256": "98ea472485849bf9a78263d432a236ca3e940210237aa955c7c330efdcbc9d6e"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/feature-flag-service/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/feature-flag-service/index.html",
+      "sourceBytes": 189541,
+      "sourceSha256": "28978cf0117467999a42a3393d6e7029ab178a9f9f086b59f8625e280ecd5f72",
+      "bytes": 189549,
+      "sha256": "1d9106a0a0ab12198772d6bdd2b50b95f6996ae0dbf74b997d3dadeeae8d37d5"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/job-scheduler/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/job-scheduler/index.html",
+      "sourceBytes": 190159,
+      "sourceSha256": "41d4aa12f7b7e9ec7ea3e96007bad0b7de853aa59c3d9d8962e686330c851007",
+      "bytes": 190167,
+      "sha256": "c85fdfb58269cafa5975204a836b95d9d29dca737d81cac1cda03a02cec8a284"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/load-balancer/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/load-balancer/index.html",
+      "sourceBytes": 187646,
+      "sourceSha256": "c98e09f7e96ebd2e87f141366d162acebc22638ffeea6ab4ac7a6a3e50ea2489",
+      "bytes": 187654,
+      "sha256": "b9f6b9556849e42923e59a7a4ba8f779b71e0f177e8fb098c74000c251447e78"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/logging-platform/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/logging-platform/index.html",
+      "sourceBytes": 189407,
+      "sourceSha256": "55bda5d8c5afb01a438c2c361f84d8a2f3c03585b28884651979e45c102150da",
+      "bytes": 189415,
+      "sha256": "fd903419f2147fd53efb170f6e6e9f177b987b4ed0051510e04e61d83395146a"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/metrics-monitoring/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/metrics-monitoring/index.html",
+      "sourceBytes": 188910,
+      "sourceSha256": "64d1477a648569f591759f5868c8e425131a828bf04d566d6f7077a831d4929c",
+      "bytes": 188918,
+      "sha256": "26d678bd43b5135f0f4b71e37ea6709049e4c550d8420c414597410ab05ad879"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/object-storage/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/object-storage/index.html",
+      "sourceBytes": 189914,
+      "sourceSha256": "bb489b167a1a7da62bc41f3bb59fc0a9b32c92ae74b0df15f0d22415884af06e",
+      "bytes": 189922,
+      "sha256": "6bc2983165d0a2c73134d5578540759523db6b51caeccf0a9a12c60c887db309"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/pub-sub-system/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/pub-sub-system/index.html",
+      "sourceBytes": 190864,
+      "sourceSha256": "2402f8e1b9c1a503c5f5fdfdbe4b2df045d9def73ab14fbf6b5b3a52312fba2d",
+      "bytes": 190872,
+      "sha256": "9b98e2ccebc1fdcca0ec6582b918266e2c962867488cdd4f27e67951855f9780"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/secrets-management/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/secrets-management/index.html",
+      "sourceBytes": 192866,
+      "sourceSha256": "9409a524613289dac68d8369a30fd32debd9476a9d248cbf52e84d67678c1ed2",
+      "bytes": 192874,
+      "sha256": "e9eaf113ee4fae99af57878022fb99dd8f8c89556ea922b374f5f8dc42291ae1"
+    },
+    {
+      "sourceFile": "site/case-studies/infrastructure/service-discovery/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/infrastructure/service-discovery/index.html",
+      "sourceBytes": 192222,
+      "sourceSha256": "53482108fc7815776c1024093772a4991e1e121aa18a9e06bdf29d49b39ea4cc",
+      "bytes": 192230,
+      "sha256": "6433470c3428090a33396ae1a4e9db896f3cf4a2d57cf6029e600b725a3e15d9"
+    },
+    {
+      "sourceFile": "site/case-studies/review-checks.mjs",
+      "contentPath": "/library/system-design-masterclass/case-studies/review-checks.mjs",
+      "sourceBytes": 4627,
+      "sourceSha256": "47b4d643b026039a62ca766569b116f9361fa816262c70a02931db1c6f71923b",
+      "bytes": 4627,
+      "sha256": "47b4d643b026039a62ca766569b116f9361fa816262c70a02931db1c6f71923b"
+    },
+    {
+      "sourceFile": "site/case-studies/social/collaborative-document/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/collaborative-document/index.html",
+      "sourceBytes": 205838,
+      "sourceSha256": "f16a8fd597df418c0c8014e266f7c3a3feb682733cbcad10f5716e31ae17785c",
+      "bytes": 205846,
+      "sha256": "da4828e3ab59276310e2c348eb4d1e902b2b450a14741ff03648c646e499802b"
+    },
+    {
+      "sourceFile": "site/case-studies/social/email-service/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/email-service/index.html",
+      "sourceBytes": 188722,
+      "sourceSha256": "daa85956aff9144a5708aeb5e22760b5261c13005cccf318efcf7f63607f5ac5",
+      "bytes": 188730,
+      "sha256": "147f87e0148ad955fbbcb41976440207db283e699bc44367a30313630845028e"
+    },
+    {
+      "sourceFile": "site/case-studies/social/facebook-news-feed/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/facebook-news-feed/index.html",
+      "sourceBytes": 199452,
+      "sourceSha256": "1e4041445a211646535cdf51fb64e7dc264832c495a8e95f70446406cfe69005",
+      "bytes": 199460,
+      "sha256": "94c435cf707f7c2a46945a0c7a1e70e505a4049227d6fe87c7c74ed049eb41f7"
+    },
+    {
+      "sourceFile": "site/case-studies/social/fitness-tracking/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/fitness-tracking/index.html",
+      "sourceBytes": 245232,
+      "sourceSha256": "97b11f79b94515ed3cdf18bd76cfd282dbb7abc026e49a9582b56f90dabaec25",
+      "bytes": 245240,
+      "sha256": "ade5d3d674b04bd766d8d22a0900a305c8665b8cf992c796f361473eb3d673e6"
+    },
+    {
+      "sourceFile": "site/case-studies/social/instagram/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/instagram/index.html",
+      "sourceBytes": 199241,
+      "sourceSha256": "56630a31c038ac3de9a085b3054b33b96e3e4e4ca79b2e0a1a93bc644acce5be",
+      "bytes": 199249,
+      "sha256": "bd467edb9dbb5bf2f0b4a638e7c7937001934994cfbdf0735f93d1388d267840"
+    },
+    {
+      "sourceFile": "site/case-studies/social/live-comments/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/live-comments/index.html",
+      "sourceBytes": 183912,
+      "sourceSha256": "d57793ce0d2009728d664767d265adf055c255b1bc301e0edf7ecffd5a313352",
+      "bytes": 183920,
+      "sha256": "aca3ca55e74a6a2cf5042d358bd119c4aaea3912f2f66f3cc9a5f1300cba51f3"
+    },
+    {
+      "sourceFile": "site/case-studies/social/notification-system/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/notification-system/index.html",
+      "sourceBytes": 185047,
+      "sourceSha256": "c5128d8a02b7730a170a878100bb39f5adfe24d097012ccaef9c275f3c1bb716",
+      "bytes": 185055,
+      "sha256": "f9526528625de8746073d7634fe6c6f15bbd4a8fe7109b0d98a4c7bd17eaa051"
+    },
+    {
+      "sourceFile": "site/case-studies/social/reddit/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/reddit/index.html",
+      "sourceBytes": 196349,
+      "sourceSha256": "75297f712d12b23e8d572e53d981ccbd27675c8b0540d42e34331ca65679fd85",
+      "bytes": 196357,
+      "sha256": "bf4104b041da1c7b43319552411622fca19bcd6358ee96478cbe7f05ebead184"
+    },
+    {
+      "sourceFile": "site/case-studies/social/slack/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/slack/index.html",
+      "sourceBytes": 184930,
+      "sourceSha256": "cf7915386b28e89c852ffd3d317b186b8726bd15a41c35dc29a1c8de2f9af34d",
+      "bytes": 184938,
+      "sha256": "c1c549bc9c64807581c7ceb94ce0f2816548be31945bdfaa63014d2bfcc2142e"
+    },
+    {
+      "sourceFile": "site/case-studies/social/tinder/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/tinder/index.html",
+      "sourceBytes": 194583,
+      "sourceSha256": "7351b964d1f40e5ee149d887d0e30aa69d483b8d4af174a0d06d71a2d4f30877",
+      "bytes": 194591,
+      "sha256": "93b7115387e74fc88c260d4095c36300acd21803cda2bf312303bf2ca1f20a0f"
+    },
+    {
+      "sourceFile": "site/case-studies/social/twitter/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/twitter/index.html",
+      "sourceBytes": 187040,
+      "sourceSha256": "5a4613a9c56105a5fdc3949ec34f9e77358469ea99c7129f905db9308d818da2",
+      "bytes": 187048,
+      "sha256": "2810bacde1b9f965cb05d75c6ed3872f097f5cf8d2f372cf0ef6f50112ef7c0f"
+    },
+    {
+      "sourceFile": "site/case-studies/social/video-conferencing/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/video-conferencing/index.html",
+      "sourceBytes": 190778,
+      "sourceSha256": "7ada2b356dfde8fe120f785b82a71ff4e6f768bbd89468d0ce87524fed26b784",
+      "bytes": 190786,
+      "sha256": "30f236bde4ae8db66da56c77640b9f2cebc41d6a977859c89d7057e3eeb28002"
+    },
+    {
+      "sourceFile": "site/case-studies/social/whatsapp/index.html",
+      "contentPath": "/library/system-design-masterclass/case-studies/social/whatsapp/index.html",
+      "sourceBytes": 200077,
+      "sourceSha256": "7ccb6ff1f3f6cf36df0f8df7ca61a1f28a7cd42ddcc5651bf7bf7d87d57bdfa8",
+      "bytes": 200085,
+      "sha256": "e462d346d5fdd29852ecaf3b14874ce91b8b203205da28ede1ad759826fde188"
+    },
+    {
+      "sourceFile": "site/engineering/api-lifecycle/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/api-lifecycle/index.html",
+      "sourceBytes": 170174,
+      "sourceSha256": "77b72a5c5a67d6df6fa02bc2eef4dc242d3ab538c96bc581504319d121a9fe31",
+      "bytes": 170182,
+      "sha256": "fedd931de051b5195921b2ca48e3dc53504b0f30fe5a2e997d99b2723a5a6d8c"
+    },
+    {
+      "sourceFile": "site/engineering/architecture-decisions/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/architecture-decisions/index.html",
+      "sourceBytes": 170737,
+      "sourceSha256": "ccf82495fef67116908507888f83a6a13a1dba2db2358446d654496fa4bdca7e",
+      "bytes": 170745,
+      "sha256": "b02a2acf1d1e3d6ddf7585fc21cfee45094c75e800e0fcce91f98634a13d7936"
+    },
+    {
+      "sourceFile": "site/engineering/assessment/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/assessment/index.html",
+      "sourceBytes": 174160,
+      "sourceSha256": "23f0ad07277f96e6b4049a9b494c60e0e4b6484244760e2f7eb4056703fa5d61",
+      "bytes": 174168,
+      "sha256": "16a424d6496699eb1bb459817562dc2a4f2026677735fbfa7dfc12756082085b"
+    },
+    {
+      "sourceFile": "site/engineering/authorization-privacy/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/authorization-privacy/index.html",
+      "sourceBytes": 170231,
+      "sourceSha256": "00014aa5ee2f95a08e13864c251e90a7753ad1403314919020de2e6e7f97da79",
+      "bytes": 170239,
+      "sha256": "6b463561fa8bd05c3ef32ebaed0c63c35dd5367b3f4a872c465e95fe4438eb42"
+    },
+    {
+      "sourceFile": "site/engineering/brownfield-migrations/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/brownfield-migrations/index.html",
+      "sourceBytes": 171128,
+      "sourceSha256": "fc2afe68dd7034b006e51fe05a50e85b3c05b50763bb15ddf22a9eb2fa18202c",
+      "bytes": 171136,
+      "sha256": "aed0131353bf203b7eea8c8ce829248fd71085c36a006b23bdadd600a5c6e6fe"
+    },
+    {
+      "sourceFile": "site/engineering/capstone/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/capstone/index.html",
+      "sourceBytes": 178944,
+      "sourceSha256": "4a3671182a92f520e6f2a4be6e385ac67e41587f6b20f74e19bb4061687f0517",
+      "bytes": 178952,
+      "sha256": "6e2059396d38a4da16126748d32fcc4c4e893ccbf40be625ac437b22f379bd56"
+    },
+    {
+      "sourceFile": "site/engineering/concepts.json",
+      "contentPath": "/library/system-design-masterclass/engineering/concepts.json",
+      "sourceBytes": 16928,
+      "sourceSha256": "5e2f131b31bb7fc8e3bfd52ae21f21696e999ee2c434fc76ada539b26731af97",
+      "bytes": 16928,
+      "sha256": "5e2f131b31bb7fc8e3bfd52ae21f21696e999ee2c434fc76ada539b26731af97"
+    },
+    {
+      "sourceFile": "site/engineering/correctness-methods/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/correctness-methods/index.html",
+      "sourceBytes": 169932,
+      "sourceSha256": "a9761b93ae09ffe480e5c5f3aa2cac1016efbb6123a2e31571aa2717b7c4bfcc",
+      "bytes": 169940,
+      "sha256": "e1d1a8eb224313a4e1fb49572987daac287c0bd47957012ed5b646f573c8c504"
+    },
+    {
+      "sourceFile": "site/engineering/coverage/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/coverage/index.html",
+      "sourceBytes": 165388,
+      "sourceSha256": "ad9537344896703f03ea4ddf87225b569d5764f8b0f4050d216d8b0b20cc1c72",
+      "bytes": 165396,
+      "sha256": "4d03ef4c8b0d92b2492c043045f9cecd121be771263d7b8dd409dc4d85bb2d6a"
+    },
+    {
+      "sourceFile": "site/engineering/distributed-theory/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/distributed-theory/index.html",
+      "sourceBytes": 170736,
+      "sourceSha256": "d3599046013595566ed969c8a4ab58442ab5c7971e2cb68fb35566d22353b65d",
+      "bytes": 170744,
+      "sha256": "55bd75aab8ea80cc9d0750239a7d7b724d882abecce42f7af94b11c6887b80b6"
+    },
+    {
+      "sourceFile": "site/engineering/fixtures.py",
+      "contentPath": "/library/system-design-masterclass/engineering/fixtures.py",
+      "sourceBytes": 16776,
+      "sourceSha256": "91789bbe2479295a95a9c8027572880d986dd880f7493c69fa700fa14a70e35d",
+      "bytes": 16776,
+      "sha256": "91789bbe2479295a95a9c8027572880d986dd880f7493c69fa700fa14a70e35d"
+    },
+    {
+      "sourceFile": "site/engineering/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/index.html",
+      "sourceBytes": 163320,
+      "sourceSha256": "bc255c27b844efb5105863f1daa72ba6f5a2671b34bebff0733d1690312ace07",
+      "bytes": 163328,
+      "sha256": "157f3acf251f0a3cd957b0fcba4241a09d5132838d10d708a5bd380ffe7299d2"
+    },
+    {
+      "sourceFile": "site/engineering/labs/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/labs/index.html",
+      "sourceBytes": 177560,
+      "sourceSha256": "21a3e3a2f2415ffb6e6df21451a5d668c44525e9dd8ce7c9d2e0be1b501616c6",
+      "bytes": 177568,
+      "sha256": "5eafc6920d5df620a01ff82863e707f19e958055a183a6e4ddd72d1eacdb42fb"
+    },
+    {
+      "sourceFile": "site/engineering/machine-runtime/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/machine-runtime/index.html",
+      "sourceBytes": 171549,
+      "sourceSha256": "ff2145d277620efa975f6777e514df371e9fee2646a4152a08066f8350d23c73",
+      "bytes": 171557,
+      "sha256": "9dd49540c45249625bda22148f4237e7b60edaa44c6d673cba63d45b8ea0fde0"
+    },
+    {
+      "sourceFile": "site/engineering/performance-science/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/performance-science/index.html",
+      "sourceBytes": 170719,
+      "sourceSha256": "ebe121f6426b65dd48ee5cacbefed8f46bf8af17e50c84969e6c6ca198912577",
+      "bytes": 170727,
+      "sha256": "4be79ad9d20d34f0b26b5ab8555f648e8cc5032382f572f0846ffb5915561b9a"
+    },
+    {
+      "sourceFile": "site/engineering/service-operations/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/service-operations/index.html",
+      "sourceBytes": 169924,
+      "sourceSha256": "b955b9f0018399c58a1cf1e421eb09c32f88d551e1f8d979317334b8a4456a05",
+      "bytes": 169932,
+      "sha256": "7595fc687b928ec8e7f315f966dd2c0c1afedc235c96f65cb2cad2a7cb9f9537"
+    },
+    {
+      "sourceFile": "site/engineering/storage-internals/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/storage-internals/index.html",
+      "sourceBytes": 170543,
+      "sourceSha256": "79fbc077143631af313ca1adf0adc73ed6f8f3c344aee2d6242d55c123ec5500",
+      "bytes": 170551,
+      "sha256": "9820a16d34f381f59bf78cfa41fd57423c7504cd663d16e8d70d298eccfdb876"
+    },
+    {
+      "sourceFile": "site/engineering/temporal-modeling/index.html",
+      "contentPath": "/library/system-design-masterclass/engineering/temporal-modeling/index.html",
+      "sourceBytes": 169850,
+      "sourceSha256": "3f7ede028a125cdfdfdfd4c447ce39b0f84bf46cb54c5ca7c8a7ad2dc3fca11b",
+      "bytes": 169858,
+      "sha256": "80551094c321222c63bab78350dc485cdd2b183d3c71ca6d75fde2c25c5d7a43"
+    },
+    {
+      "sourceFile": "site/foundations/api-and-data-modeling/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/api-and-data-modeling/index.html",
+      "sourceBytes": 194480,
+      "sourceSha256": "67f2c23d4cb5b2c1a1efb07fbc458bf4dd6faf898b9b6cc7b5d79d9d3cada261",
+      "bytes": 194488,
+      "sha256": "daed57025474e79d8673a53735997b8fd2dfb87db6c645296755ff8158e55295"
+    },
+    {
+      "sourceFile": "site/foundations/caching/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/caching/index.html",
+      "sourceBytes": 184677,
+      "sourceSha256": "2cc05d023fd440d4351c4bc4c3dd40944cecb9436667b2eb667c68789c95fb86",
+      "bytes": 184685,
+      "sha256": "b99e939cbf7efafdba934f83915e9289fdb1eb14912d4f32bfdadaafcd60ce34"
+    },
+    {
+      "sourceFile": "site/foundations/consistency-and-cap/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/consistency-and-cap/index.html",
+      "sourceBytes": 196160,
+      "sourceSha256": "9a67eb06cb1a5e1c38e318f0cb935d3f80e4eb58b7826a79507c429961cba341",
+      "bytes": 196168,
+      "sha256": "de8f8ad4b2c814ee1cbf667e33781016efd1a0bd131ee2d7257952c28d5f3027"
+    },
+    {
+      "sourceFile": "site/foundations/cost-engineering/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/cost-engineering/index.html",
+      "sourceBytes": 194013,
+      "sourceSha256": "1d92bf8e256505c15649e1b4c14ae43320ca623e2d81fe805753e985e968368c",
+      "bytes": 194021,
+      "sha256": "617fd08c64262a7924d3ce92604fbb6e4b89b5917b4f5661ef6fee7d8ffec2ba"
+    },
+    {
+      "sourceFile": "site/foundations/database-indexing/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/database-indexing/index.html",
+      "sourceBytes": 200499,
+      "sourceSha256": "6ba7033602cbf814c9a19ef1b1a117ddda26c7232daaab8499edb031768e4a9d",
+      "bytes": 200507,
+      "sha256": "fcd1c81d745a0ae8efa7739d4eda276813f523d1040af04ec05c82191c9d3c08"
+    },
+    {
+      "sourceFile": "site/foundations/delivery-framework/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/delivery-framework/index.html",
+      "sourceBytes": 183466,
+      "sourceSha256": "83b8dac05aacdfbb84e567b3a2ddaeb30a4676f794552d6259dcc77a6d35b7bd",
+      "bytes": 183474,
+      "sha256": "1f8861923054c77bea9995d529d44412d3b7056c2e39fad722021498c33f8441"
+    },
+    {
+      "sourceFile": "site/foundations/distributed-transactions/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/distributed-transactions/index.html",
+      "sourceBytes": 198596,
+      "sourceSha256": "cc5b464faf93fcdeab24761efb482402f67285457ddb8503b85510717f7275e1",
+      "bytes": 198604,
+      "sha256": "3cfd7f3743aea22d144e70ff776bd421b5414399506ac9a091c03d635b10a1aa"
+    },
+    {
+      "sourceFile": "site/foundations/estimation/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/estimation/index.html",
+      "sourceBytes": 189426,
+      "sourceSha256": "461826a942098f81d325dea4f37d97f2a3b23930f87ef3ac909921e3bb2c2c45",
+      "bytes": 189434,
+      "sha256": "fd2756d8883814b479ef3bba699c6840f655f751a8fe949764b5731444b49a61"
+    },
+    {
+      "sourceFile": "site/foundations/messaging-and-streams/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/messaging-and-streams/index.html",
+      "sourceBytes": 188070,
+      "sourceSha256": "019209ed8be77f369525d3a625857842c2d9898c5b5734d51016228a05fe32e5",
+      "bytes": 188078,
+      "sha256": "923d5ca55d53478cb6ea12236e40e6f7700131d1161623402872ea4c77cb0c90"
+    },
+    {
+      "sourceFile": "site/foundations/multi-region/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/multi-region/index.html",
+      "sourceBytes": 185293,
+      "sourceSha256": "b69cd834967bd66185f0d45ebd5f04afd41b14f563efa5ad544d5c278b5ff2ff",
+      "bytes": 185301,
+      "sha256": "542dabae55a63db299c577e6c046483ecb61d8adc3061720be3461cb825284ea"
+    },
+    {
+      "sourceFile": "site/foundations/networking/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/networking/index.html",
+      "sourceBytes": 168678,
+      "sourceSha256": "1724438852e7513af4120b824435b82b757138b3ae34bd75a8c849bd4305bbaa",
+      "bytes": 168686,
+      "sha256": "d75e2b8ef4ceb0b6c6ee143d5293d4e4b5cc1b00d81645cb5aea73960f78b695"
+    },
+    {
+      "sourceFile": "site/foundations/non-relational-storage/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/non-relational-storage/index.html",
+      "sourceBytes": 198278,
+      "sourceSha256": "4f4e325c6ddaf23ae799a83f9602003e688eaf1993e4bc862521aa6e0dc4d403",
+      "bytes": 198286,
+      "sha256": "f5ab733a1f93c3bfb84a72bf8b7403cb630025b857b7a5db70ff11f682dfb3d5"
+    },
+    {
+      "sourceFile": "site/foundations/partitioning-and-sharding/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/partitioning-and-sharding/index.html",
+      "sourceBytes": 183156,
+      "sourceSha256": "c4ec87790dd1e8c9f422123819dcfc7f815069fe03ddce92ade811a2ae9f6c60",
+      "bytes": 183164,
+      "sha256": "c7cd07c01c7e3d32cdd3c853ee341c32a2f4b247afacc73471d1e672b054d1ed"
+    },
+    {
+      "sourceFile": "site/foundations/relational-databases/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/relational-databases/index.html",
+      "sourceBytes": 213945,
+      "sourceSha256": "397d66fff89c3a05d46149dad55f8264a547def6c22468af72d12fb06f099a64",
+      "bytes": 213953,
+      "sha256": "d0ba1c9332e254ff0c91a4682fb41c2d23ba8b6d4725eb6f7b0767d214917d05"
+    },
+    {
+      "sourceFile": "site/foundations/reliability/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/reliability/index.html",
+      "sourceBytes": 185877,
+      "sourceSha256": "b60caa164761fcea6270548df6d7056bd606ea0e5941c57148b74eacf743c5cb",
+      "bytes": 185885,
+      "sha256": "0c1bb4296f80eda682060989562f94ca756e8930c3a1d8861b0489ec8fe09493"
+    },
+    {
+      "sourceFile": "site/foundations/security-architecture/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/security-architecture/index.html",
+      "sourceBytes": 192844,
+      "sourceSha256": "07161f8c4f0df85499d6beaa9a81b365d2240480744b0c2de135644ac5cdeb9a",
+      "bytes": 192852,
+      "sha256": "0416da972981dfe070ec83a61404405b74f4d4f2b2b387c157bece50d36de09b"
+    },
+    {
+      "sourceFile": "site/foundations/system-design-readiness/index.html",
+      "contentPath": "/library/system-design-masterclass/foundations/system-design-readiness/index.html",
+      "sourceBytes": 203328,
+      "sourceSha256": "333c3b1162b21baa72198511b2c921ea793393e03fbf8736d890ff7b015f4bbc",
+      "bytes": 203336,
+      "sha256": "198a82f569f85422d7525ae6522a3d4ce0f7727c8aaacb96ca61593d3f1f060a"
+    },
+    {
+      "sourceFile": "site/index.html",
+      "contentPath": "/library/system-design-masterclass/index.html",
+      "sourceBytes": 164406,
+      "sourceSha256": "dcdd5e661aa4640f3decb2ea4a9de065f7f8a6a41909e69fa784e3659ac25517",
+      "bytes": 164398,
+      "sha256": "70b7a4fcc1c19b5e52761d365b7f29081e952950a72fe0cc59e70bd28e8c3d0e"
+    },
+    {
+      "sourceFile": "site/javascripts/calculators.js",
+      "contentPath": "/library/system-design-masterclass/javascripts/calculators.js",
+      "sourceBytes": 23320,
+      "sourceSha256": "913cd91e936f20a103c87c1d8ef9dafc019759a05b61e338a6587f7fdcd46a11",
+      "bytes": 23320,
+      "sha256": "913cd91e936f20a103c87c1d8ef9dafc019759a05b61e338a6587f7fdcd46a11"
+    },
+    {
+      "sourceFile": "site/javascripts/content-ui.js",
+      "contentPath": "/library/system-design-masterclass/javascripts/content-ui.js",
+      "sourceBytes": 9340,
+      "sourceSha256": "460a5c02b096c5993c59ea5ccb429572e8638f593efebed18e87c471ed624bef",
+      "bytes": 9340,
+      "sha256": "460a5c02b096c5993c59ea5ccb429572e8638f593efebed18e87c471ed624bef"
+    },
+    {
+      "sourceFile": "site/javascripts/mermaid.js",
+      "contentPath": "/library/system-design-masterclass/javascripts/mermaid.js",
+      "sourceBytes": 8682,
+      "sourceSha256": "8ebc50be676dcd92a454792b614aa9c83c7c2b1b35cd329cbf75db572fd61ece",
+      "bytes": 8682,
+      "sha256": "8ebc50be676dcd92a454792b614aa9c83c7c2b1b35cd329cbf75db572fd61ece"
+    },
+    {
+      "sourceFile": "site/javascripts/practice-console.js",
+      "contentPath": "/library/system-design-masterclass/javascripts/practice-console.js",
+      "sourceBytes": 18276,
+      "sourceSha256": "5292bcb041b1777bc707056776924f845031d154c9c24731d763d9c49b277c16",
+      "bytes": 18276,
+      "sha256": "5292bcb041b1777bc707056776924f845031d154c9c24731d763d9c49b277c16"
+    },
+    {
+      "sourceFile": "site/javascripts/reader.js",
+      "contentPath": "/library/system-design-masterclass/javascripts/reader.js",
+      "sourceBytes": 3896,
+      "sourceSha256": "17142b7265b66142c02eae5028bbf93eadbfb0f0d1bbe2937424a45026af1a39",
+      "bytes": 3896,
+      "sha256": "17142b7265b66142c02eae5028bbf93eadbfb0f0d1bbe2937424a45026af1a39"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/01-interview-method/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/01-interview-method/index.html",
+      "sourceBytes": 248246,
+      "sourceSha256": "b27b66c8001f5158bab09821cdde0711fb285f5ad51502d1f4bc2465def357e8",
+      "bytes": 248254,
+      "sha256": "4bd906bc0cbf51c2b5a55ba8501d4f8605778d91f1be4efd3e786264af814c94"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/02-threads-tasks-lifecycle/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/02-threads-tasks-lifecycle/index.html",
+      "sourceBytes": 261757,
+      "sourceSha256": "717eab743b1c8b7c58b48be053f31434dfda46b7d7228b3633daa36080c052aa",
+      "bytes": 261765,
+      "sha256": "59636438e7a2e1c8256b9fbc08c3089f11889e2d06b6779abc81ce7a541c0a23"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/03-thread-safety-memory-model/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/03-thread-safety-memory-model/index.html",
+      "sourceBytes": 287295,
+      "sourceSha256": "f4dc6812687824552afca163d612ac4054b56c6631b1927f83d73aa6c4a10a69",
+      "bytes": 287303,
+      "sha256": "9488f79cf25820eac3e361c40f5f45888ecd9d627db11b9306dcc4a0320c7663"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/04-synchronization-locks-conditions/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/04-synchronization-locks-conditions/index.html",
+      "sourceBytes": 296393,
+      "sourceSha256": "5951e863b5f811fed59cfd4d3cba0a244cb1aa3984571b64564726cae08c4589",
+      "bytes": 296401,
+      "sha256": "bd21df3d70738734cbf801cf723cea62c47bc34004348588240a80626fafadd3"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/05-coordination-primitives/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/05-coordination-primitives/index.html",
+      "sourceBytes": 295785,
+      "sourceSha256": "38faf8b7994ddb6e508d0d78f2e1f415377caf4d7255c36951eb692a758d7d69",
+      "bytes": 295793,
+      "sha256": "2405da352e091859e9ace9f6147cefb4cd20776b3a95d5f382309c5de1bcb500"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/06-atomics-concurrent-collections/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/06-atomics-concurrent-collections/index.html",
+      "sourceBytes": 320440,
+      "sourceSha256": "ebc33cb4891884ecc9bba435c1d0c3bcb6f5c040e3597be952a33907dd14c492",
+      "bytes": 320448,
+      "sha256": "a5dcf33d28497f9249891a109dbd9a32dc7faacf178fd76624fc8a45bb092633"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/07-executors-backpressure/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/07-executors-backpressure/index.html",
+      "sourceBytes": 294159,
+      "sourceSha256": "9009b1804182527a7480f98ec1c04b69fd1340cf3d7cc96d3f88f241ff9c684a",
+      "bytes": 294167,
+      "sha256": "7ab04ec7725eaa868034b6f2756bf0f9b1341305599c59db259a408b0699bf93"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/08-async-parallel-virtual-threads/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/08-async-parallel-virtual-threads/index.html",
+      "sourceBytes": 345055,
+      "sourceSha256": "184c89ab1f48b809a7f38487575081f88c99db94a5b2fb91be4eba0ae695cc7a",
+      "bytes": 345063,
+      "sha256": "30be110021a9d6cfa3b5b6345fdd68d6f144ff6a22efb20722388cbfcdc33da8"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/09-liveness-debugging-testing/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/09-liveness-debugging-testing/index.html",
+      "sourceBytes": 316894,
+      "sourceSha256": "f9da0d9ed39d5d574d605fe93fd27c7f96f56729245fe8a914712203e1e8cd63",
+      "bytes": 316902,
+      "sha256": "39c04cbd983293df99a0b9763a487bc5c1d34de2b0cbbbb2521890a4121acc5f"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/10-concurrency-patterns/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/10-concurrency-patterns/index.html",
+      "sourceBytes": 307280,
+      "sourceSha256": "da18e98b57930a3eba95c34dfe1cce293b59ba9ea184bcfcf7e08098f4d0ed41",
+      "bytes": 307288,
+      "sha256": "a968fc5afa8936c13500dbd080f674b78748a58c7fbb4fa6de03ad2ca6341961"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/11-classic-problems-solutions/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/11-classic-problems-solutions/index.html",
+      "sourceBytes": 302844,
+      "sourceSha256": "c9bbc26fdefac0d8cce3e7f2dd65e6d0ad1aa02608c54df1ad6bd3c0bc60bfd5",
+      "bytes": 302852,
+      "sha256": "afb315db5654f44a2ec5c03ea0792c9dc23ab1b472aa6ce2e1c38c03b3eea93c"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/12-lld-problems-solutions/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/12-lld-problems-solutions/index.html",
+      "sourceBytes": 381856,
+      "sourceSha256": "3a66c9ddfdda75b881205c2107048cbac3aa7b129e0c0b05c362afb3092340b3",
+      "bytes": 381864,
+      "sha256": "a912075a13a2a1e98f521afde1a399d5643f89f63a9a8c8d4ca4f957c7506c27"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/index.html",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/index.html",
+      "sourceBytes": 182821,
+      "sourceSha256": "6bad3f0d598efc4700b43b14ff96858939fcbd2ec0e5da7d8eac75b935ab3761",
+      "bytes": 182829,
+      "sha256": "5e62d494aae461a97cc2137e5bf20b3d82f36f046e3f410a8f54be3219269c29"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/review-structure.mjs",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/review-structure.mjs",
+      "sourceBytes": 5406,
+      "sourceSha256": "2becfb20542b2012fd6c2c7a8d86e38609238134f1b13a81f7c1125fb8d39e9d",
+      "bytes": 5406,
+      "sha256": "2becfb20542b2012fd6c2c7a8d86e38609238134f1b13a81f7c1125fb8d39e9d"
+    },
+    {
+      "sourceFile": "site/lld/java-concurrency/review-tests.mjs",
+      "contentPath": "/library/system-design-masterclass/lld/java-concurrency/review-tests.mjs",
+      "sourceBytes": 18328,
+      "sourceSha256": "ca5e1c5a3bd77b0634b6fc0e8715ca8b1a1bb84fd8ce66b2847d4c19c3fedefb",
+      "bytes": 18328,
+      "sha256": "ca5e1c5a3bd77b0634b6fc0e8715ca8b1a1bb84fd8ce66b2847d4c19c3fedefb"
+    },
+    {
+      "sourceFile": "site/networks/01-request-packet-journey/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/01-request-packet-journey/index.html",
+      "sourceBytes": 206463,
+      "sourceSha256": "272183a9ca2b87537c554d14bedc95e5c9499918c09e823ec2b7ba517dc53f42",
+      "bytes": 206471,
+      "sha256": "57750f1d9f1ffd39b47fcad2874fa2f3187db436ba2b9156782073f29d99f79a"
+    },
+    {
+      "sourceFile": "site/networks/02-ip-cidr-routing/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/02-ip-cidr-routing/index.html",
+      "sourceBytes": 210917,
+      "sourceSha256": "988ab0b6f8102e851d48a0d59d758e93d725f2972989e32f2c9879ba2b331f15",
+      "bytes": 210925,
+      "sha256": "08b82c704604201a6e16ae5a5015284ae21b6a11d689cc5ec5428e5f148e3f2d"
+    },
+    {
+      "sourceFile": "site/networks/03-transport-sockets-congestion/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/03-transport-sockets-congestion/index.html",
+      "sourceBytes": 225037,
+      "sourceSha256": "4656df3b6c58dc93af5ad8628b78b2224c300a14202a5380d3fbbd6d064b2161",
+      "bytes": 225045,
+      "sha256": "8724e408d553cec885043b0a54693fb6549516c18442a507128a24e75c3984b2"
+    },
+    {
+      "sourceFile": "site/networks/04-mtu-pmtu/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/04-mtu-pmtu/index.html",
+      "sourceBytes": 220857,
+      "sourceSha256": "a46a626a4024e82a3e100fc2420c22a35884816087e8421c3997d5906020fc13",
+      "bytes": 220865,
+      "sha256": "04af6bf50b814b1ef9b1a24698b735b072889afd9a66ab7c50cc8d8262f3a9cd"
+    },
+    {
+      "sourceFile": "site/networks/05-dns-discovery/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/05-dns-discovery/index.html",
+      "sourceBytes": 190752,
+      "sourceSha256": "09735ff14037131f9ee8723383fb560a9a809782a4550009a5ec1e5f26d94a9e",
+      "bytes": 190757,
+      "sha256": "9a7bc54f0b1be2b33157d1889c2a34805fe709136d015e5f0d312ad9c322315f"
+    },
+    {
+      "sourceFile": "site/networks/06-http-semantics-caching/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/06-http-semantics-caching/index.html",
+      "sourceBytes": 189579,
+      "sourceSha256": "fcc99242bd9dd5bc52c347d07ebf9bd10c4f6455eb468028a2d0633fbf1802dc",
+      "bytes": 189587,
+      "sha256": "01d9d78878e10356d7b72b43409c11151648d7eca87a278f9f4e4c5c3ca772f1"
+    },
+    {
+      "sourceFile": "site/networks/07-http2-http3-quic/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/07-http2-http3-quic/index.html",
+      "sourceBytes": 192567,
+      "sourceSha256": "16f03004578c31c6a4ee4047ce0926cdae6c61f0f538531a393832ea583a74e3",
+      "bytes": 192575,
+      "sha256": "61dea04e456cf277c5c5727c73565fb48160f654cde48deda0232a0d2641680c"
+    },
+    {
+      "sourceFile": "site/networks/08-tls-pki/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/08-tls-pki/index.html",
+      "sourceBytes": 192126,
+      "sourceSha256": "23f82baf8ae70ce5d3994e7d5cfaeac69f789497b0c02561cf714fbade797fdb",
+      "bytes": 192134,
+      "sha256": "95c5fc37846e8589414e99f70a225ccd351b0ec6424a5276dc09dc4287c851ff"
+    },
+    {
+      "sourceFile": "site/networks/09-proxies-load-balancing/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/09-proxies-load-balancing/index.html",
+      "sourceBytes": 206672,
+      "sourceSha256": "c1d61d372053d3acac3a84e6db7a9822cb3355d671039573011f8a14df1d5a1a",
+      "bytes": 206679,
+      "sha256": "f7a8b541e82920a797cb5b3cb5c05ae671403be00d1bc444b3eaea82451950ac"
+    },
+    {
+      "sourceFile": "site/networks/10-deadlines-retries-pools/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/10-deadlines-retries-pools/index.html",
+      "sourceBytes": 207656,
+      "sourceSha256": "cd56d708c34cf7c720896945fbb7fb05c9bf1e48b240fd81a7123e699ce989f9",
+      "bytes": 207659,
+      "sha256": "f38ca29d877595311fcfaff5b0975dd5d532a18910f2d3cd2f03ae4107cb918c"
+    },
+    {
+      "sourceFile": "site/networks/11-grpc-rpc/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/11-grpc-rpc/index.html",
+      "sourceBytes": 215583,
+      "sourceSha256": "0623e3c874ab5afda2c080c54df37a683eaf1b1e49be6bf8562f51d3c379be55",
+      "bytes": 215590,
+      "sha256": "8c41cbe9412d2d0372fd1acb74e86ea01d20b4ee3c0b29bf700f2d785a50bede"
+    },
+    {
+      "sourceFile": "site/networks/12-realtime-media/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/12-realtime-media/index.html",
+      "sourceBytes": 220042,
+      "sourceSha256": "5347c44335fc250fcb915884ccea234c2da083783d2a69c69c023dae222c817f",
+      "bytes": 220044,
+      "sha256": "4dd58c1b8735cd7f5c8c27afde48a5091c7830ae076d822d227d7388e728a819"
+    },
+    {
+      "sourceFile": "site/networks/13-nat-cloud-networking/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/13-nat-cloud-networking/index.html",
+      "sourceBytes": 196421,
+      "sourceSha256": "bfb12e25e6aba1ad19fdc0bd0343f24e96e94f15198a5d42f86131139b4f7653",
+      "bytes": 196428,
+      "sha256": "0708ac746e12b72c1a8628b41016d541cce9b064b520b003c99992c8255f790f"
+    },
+    {
+      "sourceFile": "site/networks/14-bgp-anycast-global-routing/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/14-bgp-anycast-global-routing/index.html",
+      "sourceBytes": 195619,
+      "sourceSha256": "c0f31c59974de2983e0a9d13c085af423f4ab1299bf516719e636216afa6447a",
+      "bytes": 195626,
+      "sha256": "43ed45ffbd1310f7b4dfcf6848c14f6dae98ecab3e396e30609dfa5f61a7b7b5"
+    },
+    {
+      "sourceFile": "site/networks/15-service-mesh-zero-trust/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/15-service-mesh-zero-trust/index.html",
+      "sourceBytes": 199812,
+      "sourceSha256": "9dbce74c4cd548242c1acd5154ebd3e13bcd9a2e5b51d9e26a4d248fc54e5217",
+      "bytes": 199818,
+      "sha256": "72a5243e0a602597bccdb2657da950425e344e7a7ea56760191b804ad42d49c4"
+    },
+    {
+      "sourceFile": "site/networks/16-observability-debugging/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/16-observability-debugging/index.html",
+      "sourceBytes": 214721,
+      "sourceSha256": "d1c1e7d74a99da6b5efa03f48ca3ef4992a50e4e0e6397b1eb03d522dbd565b1",
+      "bytes": 214728,
+      "sha256": "1c7050c17aa02abd4883084002c9539e11334ad3f62b9d5ad6807142bbb8ba51"
+    },
+    {
+      "sourceFile": "site/networks/calculations-workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/calculations-workbook/index.html",
+      "sourceBytes": 210312,
+      "sourceSha256": "7240be8a5731cc691e4f3f6024da1da8d346b647964c900431dc534fa5da963d",
+      "bytes": 210320,
+      "sha256": "c582d3aab7c8c4e18625d2ef04ae8e87851025052e452e873d1eaecd387f9ae5"
+    },
+    {
+      "sourceFile": "site/networks/failure-cards/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/failure-cards/index.html",
+      "sourceBytes": 195428,
+      "sourceSha256": "f5f6107cf16ecbc3d55b285775ffa16765f982700c025f5e72088a0b3666f1f4",
+      "bytes": 195436,
+      "sha256": "d8c409f38f5ac771ccb93dab26b4e04546cfa715f4a5d9776a9b57171e980ea4"
+    },
+    {
+      "sourceFile": "site/networks/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/index.html",
+      "sourceBytes": 175677,
+      "sourceSha256": "628a1a456fb8df949197c1dd851a7480b0854fd885ef14322720125641aaa0b6",
+      "bytes": 175685,
+      "sha256": "ccef37450afa5cdb57a68a68d6726c7a992c45f62321ad16d2b8a432c9ae91c4"
+    },
+    {
+      "sourceFile": "site/networks/l5-l6-rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/l5-l6-rubric/index.html",
+      "sourceBytes": 190444,
+      "sourceSha256": "a99f0b44b8ef1c162d51b767f1719a4b48fb9a1a291438cd3363e21cd0eea6e0",
+      "bytes": 190452,
+      "sha256": "857dda97d9e92a445ec52ac84ef28cba2bf316dac1bc388a803d85cb84384331"
+    },
+    {
+      "sourceFile": "site/networks/labs/01-request-trace/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/01-request-trace/index.html",
+      "sourceBytes": 180138,
+      "sourceSha256": "83e9c6791998c6180c23d477236969abbace9f3a52648b0f47a0d322ea01de62",
+      "bytes": 180146,
+      "sha256": "b651b40a72c76a9e64fa17853855e3dc6604dc00816d658c82c37c7cba037c4d"
+    },
+    {
+      "sourceFile": "site/networks/labs/02-command-evidence/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/02-command-evidence/index.html",
+      "sourceBytes": 176837,
+      "sourceSha256": "82ddea6f83ba6b9d5a6eaec426f5200be36f16d4c6313171397daa6a7d958f46",
+      "bytes": 176845,
+      "sha256": "444fc1fbf01c88708dd4e9217bb0a0c3fbcfe6baa64f18e14deab3f8213b3684"
+    },
+    {
+      "sourceFile": "site/networks/labs/03-network-math/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/03-network-math/index.html",
+      "sourceBytes": 177502,
+      "sourceSha256": "55ca75d54dcb40ed7fe4814ef179fc51fdd472598118de7ef31eb0cce82e819f",
+      "bytes": 177510,
+      "sha256": "cd80746809b20a394b85e980c70addc6baf0f306a7cb54c4b27ac0e6854dfe97"
+    },
+    {
+      "sourceFile": "site/networks/labs/04-proxy-headers/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/04-proxy-headers/index.html",
+      "sourceBytes": 181926,
+      "sourceSha256": "d9bdc0bbed2fbe9b82bc0e281308fb21cd5ea6764ba4c0439319814d680a9f75",
+      "bytes": 181934,
+      "sha256": "c3b1504c0c66b96c909f4bd071434c604bca69a7fa9b12e490e106f67049f019"
+    },
+    {
+      "sourceFile": "site/networks/labs/05-dns-failure/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/05-dns-failure/index.html",
+      "sourceBytes": 176019,
+      "sourceSha256": "ecdc40f2dcdba6a27696a8dbd23f479a06620ea7f143de5f6ff2159e07904ce7",
+      "bytes": 176027,
+      "sha256": "d86eb3c442d6e4032b7464510ab388e406cd80ef353aeecb28e48e5cd9a58a36"
+    },
+    {
+      "sourceFile": "site/networks/labs/06-tls-handshake/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/06-tls-handshake/index.html",
+      "sourceBytes": 182483,
+      "sourceSha256": "037fb32e00333d9d248b5f82a62bfb89e92b6118e98ba16b79e366227c41def4",
+      "bytes": 182491,
+      "sha256": "8806d27eb76c4cc7c13b630647afe20dddaed64d5b47e24c7f9ce505442f9090"
+    },
+    {
+      "sourceFile": "site/networks/labs/07-connection-pool/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/07-connection-pool/index.html",
+      "sourceBytes": 182351,
+      "sourceSha256": "60e069e0bf81c0c4eebaabff201010709942a958f7b5211038823e4f5fdb5ee4",
+      "bytes": 182359,
+      "sha256": "68e0141bc4e7573c98f76f908fabf3aa55905598944a7841f4d8ebe3a18aabee"
+    },
+    {
+      "sourceFile": "site/networks/labs/08-retry-storm/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/08-retry-storm/index.html",
+      "sourceBytes": 184604,
+      "sourceSha256": "9a74766426d9101dd0c34fd851dfefe4d1f695e1d4b15f176e1f4e8db5f56a0e",
+      "bytes": 184612,
+      "sha256": "7b1b2b062cce12825cb08865eb88c88b6000f19caa9ce38b2f7d29ee15e7010d"
+    },
+    {
+      "sourceFile": "site/networks/labs/09-http2-multiplexing/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/09-http2-multiplexing/index.html",
+      "sourceBytes": 175085,
+      "sourceSha256": "8b24e50df88b18996fccb344a18819606b031e9040a023f7d420fa6a784a9676",
+      "bytes": 175093,
+      "sha256": "303a4af687a31efeea2fe30ee24447eb611fe679b5f2b40e92daaa9ae522ad86"
+    },
+    {
+      "sourceFile": "site/networks/labs/10-quic-migration/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/10-quic-migration/index.html",
+      "sourceBytes": 175642,
+      "sourceSha256": "c488896268a5bd38597984f38c499f01446cc3ac4dfa09c2ea1bf0c807219e47",
+      "bytes": 175650,
+      "sha256": "f2d0e56951f09b72086c8290851bab7604cbe0f0f1a1c665ab3c43dd5be695a6"
+    },
+    {
+      "sourceFile": "site/networks/labs/11-load-balancer-draining/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/11-load-balancer-draining/index.html",
+      "sourceBytes": 175300,
+      "sourceSha256": "81c888a293446730fa43e01ccae1bcc869f3b6744331978ad2fc7543cd0d208f",
+      "bytes": 175308,
+      "sha256": "271bc2314d2bb7d4c5098697cc1b89c3af7d41c49b6046c4b3cf0796a6a7dfe1"
+    },
+    {
+      "sourceFile": "site/networks/labs/12-nat-exhaustion/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/12-nat-exhaustion/index.html",
+      "sourceBytes": 173980,
+      "sourceSha256": "4f7a0908f7e96a317005eccfa0988e85b70710f6ba1d8095d5036fac699ecb30",
+      "bytes": 173988,
+      "sha256": "c1ece543e1dc3dc21c27e85ba40a52ef0c8324b9b7ac8a1024864d6048ef0c77"
+    },
+    {
+      "sourceFile": "site/networks/labs/13-bgp-anycast/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/13-bgp-anycast/index.html",
+      "sourceBytes": 175250,
+      "sourceSha256": "55427a68eeea9abba476fcab340fb4ab8e5e32400320977ba0ca2bd74ea631ee",
+      "bytes": 175258,
+      "sha256": "4429c78acb9a9b2094d7378a7eb3dcde16b28248b66735fb46750b9e24d47986"
+    },
+    {
+      "sourceFile": "site/networks/labs/14-websocket-reconnect/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/14-websocket-reconnect/index.html",
+      "sourceBytes": 177696,
+      "sourceSha256": "cbf5b22b53e12024c737d3884c810ba9fe4491354d1d9c3bfc32d493027dcbdc",
+      "bytes": 177704,
+      "sha256": "5a6cb08e366968d636ca082a9dd989de4469fbe0cf8762b9e953b468a1fbe65c"
+    },
+    {
+      "sourceFile": "site/networks/labs/15-service-mesh/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/15-service-mesh/index.html",
+      "sourceBytes": 177219,
+      "sourceSha256": "13abdf70cd63e8ea15f83416acaeec18cbaecb5d7c48923abdaaa08eca8517af",
+      "bytes": 177227,
+      "sha256": "778a4d29a2841af75f8a11612dc7c9286250d505befa4ef514253baa4a0b306b"
+    },
+    {
+      "sourceFile": "site/networks/labs/16-mtls-rotation/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/16-mtls-rotation/index.html",
+      "sourceBytes": 176739,
+      "sourceSha256": "adc92869c8198cd9a3a7b1b16ae8aa81f2476c9e2318d28d58e07296dbbfced0",
+      "bytes": 176747,
+      "sha256": "5e238224d360e2b6f34143632ef31daa4198595fe60e51880331359d6864729c"
+    },
+    {
+      "sourceFile": "site/networks/labs/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/labs/index.html",
+      "sourceBytes": 170272,
+      "sourceSha256": "355259c8bed7e86edb78168728338cc75b96933f459183529aa182a3fd59de81",
+      "bytes": 170280,
+      "sha256": "a7fc547b6847f21f9654f9f4e9e85716fde7fc19e86e830ef81451fc702552fc"
+    },
+    {
+      "sourceFile": "site/networks/labs/verify.py",
+      "contentPath": "/library/system-design-masterclass/networks/labs/verify.py",
+      "sourceBytes": 12007,
+      "sourceSha256": "205b3cd3d1bde137d11b01c185f05c7227e28e28af1ea5acd864808e430f23ba",
+      "bytes": 12007,
+      "sha256": "205b3cd3d1bde137d11b01c185f05c7227e28e28af1ea5acd864808e430f23ba"
+    },
+    {
+      "sourceFile": "site/networks/review_checks.py",
+      "contentPath": "/library/system-design-masterclass/networks/review_checks.py",
+      "sourceBytes": 10941,
+      "sourceSha256": "d99a0cba5717854de98c4464665bb57f32901dfa4a8e068ce89626965bba4f50",
+      "bytes": 10941,
+      "sha256": "d99a0cba5717854de98c4464665bb57f32901dfa4a8e068ce89626965bba4f50"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/design-review/index.html",
+      "sourceBytes": 170157,
+      "sourceSha256": "5004e204cd3758f8c4ad9513efbe07cb4847db9748f0addfe1acb9d6d2528235",
+      "bytes": 170165,
+      "sha256": "1f8053c273f4c07d0d052811be5bfe0b0ebea0d4dd0591fad864cbbfae64f77c"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/exemplars/index.html",
+      "sourceBytes": 181569,
+      "sourceSha256": "e4dad35a4d9988bb94a061916a33cdbe1e27d9ab0dd63bcdb6c14520d7bc2563",
+      "bytes": 181577,
+      "sha256": "2efbed4a3366f25ada1665f66e1731091f41a4a5056982bf5bf1f644e2bda6de"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/failure-lab/index.html",
+      "sourceBytes": 186306,
+      "sourceSha256": "d7b9dc120d970bde4682994ae20ff3e91310ab87d538f962d77c239fdf5c3b9b",
+      "bytes": 186314,
+      "sha256": "befa3b6af903d14310dabf44dfd53b5fe95fb5aa7471a58704d88833fa699362"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/hints/index.html",
+      "sourceBytes": 162443,
+      "sourceSha256": "b97f411f8f73e1bcc9a05d70209d9e0a5c8760d59a269082f886d97ae042dceb",
+      "bytes": 162451,
+      "sha256": "100132addb5238fa62c914a9f7cf93fdf457654bb2fc015303041ebca469befe"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/index.html",
+      "sourceBytes": 164500,
+      "sourceSha256": "8449cc9be47cd98a903578a6a7c785e0e5fe8bb4f2b883a4c5daadf2b697e0ef",
+      "bytes": 164508,
+      "sha256": "c6d8671fc5e56a7050f19c8172c0a26416c35c936636d038ebd49cbb5bbc55bd"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/interviewer-packet/index.html",
+      "sourceBytes": 191941,
+      "sourceSha256": "0877ca8fe420b8ef6cc61b83e52e0240de9f5d86b67b7189419c1f8a7fb33292",
+      "bytes": 191949,
+      "sha256": "654920d764d43d1a122c02b55acf80d064d8c786fe1f77d4ac2cc6d9273cdc51"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/migration/index.html",
+      "sourceBytes": 179585,
+      "sourceSha256": "4a8546ad4351925cc75e28370777ccc88ce82da8ffe5c3d78a289b17cf6f99d5",
+      "bytes": 179593,
+      "sha256": "a38476f3b206acb8a5bfd8529220b0b837bf8cc299e6aa3d3e5cc9462343f3b6"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/prompt/index.html",
+      "sourceBytes": 170781,
+      "sourceSha256": "726f6ce32c7eedf6f71c142cdb37c6dd695d651cfc01f3722c29b9283026d06b",
+      "bytes": 170789,
+      "sha256": "20b207125555f850aaebcd18f6ec999484b8502706c64c3b46d94535893b5907"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/rubric/index.html",
+      "sourceBytes": 178102,
+      "sourceSha256": "de4e3e4f86623190ad4dc60e3b6e1dc17a345aa2ca69ada490f6ad5c4cdccb44",
+      "bytes": 178110,
+      "sha256": "a7270e236afab7ed3719dc29543d4bc6c7afee6002a70c6e1815f4c7f989574a"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/checkout-edge-brownout/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/checkout-edge-brownout/workbook/index.html",
+      "sourceBytes": 177352,
+      "sourceSha256": "dbfaedb635ec991687234712001b91b0d046711f6b54432af135fd2a0bd18739",
+      "bytes": 177360,
+      "sha256": "ab53f2a98e0677db1cf911e5d60cec31de87343e8b3e5affba656a27e27e7e68"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/design-review/index.html",
+      "sourceBytes": 170461,
+      "sourceSha256": "0c5b1f7d5b85b4f60c7664550248861ca63016d79c2f69268cee55d0386c09dd",
+      "bytes": 170469,
+      "sha256": "4af442f7931c19328e3dc9b102e614b08403178e803d3f2bbf380637d7c61faf"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/exemplars/index.html",
+      "sourceBytes": 181360,
+      "sourceSha256": "fc90b22f7798cc23d879a627031624ebe444580c3fe994f805fc51b030b079a9",
+      "bytes": 181368,
+      "sha256": "d26b5d6cd5f2a6e12fcdf946255b7c2e7f595e134b0ff99b7c47ba0f66943be7"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/failure-lab/index.html",
+      "sourceBytes": 186552,
+      "sourceSha256": "cb81d054b165743ea653c14f9e10318b404cbe8c3e61b2c92ab5b9a8c91ea2e5",
+      "bytes": 186560,
+      "sha256": "a09a12e9d5db8f6d42b698dbb8d27083885df3636dc1f216d7892d8dbc84afad"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/hints/index.html",
+      "sourceBytes": 164193,
+      "sourceSha256": "31ce0d835f14a42bc42fb1fbcd15817cdddcc75c00ca082995bcfd0420e7f062",
+      "bytes": 164201,
+      "sha256": "e00f649361e8f0a62b100880618cf449e95fd46dc81727e5950e2b73a32c7108"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/index.html",
+      "sourceBytes": 164514,
+      "sourceSha256": "ce2532102e5a02b02dcdb31fed7f84584f82c0f45b2bccb355cbfc3070f4b2eb",
+      "bytes": 164522,
+      "sha256": "f9304731d8e313b9d0acd5f7028b2c2383e16be8729cd0e2e1464e4deb07aa4c"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/interviewer-packet/index.html",
+      "sourceBytes": 181250,
+      "sourceSha256": "6640d2116ace6474d7bdd116db88757985d7f2442c565f7f3499d86c18356839",
+      "bytes": 181258,
+      "sha256": "3f20825e3a2b9af77a96637c474024ade63275983656750c5ee001611a68c389"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/migration/index.html",
+      "sourceBytes": 185432,
+      "sourceSha256": "6b09e7d0eb57a4e7993277e85ef318f064bdd83160c66ed0bf062132a1e8b0a9",
+      "bytes": 185440,
+      "sha256": "723d5825cea88376d980a7bad24166bef401260f46f4278148d87533fd385a2c"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/prompt/index.html",
+      "sourceBytes": 172024,
+      "sourceSha256": "c9f6b5a22dcdb3a1326627394b054b281679405856d74953de0d9163816a9f44",
+      "bytes": 172032,
+      "sha256": "f3b7765852519cf334120a11b5776a92eb039eeeec279ca240a706434a733538"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/rubric/index.html",
+      "sourceBytes": 177872,
+      "sourceSha256": "b28caa08a40d1e4b0cca4f02cf15ce9def6709982312d974ec825fb700d64a23",
+      "bytes": 177880,
+      "sha256": "9b42745befb2fa0bc0d831d7592da22f97391551d71f4ddbdfa4d35a2a601fb5"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/global-realtime-failover/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/global-realtime-failover/workbook/index.html",
+      "sourceBytes": 176775,
+      "sourceSha256": "7b684a8231273add9d39997b866f60a55b921ea24947ca919d50dff9b3d7b783",
+      "bytes": 176783,
+      "sha256": "f7063bef2b385760d7fd0b512932c1f50b886b4bab8f55be1a2f3915176b5973"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/design-review/index.html",
+      "sourceBytes": 170495,
+      "sourceSha256": "b01e99416698bae1980dc0fa41eba1af88cd8e05fb7660c7ffa121aa24529f4c",
+      "bytes": 170503,
+      "sha256": "4aaecbebee7367334d6c455ce6c9a3e1e91226177af26b76c84f24ad66ed31fd"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/exemplars/index.html",
+      "sourceBytes": 181741,
+      "sourceSha256": "6b4e1ce2963fdcda884c8f31ff590d5dacf12794a2b1f32ac07472fadd6de62f",
+      "bytes": 181749,
+      "sha256": "ee38f4e906d5adef4d096302c556b57cf239b2a44c19b07ec11ed8c48257a865"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/failure-lab/index.html",
+      "sourceBytes": 188703,
+      "sourceSha256": "0b4b607de5d61c065c336c6d59ba822136c89e911f17171769ec9f3571cf0a7f",
+      "bytes": 188711,
+      "sha256": "06c267044ce9b048ce547f0c8834ee1f6ff11979f2675b2f98223dd227f71d60"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/hints/index.html",
+      "sourceBytes": 163287,
+      "sourceSha256": "f63d8725683dc09f318b12bf762121d3c15c8f484d59b79f01cc9f6d11fc8215",
+      "bytes": 163295,
+      "sha256": "88c58b2895fc986ac6f4e6a001f1390bc5edb7b15319507d3bb4e8102db81b99"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/index.html",
+      "sourceBytes": 163898,
+      "sourceSha256": "6b8296c0d1213d24314d9147b738955edb962ae9e10581b0330ad1ad5ceb1a6a",
+      "bytes": 163906,
+      "sha256": "faca0ee19fd1215b58166500bb745fa25313008373fdd5e562e3c06cba8b6b30"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/interviewer-packet/index.html",
+      "sourceBytes": 190302,
+      "sourceSha256": "46f16976d91b957e79b765e0e468b9e2b19e166f4f7368948d3eee055115a32a",
+      "bytes": 190310,
+      "sha256": "d9c15f3e56cf90e105681e37375789ad8fb9f0a52678079fcd0e5e266949b19c"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/migration/index.html",
+      "sourceBytes": 182077,
+      "sourceSha256": "3d39c58d29c189b7ef1ca3c8d29a481b7b2374a2c752126857884a5fac6879f4",
+      "bytes": 182085,
+      "sha256": "0d6ad812c6b060c07ba162bd871e26fd56093ac7ecc43b84711790994123f414"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/prompt/index.html",
+      "sourceBytes": 170282,
+      "sourceSha256": "f8ced802c0cd94b68248ea61c0b204e01a19e6a82c1018b0398a31c0fc087449",
+      "bytes": 170290,
+      "sha256": "b09117e90b826a760cd4be978b401ca42b3d7d52b1f31b29066e20e5f5079d38"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/rubric/index.html",
+      "sourceBytes": 179216,
+      "sourceSha256": "90b5627d999578bb5889c3dec2de15c8a90749a23e6e1657767aee8e07204842",
+      "bytes": 179224,
+      "sha256": "9d3b372cd337dcad48557188ca5489266a596686a42c7a3f8f26c75906909e5a"
+    },
+    {
+      "sourceFile": "site/networks/scenarios/mesh-certificate-rotation/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/networks/scenarios/mesh-certificate-rotation/workbook/index.html",
+      "sourceBytes": 175017,
+      "sourceSha256": "b586cc53fb7908dfe3b9be4baa66651b6861432dd55bbf0e6fa5ebf5f7213ae3",
+      "bytes": 175025,
+      "sha256": "11d704dd3911c4c8e047df5c17800f1f451fe4231da14741d3bd970ea7f9dc37"
+    },
+    {
+      "sourceFile": "site/overview/index.html",
+      "contentPath": "/library/system-design-masterclass/overview/index.html",
+      "sourceBytes": 174544,
+      "sourceSha256": "d3c728a17c31828b700b98cfbf1bd6eef963f745766ff18969926a7eaf3d6b94",
+      "bytes": 174550,
+      "sha256": "8d1878dcf08ba1fd51366f659e1b59626f0b2ed725952298c64ea422c3cf69e3"
+    },
+    {
+      "sourceFile": "site/patterns/distributed-coordination/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/distributed-coordination/index.html",
+      "sourceBytes": 179121,
+      "sourceSha256": "76e39198a16c1b2cb6616ee780ad357fb44cd9a82a9910672f26a02222d5fd93",
+      "bytes": 179129,
+      "sha256": "628cb63e7107741c3d4ac5c6dabddd26dd3344162fb4bd6c781fb29059e176aa"
+    },
+    {
+      "sourceFile": "site/patterns/feed-generation/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/feed-generation/index.html",
+      "sourceBytes": 181454,
+      "sourceSha256": "1787bd27692659da2a30756401892066a520efa99ed85fe72cd2cd75355481b5",
+      "bytes": 181462,
+      "sha256": "2bc46610488459502afdf6dec9e2fe0f54cbe6e832298a6c51c782fef2e8afe7"
+    },
+    {
+      "sourceFile": "site/patterns/handling-contention/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/handling-contention/index.html",
+      "sourceBytes": 181442,
+      "sourceSha256": "959b7b288c06f292788efb5a5a0e26e54afeacf19b8846a0bfece73034826bd3",
+      "bytes": 181450,
+      "sha256": "45ef34abea2a4a5b0e119c2d1ee44dd6e0ca791a0bd17ae4311ec27788ca2938"
+    },
+    {
+      "sourceFile": "site/patterns/large-blob-storage/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/large-blob-storage/index.html",
+      "sourceBytes": 180942,
+      "sourceSha256": "87b48316f793cce440cf626df6a7fcb09c19214ecb16b100e5e2c26472146555",
+      "bytes": 180950,
+      "sha256": "2a020e76c6b83b28c7b27a8126c36b78f42ed44bb8781435d0c5714ceceedf3d"
+    },
+    {
+      "sourceFile": "site/patterns/long-running-tasks/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/long-running-tasks/index.html",
+      "sourceBytes": 185116,
+      "sourceSha256": "255e48865dc9d7378ab38f072fb65efc9c28d4f66383f8e2aad9d4460a8a7ff3",
+      "bytes": 185124,
+      "sha256": "2d2cdd211d52eed99e90dbd16c69f7955a91579721760c31f982ba73a56a278c"
+    },
+    {
+      "sourceFile": "site/patterns/multi-step-workflows/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/multi-step-workflows/index.html",
+      "sourceBytes": 183400,
+      "sourceSha256": "072fe90b1dec45a93b37510ffb422da740b9b8b3b1b128c54d5207d188693136",
+      "bytes": 183408,
+      "sha256": "df6684375dbd7b49b3aee4fb2b4d6efda0255afa6c9e14ad43d4207b5751be4d"
+    },
+    {
+      "sourceFile": "site/patterns/probabilistic-data-structures/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/probabilistic-data-structures/index.html",
+      "sourceBytes": 182095,
+      "sourceSha256": "8db9200d13c7437620cfacd142c418fd932f0724752ce2eebb05ebbbe6dd7982",
+      "bytes": 182103,
+      "sha256": "54d362a88910b736f5f578994ed1ef09a6b0a1f729783aa8c75a12021cd039b3"
+    },
+    {
+      "sourceFile": "site/patterns/proximity-search/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/proximity-search/index.html",
+      "sourceBytes": 180233,
+      "sourceSha256": "8f57197b62e0192c925ae42989526b609d66233793435f72651cc21924b7555e",
+      "bytes": 180241,
+      "sha256": "8a389faf7bbb67f95b7b7255ba7db4cdaa1c4e09ee0c0e29b2c752966b53cd08"
+    },
+    {
+      "sourceFile": "site/patterns/realtime-updates/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/realtime-updates/index.html",
+      "sourceBytes": 187981,
+      "sourceSha256": "437e24f5c51ad465d1858ee7d968adb65a3f98a6c57c329e85295bdbe6070907",
+      "bytes": 187989,
+      "sha256": "766038afa89e7c7af7c2300ac35767a1b2dd66589f5997315032c188b6a23a40"
+    },
+    {
+      "sourceFile": "site/patterns/scaling-reads/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/scaling-reads/index.html",
+      "sourceBytes": 187842,
+      "sourceSha256": "970855a3f20f027ded824c227e608b85d6034695602638d432288eb06d9cde8d",
+      "bytes": 187850,
+      "sha256": "53519f4ece0735f61d0f8aa3865f9e307fc62ec83d7cd2deaef31a72d6139e9e"
+    },
+    {
+      "sourceFile": "site/patterns/scaling-writes/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/scaling-writes/index.html",
+      "sourceBytes": 182053,
+      "sourceSha256": "f975da11c98e848bd6a698dff7a9f4ab9efa61e004a5581280a3c89fd41a3e1e",
+      "bytes": 182061,
+      "sha256": "8d44a223e3c98efa56a0b3c75994697fe1c62d7eaccd9357de37bd8964672025"
+    },
+    {
+      "sourceFile": "site/patterns/search-and-indexing/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/search-and-indexing/index.html",
+      "sourceBytes": 185952,
+      "sourceSha256": "6dd43cff6eb0c22c6a2abb39bb3451383719091df297bfa3dc113105e06c3adf",
+      "bytes": 185960,
+      "sha256": "43bba848dd4c940880f8a5c16af7648f0b7ec3ef19cbc987ab5ef6c00b860e8a"
+    },
+    {
+      "sourceFile": "site/patterns/streaming-aggregation/index.html",
+      "contentPath": "/library/system-design-masterclass/patterns/streaming-aggregation/index.html",
+      "sourceBytes": 190027,
+      "sourceSha256": "7683939daaf68ba6e45d1e482f7ea9907aa1d0bea5e55209c6bdddb9d238c8f0",
+      "bytes": 190035,
+      "sha256": "b6a705c45e79fd9fd8ffdf0064f03dd22d9764a16c7302ee30479ca0dd571401"
+    },
+    {
+      "sourceFile": "site/practice/competency-model/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/competency-model/index.html",
+      "sourceBytes": 166223,
+      "sourceSha256": "debaf231b97d0c69f1356b2c488656020d0363786469683ce49d57f0108668b6",
+      "bytes": 166231,
+      "sha256": "f20d9e14ba949add31928d8dd80beb184ca276e7414d586c3883829c4985d712"
+    },
+    {
+      "sourceFile": "site/practice/entry-diagnostic/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/entry-diagnostic/index.html",
+      "sourceBytes": 183789,
+      "sourceSha256": "17d5075a67cec86815b5ec3e5692864b15e7f22952abbc6eb2b155d7c5fc2a25",
+      "bytes": 183797,
+      "sha256": "5575d83ec48d554819a4a0e54c62f384dd2fa628b51af80543eb36ed06be8048"
+    },
+    {
+      "sourceFile": "site/practice/failure-labs/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/failure-labs/index.html",
+      "sourceBytes": 171352,
+      "sourceSha256": "efcccbef1a1c16b4553fa4364ccf1609b9e7f0feaf5f3c5714f3c9b7bd567729",
+      "bytes": 171360,
+      "sha256": "3830885a918bcf6c71e84ab3637a31480b5139c75d92879dd5afeeedcd7cbb79"
+    },
+    {
+      "sourceFile": "site/practice/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/index.html",
+      "sourceBytes": 165086,
+      "sourceSha256": "5dbd757f468635de394817956a47ab0c5372940f16ebcf2e25a96711d5f20f0a",
+      "bytes": 165094,
+      "sha256": "e3dc300e85af3d12e62b88ea7e38163f4b7463eb33b1cd10e6239a14f285fda5"
+    },
+    {
+      "sourceFile": "site/practice/interviewer-mode/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/interviewer-mode/index.html",
+      "sourceBytes": 171102,
+      "sourceSha256": "683f78239ad3fc50f94a5b84083ad163c837ccad9ab8c790db61614550002ad5",
+      "bytes": 171110,
+      "sha256": "53b00fb53028b7c55768055e6b18b28ff7609d641e10a456004c577b8d2a0e66"
+    },
+    {
+      "sourceFile": "site/practice/learner-scorecard/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/learner-scorecard/index.html",
+      "sourceBytes": 171552,
+      "sourceSha256": "00243e6fe1b18421bf497479ffcd2fed4a326e8b3020249510a4268bbbdc2d6f",
+      "bytes": 171560,
+      "sha256": "976ff70013420b1b1dbda2aab2f228ad7d409e83fdace854b8b36db69cd76aa6"
+    },
+    {
+      "sourceFile": "site/practice/migration-labs/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/migration-labs/index.html",
+      "sourceBytes": 170609,
+      "sourceSha256": "6d0dc10069ee542ba6a3c948d6722c7df6673fea2de8d7917c9f0d32673e347f",
+      "bytes": 170617,
+      "sha256": "7605e2dc22d002eacee264c398145bda0f5fed6baad4b3e36de55294de877a68"
+    },
+    {
+      "sourceFile": "site/practice/progressive-drills/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/progressive-drills/index.html",
+      "sourceBytes": 174197,
+      "sourceSha256": "3f7c3dcee18d450f949a3a1c9131e28dd6b68d605bd96e573089fe58c4508ee0",
+      "bytes": 174205,
+      "sha256": "11cf994f833e36a5444083d256e6e4ef4f869e9fd8e2d1c36e79438a1c1a18ed"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/design-review/index.html",
+      "sourceBytes": 170620,
+      "sourceSha256": "62a79ac3e005b0dfc988db5d95eb036034d490a25e3123e789867f7e7c9dfc7b",
+      "bytes": 170628,
+      "sha256": "e943358cd85cb9cb83036c0b4f3100a013778cef57e37573e0277453af9ff876"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/exemplars/index.html",
+      "sourceBytes": 173295,
+      "sourceSha256": "b30f56076892e41ea7bb9ed5e5e7820f44063813910c0da395812fbd605be34d",
+      "bytes": 173303,
+      "sha256": "3b6b3628a48038dea4049c2390d3c2be1398349563e39b0d5184b312c85e4de8"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/failure-lab/index.html",
+      "sourceBytes": 178295,
+      "sourceSha256": "e50b1530608f7373e3484030cfda43ed789f3bfa57fa9153c21fa0826b96a040",
+      "bytes": 178303,
+      "sha256": "aa0936f86f1e3bec6b94693334d08b91843b6ba3e6db5772451369cf80950fdd"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/hints/index.html",
+      "sourceBytes": 165297,
+      "sourceSha256": "0c4afdef8a13dbc0d6f45c06e93d07e6845c22b4612938bb92147255b095bae0",
+      "bytes": 165305,
+      "sha256": "4df67c32508c365cabe3b7ad1ba49041fe4493a7ae7d09be8fde89068c6340b8"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/index.html",
+      "sourceBytes": 164022,
+      "sourceSha256": "6bedf9fb9950d0c19586905b375bfa3ad231462595d42659be435632b816b9ff",
+      "bytes": 164030,
+      "sha256": "1033bc6e41cd1af34b26af026ba9f851ce5475c660a93582f21daa273028f520"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/interviewer-packet/index.html",
+      "sourceBytes": 177182,
+      "sourceSha256": "6e6e8e70253ca6f6a9f8e4008f20e82b01af4d2a91f153ab62249e535cfd3bef",
+      "bytes": 177190,
+      "sha256": "adb74eb45694ec5247c6bc742499d40306cd582adb83933165f9c791fedbb1af"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/migration/index.html",
+      "sourceBytes": 177670,
+      "sourceSha256": "b563b48648716fb15a9985836410c73012e7b7997910106dc846e6b8c3dba926",
+      "bytes": 177678,
+      "sha256": "d96c237faa625f1e37ffec827cd7308aa8c1244f5c97d47effd594476640e7ca"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/prompt/index.html",
+      "sourceBytes": 170852,
+      "sourceSha256": "f9ad0a2b56506c940b7a771dde563a4fe3da2a5ebacf4003832e98602344622a",
+      "bytes": 170860,
+      "sha256": "a13668be427495a8f7b9e742754c7ae83dcd3c5ca68c591903dfb031d65b2fda"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/rubric/index.html",
+      "sourceBytes": 175589,
+      "sourceSha256": "0c5d5d39bf55dfcf1c7f0df06aa8d727acdccece694f96cbb741de49ddb658ef",
+      "bytes": 175597,
+      "sha256": "e272b5f9af528693c1ead5ec69315669e605b827dea826d8386489d19be675b7"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/job-scheduler/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/job-scheduler/workbook/index.html",
+      "sourceBytes": 175994,
+      "sourceSha256": "2db718d092389ef989cf029cee19678b54ac277afad8038eee3521f8139eb83b",
+      "bytes": 176002,
+      "sha256": "5b502a304ec51be0e5a1e61b9f35f11ca427841cb96ae9cbe1fb150bc9b04658"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/design-review/index.html",
+      "sourceBytes": 168745,
+      "sourceSha256": "94570dc2e542768d21cbfe6a1b94b210a9a25162b632ea6645a5406926d01874",
+      "bytes": 168753,
+      "sha256": "d1c3c23646a21d5284ba747cb83ce11e9ce09d7544f25ba84ff404950fcf7a3e"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/exemplars/index.html",
+      "sourceBytes": 174148,
+      "sourceSha256": "ada3356117258274574a3337637d35f89b0c18b57ac1bc1259b7c443a8ea494d",
+      "bytes": 174111,
+      "sha256": "1c9f3535c8ea511b57a3c044e2e3579c817d5f048e704995df5d91f9cf9bf652"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/failure-lab/index.html",
+      "sourceBytes": 173709,
+      "sourceSha256": "6339c6c57adbd5f9e1e5512aff2325409cc19df27b79b808c896c4577bf174e6",
+      "bytes": 173672,
+      "sha256": "059392e8431aac81df1676ad650e9a939239f9bc68e1a019695aa2c95236ab36"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/hints/index.html",
+      "sourceBytes": 163802,
+      "sourceSha256": "690fd79869f702abcc04ff47c8c41ea9b27a00e8154d8af8e89b64ce6930e638",
+      "bytes": 163810,
+      "sha256": "9ff61e4f4fc6043d14da5e759895f6a813293b5be987526c93b2eb68ce498c30"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/index.html",
+      "sourceBytes": 165851,
+      "sourceSha256": "c8f6fd2e918108d4ba0307db1fc22d1acfc859b86ca9166787cd93184e325e8e",
+      "bytes": 165859,
+      "sha256": "c84935697148e20f0d6ba85196c60b54f707b639b3a1ee06ccbff3baa56441bf"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/interviewer-packet/index.html",
+      "sourceBytes": 179526,
+      "sourceSha256": "a7c63e9b0a825a4ba04e40bc2414357fefe65bf3a6678990a943725c4185f51c",
+      "bytes": 179480,
+      "sha256": "5704438eec4f1712affe6d54fde19e022f87d8f41a09529310f9786f9ffa791f"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/migration/index.html",
+      "sourceBytes": 178080,
+      "sourceSha256": "ecbe4f8ab68f866af195088fb0e9435d804323fb54402764954b6c42f0f9786b",
+      "bytes": 178025,
+      "sha256": "e1d4b217cfe0a8fa4dfaff76090573404d478e473b51356e0b12ce82f373543c"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/prompt/index.html",
+      "sourceBytes": 170265,
+      "sourceSha256": "0a37d245b4b363d5b56ac2f6af3191196c0aeccde246bf8dbc35a362b07b49eb",
+      "bytes": 170273,
+      "sha256": "4f0334552694665db91a23c5dd88685f35b747621241916ab754b8092ae71874"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/rubric/index.html",
+      "sourceBytes": 177957,
+      "sourceSha256": "f45971199e87a31bb4abf9de08d649dcfec1efe0eb4a789a9219cc77fbdebfec",
+      "bytes": 177965,
+      "sha256": "12d7bc45edc05309e0cd472a800ae2e58aca4e4c26d6c6c11119362a8bb0b8e6"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/notification-platform/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/notification-platform/workbook/index.html",
+      "sourceBytes": 178310,
+      "sourceSha256": "ff3f9419fd268a3c0246f6ba37452ec12102ba0dd7ce102ea4769330ebd71599",
+      "bytes": 178318,
+      "sha256": "de7f0332002174e45fd385af2b885e5250cb4951302745778dfcc14d950a02dc"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/design-review/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/design-review/index.html",
+      "sourceBytes": 169764,
+      "sourceSha256": "8bf05625dd062f2b1b66a76915fff6b5c94f6cdfc245e33b6e9db017837aa927",
+      "bytes": 169772,
+      "sha256": "7c06a0611b7d9db2de68f502c171ddad3e877005e6b9439c097e073e9d94ebc9"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/exemplars/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/exemplars/index.html",
+      "sourceBytes": 179636,
+      "sourceSha256": "c56834ad0cbd3e7ff6348eb7494f6274bdf2fe075fae8771b8d9ab653b790742",
+      "bytes": 179644,
+      "sha256": "79a1043d58ea82dace25dc42e9ccd8b92e968ff2f5911a1b65175698a78aaa50"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/failure-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/failure-lab/index.html",
+      "sourceBytes": 178851,
+      "sourceSha256": "cfa0ee64fc740b92c37419b81a7bc02f9d3bd8d5f8f036a99918b198f0ad4ddd",
+      "bytes": 178859,
+      "sha256": "9e21432b103550e5663922baf16ecf8456746d6b7dd6dcaadf92f2245455219f"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/hints/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/hints/index.html",
+      "sourceBytes": 163886,
+      "sourceSha256": "94963b5e48c3a9a1179c61f9f0ef861ccd1aca89f9ac2175fe072875aa643512",
+      "bytes": 163894,
+      "sha256": "45342b167ef8ea16d054ecfdf2f68003f5c7e29e43b2c4c2ce4937aa9b9087a7"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/index.html",
+      "sourceBytes": 164759,
+      "sourceSha256": "c755181aebb8bec0774350883e8f49a0a3948b74091753a1fdc602bc58c53473",
+      "bytes": 164767,
+      "sha256": "310f6805ab922bf3f2b39a8e4c3465d2c0f0392824881cac312c36f1d386e358"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/interviewer-packet/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/interviewer-packet/index.html",
+      "sourceBytes": 189093,
+      "sourceSha256": "15c49b1ddf13090b426da6823b4b45213f733b7cd5615e5bfd8873b1801dbeb0",
+      "bytes": 189101,
+      "sha256": "9c4dbd1ed350142cb5c7c5a1c4700c8e3d6ef3798b4a61fa2981d541fbb570fc"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/migration/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/migration/index.html",
+      "sourceBytes": 179937,
+      "sourceSha256": "c9ddebfbb0cab0a12939cace5950f39b0e0e65e78dc33c05126d9528dc0042a0",
+      "bytes": 179945,
+      "sha256": "e46e3380457cddada6cf4509f56fbf2f78832e56d6a2ed68281f0c743deb7d5f"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/prompt/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/prompt/index.html",
+      "sourceBytes": 170329,
+      "sourceSha256": "5b795ad0bdfa0c95f661ece2c7ef61def71e769894986f1d5bd860cb718dbbc8",
+      "bytes": 170337,
+      "sha256": "111b19f642149dd13a030e5cf4a9cd5c9acd0e8da2a6912edc35b5ff2ec56c6e"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/rubric/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/rubric/index.html",
+      "sourceBytes": 178720,
+      "sourceSha256": "849d5f034e0ae02c4593e0b7e8468bb7a69c6412f8c44798f81defc47eb3b724",
+      "bytes": 178728,
+      "sha256": "18b56ed002234b606c6997f8f413d064f43efd2ca6b3efa55f5fec930de7e39c"
+    },
+    {
+      "sourceFile": "site/practice/scenarios/payment-orchestration/workbook/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/scenarios/payment-orchestration/workbook/index.html",
+      "sourceBytes": 178926,
+      "sourceSha256": "24703ebdc1fbefbb1c9cdf2654d917f159a78826c175d196b38211011a477f8b",
+      "bytes": 178934,
+      "sha256": "1fad091eebca80a9cd381e5699c5975e0c2a111467ae05584d54ee6b7b7232c8"
+    },
+    {
+      "sourceFile": "site/practice/spaced-repetition/index.html",
+      "contentPath": "/library/system-design-masterclass/practice/spaced-repetition/index.html",
+      "sourceBytes": 167054,
+      "sourceSha256": "ac0f6ec3db0a78c16a2ef2899b9f141e0b01baaf5db1a6b1f11525603233b04f",
+      "bytes": 167062,
+      "sha256": "167bd56d4b5d61304d98da3ebc49c23272ef0b9849d711705030d52ba0777182"
+    },
+    {
+      "sourceFile": "site/reference/chapter-checklist/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/chapter-checklist/index.html",
+      "sourceBytes": 162361,
+      "sourceSha256": "8408d3dfdd5f306947fe6a437c06946dcabaf98e646713fe3cbb2ecebb50e92d",
+      "bytes": 162369,
+      "sha256": "7956e01fa1c418d7b814114c9d09bed66a2b5238ee359babcd89215adecae637"
+    },
+    {
+      "sourceFile": "site/reference/content-tiers/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/content-tiers/index.html",
+      "sourceBytes": 170778,
+      "sourceSha256": "b173c7e9dba28a62f5f357c8f607d0f8a953807f7678f9ffd373c9acc3a63627",
+      "bytes": 170786,
+      "sha256": "695f5e94a21368b19b290580c4b2f6025fa32888cfa61cdc5346cb12d8d0aa4c"
+    },
+    {
+      "sourceFile": "site/reference/glossary/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/glossary/index.html",
+      "sourceBytes": 165883,
+      "sourceSha256": "0356b7dc0f364a1510e789cb71b8b698631dcae8b51695e20b14aceab53fb096",
+      "bytes": 165891,
+      "sha256": "579849d36c355de563100d500ac30f17ea8ea72d563066af452cdf12affd645f"
+    },
+    {
+      "sourceFile": "site/reference/interview-scorecard/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/interview-scorecard/index.html",
+      "sourceBytes": 166117,
+      "sourceSha256": "30a8980e24ca99d5f7ec9f66b79062105c7a13ca305975b3d5e84a54db3f2a1c",
+      "bytes": 166125,
+      "sha256": "26a7402c65b6eeb5f71b7648176d0486b70d1630f40ee4a87e76a00208cb0cde"
+    },
+    {
+      "sourceFile": "site/reference/reading-diagrams/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/reading-diagrams/index.html",
+      "sourceBytes": 166265,
+      "sourceSha256": "d4440d54bc7565047891720d145367912f8e5f8f0ab170c14d46a36efa75e483",
+      "bytes": 166273,
+      "sha256": "6e9f1d2af1d6334bf392d1214d8cfbd14ab965379dc67542575baca854c177a2"
+    },
+    {
+      "sourceFile": "site/reference/scenario-contract/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/scenario-contract/index.html",
+      "sourceBytes": 171616,
+      "sourceSha256": "0a285deffb613d6802d3101b8d040b592756276a0ec4de05bd8d6d45c6a33fb7",
+      "bytes": 171624,
+      "sha256": "2041e8448a64fb39d90a1ba769efe6ac6c1506b021dd8ae6c4403ac788013d42"
+    },
+    {
+      "sourceFile": "site/reference/source-standard/index.html",
+      "contentPath": "/library/system-design-masterclass/reference/source-standard/index.html",
+      "sourceBytes": 169798,
+      "sourceSha256": "8bb1a33e220076c7e74dde9f308c1c20ab92d2b20ada6730b023bf6902b1cba4",
+      "bytes": 169806,
+      "sha256": "ac72aa717b47af54e2ac8b469d400b00bc9b7891415c2c7711fc8632f65310d6"
+    },
+    {
+      "sourceFile": "site/search/search_index.json",
+      "contentPath": "/library/system-design-masterclass/search/search_index.json",
+      "sourceBytes": 5214811,
+      "sourceSha256": "95d132f88e40ee72a77941942a1a2eca1375c4c409c229656b506ea381cb0a5b",
+      "bytes": 5214531,
+      "sha256": "0c23689329cab11e4fe05a6105545f7792c912f3654db0ff00ca360de2af179b"
+    },
+    {
+      "sourceFile": "site/sitemap.xml",
+      "contentPath": "/library/system-design-masterclass/sitemap.xml",
+      "sourceBytes": 56128,
+      "sourceSha256": "a712b43d7f48df11f1fe0fbc5524c95fc9df97db0e19aa48fd6b5747d51b6a51",
+      "bytes": 58728,
+      "sha256": "89ca563171ae96d03a646a1941e4718bf1e47b4d62c2b01996b96cf634c44a3e"
+    },
+    {
+      "sourceFile": "site/specialist/data-contracts-governance/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/data-contracts-governance/index.html",
+      "sourceBytes": 178176,
+      "sourceSha256": "1fcb42b209614fb5a669ad347fdb69824219a4676f3dc96d056f86a269e45814",
+      "bytes": 178184,
+      "sha256": "ddb96b76b41e5ee98daffc1452c9383f24c44910dffb62924822b7e69b10e3bd"
+    },
+    {
+      "sourceFile": "site/specialist/edge-iot-fleets/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/edge-iot-fleets/index.html",
+      "sourceBytes": 179814,
+      "sourceSha256": "42530b24481b439094142d6a5ce9f5ed6c6624f39a613a902d4299116b73fcd8",
+      "bytes": 179822,
+      "sha256": "e34c5e5a1a4fa58f3c512a3280fcffa0c317758c56d5a8ac7ee3c7cf6d260ea2"
+    },
+    {
+      "sourceFile": "site/specialist/formal-methods/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/formal-methods/index.html",
+      "sourceBytes": 183624,
+      "sourceSha256": "6b95131e64b0b207287b682225d6fa47c5c44ffdc02377eb0a79ee8ca24b42ce",
+      "bytes": 183632,
+      "sha256": "c56dcff3c16ee098a6735c0e2b7ae6d4d474691d94184352438545b7c1e5b9c7"
+    },
+    {
+      "sourceFile": "site/specialist/gpu-inference-platforms/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/gpu-inference-platforms/index.html",
+      "sourceBytes": 180144,
+      "sourceSha256": "ec43cf5b4713ba966bfb5ae0d92cc974fe68ebc53af53c8d4a9abbba5151c6ab",
+      "bytes": 180152,
+      "sha256": "1601e42d5a151b8e2bd1dd82003fa4ea3505f79ac7771a1a6481d7c6835e1c31"
+    },
+    {
+      "sourceFile": "site/specialist/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/index.html",
+      "sourceBytes": 163237,
+      "sourceSha256": "5a69c353ccd0f703216da15e1002c4a060d1bbaf44e3e75ee4a56376c75e319f",
+      "bytes": 163245,
+      "sha256": "dec6fe799286f952e7003915db4d6ab31c81c48f22133bc7d265cc590788dd7b"
+    },
+    {
+      "sourceFile": "site/specialist/local-first-crdts/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/local-first-crdts/index.html",
+      "sourceBytes": 179261,
+      "sourceSha256": "8669464933e705b9d369e7974eb05e660a95df1bc0dfa13113c4c7e0249fdb6e",
+      "bytes": 179269,
+      "sha256": "fcdb6c43bd89ac6718e8a5ce9998691b489b2fb052018359d78663a85b1bf49f"
+    },
+    {
+      "sourceFile": "site/specialist/production-ai-lifecycle/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/production-ai-lifecycle/index.html",
+      "sourceBytes": 179298,
+      "sourceSha256": "b53156946573808b519981b6c337b132df382c8d9f88bc077a71ddcf098be5a2",
+      "bytes": 179306,
+      "sha256": "4f2855adbc0e971f938c74f4759358fa16929460df684455a8ea3a2178fb77f6"
+    },
+    {
+      "sourceFile": "site/specialist/rag-agent-security/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/rag-agent-security/index.html",
+      "sourceBytes": 179896,
+      "sourceSha256": "0b2ffd1ab2376cf258ca1f063a651a6567f7fffc495da1fe429d5fd85488e0e6",
+      "bytes": 179904,
+      "sha256": "ebc58d270bded1a863afec809b4002d5cde3594e7c369e718d5e4d2e22787db2"
+    },
+    {
+      "sourceFile": "site/specialist/regulated-evidence/index.html",
+      "contentPath": "/library/system-design-masterclass/specialist/regulated-evidence/index.html",
+      "sourceBytes": 180635,
+      "sourceSha256": "9f16415ec932adeaf70295ef11e1bb3fa8e6394d6866e67df3bc218796acee4b",
+      "bytes": 180643,
+      "sha256": "5ca6f406c2a4992a856f4d9e8077a25c158bc006c6d08c00276a689b395ac575"
+    },
+    {
+      "sourceFile": "site/staff/capacity-and-economics/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/capacity-and-economics/index.html",
+      "sourceBytes": 179291,
+      "sourceSha256": "47b45c54be5fcc5e13ec55d2675fddf42f01911a5d9b2b858695ef9ab3a8fbdf",
+      "bytes": 179299,
+      "sha256": "ac2884196df7d2ffe5579538bde0dbcb742b6c7f6807be35ff6aaa7b2aaf5fae"
+    },
+    {
+      "sourceFile": "site/staff/control-planes/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/control-planes/index.html",
+      "sourceBytes": 175835,
+      "sourceSha256": "9ef7d5dc3c20f614512d102d258a95fec25e10d2f7b6f5f33621c8802897eac9",
+      "bytes": 175843,
+      "sha256": "217ff77c66ed70ea7bbefac0791aad048aeafbdc09eed2e02cef4d9c2899f5cc"
+    },
+    {
+      "sourceFile": "site/staff/distributed-systems-testing/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/distributed-systems-testing/index.html",
+      "sourceBytes": 177544,
+      "sourceSha256": "f21100cd8b27c55b76e72b6db195ed9ab5e9d417c603cab74d2045c906e51d1c",
+      "bytes": 177552,
+      "sha256": "af8d45353df2ee631f2a2fc612c390deece2725f3e12794921c05ecaf3278f8c"
+    },
+    {
+      "sourceFile": "site/staff/evolutionary-architecture/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/evolutionary-architecture/index.html",
+      "sourceBytes": 177936,
+      "sourceSha256": "bd9e5da7044319c67344c5fe34961585a2ddb4e39b6b76e7bcedd3c18ada9f43",
+      "bytes": 177944,
+      "sha256": "5b7c6c672267efb116562aa0f7f3b840107d32afd29434c211a7144c9d2af326"
+    },
+    {
+      "sourceFile": "site/staff/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/index.html",
+      "sourceBytes": 164138,
+      "sourceSha256": "46058b0e2949c0213b1c8e76dce7bdd7fdf604868a0673f521d8e54c56db5ceb",
+      "bytes": 164146,
+      "sha256": "597d4bb5f763a4e5eb96a23f82d0d468c18ba98cffd3df6fb1b67f0af82bc194"
+    },
+    {
+      "sourceFile": "site/staff/multi-tenant-isolation/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/multi-tenant-isolation/index.html",
+      "sourceBytes": 176582,
+      "sourceSha256": "fa94020724fd34412f4686494f8ff690516fe6128a2ed19013d92d9876d58ee5",
+      "bytes": 176590,
+      "sha256": "d194fbcd4fc30ab5933a1a9fad5df237e8311ea316812af2231af8886f9eea9b"
+    },
+    {
+      "sourceFile": "site/staff/operational-readiness/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/operational-readiness/index.html",
+      "sourceBytes": 176587,
+      "sourceSha256": "162af374195c9d2b17daab9eb13d75a7878cf9d015976b24e36882db7b1e605b",
+      "bytes": 176595,
+      "sha256": "bf293792b65fa7b62467f5963c6ef7129ea8e59f8cac7eb5b0f521a93d47e13d"
+    },
+    {
+      "sourceFile": "site/staff/organizational-architecture/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/organizational-architecture/index.html",
+      "sourceBytes": 175473,
+      "sourceSha256": "c01d00b8bbb00b63cfea7132b143a7bafb3eb6f105b6dab3b23040d203880e62",
+      "bytes": 175481,
+      "sha256": "503c9131b7d7b30a9cc13dc588129b1b754130035e213bf857041edac95d3f26"
+    },
+    {
+      "sourceFile": "site/staff/privacy-data-lifecycle/index.html",
+      "contentPath": "/library/system-design-masterclass/staff/privacy-data-lifecycle/index.html",
+      "sourceBytes": 177940,
+      "sourceSha256": "c3760503e61598784f70f24ecdfb7095bdb136f9824c856587060e9526468c47",
+      "bytes": 177948,
+      "sha256": "a5ec35f1376d7f73bcbdcc70d6e178d0229abb2997f49995f21837cb7d05b806"
+    },
+    {
+      "sourceFile": "site/study-plans/index.html",
+      "contentPath": "/library/system-design-masterclass/study-plans/index.html",
+      "sourceBytes": 187564,
+      "sourceSha256": "6ace88a257095cab68a46224724a5796362832aad74abb0d74fb5909200b35a9",
+      "bytes": 187536,
+      "sha256": "e188504d3638c00045d2cf43c596ec4748f3939fb6441598742cc10d835cd46b"
+    },
+    {
+      "sourceFile": "site/stylesheets/diagrams.css",
+      "contentPath": "/library/system-design-masterclass/stylesheets/diagrams.css",
+      "sourceBytes": 3972,
+      "sourceSha256": "2ae11041a929bfee32d1c5c7e08ca8b8a970caab409f8fdcb42f97174705bf0e",
+      "bytes": 3972,
+      "sha256": "2ae11041a929bfee32d1c5c7e08ca8b8a970caab409f8fdcb42f97174705bf0e"
+    },
+    {
+      "sourceFile": "site/stylesheets/extra.css",
+      "contentPath": "/library/system-design-masterclass/stylesheets/extra.css",
+      "sourceBytes": 23153,
+      "sourceSha256": "c41f1b4ccbe30366d9bc2e4482ed17402970524e5b95736af20de32c05b29f31",
+      "bytes": 23153,
+      "sha256": "c41f1b4ccbe30366d9bc2e4482ed17402970524e5b95736af20de32c05b29f31"
+    },
+    {
+      "sourceFile": "site/stylesheets/reader.css",
+      "contentPath": "/library/system-design-masterclass/stylesheets/reader.css",
+      "sourceBytes": 11676,
+      "sourceSha256": "334c1fbddfe7c0e86c70e6d25c02340bc3d89eb2281b08356fb7caa31c52ed38",
+      "bytes": 11676,
+      "sha256": "334c1fbddfe7c0e86c70e6d25c02340bc3d89eb2281b08356fb7caa31c52ed38"
+    },
+    {
+      "sourceFile": "site/tools/capacity-lab/index.html",
+      "contentPath": "/library/system-design-masterclass/tools/capacity-lab/index.html",
+      "sourceBytes": 158529,
+      "sourceSha256": "635067f74f484230ba3077d8ea14091c6f096772a7970a25ef06c665ad13bbbb",
+      "bytes": 158537,
+      "sha256": "7a024d9283a986c4f2d688a07752b851e669581d0ba955cab94af4ef5bf9046f"
+    },
+    {
+      "sourceFile": "site/tools/practice-console/index.html",
+      "contentPath": "/library/system-design-masterclass/tools/practice-console/index.html",
+      "sourceBytes": 158329,
+      "sourceSha256": "748219e198a6fcbf9c0e6e7aaebe4211c4bfa1962e7c75597a32fddc48b59ae1",
+      "bytes": 158337,
+      "sha256": "a9e7cdef502ede98d93b59006bd7089a1fae68defbd1f419a33ab67f0c9527c5"
+    }
+  ]
+}

@@ -7,7 +7,7 @@ const check = process.argv.includes('--check');
 const published = process.argv.includes('--dist');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const excluded = new Set(['.git', 'node_modules', 'dist', 'dist-ssr', '.claude']);
-const manifests = ['public/library/playbooks/manifest.json', 'public/library/frontend-atlas/manifest.json'];
+const manifests = ['public/library/playbooks/manifest.json', 'public/library/frontend-atlas/manifest.json', 'public/library/system-design-masterclass/manifest.json', 'public/library/system-design-practice-lab/manifest.json'];
 const snapshots = new Map();
 if (!published) for (const path of manifests) snapshots.set(path, JSON.parse(await readFile(path, 'utf8')));
 let count = 0;

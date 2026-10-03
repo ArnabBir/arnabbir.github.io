@@ -1,0 +1,68 @@
+/* A consistent paper canvas gives diagrams stable contrast in either reader palette. */
+.sdm-diagram-shell {
+  --sdm-line: #ced9e5;
+  --sdm-muted: #526782;
+  --sdm-text: #172b4d;
+  --sdm-accent: #244f85;
+  --md-default-bg-color: #f8fafc;
+  --md-mermaid-label-fg-color: #172b4d;
+  --md-mermaid-label-bg-color: #f8fafc;
+  --md-mermaid-node-bg-color: #eaf2ff;
+  --md-mermaid-node-fg-color: #426b9c;
+  --md-mermaid-edge-color: #526782;
+  --md-mermaid-sequence-actor-bg-color: #eaf2ff;
+  --md-mermaid-sequence-actor-fg-color: #172b4d;
+  --md-mermaid-sequence-actor-border-color: #426b9c;
+  --md-mermaid-sequence-actor-line-color: #8b9bb0;
+  --md-mermaid-sequence-message-fg-color: #172b4d;
+  --md-mermaid-sequence-message-line-color: #526782;
+  --md-mermaid-sequence-note-bg-color: #fff5d9;
+  --md-mermaid-sequence-note-fg-color: #473a17;
+  --md-mermaid-sequence-note-border-color: #b58c35;
+  --md-mermaid-sequence-loop-fg-color: #172b4d;
+  --md-mermaid-sequence-loop-border-color: #7b9d97;
+  --md-mermaid-sequence-label-bg-color: #edf7f5;
+  --md-mermaid-sequence-label-fg-color: #172b4d;
+  --md-mermaid-sequence-number-bg-color: #426b9c;
+  --md-mermaid-sequence-number-fg-color: #fff;
+  --md-mermaid-sequence-box-bg-color: #f1f5f9;
+  --md-mermaid-sequence-box-fg-color: #172b4d;
+  color-scheme: light;
+  background: #f8fafc;
+  color: #172b4d;
+  text-align: left;
+  box-shadow: 0 3px 14px #0c234012;
+}
+.md-typeset .sdm-diagram-shell { margin: 1.5rem 0; max-width: 100%; }
+.sdm-diagram-toolbar { background: #eef3f9; flex-wrap: wrap; gap: 0.5rem; }
+.sdm-diagram-label { font-family: Inter, system-ui, sans-serif; font-size: 0.7rem; letter-spacing: 0; text-transform: none; }
+.sdm-diagram-actions { flex-wrap: wrap; width: auto; overflow: visible; }
+.sdm-diagram-actions button { background: #fff; color: #244f85; min-height: 2.2rem; min-width: 2.2rem; }
+.sdm-diagram-actions button:hover { background: #e3edfa; color: #172b4d; }
+.sdm-diagram-shell :focus-visible { outline: 3px solid #386fc0; outline-offset: -3px; }
+.sdm-diagram-viewport { display: block; padding: 1.5rem; scrollbar-color: #8b9bb0 #eef3f9; background-image: radial-gradient(#b6c4d550 0.7px, transparent 0.7px); background-size: 16px 16px; }
+.mermaid { text-align: left; }
+.mermaid svg { margin: 0 auto; }
+.md-typeset .sdm-diagram-hint { margin: 0; padding: 0.5rem 0.8rem; border-top: 1px solid #ced9e5; color: #526782; font-size: 0.62rem; }
+.md-typeset .sdm-diagram-source { margin: 0; border: 0; border-top: 1px solid #ced9e5; border-radius: 0; background: #f1f5f9; color: #172b4d; }
+.md-typeset .sdm-diagram-source summary { background: #eef3f9; color: #244f85; }
+.md-typeset .sdm-diagram-source pre { padding: 1rem; margin: 0; color: #172b4d; font-size: 0.65rem; }
+.sdm-diagram-dialog { width: calc(100vw - 2rem); max-width: none; height: calc(100dvh - 2rem); max-height: none; padding: 0; border: 0; border-radius: 0.5rem; background: #f8fafc; }
+.sdm-diagram-dialog::backdrop { background: #071525bb; backdrop-filter: blur(4px); }
+.sdm-diagram-dialog .sdm-diagram-shell.is-expanded { position: static; width: 100%; height: 100%; border: 0; margin: 0; box-shadow: none; }
+.sdm-diagram-dialog .sdm-diagram-viewport { min-height: 0; }
+@media (max-width: 44em) {
+  .sdm-diagram-viewport { padding: 0.8rem; }
+  .sdm-diagram-actions { gap: 0.15rem; }
+  .sdm-diagram-actions button { padding: 0.2rem 0.4rem; }
+  .sdm-diagram-actions output { width: 2.4rem; }
+  .sdm-diagram-dialog { width: calc(100vw - 0.5rem); height: calc(100dvh - 0.5rem); }
+}
+@media print {
+  .sdm-diagram-actions, .sdm-diagram-hint, .sdm-diagram-source { display: none; }
+  .sdm-diagram-viewport { overflow: visible; max-height: none; padding: 0; }
+  .mermaid svg { max-width: 100% !important; }
+}
+/* Override Material's narrow, italic figure captions. */
+.md-typeset .sdm-diagram-toolbar { max-width: none; width: 100%; margin: 0; font-style: normal; text-align: left; box-sizing: border-box; }
+.sdm-diagram-viewport { min-height: 8rem; }
