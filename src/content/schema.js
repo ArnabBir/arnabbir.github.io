@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CitationSchema, SourceTypeSchema } from './paperResearchSchema.js';
 
 export const SocialLinkSchema = z.object({
   label: z.string(),
@@ -134,7 +135,14 @@ export const LibraryItemSchema = z.object({
           objective: z.string().optional(),
           source: z.string().url().optional(),
           sourceLabel: z.string().optional(),
-          kind: z.enum(['Legacy interactive', 'Model lab', 'Guided walkthrough', 'Interactive demo']).optional(),
+          kind: z.enum(['Legacy interactive', 'Model lab', 'Guided walkthrough', 'Interactive demo', 'Reading guide']).optional(),
+          sourceType: SourceTypeSchema.optional(),
+          ...CitationSchema.partial().shape,
+          citationTitle: z.string().optional(),
+          citationNote: z.string().optional(),
+          citationStatus: z.enum(['Curated', 'Partial']).optional(),
+          evidenceUrl: z.string().url().optional(),
+          researchPath: z.string().startsWith('/library/whitepapers/').optional(),
         }),
       ])
     )

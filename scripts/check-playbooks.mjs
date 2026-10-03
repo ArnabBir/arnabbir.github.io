@@ -55,7 +55,8 @@ try {
   assert.equal(new Set(library.map(item => item.id)).size, library.length);
   for (const item of library) LibraryItemSchema.parse(item);
   const papers = library.find(item => item.id === 'whitepapers');
-  assert.equal(papers.chapters.length, 52);
+  const { whitepaperCatalog } = await server.ssrLoadModule('/src/content/whitepapers.js');
+  assert.deepEqual(papers.chapters, whitepaperCatalog);
   const { resolvePaperChapter } = await server.ssrLoadModule('/src/content/whitepapers.js');
   for (let chapter = 1; chapter <= 52; chapter++) assert.ok(resolvePaperChapter(String(chapter)), `legacy paper ${chapter}`);
   console.log(`PASS: ${library.length} catalog entries; 24 unique imports; 8 category counts; provenance, schema, paths; 52 legacy paper chapter resolutions.`);

@@ -30,7 +30,7 @@ test('52 stable chapter destinations: every native route, legacy file, and metad
 });
 
 test('legacy chapter resolver rejects malformed or out-of-range indices', () => {
-  for (const value of [null, '', '0', '-1', '1x', '1.5', '01', '53', 'Infinity']) assert.equal(resolvePaperChapter(value), null);
+  for (const value of [null, '', '0', '-1', '1x', '1.5', '01', '77', 'Infinity']) assert.equal(resolvePaperChapter(value), null);
 });
 
 test('content validation preserves the metadata consumed by rack and lab pages', () => {

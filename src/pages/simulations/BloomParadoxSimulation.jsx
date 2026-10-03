@@ -2,6 +2,7 @@
 
 import React from "react";
 import PaperSimulationScaffold from "./_shared/PaperSimulationScaffold";
+import PaperExperiment from "./labs/PaperExperiment";
 
 const CONFIG = {
   "id": "bloom-paradox",
@@ -192,5 +193,5 @@ const CONFIG = {
 };
 
 export default function BloomParadoxSimulation() {
-  return <PaperSimulationScaffold config={CONFIG} />;
+  return <PaperSimulationScaffold config={CONFIG} experiment={<PaperExperiment id="bloom-paradox" />} />;
 }

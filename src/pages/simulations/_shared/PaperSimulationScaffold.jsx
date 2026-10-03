@@ -144,7 +144,7 @@ function SectionTitle({ icon, title, accent }) {
   );
 }
 
-export default function PaperSimulationScaffold({ config }) {
+export default function PaperSimulationScaffold({ config, experiment }) {
   const paper = paperMetadata.find(p => p.id === config?.id);
   const { theme, setTheme } = useTheme();
   const accent = ACCENTS[config?.accent] || ACCENTS.indigo;
@@ -276,12 +276,14 @@ export default function PaperSimulationScaffold({ config }) {
         <nav className="flex flex-wrap justify-between gap-4 mb-5 text-sm">
           <Link className="underline underline-offset-4" to="/library/rack/whitepapers">Back to whitepapers</Link>
           {paper && <a className="underline underline-offset-4" href={paper.source} target="_blank" rel="noopener noreferrer">{paper.sourceLabel} (new tab)</a>}
+          {paper?.researchPath && <Link className="underline underline-offset-4" to={paper.researchPath}>Research workspace</Link>}
         </nav>
         <aside className="rounded-xl border border-slate-300 dark:border-slate-700 p-4 mb-6 text-sm leading-relaxed">
-          <strong>Guided walkthrough, not an executable system model.</strong> The controls navigate a fixed explanatory sequence; they do not compute workload, failure, or performance outcomes.
+          <strong>Guided walkthrough.</strong> The step controls navigate a fixed explanatory sequence; they do not compute workload, failure, or performance outcomes. {experiment ? 'The separate experiment below computes the stated model directly.' : 'This is not an executable system model.'}
           {paper && <p className="mt-2">Learning objective: {paper.objective}</p>}
           <p className="mt-2">For experiments with computed failures and state, try the <Link className="underline" to="/library/whitepapers/dynamo">Dynamo lab</Link> or <Link className="underline" to="/library/whitepapers/paxos-simple">Paxos lab</Link>.</p>
         </aside>
+        {experiment}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Steps */}
           <div className="lg:col-span-4 flex flex-col gap-4">

@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import RelatedResearch from '../_shared/RelatedResearch';
 import { ArrowLeft, ExternalLink, RotateCcw } from 'lucide-react';
 import { libraryContent } from '@/content';
 import { labIds } from '@/content/whitepapers';
@@ -167,7 +168,8 @@ function Lab({ paper }) {
       {s.note && <div className="lab-note" role="status"><strong>Observation</strong><p>{s.note}</p></div>}
     </section>
     <section className="lab-two-columns lab-reading"><div><p className="lab-eyebrow">03 / Explain</p><h2>What should you take away?</h2><p>{paper.objective}</p><p>Before resetting, explain which assumption changed the outcome. Which part would require coordination, persistence, or measurement in a real deployment?</p></div><aside><h2>Model boundaries</h2><p>{limitation}</p><a href={paper.source} target="_blank" rel="noopener noreferrer">Read the source <ExternalLink size={14} /></a></aside></section>
-    <footer className="lab-footer"><Link to="/library/rack/whitepapers">Back to all 52 experiences</Link><span>Deterministic teaching model · not a production benchmark</span></footer>
+    <RelatedResearch id={paper.id} />
+    <footer className="lab-footer"><Link to="/library/rack/whitepapers">Back to the reading room</Link><span>Deterministic teaching model · not a production benchmark</span></footer>
   </main>;
 }
 

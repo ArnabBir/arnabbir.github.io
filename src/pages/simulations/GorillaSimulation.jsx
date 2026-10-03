@@ -2,6 +2,7 @@
 
 import React from "react";
 import PaperSimulationScaffold from "./_shared/PaperSimulationScaffold";
+import PaperExperiment from "./labs/PaperExperiment";
 
 const CONFIG = {
   "id": "gorilla",
@@ -192,5 +193,5 @@ const CONFIG = {
 };
 
 export default function GorillaSimulation() {
-  return <PaperSimulationScaffold config={CONFIG} />;
+  return <PaperSimulationScaffold config={CONFIG} experiment={<PaperExperiment id="gorilla" />} />;
 }

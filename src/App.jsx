@@ -8,6 +8,8 @@ import { ThemeProvider } from "next-themes";
 import ScrollToTop from "./components/ScrollToTop";
 import LoadingSpinner from "./components/LoadingSpinner";
 import PaperExperienceNav from './pages/simulations/_shared/PaperExperienceNav';
+import { researchPapers } from './content/paperResearch';
+import { legacyResearchPapers } from './content/paperGuides';
 
 const LibraryHome = lazy(() => import("./pages/LibraryHome"));
 const LibraryRack = lazy(() => import("./pages/LibraryRack"));
@@ -15,6 +17,7 @@ const LibraryItem = lazy(() => import("./pages/LibraryItem"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const AllBlogs = lazy(() => import("./pages/AllBlogs"));
 const PaperLab = lazy(() => import('./pages/simulations/labs/PaperLab'));
+const PaperResearch = lazy(() => import('./pages/PaperResearch'));
 
 // Simulation pages: lazy loaded for code splitting
 const AnycastLoadBalancingSimulation = lazy(() => import("./pages/simulations/AnycastLoadBalancingSimulation"));
@@ -108,6 +111,8 @@ const App = () => (
               {SIMULATION_ROUTES.map(({ path, component: Component }) => (
                 <Route key={path} path={`/library/whitepapers/${path}`} element={<PaperExperienceNav id={path}><Component /></PaperExperienceNav>} />
               ))}
+              {researchPapers.map(paper => <Route key={paper.id} path={`/library/whitepapers/${paper.id}`} element={<PaperResearch key={paper.id} id={paper.id} />} />)}
+              {legacyResearchPapers.map(paper => <Route key={`${paper.id}-research`} path={`/library/whitepapers/${paper.id}/research`} element={<PaperResearch key={paper.id} id={paper.id} />} />)}
               <Route path="/library/whitepapers/:slug" element={<PaperLab />} />
               <Route path="/library/rack/:rackId" element={<LibraryRack />} />
               <Route path="/library/:id" element={<LibraryItem />} />

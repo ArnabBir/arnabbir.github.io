@@ -1,3 +1,7 @@
+import { researchPapers } from './paperResearch.js';
+import { legacyCitations } from './legacyPaperCitations.js';
+import { legacyGuideContent } from './legacyPaperResearch.js';
+
 // Order is persisted by the original ?chapter=N links. Append; do not reorder.
 const entries = [
   ['mendel', 'Experimentation', 'Explore how independent experiment layers share traffic without sharing parameters.', 'https://research.google/pubs/overlapping-experiment-infrastructure-more-better-faster-experimentation/', 'mendel.html'],
@@ -57,13 +61,66 @@ const entries = [
 export const labIds = ['pregel', 'colossus', 'percolator', 'millwheel', 'tensorflow', 'lambda-architecture', 'google-infrastructure-security', 'photon-pubsub', 'jupiter-rising', 'autopilot', 'inside-google-datacenters', 'sre-workbook', 'dynamo', 'paxos-simple'];
 const walkthroughs = new Set(['bloom-paradox', 'druid', 'f1', 'federated-optimizations', 'flumejava', 'google-search-anatomy', 'gorilla', 'magnet-shuffle', 'monarch', 'myrocks1', 'napa', 'parallelism-optimizing-data-placement', 'paxos-made-live', 'relational-model', 'scaling-pagerank', 'sre-capacity-management', 'trickle', 'twitter-wtf', 'web-search-for-a-planet']);
 
+// Stable IDs, not array positions, connect titles and optional verified citations.
+const titles = {
+  mendel: 'Google Mendel: Overlapping Experiment Infrastructure',
+  gfs: 'The Google File System (GFS)', mapreduce: 'MapReduce: Simplified Data Processing',
+  bigtable: 'Bigtable: A Distributed Storage System', chubby: 'The Chubby Lock Service',
+  spanner: 'Spanner: Globally Distributed Database', borg: 'Borg: The Cluster Management System',
+  dremel: 'Dremel: Interactive Analysis of Web-Scale Data', 'anycast-load-balancing': 'Anycast Load Balancing',
+  bitcoin: 'Bitcoin', 'bloom-paradox': 'Bloom Paradox', druid: 'Druid',
+  dynamo: "Dynamo: Amazon's Highly Available Key-value Store", f1: 'F1: The Fault-Tolerant Distributed SQL Database',
+  'federated-optimizations': 'Federated Optimizations', flumejava: 'FlumeJava', 'google-search-anatomy': 'Google Search Anatomy',
+  gorilla: 'Gorilla: A Fast, Scalable, In-Memory Time Series Database', 'magnet-shuffle': 'Magnet Shuffle', megastore: 'Megastore',
+  monarch: 'Monarch: Planet-Scale Monitoring', myrocks: 'MyRocks', myrocks1: 'MyRocks (Extended)', napa: 'Napa',
+  'parallelism-optimizing-data-placement': 'Parallelism: Optimizing Data Placement', 'paxos-made-live': 'Paxos Made Live',
+  'paxos-simple': 'Paxos Simple', pregel: 'Pregel: Large-Scale Graph Processing', quic: 'QUIC',
+  'relational-model': 'The Relational Model', 'scaling-pagerank': 'Scaling PageRank', 'sre-capacity-management': 'SRE Capacity Management',
+  sundial: 'Sundial: Fault-Tolerant Clock Synchronization', 'thread-per-core-tail-latency': 'Thread-Per-Core Tail Latency',
+  trickle: 'Trickle', 'twitter-wtf': 'Twitter WTF', 'virtual-memory': 'Virtual Memory Simulation',
+  'web-search-for-a-planet': 'Web Search for a Planet', 'windows-azure-storage': 'Windows Azure Storage', zanzibar: 'Zanzibar',
+  colossus: 'Colossus: The Google File System (Next Gen)', percolator: 'Percolator: Incremental Processing',
+  millwheel: 'MillWheel: Stream Processing System', tensorflow: 'TensorFlow: Large-Scale Machine Learning',
+  'lambda-architecture': 'Lambda Architecture: Batch and Speed Views', 'google-infrastructure-security': 'Google Infrastructure Security Design',
+  'photon-pubsub': 'Photon / PubSub: Messaging at Scale', 'jupiter-rising': 'Jupiter Rising: Network Architecture at Google',
+  autopilot: 'Autopilot: Workload Autoscaling at Google', 'inside-google-datacenters': 'Inside Google Datacenters & Networking',
+  'sre-workbook': 'SRE Workbook Foundations (Google SRE)', 'idf-symbolic-sim': 'Term Frequency Inverse Document Frequency',
+};
+const citations = {
+  gfs: { citationTitle: 'The Google File System', year: 2003, authors: ['Sanjay Ghemawat', 'Howard Gobioff', 'Shun-Tak Leung'], venue: 'SOSP' },
+  mapreduce: { citationTitle: 'MapReduce: Simplified Data Processing on Large Clusters', year: 2004, authors: ['Jeffrey Dean', 'Sanjay Ghemawat'], venue: 'OSDI' },
+  bigtable: { citationTitle: 'Bigtable: A Distributed Storage System for Structured Data', year: 2006, authors: ['Fay Chang', 'Jeffrey Dean', 'Sanjay Ghemawat', 'Wilson C. Hsieh', 'Deborah A. Wallach', 'Mike Burrows', 'Tushar Chandra', 'Andrew Fikes', 'Robert E. Gruber'], venue: 'OSDI' },
+  spanner: { year: 2013, authors: ['James C. Corbett', 'Jeffrey Dean', 'Michael Epstein', 'Andrew Fikes', 'Christopher Frost', 'J. J. Furman', 'Sanjay Ghemawat', 'Andrey Gubarev', 'Christopher Heiser', 'Peter Hochschild', 'Wilson C. Hsieh', 'Sebastian Kanthak', 'Eugene Kogan', 'Hongyi Li', 'Alexander Lloyd', 'Sergey Melnik', 'David Mwaura', 'David Nagle', 'Sean Quinlan', 'Rajesh Rao', 'Lindsay Rolig', 'Yasushi Saito', 'Michal Szymaniak', 'Christopher Taylor', 'Ruth Wang', 'Dale Woodford'], venue: 'ACM TOCS (journal version linked here)' },
+};
+const sourceTypes = {
+  spanner: 'Research article',
+  'anycast-load-balancing': 'Standard', quic: 'Standard',
+  'bloom-paradox': 'Related reference', 'federated-optimizations': 'Related reference', 'thread-per-core-tail-latency': 'Related reference',
+  druid: 'Project documentation', myrocks: 'Project documentation', myrocks1: 'Project documentation',
+  'sre-capacity-management': 'Textbook', 'virtual-memory': 'Textbook', 'lambda-architecture': 'Textbook', 'sre-workbook': 'Textbook', 'idf-symbolic-sim': 'Textbook',
+  colossus: 'Engineering overview', 'google-infrastructure-security': 'Engineering overview', 'inside-google-datacenters': 'Engineering overview',
+};
 export const paperMetadata = entries.map(([id, category, objective, source, html, sourceLabel]) => ({
-  id, category, objective, source, sourceLabel: sourceLabel || 'Original paper',
+  id, title: titles[id], category, objective, source, sourceLabel: sourceLabel || 'Original paper',
+  sourceType: sourceTypes[id] || 'Research paper',
+  ...(citations[id] ? { ...citations[id], citationStatus: 'Curated', yearBasis: 'Publication', verifiedOn: '2026-10-03' } : {}),
+  ...(id === 'spanner' ? { citationTitle: "Spanner: Google's Globally Distributed Database", citationNote: 'The linked institutional record describes the 2013 ACM TOCS journal edition, not the original 2012 OSDI proceedings paper.' } : {}),
+  ...(legacyCitations[id] ? { citationStatus: 'Curated', ...legacyCitations[id] } : {}),
   contentPath: html ? `/library/${html}` : `/library/whitepapers/${id}`,
+  ...(legacyGuideContent[id] ? { researchPath: `/library/whitepapers/${id}/research` } : {}),
   kind: html ? 'Legacy interactive' : labIds.includes(id) ? 'Model lab' : walkthroughs.has(id) ? 'Guided walkthrough' : 'Interactive demo',
 }));
 
+export const whitepaperCatalog = [...paperMetadata, ...researchPapers.map(p => ({
+  id: p.id, title: p.title.toLowerCase().startsWith(p.shortTitle.toLowerCase()) ? p.title : `${p.shortTitle}: ${p.title}`,
+  category: p.category, objective: p.objective, source: p.source, sourceType: p.sourceType,
+  sourceLabel: 'Original paper / primary source', kind: 'Reading guide', contentPath: `/library/whitepapers/${p.id}`,
+  year: p.year, yearBasis: p.yearBasis, authors: p.authors, venue: p.venue, verifiedOn: p.verifiedOn,
+  citationTitle: p.title, citationStatus: 'Curated',
+}))];
+export const paperById = Object.fromEntries(whitepaperCatalog.map(p => [p.id, p]));
+
 export function resolvePaperChapter(value) {
   if (!/^[1-9]\d*$/.test(value || '')) return null;
-  return paperMetadata[Number(value) - 1]?.contentPath || null;
+  return whitepaperCatalog[Number(value) - 1]?.contentPath || null;
 }

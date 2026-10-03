@@ -1,0 +1,36 @@
+name: Whitepaper source review
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 8 1 * *'
+permissions:
+  contents: read
+concurrency:
+  group: whitepaper-source-review
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate registry
+        run: node --test scripts/tests/whitepapers.test.mjs
+      - name: Check source health
+        continue-on-error: true
+        run: node scripts/paper-sources.mjs > whitepaper-source-health.json
+      - name: Discover unreviewed links
+        continue-on-error: true
+        run: node scripts/paper-sources.mjs --discover > whitepaper-discovery.json
+      - name: Upload reports for human review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: whitepaper-review-reports
+          path: whitepaper-*.json
+          retention-days: 30
