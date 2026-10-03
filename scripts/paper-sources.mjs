@@ -1,7 +1,7 @@
 // Read-only, bounded network checks. Reports never edit or approve catalog entries.
 import { pathToFileURL } from 'node:url';
-import { researchPapers } from '../src/content/paperResearch.js';
-import { paperMetadata, whitepaperCatalog } from '../src/content/whitepapers.js';
+import { allResearchGuides } from '../src/content/paperGuides.js';
+import { whitepaperCatalog } from '../src/content/whitepapers.js';
 
 export const discoveryFeeds = [
   'https://www.usenix.org/conferences',
@@ -44,9 +44,15 @@ async function request(url) {
     return { status: response.status, finalUrl: response.url, contentType: response.headers.get('content-type') || '', body: Buffer.concat(chunks).toString('utf8') };
   } finally { clearTimeout(timeout); }
 }
+export function classifySourceResponse(url, { status, contentType, body }) {
+  if (status === 403 || status === 429 || /captcha|just a moment|verify you are human/i.test(body.slice(0, 8000))) return { result: 'manual-review-required', reason: 'Access blocked or challenge response.' };
+  if (status < 200 || status >= 300) return { result: 'failed' };
+  if ((/\.pdf(?:[?#]|$)/i.test(url) || /application\/pdf/i.test(contentType)) && !body.startsWith('%PDF-')) return { result: 'manual-review-required', reason: 'Expected a PDF but the response does not have a PDF signature; HTTP success is insufficient.' };
+  return { result: 'reachable-not-content-verified' };
+}
 export async function sourceReport() {
   const records = new Map();
-  for (const paper of [...researchPapers, ...paperMetadata.filter(p => p.verifiedOn)]) {
+  for (const paper of allResearchGuides) {
     for (const url of new Set([paper.source, ...(paper.evidenceUrl ? [paper.evidenceUrl] : []), ...(paper.artifacts || []).map(a => a.url)])) {
       if (!records.has(url)) records.set(url, { url, papers: [] });
       records.get(url).papers.push(paper.id);
@@ -57,8 +63,7 @@ export async function sourceReport() {
   for (const record of records.values()) {
     try {
       const { body, ...response } = await request(record.url);
-      const blocked = response.status === 403 || response.status === 429 || /captcha|just a moment|verify you are human/i.test(body.slice(0, 8000));
-      results.push({ ...record, ...response, result: blocked ? 'manual-review-required' : response.status >= 200 && response.status < 300 ? 'reachable-not-content-verified' : 'failed' });
+      results.push({ ...record, ...response, ...classifySourceResponse(record.url, { ...response, body }) });
     } catch (error) { results.push({ ...record, result: 'failed', error: error.message }); }
   }
   return { checkedAt: new Date().toISOString(), mode: 'source-health', note: 'Reachability is not bibliographic or scientific verification. Do not update verifiedOn from this report.', results };

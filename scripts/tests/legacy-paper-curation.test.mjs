@@ -3,10 +3,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { paperMetadata, paperById, whitepaperCatalog, resolvePaperChapter } from '../../src/content/whitepapers.js';
 import { legacyCitations } from '../../src/content/legacyPaperCitations.js';
-import { LegacyGuideSchema, legacyResearchPapers, allResearchGuides, guidePath } from '../../src/content/paperGuides.js';
+import { LegacyGuideSchema, legacyResearchPapers, allResearchGuides, guidePath, guideLabel } from '../../src/content/paperGuides.js';
+import { legacyStorageGuides } from '../../src/content/legacyStorageGuides.js';
+import { legacyDataGuides } from '../../src/content/legacyDataGuides.js';
+import { legacySystemsGuides } from '../../src/content/legacySystemsGuides.js';
+import { legacyPublicCopies, sourceAccessNotes } from '../../src/content/legacyPaperSources.js';
 import { filterPapers, researchWorksheet } from '../../src/content/paperCatalogTools.js';
 import { bloomExperiment, gorillaResidualCost, gorillaExperiment, timestampPresets } from '../../src/pages/simulations/labs/paperExperiments.js';
-import { sourceReport } from '../paper-sources.mjs';
+import { sourceReport, classifySourceResponse } from '../paper-sources.mjs';
 
 test('source checker refuses disabled TLS verification before making any request', async () => {
   const previous = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
@@ -50,8 +54,8 @@ test('all 48 remaining legacy citations are reviewed without inventing dates for
 });
 
 test('legacy workspaces reuse strict guide content while preserving every original destination', () => {
-  assert.equal(legacyResearchPapers.length, 14);
-  assert.equal(allResearchGuides.length, 38);
+  assert.equal(legacyResearchPapers.length, 52);
+  assert.equal(allResearchGuides.length, 76);
   const app = readFileSync(new URL('../../src/App.jsx', import.meta.url), 'utf8');
   assert.match(app, /legacyResearchPapers\.map/);
   for (const p of legacyResearchPapers) {
@@ -74,6 +78,51 @@ test('legacy workspaces reuse strict guide content while preserving every origin
   assert.ok(worksheet.includes(`Source type: ${druid.sourceType}`));
   assert.ok(worksheet.includes(`Original interactive experience: ${druid.demoPath}`));
   assert.ok(filterPapers(whitepaperCatalog, { query: 'allowable errors' }).some(p => p.id === 'bloom-paradox'));
+});
+
+test('76 workspaces cover the exact catalog with distinct authored content and safe source URLs', () => {
+  assert.deepEqual(allResearchGuides.map(p => p.id).sort(), whitepaperCatalog.map(p => p.id).sort());
+  assert.equal(new Set(allResearchGuides.map(guidePath)).size, 76);
+  const additions = [legacyStorageGuides, legacyDataGuides, legacySystemsGuides].flatMap(Object.keys);
+  assert.equal(additions.length, 38);
+  assert.equal(new Set(additions).size, 38, 'Content batches must not shadow each other');
+  for (const field of ['problem', 'ideas', 'tradeoffs', 'readingNotes', 'diagram', 'glossary', 'exercise']) {
+    assert.equal(new Set(allResearchGuides.map(p => JSON.stringify(p[field]))).size, 76, field);
+  }
+  const ids = new Set(allResearchGuides.map(p => p.id));
+  for (const p of allResearchGuides) {
+    assert.equal(new Set(p.artifacts.map(a => a.url)).size, p.artifacts.length, p.id);
+    assert.equal(new Set(p.diagram.map(n => n.label)).size, p.diagram.length, p.id);
+    assert.equal(new Set(p.related.map(r => r.id)).size, p.related.length, p.id);
+    for (const r of p.related) assert.ok(ids.has(r.id) && r.id !== p.id, `${p.id} -> ${r.id}`);
+    for (const a of p.artifacts) {
+      const url = new URL(a.url);
+      assert.equal(url.protocol, 'https:');
+      assert.equal(url.username + url.password, '');
+    }
+    const worksheet = researchWorksheet(p, 'A testable prediction');
+    assert.ok(!worksheet.includes('undefined'), p.id);
+    assert.ok(worksheet.includes(p.exercise.prompt) && worksheet.includes(p.glossary[0].term), p.id);
+  }
+  assert.equal(guideLabel(paperById['lambda-architecture']), 'Book / chapter guide');
+  assert.equal(guideLabel(paperById.quic), 'Standards guide');
+  assert.equal(guideLabel(paperById.myrocks), 'Topic guide');
+});
+
+test('public copies supplement canonical citations and PDF soft failures stay visible', () => {
+  assert.equal(Object.keys(legacyPublicCopies).length, 6);
+  for (const [id, copy] of Object.entries(legacyPublicCopies)) {
+    const paper = legacyResearchPapers.find(p => p.id === id);
+    assert.ok(paper.artifacts.some(a => a.url === copy.url));
+    assert.equal(paper.artifacts[0].url, paperById[id].source);
+    assert.notEqual(copy.url, paper.source);
+  }
+  assert.match(sourceAccessNotes[paperById['bloom-paradox'].source], /No same-work public alternate was verified/);
+  const response = { status: 200, contentType: 'text/html', body: '<html>Page not found</html>' };
+  assert.equal(classifySourceResponse('https://example.org/paper.pdf', response).result, 'manual-review-required');
+  assert.equal(classifySourceResponse('https://example.org/paper.pdf', { ...response, body: '%PDF-1.5 data', contentType: 'application/pdf' }).result, 'reachable-not-content-verified');
+  assert.equal(classifySourceResponse('https://example.org/', { ...response, status: 403 }).result, 'manual-review-required');
+  assert.equal(classifySourceResponse('https://example.org/', { ...response, status: 404 }).result, 'failed');
 });
 
 test('Bloom experiment has no false negatives, stable witnesses, and conditional cost accounting', () => {

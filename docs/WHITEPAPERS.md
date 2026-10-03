@@ -4,9 +4,59 @@ Entry point: `/library/rack/whitepapers`.
 
 ## Coverage
 
-The catalog contains **76 entries: 52 preserved experiences and 24 new research reading guides**. Fourteen preserved experiences also have research workspaces, for **38 workspaces without duplicate catalog entries**. It is a curated mixture of papers and companions, not a claim that every entry is an original research paper. The first 52 chapter positions are a compatibility contract for `/library/whitepapers?chapter=N` links. New entries have stable ID-based URLs and are appended after that prefix.
+The catalog contains **76 entries: 52 preserved experiences and 24 research reading guides**. All 52 preserved experiences now also have research workspaces, for **76/76 workspaces without duplicate catalog entries**. It is a curated mixture of papers, standards, books, documentation, and topic companions, not a claim that every entry is an original research paper or a simulation. The first 52 chapter positions are a compatibility contract for `/library/whitepapers?chapter=N` links. New entries have stable ID-based URLs and are appended after that prefix.
 
-## Legacy curation continuation, 2026-10-03 local date
+## Complete workspace coverage, 2026-10-03
+
+This section supersedes the historical 38-workspace counts below. Bibliography backlog: **0**. Workspace backlog: **0**. The worktree was clean at the start of this continuation; existing tracked work was preserved. No agent-delegation tool was available, so the three disjoint content batches were authored and integrated directly.
+
+### Completion checklist
+
+- [x] Inspect current citation/schema/content/routing patterns and prior verification records.
+- [x] Add 38 individually authored workspaces: 10 storage/authorization, 15 data/search/ML, and 13 systems/networking/consensus guides.
+- [x] Preserve all 76 entries, all 52 historical chapter mappings, and every original interactive destination.
+- [x] Include a distinct problem, mechanisms, assumptions, two-pass reading plan, semantic concept diagram, glossary, exercise with reasoning guidance, related guides, and real source links in each workspace.
+- [x] Verify same-work public alternatives and keep canonical publisher citations and access caveats.
+- [x] Polish comparison, guide classification, source access, worksheet exports, and bidirectional navigation.
+- [x] Validate metadata coverage, uniqueness, related references, source URLs, and routes with automated tests.
+- [x] Run production build, strict-TLS source checks, desktop/mobile browser checks, and punctuation/diff checks.
+
+### Reading-room polish
+
+- All 52 original experiences retain prominent hero links from their workspace. All five standalone HTML demos now link back to their own reading workspace.
+- Previous/next navigation follows the frozen catalog order. Related links always lead to a reading workspace; a grouped, alphabetized comparison selector covers every other entry.
+- Book/chapter, standards, and topic guides have distinct labels. Corporate attribution is no longer described as a number of personal authors. Citation dates remain separate from access-check observations.
+- Verified public copies are offered next to canonical source links. Restricted canonical sources display their actual access caveat in the hero and evidence shelf.
+- Diagrams remain semantic ordered lists with an accessible figure caption, responsive stacking, and text explanations. Mobile section links have larger touch areas and long content wraps locally.
+- Worksheet exports now include prerequisites, the conceptual sequence, glossary, and reasoning guidance alongside source caveats and user notes. Existing note keys, browser persistence, export behavior, and demo progress behavior are retained.
+- Bloom and Gorilla remain the existing bounded computed experiments. None of the 38 new editorial workspaces is presented as an executable implementation.
+
+### Source review and access report
+
+Source-level provenance and caveats are recorded in [WHITEPAPER-SOURCE-REVIEW.md](WHITEPAPER-SOURCE-REVIEW.md). The six new public-copy links were checked by inspecting PDF titles/bylines and the matching work, not merely an HTTP status. Author summaries and institutional abstracts support the reading plans; this is not a claim to have reproduced every experiment or audited every implementation.
+
+Strict-TLS source-health run at **2026-10-03T08:24:30.010Z**:
+
+| Result | Distinct URLs |
+| --- | ---: |
+| Reachable, not automatically content-verified | 89 |
+| Manual review required, HTTP 403 at ACM | 9 |
+| Hard failures or TLS failures | 0 |
+| Total, including six added public copies | 98 |
+
+Both canonical O'Reilly book records returned success in this run, after HTTP 403 in the preceding session. Their public `sre.google` chapter links remain the reading sources. This variability is documented, not treated as permanently fixed access. An intermediate RFC 9000 timeout cleared in the final full run. Bloom is the one blocked work for which no public full-text alternate was verified; retain the canonical restricted citation. The other eight ACM-linked works have a public full text through either an existing primary PDF or one of the six added copies.
+
+The checker now includes artifacts from **all 76 workspaces**, refuses disabled TLS verification, and flags a purported PDF that returns HTML even with HTTP 200. Reachability never updates bibliographic verification dates. The first exploratory Node request inherited disabled TLS verification; it was discarded as validation evidence, and the institutional checks and all final source checks were rerun with `NODE_TLS_REJECT_UNAUTHORIZED=1`.
+
+### Verification
+
+- `npm test`: **51/51 passed**, plus playbook/catalog checks, Frontend Atlas validation, and zero U+2014 punctuation violations.
+- `npm run build`: **passed**, with **54 emitted assets** and their references validated. Existing simulation sourcemap warnings and outdated Browserslist data remain non-fatal.
+- `npm run papers:test-browser` with the existing Playwright installation: **76/76 workspaces at 1440px and 390px**. Tests cover all source/artifact and public-copy hrefs, original demo links, guide-type labels, accessible figures, exercise reveals, related and adjacent routes, 76-option comparison menus, notebook isolation/persistence/export/storage failure, keyboard exercise access, rack filters, six learning paths, and light/dark behavior. Original Bloom/Gorilla controls/reset and representative native demos remain covered.
+- All five standalone HTML demos are checked for return-workspace links and document overflow at both widths. Node tests retain exact assertions for every historical chapter mapping.
+- No commits, pushes, or deployment are part of this work.
+
+## Historical legacy curation continuation, 2026-10-03 local date
 
 ### Implementation checklist
 
@@ -25,7 +75,7 @@ The catalog contains **76 entries: 52 preserved experiences and 24 new research 
 
 All **52/52 legacy entries now have reviewed bibliographic records**, including the four from the preceding phase. Together with the 24 newer guides, **76/76 catalog entries have source metadata**. Five living-source entries deliberately omit a publication year: Druid, MyRocks, MyRocks Extended, ScyllaDB architecture, and Inside Google Datacenters. Google infrastructure security uses the explicitly stated June 2024 revision, not a claimed original publication year.
 
-The new legacy workspaces are Chubby, Borg, Dremel, Megastore, Percolator, MillWheel, Colossus, Druid, SRE capacity planning, Implementing SLOs, Virtual Memory, Bloom filters, Gorilla, and infrastructure security. They use `/library/whitepapers/<legacy-id>/research`; existing chapter routes and demo URLs still resolve to their original experiences. The remaining 38 legacy entries have citations but do not yet have dedicated research workspaces.
+That phase added Chubby, Borg, Dremel, Megastore, Percolator, MillWheel, Colossus, Druid, SRE capacity planning, Implementing SLOs, Virtual Memory, Bloom filters, Gorilla, and infrastructure security. They use `/library/whitepapers/<legacy-id>/research`; existing chapter routes and demo URLs still resolve to their original experiences. At that checkpoint, 38 legacy entries had citations but still lacked dedicated workspaces; the complete-coverage phase above closes that backlog.
 
 ### Source decisions and verification boundaries
 
@@ -55,7 +105,7 @@ Primary-source access does not imply a complete scientific reproduction. No exte
 
 ### Resumed-session verification, 2026-10-03
 
-The preceding implementation and source-review notes were already present when this session resumed. All 48 continuation records and 14 legacy workspaces were retained. The remaining bibliography backlog is **0 of 48**; the separate optional workspace backlog is **38 of 52 legacy experiences**.
+At this historical checkpoint, all 48 continuation records and 14 legacy workspaces were retained. The bibliography backlog was **0 of 48**; the workspace backlog was **38 of 52 legacy experiences**, subsequently completed above.
 
 - Rechecked title, year, and author metadata for all **24 legacy Google Research URLs** directly over HTTPS. Normalized punctuation, whitespace, and the Littlefield ligature account for display differences. FlumeJava's incomplete institutional byline was independently resolved against publisher-deposited Crossref metadata at `https://api.crossref.org/works/10.1145/1806596.1806638`, which returned HTTP 200 and confirmed Robert R. Henry and Nathan Weizenbaum. The Implementing SLOs chapter byline was also rechecked on `sre.google`.
 - Added exact citation titles to the four preceding-phase records and surfaced citation details on the 24 newer-guide cards. GFS, MapReduce, Bigtable, and Spanner verification dates reflect this content recheck, not the link-health run. Spanner remains linked to its 2013 TOCS edition with a note distinguishing the 2012 OSDI paper.
@@ -94,6 +144,8 @@ The earlier model-lab expansion implemented Pregel, Colossus, Percolator, MillWh
 
 - `src/content/whitepapers.js`: stable legacy IDs and order, ID-keyed titles and citation enrichments, source classifications, combined `whitepaperCatalog`, and the old-chapter resolver.
 - `src/content/paperResearch.js`: 24 complete research records and six ordered learning paths. Related references use IDs, never array offsets. `legacyPaperCitations.js`, `legacyPaperResearch.js`, and `paperGuides.js` extend this framework to existing experiences without duplicating catalog entries.
+- `src/content/legacyStorageGuides.js`, `legacyDataGuides.js`, `legacySystemsGuides.js`: the 38 completion workspaces, in disjoint ID-keyed batches joined by `legacyPaperResearch.js`.
+- `src/content/legacyPaperSources.js`: six verified same-work public copies and explicit access notes for restricted or intermittently blocked publisher URLs.
 - `src/content/paperResearchSchema.js`: strict Zod research schema and shared citation/source-type schemas. Invalid records fail validation rather than silently dropping research fields.
 - `src/content/paperCatalogTools.js`: pure multiword search, combined filters, date sorting, path ordering, and Markdown worksheet export.
 - `src/content/library.js`: consumes the combined catalog directly. There is no position-coupled title/metadata merge.
@@ -120,6 +172,9 @@ The earlier model-lab expansion implemented Pregel, Colossus, Percolator, MillWh
 6. Include a prediction challenge, a failure or comparison scenario, visible observations, reset, and precise simplifications. Sliders that recompute results do not need artificial step buttons.
 7. Use native buttons, labeled controls, visible focus, accessible tables, and text alternatives for graphics. Keep tables locally scrollable instead of overflowing the page.
 8. Add invariant tests and verify the new route at desktop and mobile widths. Check that the content schema preserves its metadata.
+9. Every catalog entry must have one research workspace. For an existing experience, add complete editorial content to the appropriate legacy guide module and retain its original `contentPath`; `paperGuides.js` derives `/library/whitepapers/<id>/research`. Coverage tests reject missing/duplicate IDs, unresolved relationships, and repeated whole content fields.
+10. Write a paper-specific failure question, worksheet, glossary, and diagram, not a generic template with substituted names. Cite the actual source type and edition. Topic companions and books must not acquire invented paper metadata or reproduced full-book content.
+11. Add an alternate only after verifying that it is the same work on a legitimate public author, institutional, or publisher site. Keep the canonical citation; document access blocks. Check PDF signatures as well as status codes and use strict TLS. Do not infer publication dates or scientific correctness from reachability.
 
 ## Model Contracts
 

@@ -1,3 +1,7 @@
+import { legacyStorageGuides } from './legacyStorageGuides.js';
+import { legacyDataGuides } from './legacyDataGuides.js';
+import { legacySystemsGuides } from './legacySystemsGuides.js';
+
 const node = (label, detail) => ({ label, detail });
 const term = (term, definition) => ({ term, definition });
 const related = (id, reason) => ({ id, reason });
@@ -5,6 +9,9 @@ const exercise = (prompt, guidance) => ({ prompt, guidance });
 
 // Editorial content only. paperGuides.js joins citations and frozen demo destinations by ID.
 export const legacyGuideContent = {
+  ...legacyStorageGuides,
+  ...legacyDataGuides,
+  ...legacySystemsGuides,
   chubby: {
     shortTitle: 'Chubby',
     problem: 'Loosely coupled services need a reliable way to agree on coarse-grained ownership and discover configuration. Making each application implement consensus couples application development to failure recovery.',
