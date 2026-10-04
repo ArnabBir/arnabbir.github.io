@@ -1,0 +1,2295 @@
+{
+  "policy": "Reachability does not certify interpretation. URLs are live references, not pinned snapshots.",
+  "sources": [
+    {
+      "label": "standards.7",
+      "url": "https://man7.org/linux/man-pages/man7/standards.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch01",
+        "e"
+      ]
+    },
+    {
+      "label": "feature_test_macros.7",
+      "url": "https://man7.org/linux/man-pages/man7/feature_test_macros.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch01",
+        "e"
+      ]
+    },
+    {
+      "label": "dup.2",
+      "url": "https://man7.org/linux/man-pages/man2/dup.2.html",
+      "review": "Reviewed descriptor-local CLOEXEC, shared offset/status, dup3 standardization against man-pages 6.19.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch01",
+        "ch05",
+        "f"
+      ]
+    },
+    {
+      "label": "POSIX.1-2024",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch01",
+        "e"
+      ]
+    },
+    {
+      "label": "open.2",
+      "url": "https://man7.org/linux/man-pages/man2/open.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch02",
+        "ch05",
+        "ch18",
+        "ch27"
+      ]
+    },
+    {
+      "label": "unlink.2",
+      "url": "https://man7.org/linux/man-pages/man2/unlink.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch02"
+      ]
+    },
+    {
+      "label": "inode.7",
+      "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch02",
+        "ch15"
+      ]
+    },
+    {
+      "label": "errno.3",
+      "url": "https://man7.org/linux/man-pages/man3/errno.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch03"
+      ]
+    },
+    {
+      "label": "pthreads.7",
+      "url": "https://man7.org/linux/man-pages/man7/pthreads.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch03"
+      ]
+    },
+    {
+      "label": "getpriority.2",
+      "url": "https://man7.org/linux/man-pages/man2/getpriority.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch03",
+        "ch35"
+      ]
+    },
+    {
+      "label": "read.2",
+      "url": "https://man7.org/linux/man-pages/man2/read.2.html",
+      "review": "Reviewed short reads, positive-size EOF context, and zero-count reads against man-pages 6.19.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch04",
+        "ch62"
+      ]
+    },
+    {
+      "label": "write.2",
+      "url": "https://man7.org/linux/man-pages/man2/write.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch04"
+      ]
+    },
+    {
+      "label": "recv.2",
+      "url": "https://man7.org/linux/man-pages/man2/recv.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch04",
+        "ch56"
+      ]
+    },
+    {
+      "label": "termios.3",
+      "url": "https://man7.org/linux/man-pages/man3/termios.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch04",
+        "ch62",
+        "ch64"
+      ]
+    },
+    {
+      "label": "pread.2",
+      "url": "https://man7.org/linux/man-pages/man2/pread.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch05"
+      ]
+    },
+    {
+      "label": "execve.2",
+      "url": "https://man7.org/linux/man-pages/man2/execve.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch06",
+        "ch27"
+      ]
+    },
+    {
+      "label": "getpid.2",
+      "url": "https://man7.org/linux/man-pages/man2/getpid.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch06"
+      ]
+    },
+    {
+      "label": "pidfd_open.2",
+      "url": "https://man7.org/linux/man-pages/man2/pidfd_open.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch06"
+      ]
+    },
+    {
+      "label": "malloc.3",
+      "url": "https://man7.org/linux/man-pages/man3/malloc.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch07"
+      ]
+    },
+    {
+      "label": "proc.5",
+      "url": "https://man7.org/linux/man-pages/man5/proc.5.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch07",
+        "ch12",
+        "d"
+      ]
+    },
+    {
+      "label": "getpwnam.3",
+      "url": "https://man7.org/linux/man-pages/man3/getpwnam.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch08"
+      ]
+    },
+    {
+      "label": "getgrnam.3",
+      "url": "https://man7.org/linux/man-pages/man3/getgrnam.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch08"
+      ]
+    },
+    {
+      "label": "nsswitch.conf.5",
+      "url": "https://man7.org/linux/man-pages/man5/nsswitch.conf.5.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch08"
+      ]
+    },
+    {
+      "label": "credentials.7",
+      "url": "https://man7.org/linux/man-pages/man7/credentials.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch09",
+        "ch34"
+      ]
+    },
+    {
+      "label": "setresuid.2",
+      "url": "https://man7.org/linux/man-pages/man2/setresuid.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch09"
+      ]
+    },
+    {
+      "label": "access.2",
+      "url": "https://man7.org/linux/man-pages/man2/access.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch09",
+        "ch38"
+      ]
+    },
+    {
+      "label": "clock_gettime.3",
+      "url": "https://man7.org/linux/man-pages/man3/clock_gettime.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch10"
+      ]
+    },
+    {
+      "label": "clock_nanosleep.2",
+      "url": "https://man7.org/linux/man-pages/man2/clock_nanosleep.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch10",
+        "ch23"
+      ]
+    },
+    {
+      "label": "sysconf.3",
+      "url": "https://man7.org/linux/man-pages/man3/sysconf.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch11",
+        "ch50"
+      ]
+    },
+    {
+      "label": "pathconf.3",
+      "url": "https://man7.org/linux/man-pages/man3/pathconf.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch11"
+      ]
+    },
+    {
+      "label": "getrlimit.2",
+      "url": "https://man7.org/linux/man-pages/man2/getrlimit.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch11",
+        "ch36"
+      ]
+    },
+    {
+      "label": "proc_pid_stat.5",
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch12"
+      ]
+    },
+    {
+      "label": "stdio.3",
+      "url": "https://man7.org/linux/man-pages/man3/stdio.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch13"
+      ]
+    },
+    {
+      "label": "fflush.3",
+      "url": "https://man7.org/linux/man-pages/man3/fflush.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch13"
+      ]
+    },
+    {
+      "label": "fsync.2",
+      "url": "https://man7.org/linux/man-pages/man2/fsync.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch13"
+      ]
+    },
+    {
+      "label": "rename.2",
+      "url": "https://man7.org/linux/man-pages/man2/rename.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch14"
+      ]
+    },
+    {
+      "label": "statvfs.3",
+      "url": "https://man7.org/linux/man-pages/man3/statvfs.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch14"
+      ]
+    },
+    {
+      "label": "mount.2",
+      "url": "https://man7.org/linux/man-pages/man2/mount.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch14"
+      ]
+    },
+    {
+      "label": "stat.2",
+      "url": "https://man7.org/linux/man-pages/man2/stat.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch15"
+      ]
+    },
+    {
+      "label": "umask.2",
+      "url": "https://man7.org/linux/man-pages/man2/umask.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch15"
+      ]
+    },
+    {
+      "label": "xattr.7",
+      "url": "https://man7.org/linux/man-pages/man7/xattr.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch16"
+      ]
+    },
+    {
+      "label": "getxattr.2",
+      "url": "https://man7.org/linux/man-pages/man2/getxattr.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch16"
+      ]
+    },
+    {
+      "label": "setxattr.2",
+      "url": "https://man7.org/linux/man-pages/man2/setxattr.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch16"
+      ]
+    },
+    {
+      "label": "acl.5",
+      "url": "https://man7.org/linux/man-pages/man5/acl.5.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch17"
+      ]
+    },
+    {
+      "label": "acl_get_file.3",
+      "url": "https://man7.org/linux/man-pages/man3/acl_get_file.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch17"
+      ]
+    },
+    {
+      "label": "openat2.2",
+      "url": "https://man7.org/linux/man-pages/man2/openat2.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch18",
+        "ch38"
+      ]
+    },
+    {
+      "label": "readdir.3",
+      "url": "https://man7.org/linux/man-pages/man3/readdir.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch18"
+      ]
+    },
+    {
+      "label": "readlink.2",
+      "url": "https://man7.org/linux/man-pages/man2/readlink.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch18"
+      ]
+    },
+    {
+      "label": "inotify.7",
+      "url": "https://man7.org/linux/man-pages/man7/inotify.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch19"
+      ]
+    },
+    {
+      "label": "inotify_init.2",
+      "url": "https://man7.org/linux/man-pages/man2/inotify_init.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch19"
+      ]
+    },
+    {
+      "label": "signal.7",
+      "url": "https://man7.org/linux/man-pages/man7/signal.7.html",
+      "review": "Reviewed standard coalescing, default SIGUSR1 termination, masks and dispositions against man-pages 6.19.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch20",
+        "ch26",
+        "f"
+      ]
+    },
+    {
+      "label": "sigaction.2",
+      "url": "https://man7.org/linux/man-pages/man2/sigaction.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch20"
+      ]
+    },
+    {
+      "label": "pthread_sigmask.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_sigmask.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch20"
+      ]
+    },
+    {
+      "label": "signal-safety.7",
+      "url": "https://man7.org/linux/man-pages/man7/signal-safety.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch21"
+      ]
+    },
+    {
+      "label": "sigsuspend.2",
+      "url": "https://man7.org/linux/man-pages/man2/sigsuspend.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch21"
+      ]
+    },
+    {
+      "label": "sigwait.3",
+      "url": "https://man7.org/linux/man-pages/man3/sigwait.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch22"
+      ]
+    },
+    {
+      "label": "sigwaitinfo.2",
+      "url": "https://man7.org/linux/man-pages/man2/sigwaitinfo.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch22"
+      ]
+    },
+    {
+      "label": "signalfd.2",
+      "url": "https://man7.org/linux/man-pages/man2/signalfd.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch22"
+      ]
+    },
+    {
+      "label": "sigqueue.3",
+      "url": "https://man7.org/linux/man-pages/man3/sigqueue.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch22"
+      ]
+    },
+    {
+      "label": "timerfd_create.2",
+      "url": "https://man7.org/linux/man-pages/man2/timerfd_create.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch23"
+      ]
+    },
+    {
+      "label": "fork.2",
+      "url": "https://man7.org/linux/man-pages/man2/fork.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch24"
+      ]
+    },
+    {
+      "label": "pthread_atfork.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_atfork.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch24"
+      ]
+    },
+    {
+      "label": "exit.3",
+      "url": "https://man7.org/linux/man-pages/man3/exit.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch25"
+      ]
+    },
+    {
+      "label": "_exit.2",
+      "url": "https://man7.org/linux/man-pages/man2/_exit.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch25"
+      ]
+    },
+    {
+      "label": "wait.2",
+      "url": "https://man7.org/linux/man-pages/man2/wait.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch25",
+        "ch26"
+      ]
+    },
+    {
+      "label": "exec.3",
+      "url": "https://man7.org/linux/man-pages/man3/exec.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch27",
+        "c"
+      ]
+    },
+    {
+      "label": "posix_spawn.3",
+      "url": "https://man7.org/linux/man-pages/man3/posix_spawn.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch28"
+      ]
+    },
+    {
+      "label": "system.3",
+      "url": "https://man7.org/linux/man-pages/man3/system.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch28"
+      ]
+    },
+    {
+      "label": "vfork.2",
+      "url": "https://man7.org/linux/man-pages/man2/vfork.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch28"
+      ]
+    },
+    {
+      "label": "pthread_create.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_create.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch29"
+      ]
+    },
+    {
+      "label": "pthread_join.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_join.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch29"
+      ]
+    },
+    {
+      "label": "pthread_self.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_self.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch29"
+      ]
+    },
+    {
+      "label": "pthread_cond_wait.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_cond_wait.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch30"
+      ]
+    },
+    {
+      "label": "pthread_mutex_lock.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_mutex_lock.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch30"
+      ]
+    },
+    {
+      "label": "pthread_key_create.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_key_create.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch31"
+      ]
+    },
+    {
+      "label": "pthread_setspecific.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_setspecific.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch31"
+      ]
+    },
+    {
+      "label": "attributes.7",
+      "url": "https://man7.org/linux/man-pages/man7/attributes.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch31"
+      ]
+    },
+    {
+      "label": "pthread_cancel.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_cancel.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch32"
+      ]
+    },
+    {
+      "label": "pthread_cleanup_push.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_cleanup_push.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch32"
+      ]
+    },
+    {
+      "label": "pthread_setcancelstate.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_setcancelstate.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch32"
+      ]
+    },
+    {
+      "label": "pthread_attr_init.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_attr_init.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch33"
+      ]
+    },
+    {
+      "label": "pthread_attr_setstacksize.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_attr_setstacksize.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch33"
+      ]
+    },
+    {
+      "label": "pthread_detach.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_detach.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch33"
+      ]
+    },
+    {
+      "label": "sched_setaffinity.2",
+      "url": "https://man7.org/linux/man-pages/man2/sched_setaffinity.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch33"
+      ]
+    },
+    {
+      "label": "setpgid.2",
+      "url": "https://man7.org/linux/man-pages/man2/setpgid.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch34"
+      ]
+    },
+    {
+      "label": "setsid.2",
+      "url": "https://man7.org/linux/man-pages/man2/setsid.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch34",
+        "ch37"
+      ]
+    },
+    {
+      "label": "tcsetpgrp.3",
+      "url": "https://man7.org/linux/man-pages/man3/tcsetpgrp.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch34"
+      ]
+    },
+    {
+      "label": "sched.7",
+      "url": "https://man7.org/linux/man-pages/man7/sched.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch35"
+      ]
+    },
+    {
+      "label": "Kernel EEVDF design",
+      "url": "https://docs.kernel.org/scheduler/sched-eevdf.html",
+      "review": "Reviewed eligibility and virtual deadlines. Weighted-share illustration is not an EEVDF trace.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch35"
+      ]
+    },
+    {
+      "label": "getrusage.2",
+      "url": "https://man7.org/linux/man-pages/man2/getrusage.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch36"
+      ]
+    },
+    {
+      "label": "accept.2",
+      "url": "https://man7.org/linux/man-pages/man2/accept.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch36",
+        "ch60"
+      ]
+    },
+    {
+      "label": "daemon.7",
+      "url": "https://man7.org/linux/man-pages/man7/daemon.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch37"
+      ]
+    },
+    {
+      "label": "daemon.3",
+      "url": "https://man7.org/linux/man-pages/man3/daemon.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch37"
+      ]
+    },
+    {
+      "label": "secure_getenv.3",
+      "url": "https://man7.org/linux/man-pages/man3/secure_getenv.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch38"
+      ]
+    },
+    {
+      "label": "capabilities.7",
+      "url": "https://man7.org/linux/man-pages/man7/capabilities.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch39"
+      ]
+    },
+    {
+      "label": "PR_SET_NO_NEW_PRIVS.2const",
+      "url": "https://man7.org/linux/man-pages/man2/PR_SET_NO_NEW_PRIVS.2const.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch39"
+      ]
+    },
+    {
+      "label": "utmp.5",
+      "url": "https://man7.org/linux/man-pages/man5/utmp.5.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch40"
+      ]
+    },
+    {
+      "label": "getutent.3",
+      "url": "https://man7.org/linux/man-pages/man3/getutent.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch40"
+      ]
+    },
+    {
+      "label": "getutxent.3",
+      "url": "https://man7.org/linux/man-pages/man3/getutxent.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch40"
+      ]
+    },
+    {
+      "label": "ld.so.8",
+      "url": "https://man7.org/linux/man-pages/man8/ld.so.8.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch41"
+      ]
+    },
+    {
+      "label": "elf.5",
+      "url": "https://man7.org/linux/man-pages/man5/elf.5.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch41"
+      ]
+    },
+    {
+      "label": "dlopen.3",
+      "url": "https://man7.org/linux/man-pages/man3/dlopen.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch42"
+      ]
+    },
+    {
+      "label": "dlsym.3",
+      "url": "https://man7.org/linux/man-pages/man3/dlsym.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch42"
+      ]
+    },
+    {
+      "label": "dlerror.3",
+      "url": "https://man7.org/linux/man-pages/man3/dlerror.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch42"
+      ]
+    },
+    {
+      "label": "pipe.7",
+      "url": "https://man7.org/linux/man-pages/man7/pipe.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch43",
+        "ch44",
+        "f"
+      ]
+    },
+    {
+      "label": "sysvipc.7",
+      "url": "https://man7.org/linux/man-pages/man7/sysvipc.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch43",
+        "ch45"
+      ]
+    },
+    {
+      "label": "shm_overview.7",
+      "url": "https://man7.org/linux/man-pages/man7/shm_overview.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch43",
+        "ch51"
+      ]
+    },
+    {
+      "label": "pipe.2",
+      "url": "https://man7.org/linux/man-pages/man2/pipe.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch44"
+      ]
+    },
+    {
+      "label": "fifo.7",
+      "url": "https://man7.org/linux/man-pages/man7/fifo.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch44"
+      ]
+    },
+    {
+      "label": "ipc.2",
+      "url": "https://man7.org/linux/man-pages/man2/ipc.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch45"
+      ]
+    },
+    {
+      "label": "ftok.3",
+      "url": "https://man7.org/linux/man-pages/man3/ftok.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch45"
+      ]
+    },
+    {
+      "label": "msgop.2",
+      "url": "https://man7.org/linux/man-pages/man2/msgop.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch46"
+      ]
+    },
+    {
+      "label": "msgget.2",
+      "url": "https://man7.org/linux/man-pages/man2/msgget.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch46"
+      ]
+    },
+    {
+      "label": "msgctl.2",
+      "url": "https://man7.org/linux/man-pages/man2/msgctl.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch46"
+      ]
+    },
+    {
+      "label": "semop.2",
+      "url": "https://man7.org/linux/man-pages/man2/semop.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch47"
+      ]
+    },
+    {
+      "label": "semget.2",
+      "url": "https://man7.org/linux/man-pages/man2/semget.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch47"
+      ]
+    },
+    {
+      "label": "semctl.2",
+      "url": "https://man7.org/linux/man-pages/man2/semctl.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch47"
+      ]
+    },
+    {
+      "label": "shmget.2",
+      "url": "https://man7.org/linux/man-pages/man2/shmget.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch48"
+      ]
+    },
+    {
+      "label": "shmop.2",
+      "url": "https://man7.org/linux/man-pages/man2/shmop.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch48"
+      ]
+    },
+    {
+      "label": "shmctl.2",
+      "url": "https://man7.org/linux/man-pages/man2/shmctl.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch48"
+      ]
+    },
+    {
+      "label": "mmap.2",
+      "url": "https://man7.org/linux/man-pages/man2/mmap.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch49",
+        "ch54"
+      ]
+    },
+    {
+      "label": "munmap.2",
+      "url": "https://man7.org/linux/man-pages/man2/munmap.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch49"
+      ]
+    },
+    {
+      "label": "msync.2",
+      "url": "https://man7.org/linux/man-pages/man2/msync.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch49"
+      ]
+    },
+    {
+      "label": "mprotect.2",
+      "url": "https://man7.org/linux/man-pages/man2/mprotect.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch50"
+      ]
+    },
+    {
+      "label": "madvise.2",
+      "url": "https://man7.org/linux/man-pages/man2/madvise.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch50"
+      ]
+    },
+    {
+      "label": "mlock.2",
+      "url": "https://man7.org/linux/man-pages/man2/mlock.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch50"
+      ]
+    },
+    {
+      "label": "mq_overview.7",
+      "url": "https://man7.org/linux/man-pages/man7/mq_overview.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch51",
+        "ch52"
+      ]
+    },
+    {
+      "label": "sem_overview.7",
+      "url": "https://man7.org/linux/man-pages/man7/sem_overview.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch51",
+        "ch53"
+      ]
+    },
+    {
+      "label": "mq_receive.3",
+      "url": "https://man7.org/linux/man-pages/man3/mq_receive.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch52"
+      ]
+    },
+    {
+      "label": "mq_notify.3",
+      "url": "https://man7.org/linux/man-pages/man3/mq_notify.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch52"
+      ]
+    },
+    {
+      "label": "sem_wait.3",
+      "url": "https://man7.org/linux/man-pages/man3/sem_wait.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch53"
+      ]
+    },
+    {
+      "label": "sem_init.3",
+      "url": "https://man7.org/linux/man-pages/man3/sem_init.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch53"
+      ]
+    },
+    {
+      "label": "sem_post.3",
+      "url": "https://man7.org/linux/man-pages/man3/sem_post.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch53"
+      ]
+    },
+    {
+      "label": "shm_open.3",
+      "url": "https://man7.org/linux/man-pages/man3/shm_open.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch54"
+      ]
+    },
+    {
+      "label": "ftruncate.2",
+      "url": "https://man7.org/linux/man-pages/man2/ftruncate.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch54"
+      ]
+    },
+    {
+      "label": "pthread_mutexattr_setpshared.3",
+      "url": "https://man7.org/linux/man-pages/man3/pthread_mutexattr_setpshared.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch54"
+      ]
+    },
+    {
+      "label": "fcntl_locking.2",
+      "url": "https://man7.org/linux/man-pages/man2/fcntl_locking.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch55"
+      ]
+    },
+    {
+      "label": "F_OFD_SETLK.2const",
+      "url": "https://man7.org/linux/man-pages/man2/F_OFD_SETLK.2const.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch55"
+      ]
+    },
+    {
+      "label": "flock.2",
+      "url": "https://man7.org/linux/man-pages/man2/flock.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch55"
+      ]
+    },
+    {
+      "label": "socket.2",
+      "url": "https://man7.org/linux/man-pages/man2/socket.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch56"
+      ]
+    },
+    {
+      "label": "socket.7",
+      "url": "https://man7.org/linux/man-pages/man7/socket.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch56",
+        "ch61"
+      ]
+    },
+    {
+      "label": "shutdown.2",
+      "url": "https://man7.org/linux/man-pages/man2/shutdown.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch56"
+      ]
+    },
+    {
+      "label": "unix.7",
+      "url": "https://man7.org/linux/man-pages/man7/unix.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch57"
+      ]
+    },
+    {
+      "label": "sendmsg.2",
+      "url": "https://man7.org/linux/man-pages/man2/sendmsg.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch57",
+        "ch61"
+      ]
+    },
+    {
+      "label": "recvmsg.2",
+      "url": "https://man7.org/linux/man-pages/man2/recvmsg.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch57",
+        "ch61"
+      ]
+    },
+    {
+      "label": "cmsg.3",
+      "url": "https://man7.org/linux/man-pages/man3/cmsg.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch57"
+      ]
+    },
+    {
+      "label": "tcp.7",
+      "url": "https://man7.org/linux/man-pages/man7/tcp.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch58"
+      ]
+    },
+    {
+      "label": "ip.7",
+      "url": "https://man7.org/linux/man-pages/man7/ip.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch58"
+      ]
+    },
+    {
+      "label": "udp.7",
+      "url": "https://man7.org/linux/man-pages/man7/udp.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch58"
+      ]
+    },
+    {
+      "label": "RFC 9293 section 3.6: closing a connection",
+      "url": "https://www.rfc-editor.org/rfc/rfc9293.html#section-3.6",
+      "review": "Reviewed ordinary active/passive close and TIME_WAIT role independence.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch58"
+      ]
+    },
+    {
+      "label": "getaddrinfo.3",
+      "url": "https://man7.org/linux/man-pages/man3/getaddrinfo.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch59"
+      ]
+    },
+    {
+      "label": "connect.2",
+      "url": "https://man7.org/linux/man-pages/man2/connect.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch59"
+      ]
+    },
+    {
+      "label": "getsockopt.2",
+      "url": "https://man7.org/linux/man-pages/man2/getsockopt.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch59"
+      ]
+    },
+    {
+      "label": "ipv6.7",
+      "url": "https://man7.org/linux/man-pages/man7/ipv6.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch59"
+      ]
+    },
+    {
+      "label": "listen.2",
+      "url": "https://man7.org/linux/man-pages/man2/listen.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch60"
+      ]
+    },
+    {
+      "label": "epoll.7",
+      "url": "https://man7.org/linux/man-pages/man7/epoll.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch60",
+        "ch63",
+        "f"
+      ]
+    },
+    {
+      "label": "writev.2",
+      "url": "https://man7.org/linux/man-pages/man2/writev.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch61"
+      ]
+    },
+    {
+      "label": "poll.2",
+      "url": "https://man7.org/linux/man-pages/man2/poll.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch63"
+      ]
+    },
+    {
+      "label": "select.2",
+      "url": "https://man7.org/linux/man-pages/man2/select.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch63"
+      ]
+    },
+    {
+      "label": "io_uring.7",
+      "url": "https://man7.org/linux/man-pages/man7/io_uring.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch63"
+      ]
+    },
+    {
+      "label": "pty.7",
+      "url": "https://man7.org/linux/man-pages/man7/pty.7.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch64"
+      ]
+    },
+    {
+      "label": "posix_openpt.3",
+      "url": "https://man7.org/linux/man-pages/man3/posix_openpt.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch64"
+      ]
+    },
+    {
+      "label": "grantpt.3",
+      "url": "https://man7.org/linux/man-pages/man3/grantpt.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch64"
+      ]
+    },
+    {
+      "label": "unlockpt.3",
+      "url": "https://man7.org/linux/man-pages/man3/unlockpt.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "ch64"
+      ]
+    },
+    {
+      "label": "strace.1",
+      "url": "https://man7.org/linux/man-pages/man1/strace.1.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "a"
+      ]
+    },
+    {
+      "label": "ptrace.2",
+      "url": "https://man7.org/linux/man-pages/man2/ptrace.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "a"
+      ]
+    },
+    {
+      "label": "getopt.3",
+      "url": "https://man7.org/linux/man-pages/man3/getopt.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "b"
+      ]
+    },
+    {
+      "label": "strtol.3",
+      "url": "https://man7.org/linux/man-pages/man3/strtol.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "b"
+      ]
+    },
+    {
+      "label": "stdarg.3",
+      "url": "https://man7.org/linux/man-pages/man3/stdarg.3.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "c"
+      ]
+    },
+    {
+      "label": "NULL.3const",
+      "url": "https://man7.org/linux/man-pages/man3/NULL.3const.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "c"
+      ]
+    },
+    {
+      "label": "uname.2",
+      "url": "https://man7.org/linux/man-pages/man2/uname.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "d"
+      ]
+    },
+    {
+      "label": "seccomp.2",
+      "url": "https://man7.org/linux/man-pages/man2/seccomp.2.html",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "d"
+      ]
+    },
+    {
+      "label": "Linux kernel documentation",
+      "url": "https://docs.kernel.org/",
+      "review": "Further primary reading; no individual claim-review assertion recorded.",
+      "reachability": {
+        "checkedAt": "2026-10-04T09:36:51.535Z",
+        "status": 200,
+        "ok": true
+      },
+      "units": [
+        "e"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2821 @@
+{
+  "schemaVersion": 1,
+  "units": [
+    {
+      "id": "ch01",
+      "position": 0,
+      "href": "chapters/ch01.html",
+      "topic": "History and Standards",
+      "title": "Portability is a contract",
+      "problem": "A utility builds on your laptop but fails on a production distribution. Which promise did the program actually depend on?",
+      "explanation": "Separate the C language, the C library, the operating-system interface, and the kernel implementation. POSIX specifies observable behavior; Linux adds interfaces; glibc exposes wrappers and feature-test macros. A function appearing in a header does not prove that every deployment supports it. POSIX Issue 8 is the 2024 edition, not an alias for the older 2008 baseline.",
+      "contract": "Define feature-test macros before any header. Use _POSIX_C_SOURCE=200809L when deliberately targeting that older interface set; _GNU_SOURCE requests GNU/Linux extensions in glibc. Check both compile-time availability and runtime failure where the kernel may lag behind the library.",
+      "pitfall": "Calling an interface Linux-only forever because it originated on Linux can become inaccurate: dup3 entered POSIX.1-2024. A newer standard does not retroactively update an older operating system.",
+      "exercise": "Compile a small declaration probe with strict warnings under two feature-macro settings. Record compiler, libc, kernel, and intended standard separately. A compile failure answers a declaration question, not a runtime-support question.",
+      "assessment": {
+        "question": "An API is in POSIX.1-2024. Does that guarantee it on an older POSIX.1-2008 system?",
+        "answer": "No. Select a deployment baseline and provide a checked fallback or require an upgrade.",
+        "distractor": "Yes. The POSIX name implies identical availability across editions."
+      },
+      "sources": [
+        {
+          "label": "standards.7",
+          "url": "https://man7.org/linux/man-pages/man7/standards.7.html"
+        },
+        {
+          "label": "feature_test_macros.7",
+          "url": "https://man7.org/linux/man-pages/man7/feature_test_macros.7.html"
+        },
+        {
+          "label": "dup.2",
+          "url": "https://man7.org/linux/man-pages/man2/dup.2.html"
+        },
+        {
+          "label": "POSIX.1-2024",
+          "url": "https://pubs.opengroup.org/onlinepubs/9799919799/"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "glibc on Linux; source targets an older POSIX baseline.",
+        "before": "A declaration is hidden by feature-test macros.",
+        "operation": "Define the intended macro before headers and rebuild.",
+        "observation": "A declaration may become visible; runtime support still needs checking.",
+        "tradeoff": "A broader extension set simplifies Linux code but narrows portability."
+      }
+    },
+    {
+      "id": "ch02",
+      "position": 1,
+      "href": "chapters/ch02.html",
+      "topic": "Fundamental Concepts",
+      "title": "Names, handles, and kernel objects",
+      "problem": "A file is removed while a worker still reads it. Why does the worker continue?",
+      "explanation": "A pathname is a lookup instruction. A descriptor is a small integer in one process. Its open file description carries state such as an offset and status flags. The underlying inode represents the file object. These are separate lifetimes: removing a directory entry does not invalidate an existing open reference.",
+      "contract": "open returns a descriptor or -1. close releases that descriptor. unlink removes a name; storage can remain until the final link and final open reference disappear. A reused integer does not identify the old object.",
+      "pitfall": "Logging only descriptor 7 across asynchronous operations can hide a reuse bug. After close, another open may return 7 for an unrelated file. Keep ownership explicit and do not let a delayed callback close a newly reused handle.",
+      "exercise": "In a private temporary directory, open a file, unlink its name, then read through the open descriptor. Contrast that success with a new open of the removed pathname. Close the original descriptor to release the remaining reference.",
+      "assessment": {
+        "question": "Does unlink invalidate all descriptors already referring to the file?",
+        "answer": "No. Open references survive removal of the directory entry.",
+        "distractor": "Yes. A descriptor is only a cached pathname."
+      },
+      "sources": [
+        {
+          "label": "open.2",
+          "url": "https://man7.org/linux/man-pages/man2/open.2.html"
+        },
+        {
+          "label": "unlink.2",
+          "url": "https://man7.org/linux/man-pages/man2/unlink.2.html"
+        },
+        {
+          "label": "inode.7",
+          "url": "https://man7.org/linux/man-pages/man7/inode.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Regular file; one link; one open reference; calls succeed.",
+        "before": "notes has bytes OK and fd 3 points to its object.",
+        "operation": "unlink removes notes; read uses fd 3.",
+        "observation": "The old descriptor can read OK; a new open of notes fails.",
+        "tradeoff": "Handle-based work tolerates renames but retains resources until close."
+      }
+    },
+    {
+      "id": "ch03",
+      "position": 2,
+      "href": "chapters/ch03.html",
+      "topic": "System Programming Concepts",
+      "title": "Reading an API like a protocol",
+      "problem": "A diagnostic prints an unrelated error even though the operation succeeded.",
+      "explanation": "An API contract includes argument lifetime, success result, error representation, and side effects. errno is thread-local diagnostic state, not a global last-operation verdict. It is meaningful only when the function's documented result says an error occurred. Library calls can change it on success.",
+      "contract": "Most system-call wrappers report -1 and set errno. Many pthread functions return an error number directly. Functions such as getpriority need special treatment because -1 can be a valid success result. Save errno immediately before cleanup that could overwrite it.",
+      "pitfall": "A universal CHECK macro that assumes every nonzero result is an error will reject successful read byte counts and misreport pthread errors. Error conventions belong to individual interfaces.",
+      "exercise": "Write two tiny wrappers: one for open and one for pthread_mutex_lock. Give each a deliberately invalid setup in a throwaway program and compare where the error number comes from. Do not unlock a mutex you did not acquire.",
+      "assessment": {
+        "question": "pthread_mutex_lock returns a nonzero error number. Where should the diagnostic obtain that number?",
+        "answer": "From the return value, using the pthread API contract.",
+        "distractor": "From errno, regardless of the function's return convention."
+      },
+      "sources": [
+        {
+          "label": "errno.3",
+          "url": "https://man7.org/linux/man-pages/man3/errno.3.html"
+        },
+        {
+          "label": "pthreads.7",
+          "url": "https://man7.org/linux/man-pages/man7/pthreads.7.html"
+        },
+        {
+          "label": "getpriority.2",
+          "url": "https://man7.org/linux/man-pages/man2/getpriority.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A pthread function returns EINVAL directly.",
+        "before": "errno contains an unrelated earlier error.",
+        "operation": "Store the pthread return value and pass it to strerror.",
+        "observation": "The diagnostic describes the actual pthread failure.",
+        "tradeoff": "Per-interface wrappers take more care than one universal error macro."
+      }
+    },
+    {
+      "id": "ch04",
+      "position": 3,
+      "href": "chapters/ch04.html",
+      "topic": "File I/O: The Universal I/O Model",
+      "title": "Byte transfer without wishful thinking",
+      "problem": "A copy loop loses the tail of a file when a write transfers fewer bytes than requested.",
+      "explanation": "read and write transfer bytes, not application records. A positive short result is progress. Advance the buffer by the returned count and keep the remainder. An empty pipe with writers is different from a pipe with no writers. A zero-count request is different again: its zero result is not evidence of EOF.",
+      "contract": "For a positive read request on a regular file, zero means the current offset is at or beyond its current end; later growth can make data readable. For a stream, zero normally reports orderly end after buffered bytes drain. Noncanonical terminal reads and zero-length datagrams have additional zero-result meanings. EINTR before transfer is retryable when policy allows; EAGAIN means wait for readiness.",
+      "pitfall": "Retrying every failure spins on permanent errors. Treating a positive short write as failure duplicates bytes if the entire buffer is resent. A successful write does not establish persistence on storage.",
+      "exercise": "Run the descriptor lab and inspect the zero-count read beside a real read. Then implement a bounded copy of 17 bytes with a deliberately small three-byte buffer; verify exact output rather than the number of calls.",
+      "assessment": {
+        "question": "write returns 3 for a requested 8 bytes. What remains?",
+        "answer": "The five bytes starting at buffer + 3; the first three were accepted.",
+        "distractor": "All eight bytes, because short writes have no effect."
+      },
+      "sources": [
+        {
+          "label": "read.2",
+          "url": "https://man7.org/linux/man-pages/man2/read.2.html"
+        },
+        {
+          "label": "write.2",
+          "url": "https://man7.org/linux/man-pages/man2/write.2.html"
+        },
+        {
+          "label": "recv.2",
+          "url": "https://man7.org/linux/man-pages/man2/recv.2.html"
+        },
+        {
+          "label": "termios.3",
+          "url": "https://man7.org/linux/man-pages/man3/termios.3.html"
+        }
+      ],
+      "activity": "descriptors",
+      "lab": "descriptors",
+      "worked": {
+        "assumptions": "Eight-byte output; first write successfully transfers three bytes.",
+        "before": "Buffer contains ABCDEFGH; cursor is zero.",
+        "operation": "Advance cursor to three and request the remaining five.",
+        "observation": "The second request begins with D, avoiding a duplicate ABC.",
+        "tradeoff": "Explicit cursors add state but preserve partial progress."
+      }
+    },
+    {
+      "id": "ch05",
+      "position": 4,
+      "href": "chapters/ch05.html",
+      "topic": "File I/O: Further Details",
+      "title": "Descriptor flags and shared offsets",
+      "problem": "Two workers each write two bytes through duplicated descriptors. Will one overwrite the other?",
+      "explanation": "dup creates another descriptor pointing to the same open file description. Offset and O_APPEND/O_NONBLOCK status belong to that shared description. FD_CLOEXEC belongs to each descriptor entry. A separate open of the same file creates a different description with an independent offset.",
+      "contract": "dup clears close-on-exec on the new descriptor. dup3 with O_CLOEXEC requests it atomically. dup2 atomically replaces a target and, when both arguments are identical and valid, does nothing. pread and pwrite specify an offset without advancing the shared one; Linux pwrite with O_APPEND has a documented append caveat.",
+      "pitfall": "For successful serialized writes through a shared description at offset zero, writing AB then CD yields ABCD, not CD overwriting AB. Concurrent order can vary; shared-offset atomicity is not a multi-call transaction. Two independent opens starting at zero can overwrite instead.",
+      "exercise": "Use the descriptor model to duplicate fd 3, toggle close-on-exec on only fd 3, and execute a replacement image. Run descriptors.c to compare actual F_GETFD values and the resulting ABCD bytes.",
+      "assessment": {
+        "question": "fd 3 has FD_CLOEXEC. What does ordinary dup(3) give its new descriptor?",
+        "answer": "A shared open file description, but a cleared close-on-exec flag.",
+        "distractor": "An independent offset with the same close-on-exec flag."
+      },
+      "sources": [
+        {
+          "label": "dup.2",
+          "url": "https://man7.org/linux/man-pages/man2/dup.2.html"
+        },
+        {
+          "label": "open.2",
+          "url": "https://man7.org/linux/man-pages/man2/open.2.html"
+        },
+        {
+          "label": "pread.2",
+          "url": "https://man7.org/linux/man-pages/man2/pread.2.html"
+        }
+      ],
+      "activity": "descriptors",
+      "lab": "descriptors",
+      "worked": {
+        "assumptions": "Empty regular file; serialized successful calls.",
+        "before": "fd 3 has CLOEXEC and offset zero.",
+        "operation": "dup creates fd 4; write AB on 3 then CD on 4.",
+        "observation": "Bytes are ABCD; offset is four; fd 4 has CLOEXEC cleared.",
+        "tradeoff": "dup shares position; use a fresh open or positional I/O for independent position."
+      }
+    },
+    {
+      "id": "ch06",
+      "position": 5,
+      "href": "chapters/ch06.html",
+      "topic": "Processes",
+      "title": "A process is more than a PID",
+      "problem": "An exec trace shows the same PID executing two different programs. Is the trace corrupt?",
+      "explanation": "A process combines a virtual address space, credentials, descriptors, signal state, and execution contexts. PID identifies the process within a PID namespace; it is not a permanent identity token. exec replaces a program image while retaining process identity. fork creates a child identity with inherited state.",
+      "contract": "getpid returns the process ID and getppid its parent ID as visible in the namespace. argv and environ are user-space startup data. Changing a string in the environment does not alter the parent's environment. Successful execve does not return to the old program.",
+      "pitfall": "PID reuse makes a delayed kill(pid, ...) unsafe as a stable ownership mechanism. Linux pidfds provide a handle-oriented alternative for supported operations. Multiple successful execve calls over a process lifetime are entirely possible.",
+      "exercise": "Trace a shell that execs a small helper and compare PID before and after the replacement. Contrast it with a forked child. Treat the observed PID value as run-specific, not a fixed expected number.",
+      "assessment": {
+        "question": "Must a successful execve allocate a new PID?",
+        "answer": "No. It replaces the calling process's program image.",
+        "distractor": "Yes. Each executable image necessarily has a distinct PID."
+      },
+      "sources": [
+        {
+          "label": "execve.2",
+          "url": "https://man7.org/linux/man-pages/man2/execve.2.html"
+        },
+        {
+          "label": "getpid.2",
+          "url": "https://man7.org/linux/man-pages/man2/getpid.2.html"
+        },
+        {
+          "label": "pidfd_open.2",
+          "url": "https://man7.org/linux/man-pages/man2/pidfd_open.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A single process successfully execs an absolute path.",
+        "before": "PID P runs launcher with a local variable x.",
+        "operation": "execve replaces the image.",
+        "observation": "PID P remains; x and the old code no longer exist.",
+        "tradeoff": "Image replacement keeps selected resources but requires inheritance auditing."
+      }
+    },
+    {
+      "id": "ch07",
+      "position": 6,
+      "href": "chapters/ch07.html",
+      "topic": "Memory Allocation",
+      "title": "Allocation, ownership, and address space",
+      "problem": "A service allocates a huge buffer successfully and then dies while touching it.",
+      "explanation": "malloc manages user-space allocations backed by a process address space. Virtual allocation, resident physical memory, and committed storage are different quantities. Linux overcommit can allow an allocation whose later page faults cannot all be satisfied. free ends the C object's lifetime, even if allocator caches keep pages mapped.",
+      "contract": "Check multiplication before allocating count times element-size. On realloc failure the original nonzero-sized allocation remains valid; assign the result to a temporary pointer. Avoid zero-size realloc portability traps by spelling out free when the desired size is zero.",
+      "pitfall": "A successful malloc is not a promise that a memory-intensive phase cannot hit resource or OOM limits. A stale pointer is invalid after free even if a debugger shows its old bytes. RSS not falling after free does not prove a leak.",
+      "exercise": "Allocate only a bounded one-megabyte region, touch each page, and compare process maps and RSS before allocation, after touching, and after free. Expect allocator and kernel variation; do not attempt an OOM demonstration on a shared host.",
+      "assessment": {
+        "question": "realloc(p, larger_nonzero_size) returns NULL. What happens to p?",
+        "answer": "The original allocation remains owned by the caller and must still be handled.",
+        "distractor": "The original allocation was always freed by the failed call."
+      },
+      "sources": [
+        {
+          "label": "malloc.3",
+          "url": "https://man7.org/linux/man-pages/man3/malloc.3.html"
+        },
+        {
+          "label": "proc.5",
+          "url": "https://man7.org/linux/man-pages/man5/proc.5.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A nonzero realloc request fails.",
+        "before": "p owns a 64-byte allocation.",
+        "operation": "tmp = realloc(p, 128) yields NULL.",
+        "observation": "p still owns 64 bytes; reporting failure must not discard it.",
+        "tradeoff": "A temporary pointer costs one variable and prevents an ownership leak."
+      }
+    },
+    {
+      "id": "ch08",
+      "position": 7,
+      "href": "chapters/ch08.html",
+      "topic": "Users and Groups",
+      "title": "Identity databases are services",
+      "problem": "A username lookup unexpectedly stalls a request path.",
+      "explanation": "Numeric user and group IDs are kernel credentials. Human-readable names come from databases accessed through libc and NSS, potentially including network services. Reading /etc/passwd directly does not reproduce the configured lookup policy. A missing user and a lookup error are different outcomes.",
+      "contract": "getpwnam_r uses caller-provided storage and a result pointer. A zero return with a NULL result means no matching entry; a nonzero return is an error number. ERANGE means the supplied buffer was too small. Bound growth and copy only fields whose lifetime you understand.",
+      "pitfall": "Caching a pointer returned by a non-reentrant lookup can expose overwritten static storage. Assuming every account has a local password-file entry breaks managed environments. A primary group is not the complete supplementary-group set.",
+      "exercise": "Look up the current numeric UID with getpwuid_r and compare it with a deliberately nonexistent name. Report not-found separately from failure; do not require access to shadow-password data.",
+      "assessment": {
+        "question": "getpwnam_r returns 0 and sets result to NULL. What does this mean?",
+        "answer": "The lookup completed without finding that account.",
+        "distractor": "A valid account exists and its fields are all empty."
+      },
+      "sources": [
+        {
+          "label": "getpwnam.3",
+          "url": "https://man7.org/linux/man-pages/man3/getpwnam.3.html"
+        },
+        {
+          "label": "getgrnam.3",
+          "url": "https://man7.org/linux/man-pages/man3/getgrnam.3.html"
+        },
+        {
+          "label": "nsswitch.conf.5",
+          "url": "https://man7.org/linux/man-pages/man5/nsswitch.conf.5.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "NSS lookup succeeds operationally but the name is absent.",
+        "before": "Caller owns a result pointer and a bounded buffer.",
+        "operation": "getpwnam_r returns zero and result is NULL.",
+        "observation": "Report not found, without dereferencing result.",
+        "tradeoff": "System policy-aware lookup is broader than local parsing but can involve remote latency."
+      }
+    },
+    {
+      "id": "ch09",
+      "position": 8,
+      "href": "chapters/ch09.html",
+      "topic": "Process Credentials",
+      "title": "Credentials are authority, not labels",
+      "problem": "A helper changes its effective UID but unexpectedly regains privilege later.",
+      "explanation": "Real, effective, and saved IDs serve different purposes. Supplementary groups also contribute to authorization. Linux has filesystem IDs and capabilities as additional mechanisms. A temporary privilege switch differs from an irreversible drop. Ordering matters because changing UID can remove authority needed to change groups.",
+      "contract": "setresuid and setresgid explicitly manipulate ID sets subject to privilege rules. For a dedicated privileged helper, establish the intended supplementary groups before permanently dropping group and user IDs, check every call, then verify the resulting authority. Exact capability behavior must be considered too.",
+      "pitfall": "Ignoring a failed privilege-drop call is a security defect even when failure seems impossible. access checks using real IDs do not safely authorize a later open: pathname changes can race the two operations.",
+      "exercise": "As an unprivileged user, print real/effective/saved IDs with getresuid on Linux. Attempt no root transition. Sketch a helper's ordered setup and explain what must happen if any step fails.",
+      "assessment": {
+        "question": "May a privileged helper continue normally after its required privilege drop fails?",
+        "answer": "No. Abort the privileged operation and report the failed transition.",
+        "distractor": "Yes. The subsequent file permissions will compensate for the failure."
+      },
+      "sources": [
+        {
+          "label": "credentials.7",
+          "url": "https://man7.org/linux/man-pages/man7/credentials.7.html"
+        },
+        {
+          "label": "setresuid.2",
+          "url": "https://man7.org/linux/man-pages/man2/setresuid.2.html"
+        },
+        {
+          "label": "access.2",
+          "url": "https://man7.org/linux/man-pages/man2/access.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A helper requires an irreversible authority drop.",
+        "before": "Supplementary groups still include a privileged group.",
+        "operation": "Attempt group setup before dropping user authority; check every result.",
+        "observation": "If required setup fails, abort the privileged operation.",
+        "tradeoff": "Permanent reduction limits damage but prevents later privileged work."
+      }
+    },
+    {
+      "id": "ch10",
+      "position": 9,
+      "href": "chapters/ch10.html",
+      "topic": "Time",
+      "title": "Choose the clock before the timestamp",
+      "problem": "A timeout expires too late after the wall clock is adjusted.",
+      "explanation": "Wall time answers calendar questions. Monotonic time answers elapsed-time questions without discontinuous wall-clock jumps. Linux CLOCK_BOOTTIME includes suspended time; CLOCK_MONOTONIC does not. CPU clocks measure execution consumption rather than waiting. A timestamp is incomplete without its clock domain.",
+      "contract": "clock_gettime writes a timespec and returns 0 or -1. Normalize nanosecond arithmetic and avoid mixing clock domains. For deadlines, calculate an absolute target in the selected clock rather than repeatedly subtracting rounded relative sleeps.",
+      "pitfall": "A monotonic clock need not measure suspend-inclusive time, and its values are not portable timestamps for exchange between machines. time_t width and the target ABI matter when storing long-lived calendar values.",
+      "exercise": "Sample realtime, monotonic, and process CPU time around a short sleep. The CPU clock should advance much less than elapsed time, but no exact scheduler latency is guaranteed. Never change the system clock for this experiment.",
+      "assessment": {
+        "question": "Which clock is suitable for a local timeout that should ignore wall-clock jumps?",
+        "answer": "A monotonic clock, with suspend behavior chosen deliberately.",
+        "distractor": "A formatted local-time string, compared lexicographically."
+      },
+      "sources": [
+        {
+          "label": "clock_gettime.3",
+          "url": "https://man7.org/linux/man-pages/man3/clock_gettime.3.html"
+        },
+        {
+          "label": "clock_nanosleep.2",
+          "url": "https://man7.org/linux/man-pages/man2/clock_nanosleep.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Local timeout excludes machine suspension.",
+        "before": "Monotonic time is 20 seconds; timeout is 3 seconds.",
+        "operation": "Choose a monotonic deadline of 23 seconds.",
+        "observation": "A realtime clock adjustment does not move that deadline.",
+        "tradeoff": "Monotonic values support elapsed time but are not cross-machine timestamps."
+      }
+    },
+    {
+      "id": "ch11",
+      "position": 10,
+      "href": "chapters/ch11.html",
+      "topic": "System Limits and Options",
+      "title": "Limits must be interpreted",
+      "problem": "sysconf returns -1 and the program reports a bogus fatal error.",
+      "explanation": "Limits can be compile-time minima, runtime system values, per-file values, or process resource ceilings. A standard minimum is not the current machine's capacity. Some queries permit an indeterminate limit. Resource limits and cgroup controls can both restrict a workload without being interchangeable.",
+      "contract": "Set errno to zero before sysconf or pathconf when -1 can mean either indeterminate or error, then inspect errno only on that result. getrlimit exposes soft and hard limits; applications may generally lower their own soft limits but cannot assume authority to raise hard limits.",
+      "pitfall": "Allocating a PATH_MAX-sized buffer and assuming every path fits is not a universal pathname strategy. A queried value can also change for some resource classes; correct code still handles operation failure.",
+      "exercise": "Query _SC_OPEN_MAX and RLIMIT_NOFILE, then explain why neither tells you the number of descriptors currently open. Use a child process if experimenting with a lower limit so the parent shell remains unaffected.",
+      "assessment": {
+        "question": "sysconf returns -1 with errno still zero after you cleared it. Is this necessarily an error?",
+        "answer": "No. For applicable queries it can report an indeterminate limit.",
+        "distractor": "Yes. All negative results share the same errno contract."
+      },
+      "sources": [
+        {
+          "label": "sysconf.3",
+          "url": "https://man7.org/linux/man-pages/man3/sysconf.3.html"
+        },
+        {
+          "label": "pathconf.3",
+          "url": "https://man7.org/linux/man-pages/man3/pathconf.3.html"
+        },
+        {
+          "label": "getrlimit.2",
+          "url": "https://man7.org/linux/man-pages/man2/getrlimit.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "The selected sysconf query permits an indeterminate result.",
+        "before": "errno is explicitly cleared.",
+        "operation": "sysconf returns -1 and errno remains zero.",
+        "observation": "Represent the limit as indeterminate, not a diagnosed syscall failure.",
+        "tradeoff": "Dynamic queries adapt to deployment but require richer result states."
+      }
+    },
+    {
+      "id": "ch12",
+      "position": 11,
+      "href": "chapters/ch12.html",
+      "topic": "System and Process Information",
+      "title": "Observing a moving process",
+      "problem": "A monitoring script reads /proc/PID and finds inconsistent values across files.",
+      "explanation": "procfs presents kernel state through file-like interfaces. A sequence of reads is not one global transaction: the process can allocate, exit, or exec between observations. Namespaces and permission checks affect visibility. A PID directory is not an immortal handle to a workload.",
+      "contract": "Read bounded data, parse documented fields, and tolerate disappearing files. /proc/self refers to the reader itself. /proc/PID/fd exposes descriptor links subject to permissions; maps describes address mappings, not necessarily resident memory.",
+      "pitfall": "Splitting /proc/PID/stat on spaces is unsafe because the parenthesized command name can contain spaces. Assuming every machine exposes the same fields or unrestricted process information makes diagnostics fragile.",
+      "exercise": "Inspect /proc/self/status and maps from a small helper, then compare with /proc of a short-lived child. Classify ENOENT after child exit as a lifecycle observation rather than a corrupt filesystem.",
+      "assessment": {
+        "question": "Do two sequential procfs reads form a consistent process snapshot?",
+        "answer": "No. State may change between reads; label the observation window.",
+        "distractor": "Yes. procfs freezes the target until all open files are closed."
+      },
+      "sources": [
+        {
+          "label": "proc.5",
+          "url": "https://man7.org/linux/man-pages/man5/proc.5.html"
+        },
+        {
+          "label": "proc_pid_stat.5",
+          "url": "https://man7.org/linux/man-pages/man5/proc_pid_stat.5.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Target process may exit between observations.",
+        "before": "A status read succeeds for PID P.",
+        "operation": "The target exits before maps is opened.",
+        "observation": "ENOENT is a lifecycle race, not evidence that the first read was fabricated.",
+        "tradeoff": "Cheap snapshots are useful, but correlated monitoring needs timestamps and uncertainty."
+      }
+    },
+    {
+      "id": "ch13",
+      "position": 12,
+      "href": "chapters/ch13.html",
+      "topic": "File I/O Buffering",
+      "title": "Three stages of a write",
+      "problem": "A log line appeared in memory but disappeared after a crash.",
+      "explanation": "stdio can buffer bytes in user space. write can put bytes into the kernel's page cache. Persistence needs the relevant filesystem and device synchronization guarantees. fflush moves a stream's pending output toward its descriptor; it is not a storage-durability operation. Metadata and directory entries have their own persistence requirements.",
+      "contract": "Check fflush and fclose results. For a durable replacement protocol on a suitable local filesystem, write a temporary file in the target directory, synchronize the file, rename it, and synchronize the directory. Failure handling must retain enough information for recovery; filesystem and hardware behavior still matter.",
+      "pitfall": "fork copies unflushed user-space stdio buffers, so two later exit paths can flush duplicate output. Mixing stdio and raw descriptor I/O requires explicit coordination of buffering and offsets.",
+      "exercise": "Print a line without a newline before fork in a bounded helper. Compare flushing before fork with letting both processes call exit. Repeat with output redirected to a file because terminal buffering can mask the effect.",
+      "assessment": {
+        "question": "Does fflush alone establish that bytes survive a power loss?",
+        "answer": "No. It addresses the user-space stream buffer, not the full persistence path.",
+        "distractor": "Yes. fflush is a portable equivalent of synchronizing a storage device."
+      },
+      "sources": [
+        {
+          "label": "stdio.3",
+          "url": "https://man7.org/linux/man-pages/man3/stdio.3.html"
+        },
+        {
+          "label": "fflush.3",
+          "url": "https://man7.org/linux/man-pages/man3/fflush.3.html"
+        },
+        {
+          "label": "fsync.2",
+          "url": "https://man7.org/linux/man-pages/man2/fsync.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Suitable local filesystem; all synchronization steps succeed.",
+        "before": "New bytes exist only in a stdio buffer.",
+        "operation": "Flush, synchronize the temporary file, rename, then synchronize the directory.",
+        "observation": "Each step advances a different buffering or namespace obligation.",
+        "tradeoff": "Durability adds latency; batching changes the acceptable loss window."
+      }
+    },
+    {
+      "id": "ch14",
+      "position": 13,
+      "href": "chapters/ch14.html",
+      "topic": "File Systems",
+      "title": "Filesystems as namespaces and storage",
+      "problem": "rename works in one directory but fails when the destination is on another mount.",
+      "explanation": "A filesystem organizes objects and names; the mount tree attaches filesystem instances into a namespace. A path crossing a mount point changes the backing filesystem. Free bytes, free inodes, quotas, reserved space, and mount policy can independently affect writes.",
+      "contract": "rename provides an atomic namespace replacement within its supported scope but fails with EXDEV across mounted filesystems. statvfs exposes filesystem capacity information; available blocks can differ from total free blocks. Never equate a successful rename with crash durability.",
+      "pitfall": "A copy-and-unlink fallback is not atomic and needs an explicit partial-failure policy. A nearly empty filesystem can still reject creation when an inode or quota limit is reached.",
+      "exercise": "Inspect mount information and statvfs results without mounting anything. Design a cross-filesystem move protocol that labels the copy stage, verification stage, and source deletion stage. Explain what a crash leaves at each boundary.",
+      "assessment": {
+        "question": "Can copy followed by unlink preserve rename's atomic visibility across filesystems?",
+        "answer": "No. Readers and crashes can observe intermediate states.",
+        "distractor": "Yes. Two successful system calls always form one transaction."
+      },
+      "sources": [
+        {
+          "label": "rename.2",
+          "url": "https://man7.org/linux/man-pages/man2/rename.2.html"
+        },
+        {
+          "label": "statvfs.3",
+          "url": "https://man7.org/linux/man-pages/man3/statvfs.3.html"
+        },
+        {
+          "label": "mount.2",
+          "url": "https://man7.org/linux/man-pages/man2/mount.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Source and destination are on different mounted filesystems.",
+        "before": "Source is complete; destination is absent.",
+        "operation": "rename fails with EXDEV.",
+        "observation": "A copy fallback needs partial-copy cleanup and separate source deletion.",
+        "tradeoff": "Copy works across mounts but loses atomic move visibility."
+      }
+    },
+    {
+      "id": "ch15",
+      "position": 14,
+      "href": "chapters/ch15.html",
+      "topic": "File Attributes",
+      "title": "Metadata is a snapshot",
+      "problem": "A file passes a pathname permission check, then the opened object differs.",
+      "explanation": "stat follows a pathname to metadata; lstat reports the symbolic link itself; fstat examines the already-open object. Permission bits include type-dependent meanings: directory execute grants search, while directory write controls changes to names subject to other rules. File write permission is not the same as permission to remove its name.",
+      "contract": "Use S_ISREG and related macros to interpret mode types. umask masks requested creation permissions; it does not add permissions. Prefer checking an opened descriptor when the operation must refer to that same object. Timestamps can have filesystem-specific precision and update policy.",
+      "pitfall": "stat followed by open is vulnerable to name replacement. Sticky directories add deletion restrictions, and ACLs or security modules can further change authorization. A mode-bit-only explanation is incomplete.",
+      "exercise": "Create a file with requested mode 0666 in a private directory while a child uses umask 0077. Inspect the resulting mode and restore any modified process state. Compare fstat with lstat on a symlink.",
+      "assessment": {
+        "question": "With no default ACL, what permission bits result from mode 0666 and umask 0077?",
+        "answer": "0600: the mask removes group and other permissions.",
+        "distractor": "0777: umask adds the permissions named by the mask."
+      },
+      "sources": [
+        {
+          "label": "stat.2",
+          "url": "https://man7.org/linux/man-pages/man2/stat.2.html"
+        },
+        {
+          "label": "umask.2",
+          "url": "https://man7.org/linux/man-pages/man2/umask.2.html"
+        },
+        {
+          "label": "inode.7",
+          "url": "https://man7.org/linux/man-pages/man7/inode.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "No default ACL; requested mode 0666; umask 0077.",
+        "before": "No file exists at a private test path.",
+        "operation": "Create the file successfully.",
+        "observation": "Permission bits are 0600, before any later chmod.",
+        "tradeoff": "A restrictive default prevents exposure but collaborators need deliberate grants."
+      }
+    },
+    {
+      "id": "ch16",
+      "position": 15,
+      "href": "chapters/ch16.html",
+      "topic": "Extended Attributes",
+      "title": "Extended attributes are separate data",
+      "problem": "A backup restores file contents but silently drops an application's metadata.",
+      "explanation": "Extended attributes associate named byte values with filesystem objects. Namespaces such as user, trusted, security, and system carry different policy. Values are not necessarily text, and support depends on filesystem and mount configuration. Copying file bytes does not automatically copy these attributes.",
+      "contract": "getxattr can first query a size, then retrieve the value. Another writer can change the size between calls, so handle ERANGE with bounded retries. Distinguish absence from unsupported operation and permission denial. The fgetxattr variant anchors access to an open object.",
+      "pitfall": "Treating an attribute as a NUL-terminated string can overread binary data. Copying security attributes blindly across trust boundaries can be inappropriate even if the caller has permission.",
+      "exercise": "On a disposable file, set a small user.lesson attribute, retrieve its exact byte length, and remove it. If the filesystem rejects the operation, record that as a capability result rather than fabricating output.",
+      "assessment": {
+        "question": "Is a size query followed by getxattr immune to concurrent changes?",
+        "answer": "No. The second call must still handle a changed value size.",
+        "distractor": "Yes. The first call reserves the attribute until retrieval."
+      },
+      "sources": [
+        {
+          "label": "xattr.7",
+          "url": "https://man7.org/linux/man-pages/man7/xattr.7.html"
+        },
+        {
+          "label": "getxattr.2",
+          "url": "https://man7.org/linux/man-pages/man2/getxattr.2.html"
+        },
+        {
+          "label": "setxattr.2",
+          "url": "https://man7.org/linux/man-pages/man2/setxattr.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "An xattr writer races the reader.",
+        "before": "Size query reports four bytes.",
+        "operation": "The writer grows the value before retrieval.",
+        "observation": "Handle ERANGE with a bounded retry rather than trusting the stale size.",
+        "tradeoff": "Two-stage allocation avoids oversized buffers but requires race handling."
+      }
+    },
+    {
+      "id": "ch17",
+      "position": 16,
+      "href": "chapters/ch17.html",
+      "topic": "Access Control Lists",
+      "title": "ACLs and the effective permission mask",
+      "problem": "An ACL grants a named user write permission but the user still cannot write.",
+      "explanation": "Linux POSIX-style access ACLs extend owner/group/other permissions with named users and groups. The ACL mask caps effective permissions for named users and the group class, but not the owning user or other entry. Default directory ACLs influence inheritance and are distinct from the directory's own access ACL.",
+      "contract": "Use getfacl to inspect both requested and effective rights and setfacl only on disposable files. chmod can change the ACL mask through group-class bits. Linux POSIX ACLs reflect the historical draft model; do not claim that this interface is a mandatory POSIX.1-2024 feature.",
+      "pitfall": "Looking only at one named entry misses the mask. A recursive permission change can unexpectedly alter effective rights inherited by a tree. Authorization also needs search permission on ancestor directories.",
+      "exercise": "In an optional ACL-enabled filesystem lab, create a named-user entry with rw and a mask of r. Read getfacl's effective annotation. Do not modify another user's real files to perform this experiment.",
+      "assessment": {
+        "question": "A named user has rw, while the ACL mask is r. What is effective through that entry?",
+        "answer": "Read only, because the mask caps the named-user entry.",
+        "distractor": "Read and write, because a named entry bypasses the mask."
+      },
+      "sources": [
+        {
+          "label": "acl.5",
+          "url": "https://man7.org/linux/man-pages/man5/acl.5.html"
+        },
+        {
+          "label": "acl_get_file.3",
+          "url": "https://man7.org/linux/man-pages/man3/acl_get_file.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Named-user ACL entry rw; ACL mask r; ancestor search allowed.",
+        "before": "The named user attempts a write through that entry.",
+        "operation": "Intersect the entry with the mask.",
+        "observation": "Effective rights are r, so that entry does not authorize write.",
+        "tradeoff": "ACLs express fine-grained policy but require reviewing effective permissions."
+      }
+    },
+    {
+      "id": "ch18",
+      "position": 17,
+      "href": "chapters/ch18.html",
+      "topic": "Directories and Links",
+      "title": "Directory traversal without name races",
+      "problem": "A recursive tool accidentally follows a symlink outside its intended tree.",
+      "explanation": "A hard link is another directory entry for an inode; a symbolic link stores a path interpreted during lookup. Relative symlink targets are resolved relative to the link's containing directory. An open directory descriptor can anchor relative operations even when the working directory changes.",
+      "contract": "openat takes a directory descriptor and a relative path; an absolute path ignores that descriptor. O_NOFOLLOW protects the final component, not every earlier component. Linux openat2 offers resolution constraints such as RESOLVE_BENEATH when a stronger traversal policy is required.",
+      "pitfall": "readdir's d_type can be DT_UNKNOWN, so robust tools cannot require it to contain a type. readlink returns a byte count and does not append a terminating NUL. chdir is process-wide and can interfere with other threads.",
+      "exercise": "Draw a tree with a relative symlink pointing to ../outside. Resolve it component by component. Compare a final-component O_NOFOLLOW policy with a beneath-root policy and identify which one rejects intermediate traversal.",
+      "assessment": {
+        "question": "Does O_NOFOLLOW alone forbid symlinks in every pathname component?",
+        "answer": "No. Its ordinary open behavior concerns the final component.",
+        "distractor": "Yes. It confines all traversal beneath the starting directory."
+      },
+      "sources": [
+        {
+          "label": "openat2.2",
+          "url": "https://man7.org/linux/man-pages/man2/openat2.2.html"
+        },
+        {
+          "label": "open.2",
+          "url": "https://man7.org/linux/man-pages/man2/open.2.html"
+        },
+        {
+          "label": "readdir.3",
+          "url": "https://man7.org/linux/man-pages/man3/readdir.3.html"
+        },
+        {
+          "label": "readlink.2",
+          "url": "https://man7.org/linux/man-pages/man2/readlink.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "The final component is ordinary, but an earlier component is a symlink.",
+        "before": "root/link/file traverses link to an outside directory.",
+        "operation": "open uses only O_NOFOLLOW.",
+        "observation": "Final-component protection alone does not confine the entire lookup.",
+        "tradeoff": "openat2 resolution constraints are stronger but Linux-specific."
+      }
+    },
+    {
+      "id": "ch19",
+      "position": 18,
+      "href": "chapters/ch19.html",
+      "topic": "Monitoring File Events",
+      "title": "File events are hints to reconcile",
+      "problem": "A directory watcher misses a rename during a burst of changes.",
+      "explanation": "inotify places filesystem notifications in a bounded queue. Watches identify observed objects, and rename cookies help correlate move events, but the application must tolerate gaps and races. An event stream is a prompt to update a view of state, not an infallible audit log.",
+      "contract": "Use inotify_init1 with appropriate nonblocking and close-on-exec flags. Parse each variable-length record using its reported length. Handle IN_Q_OVERFLOW by rebuilding the relevant state. Recursive trees require deliberate watch management because one directory watch is not recursive.",
+      "pitfall": "Pairing rename events with an assumption of immediate adjacency fails under interleaving. A path can disappear before the consumer inspects it. Keeping only events without a reconciliation strategy makes overflow unrecoverable.",
+      "exercise": "In a private directory, record create, rename, and delete activity. Then design a synthetic overflow input for your parser and verify that it requests a rescan rather than reporting a perfectly complete history.",
+      "assessment": {
+        "question": "What should a stateful watcher do after IN_Q_OVERFLOW?",
+        "answer": "Reconcile against filesystem state and acknowledge that events were lost.",
+        "distractor": "Continue treating the remaining queue as a complete change history."
+      },
+      "sources": [
+        {
+          "label": "inotify.7",
+          "url": "https://man7.org/linux/man-pages/man7/inotify.7.html"
+        },
+        {
+          "label": "inotify_init.2",
+          "url": "https://man7.org/linux/man-pages/man2/inotify_init.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A watcher maintains a cache of directory contents.",
+        "before": "The event queue overflows during a burst.",
+        "operation": "The consumer receives IN_Q_OVERFLOW.",
+        "observation": "Invalidate confidence in the event history and reconcile from the directory.",
+        "tradeoff": "Events are efficient for updates; rescans are the recovery path."
+      }
+    },
+    {
+      "id": "ch20",
+      "position": 19,
+      "href": "chapters/ch20.html",
+      "topic": "Signals: Fundamental Concepts",
+      "title": "Signals: pending is not a message count",
+      "problem": "A worker receives ten SIGUSR1 sends but handles fewer than ten notifications.",
+      "explanation": "A standard signal has pending state, not an unbounded queue of occurrences. Repeated generation while the same standard signal is pending coalesces. Disposition is process-wide, while each thread has a signal mask. Blocking postpones delivery; ignoring selects a different disposition.",
+      "contract": "Use sigaction to establish handling and pthread_sigmask for masks in threaded programs. SIGUSR1 and SIGTERM terminate by default; SIGKILL and SIGSTOP cannot be caught or blocked. Real-time signals support queued instances within resource limits and have different ordering rules.",
+      "pitfall": "A counter incremented by a handler cannot reliably count standard-signal sends. Unblocking a pending SIGTERM with its default disposition terminates the process; a teaching model must not silently treat it as a harmless callback.",
+      "exercise": "Use the signal model to block SIGUSR1, generate it three times, then unblock. Compare a handler disposition with default termination. Run the bounded signals.c lab, which synchronously consumes a blocked signal without risking default delivery.",
+      "assessment": {
+        "question": "Three SIGUSR1 occurrences are generated while blocked and already pending. How many pending instances are represented?",
+        "answer": "One standard-signal pending instance, not three queued messages.",
+        "distractor": "Three guaranteed handler invocations in sending order."
+      },
+      "sources": [
+        {
+          "label": "signal.7",
+          "url": "https://man7.org/linux/man-pages/man7/signal.7.html"
+        },
+        {
+          "label": "sigaction.2",
+          "url": "https://man7.org/linux/man-pages/man2/sigaction.2.html"
+        },
+        {
+          "label": "pthread_sigmask.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_sigmask.3.html"
+        }
+      ],
+      "activity": "signals",
+      "lab": "signals",
+      "worked": {
+        "assumptions": "SIGUSR1 is blocked; one process; no synchronous acceptance yet.",
+        "before": "No standard signal is pending.",
+        "operation": "Generate SIGUSR1 three times.",
+        "observation": "One pending instance exists; disposition decides what delivery does.",
+        "tradeoff": "Signals are light notifications; use queued IPC for counted work."
+      }
+    },
+    {
+      "id": "ch21",
+      "position": 20,
+      "href": "chapters/ch21.html",
+      "topic": "Signals: Signal Handlers",
+      "title": "A signal handler interrupts invariants",
+      "problem": "A handler logs through printf and occasionally deadlocks.",
+      "explanation": "A handler can interrupt code while library internal state is halfway through an update. Ordinary thread safety is not sufficient for asynchronous interruption. The handler may reenter the same lock or allocator it interrupted. Keep its work minimal and hand control back to ordinary execution.",
+      "contract": "Use only async-signal-safe operations in handlers. A volatile sig_atomic_t flag can communicate a simple condition to interrupted code under its defined constraints; it is not a general inter-thread synchronization primitive. Preserve errno when the handler makes calls that can change it.",
+      "pitfall": "printf, malloc, and mutex locking are not general handler-safe tools. Checking a flag and then calling pause creates a lost-wakeup window. Block the signal while testing and use sigsuspend to atomically change the mask and wait.",
+      "exercise": "Rewrite a handler that prints a message into one that sets a flag. Draw the arrival points between flag testing and sleeping, then remove the race with a blocked-mask/sigsuspend protocol.",
+      "assessment": {
+        "question": "Does marking a function thread-safe make it safe inside an asynchronous signal handler?",
+        "answer": "No. Async-signal safety is a separate, stronger requirement.",
+        "distractor": "Yes. Both properties simply mean a function uses locks."
+      },
+      "sources": [
+        {
+          "label": "signal-safety.7",
+          "url": "https://man7.org/linux/man-pages/man7/signal-safety.7.html"
+        },
+        {
+          "label": "sigsuspend.2",
+          "url": "https://man7.org/linux/man-pages/man2/sigsuspend.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A handler may interrupt a library call holding internal state.",
+        "before": "Main code is inside printf.",
+        "operation": "A handler calls printf again.",
+        "observation": "The reentry is not generally async-signal-safe; defer formatting to normal flow.",
+        "tradeoff": "Minimal handlers are easier to audit but need a handoff protocol."
+      }
+    },
+    {
+      "id": "ch22",
+      "position": 21,
+      "href": "chapters/ch22.html",
+      "topic": "Signals: Advanced Features",
+      "title": "Accepting signals synchronously",
+      "problem": "A multithreaded server needs one place to handle shutdown signals.",
+      "explanation": "Blocking a chosen set before creating threads causes those threads to inherit the mask. A dedicated waiter can then accept signals synchronously, where ordinary control flow is easier to reason about than asynchronous handlers. Linux signalfd integrates selected blocked signals with descriptor-based event loops.",
+      "contract": "sigwait returns an error number directly, while sigwaitinfo returns a signal number or -1. Ensure the selected signals remain blocked in every thread that could otherwise receive them. Real-time queueing is bounded by resource policy; sigqueue can fail rather than queue forever.",
+      "pitfall": "Creating workers before setting their inherited mask leaves a delivery window. Passing a pointer as a real-time signal value does not make that address meaningful in another process's address space.",
+      "exercise": "Design a two-thread shutdown path: main blocks the set, creates a waiter and worker, waiter requests cooperative stop, main joins both. Include the case of repeated standard shutdown signals without assuming one event per send.",
+      "assessment": {
+        "question": "Why block the signal set before starting workers?",
+        "answer": "New threads inherit the mask, preventing unintended asynchronous delivery there.",
+        "distractor": "Blocking converts standard signals into reliable queued messages."
+      },
+      "sources": [
+        {
+          "label": "sigwait.3",
+          "url": "https://man7.org/linux/man-pages/man3/sigwait.3.html"
+        },
+        {
+          "label": "sigwaitinfo.2",
+          "url": "https://man7.org/linux/man-pages/man2/sigwaitinfo.2.html"
+        },
+        {
+          "label": "signalfd.2",
+          "url": "https://man7.org/linux/man-pages/man2/signalfd.2.html"
+        },
+        {
+          "label": "sigqueue.3",
+          "url": "https://man7.org/linux/man-pages/man3/sigqueue.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Shutdown set is blocked before pthread_create.",
+        "before": "The main thread establishes the mask.",
+        "operation": "Workers inherit it; one dedicated thread calls sigwait.",
+        "observation": "Shutdown can be handled in ordinary thread control flow.",
+        "tradeoff": "A waiter simplifies handlers but adds lifecycle coordination."
+      }
+    },
+    {
+      "id": "ch23",
+      "position": 22,
+      "href": "chapters/ch23.html",
+      "topic": "Timers and Sleeping",
+      "title": "Timers schedule eligibility, not precision",
+      "problem": "A periodic task drifts farther behind after each interrupted sleep.",
+      "explanation": "A timer expiration makes work eligible; scheduler delays still affect when user code runs. Repeated relative sleeps include the duration of previous work and interruptions, causing drift. Absolute deadlines preserve the intended phase, but missed periods still require an application policy.",
+      "contract": "clock_nanosleep with TIMER_ABSTIME can retry the same deadline after EINTR and returns an error number directly. timerfd exposes expiration counts through an eight-byte read on Linux. A count greater than one reports accumulated expirations, not repeated executions of your task.",
+      "pitfall": "Calling the body once for every missed interval can create an unbounded catch-up storm. Skipping missed work may be better for telemetry but wrong for accounting. State the policy before choosing the loop.",
+      "exercise": "Run timers.c for one short monotonic timerfd expiration. Extend it to three bounded periodic reads and add deliberately slow work in a local variant to inspect accumulated expiration counts. Do not assert an exact wakeup time or use a real-time scheduling policy.",
+      "assessment": {
+        "question": "An absolute sleep is interrupted. How can you preserve the original deadline?",
+        "answer": "Retry with the same absolute target after handling EINTR.",
+        "distractor": "Start a full relative interval again after every interruption."
+      },
+      "sources": [
+        {
+          "label": "clock_nanosleep.2",
+          "url": "https://man7.org/linux/man-pages/man2/clock_nanosleep.2.html"
+        },
+        {
+          "label": "timerfd_create.2",
+          "url": "https://man7.org/linux/man-pages/man2/timerfd_create.2.html"
+        }
+      ],
+      "activity": "timers",
+      "lab": "timers",
+      "worked": {
+        "assumptions": "Monotonic absolute deadline; clock_nanosleep interrupted before the target.",
+        "before": "Target is 5.000 seconds in the clock domain.",
+        "operation": "After handling EINTR, retry the same target.",
+        "observation": "Interruption does not add a fresh full interval.",
+        "tradeoff": "Fixed phase avoids drift but needs a missed-period policy."
+      }
+    },
+    {
+      "id": "ch24",
+      "position": 23,
+      "href": "chapters/ch24.html",
+      "topic": "Process Creation",
+      "title": "Fork: copied state, shared references",
+      "problem": "A child changes a variable, but the parent sees only a changed file offset.",
+      "explanation": "fork creates a child with a logically separate address space, commonly implemented using copy-on-write. Descriptor tables are copied, but their entries refer to the same open file descriptions. This explains why ordinary variables diverge while file offsets can remain shared. Scheduling order is unspecified.",
+      "contract": "fork returns the child PID in the parent, zero in the child, and -1 on failure with no child created. In a multithreaded parent, the child contains only the calling thread, while inherited memory may contain locks held by vanished threads. Restrict child work to async-signal-safe operations until exec.",
+      "pitfall": "A sleep is not a synchronization protocol. Assuming the child runs first creates timing-dependent output. Calling complex library functions after a multithreaded fork can deadlock on inherited lock state.",
+      "exercise": "Run processes.c. The child changes its copied integer to 9 and uses _exit(9); the parent retains 7 and decodes status 9. Extend only in a single-threaded local variant to compare a copied integer with a shared descriptor offset.",
+      "assessment": {
+        "question": "Does fork give the child an independent file offset for each inherited descriptor?",
+        "answer": "No. The inherited entries reference the parent's open file descriptions.",
+        "distractor": "Yes. Every inherited descriptor behaves like a fresh open."
+      },
+      "sources": [
+        {
+          "label": "fork.2",
+          "url": "https://man7.org/linux/man-pages/man2/fork.2.html"
+        },
+        {
+          "label": "pthread_atfork.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_atfork.3.html"
+        }
+      ],
+      "activity": "processes",
+      "lab": "processes",
+      "worked": {
+        "assumptions": "Single-threaded parent; shared inherited descriptor; calls serialized.",
+        "before": "Parent integer is 7 and file offset is zero.",
+        "operation": "Child changes its integer to 9 and reads one byte.",
+        "observation": "Parent integer remains 7; shared file offset becomes one.",
+        "tradeoff": "fork isolates ordinary memory but shares some kernel references."
+      }
+    },
+    {
+      "id": "ch25",
+      "position": 24,
+      "href": "chapters/ch25.html",
+      "topic": "Process Termination",
+      "title": "Exit has user-space and kernel phases",
+      "problem": "A forked child unexpectedly emits its parent's buffered log line again.",
+      "explanation": "Returning from main behaves like exit: registered cleanup and stdio flushing run in user space. _exit bypasses those user-space callbacks and buffers, while kernel teardown releases process resources. A terminated child can leave a waitable status until its parent reaps it.",
+      "contract": "exit accepts an integer status whose low eight bits are available through the usual wait status interface. _exit is the appropriate failure path after exec fails in a restricted post-fork child. Closing descriptors during termination can still involve kernel work; immediate does not imply hard real-time completion.",
+      "pitfall": "Calling exit after fork can duplicate a pre-fork stdio buffer or run cleanup intended only for the parent. A destructor is not a substitute for a durable storage protocol and will not run for every kind of termination.",
+      "exercise": "Compare exit and _exit in a bounded single-threaded fork helper with redirected output. Flush before fork in the corrected version. Explain why neither mode guarantees recovery after SIGKILL or power failure.",
+      "assessment": {
+        "question": "Which child failure path avoids flushing inherited stdio buffers after exec fails?",
+        "answer": "_exit with an explicit failure status.",
+        "distractor": "exit, because it discards every inherited user-space buffer."
+      },
+      "sources": [
+        {
+          "label": "exit.3",
+          "url": "https://man7.org/linux/man-pages/man3/exit.3.html"
+        },
+        {
+          "label": "_exit.2",
+          "url": "https://man7.org/linux/man-pages/man2/_exit.2.html"
+        },
+        {
+          "label": "wait.2",
+          "url": "https://man7.org/linux/man-pages/man2/wait.2.html"
+        }
+      ],
+      "activity": "processes",
+      "lab": "processes",
+      "worked": {
+        "assumptions": "Single-threaded fork with an unflushed redirected stdio buffer.",
+        "before": "Parent's buffer contains one log prefix.",
+        "operation": "Both branches later call exit.",
+        "observation": "Each copied buffer may flush the prefix; flush before fork to avoid duplication.",
+        "tradeoff": "exit runs cleanup; _exit avoids inherited user-space cleanup in the restricted child."
+      }
+    },
+    {
+      "id": "ch26",
+      "position": 25,
+      "href": "chapters/ch26.html",
+      "topic": "Monitoring Child Processes",
+      "title": "Reaping is resource accounting",
+      "problem": "A server handles SIGCHLD once but leaves several zombie children.",
+      "explanation": "Child termination and parent observation are separate events. The kernel retains status for the parent to collect. Since standard SIGCHLD occurrences can coalesce, a signal tells the parent to inspect child state rather than counting exactly one termination.",
+      "contract": "waitpid with WNOHANG returns a positive PID when a status was collected, zero when matching children exist but none is ready, or -1 on error. Decode status with WIFEXITED before WEXITSTATUS and WIFSIGNALED before WTERMSIG. A stopped child is not a terminated child.",
+      "pitfall": "Calling waitpid only once per SIGCHLD can leave other children unreaped. Polling without a bound wastes CPU. Treat ECHILD distinctly from EINTR and ensure one component owns each child's wait lifecycle.",
+      "exercise": "Run processes.c and verify child status 9. Design a draining waitpid(-1, ..., WNOHANG) loop that stops on zero or ECHILD, retries permitted EINTR, and records other failures. Do not interpret the packed status as the direct exit code.",
+      "assessment": {
+        "question": "waitpid with WNOHANG returns zero. What did it report?",
+        "answer": "No requested child status is currently ready, not a successful reap.",
+        "distractor": "A child with PID zero exited successfully."
+      },
+      "sources": [
+        {
+          "label": "wait.2",
+          "url": "https://man7.org/linux/man-pages/man2/wait.2.html"
+        },
+        {
+          "label": "signal.7",
+          "url": "https://man7.org/linux/man-pages/man7/signal.7.html"
+        }
+      ],
+      "activity": "processes",
+      "lab": "processes",
+      "worked": {
+        "assumptions": "One child exited with status 7; waitpid succeeds.",
+        "before": "Parent holds a packed wait status.",
+        "operation": "Check WIFEXITED, then WEXITSTATUS.",
+        "observation": "The decoded exit status is 7, not the raw packed integer.",
+        "tradeoff": "Explicit reaping retains diagnostics but requires clear wait ownership."
+      }
+    },
+    {
+      "id": "ch27",
+      "position": 26,
+      "href": "chapters/ch27.html",
+      "topic": "Program Execution",
+      "title": "Exec is an image replacement boundary",
+      "problem": "A helper inherits a database socket that its parent never intended to share.",
+      "explanation": "execve replaces code, data, heap, and stack with a new image. Many process attributes survive, including identity and descriptors not marked close-on-exec. Caught signal dispositions reset, while ignored dispositions and the signal mask have specified inheritance behavior. Every inherited descriptor is a transfer of authority.",
+      "contract": "execve accepts a path and NULL-terminated argv and envp vectors. On success it never returns; on ordinary failure it returns -1. Set close-on-exec at descriptor creation to avoid a race with another thread executing a new image. PATH-searching exec variants introduce a separate executable-resolution policy.",
+      "pitfall": "Setting FD_CLOEXEC in a later fcntl can race a concurrent fork/exec. A sanitized argv does not sanitize the environment. Never treat a shell command string as equivalent to an argument vector for untrusted values.",
+      "exercise": "Use the descriptor model's exec action to see which entries survive. In a Linux helper, pass only a small explicit environment and an absolute executable path; report exec failure through a pipe whose write end is close-on-exec.",
+      "assessment": {
+        "question": "What does reaching the next statement after execve normally tell you?",
+        "answer": "The replacement failed, so inspect its failure result and errno.",
+        "distractor": "The new program finished and control returned to the old image."
+      },
+      "sources": [
+        {
+          "label": "execve.2",
+          "url": "https://man7.org/linux/man-pages/man2/execve.2.html"
+        },
+        {
+          "label": "exec.3",
+          "url": "https://man7.org/linux/man-pages/man3/exec.3.html"
+        },
+        {
+          "label": "open.2",
+          "url": "https://man7.org/linux/man-pages/man2/open.2.html"
+        }
+      ],
+      "activity": "descriptors",
+      "lab": "descriptors",
+      "worked": {
+        "assumptions": "Successful exec; fd 3 CLOEXEC set; dup-created fd 4 clear.",
+        "before": "Both entries refer to one open file description.",
+        "operation": "Replace the program image.",
+        "observation": "fd 3 closes while fd 4 survives with the shared description.",
+        "tradeoff": "Atomic close-on-exec creation prevents leaks but inheritance must be deliberate."
+      }
+    },
+    {
+      "id": "ch28",
+      "position": 27,
+      "href": "chapters/ch28.html",
+      "topic": "Process Creation and Program Execution in More Detail",
+      "title": "Launching safely from a larger process",
+      "problem": "A threaded application needs to launch a helper with redirected output.",
+      "explanation": "A launch is a protocol: choose the executable, prepare descriptors, create the child, establish its environment, detect replacement failure, and collect termination. posix_spawn packages common setup through attributes and file actions, reducing the amount of custom post-fork code.",
+      "contract": "posix_spawn returns an error number, not the usual -1/errno convention. A successful launch still requires waitpid to collect child completion. File actions are ordered; a close before a duplication can invalidate the source. system invokes a shell and has its own signal and status semantics.",
+      "pitfall": "vfork is not a drop-in faster fork: the child shares constrained execution state until exec or _exit. Returning from the child path or modifying arbitrary data is unsafe. An implementation's fast path is not an application contract.",
+      "exercise": "Write a launch plan for stdout redirection using posix_spawn file actions: open destination, duplicate to stdout if needed, close surplus handles, spawn, destroy actions, wait. Analyze the case where the opened descriptor already equals stdout.",
+      "assessment": {
+        "question": "Does a zero return from posix_spawn eliminate the need to wait for the child?",
+        "answer": "No. Launch result and child termination status are separate observations.",
+        "distractor": "Yes. The spawn call synchronously returns the helper's final exit status."
+      },
+      "sources": [
+        {
+          "label": "posix_spawn.3",
+          "url": "https://man7.org/linux/man-pages/man3/posix_spawn.3.html"
+        },
+        {
+          "label": "system.3",
+          "url": "https://man7.org/linux/man-pages/man3/system.3.html"
+        },
+        {
+          "label": "vfork.2",
+          "url": "https://man7.org/linux/man-pages/man2/vfork.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Spawn file actions redirect stdout; destination already happens to be fd 1.",
+        "before": "The destination descriptor equals the target descriptor.",
+        "operation": "Avoid an unconditional surplus-close action on fd 1.",
+        "observation": "The launched helper retains its intended stdout.",
+        "tradeoff": "Declarative spawn setup reduces post-fork code but action order still matters."
+      }
+    },
+    {
+      "id": "ch29",
+      "position": 28,
+      "href": "chapters/ch29.html",
+      "topic": "Threads: Introduction",
+      "title": "Threads share ownership problems",
+      "problem": "A thread receives a pointer to a stack object that no longer exists.",
+      "explanation": "Threads share address space and process resources but each has its own stack, execution state, and signal mask. Passing a pointer shares access, not lifetime management. The caller must keep the pointed-to object alive until the receiver is finished. Thread creation does not define which side executes first.",
+      "contract": "pthread_create returns an error number and starts a function with signature void *(*)(void *). A joinable thread should be joined exactly once or detached. pthread_join establishes completion and retrieves the returned pointer; it does not make a pointer to a dead thread's stack valid.",
+      "pitfall": "Passing the address of a changing loop variable to every worker gives them a race on one object. Leaking joinable thread resources is distinct from leaking heap memory. Use pthread_equal rather than assuming a portable integer representation for pthread_t.",
+      "exercise": "Run threads.c with two bounded workers and one shared mutex-protected counter. Each worker receives stable storage. Verify the final total after both joins instead of guessing the interleaving from print order.",
+      "assessment": {
+        "question": "May a thread safely return a pointer to its automatic local variable for the joiner to use?",
+        "answer": "No. Its automatic storage lifetime ends with the thread's function.",
+        "distractor": "Yes. pthread_join extends every object on the terminated thread's stack."
+      },
+      "sources": [
+        {
+          "label": "pthread_create.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_create.3.html"
+        },
+        {
+          "label": "pthread_join.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_join.3.html"
+        },
+        {
+          "label": "pthread_self.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_self.3.html"
+        }
+      ],
+      "activity": "threads",
+      "lab": "threads",
+      "worked": {
+        "assumptions": "Two workers each increment 1000 times under one mutex.",
+        "before": "Shared counter starts at zero; argument storage survives both joins.",
+        "operation": "Join both successfully completed workers.",
+        "observation": "The final counter is 2000 regardless of scheduling order.",
+        "tradeoff": "Locking gives correctness but can serialize a hot counter."
+      }
+    },
+    {
+      "id": "ch30",
+      "position": 29,
+      "href": "chapters/ch30.html",
+      "topic": "Threads: Thread Synchronization",
+      "title": "Synchronization protects a predicate",
+      "problem": "A worker wakes from a condition wait although the queue is still empty.",
+      "explanation": "A mutex protects the invariant of shared state. A condition variable lets a thread wait until that state may have changed. Notification is not stored work, and waking does not prove the predicate is true. Another consumer may win the mutex first, or a spurious wakeup may occur.",
+      "contract": "pthread_cond_wait atomically releases the associated mutex while waiting and reacquires it before returning. Test the predicate in a while loop under that mutex. Writers update the predicate under the same synchronization discipline and then notify as appropriate. Use a global lock order to prevent cycles.",
+      "pitfall": "Replacing while with if can consume nonexistent work. Holding a mutex while performing unbounded network I/O can serialize the entire service. Robust mutex EOWNERDEAD requires state repair and pthread_mutex_consistent, not blind success handling.",
+      "exercise": "Trace two consumers and one queued item: both wake, one consumes, the second reacquires later. Write the predicate value at each lock boundary. Run the counter lab to distinguish data-race prevention from scheduling order.",
+      "assessment": {
+        "question": "After pthread_cond_wait returns, may a consumer assume the queue is nonempty?",
+        "answer": "No. Recheck the protected predicate in a loop.",
+        "distractor": "Yes. Each signal transfers ownership of one queue item."
+      },
+      "sources": [
+        {
+          "label": "pthread_cond_wait.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_cond_wait.3.html"
+        },
+        {
+          "label": "pthread_mutex_lock.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_mutex_lock.3.html"
+        }
+      ],
+      "activity": "threads",
+      "lab": "threads",
+      "worked": {
+        "assumptions": "Two consumers, one queued item, shared mutex and predicate.",
+        "before": "Both consumers are awakened.",
+        "operation": "First consumes; second reacquires the mutex later.",
+        "observation": "Second sees empty and waits again in its while loop.",
+        "tradeoff": "Predicate loops tolerate contention and spurious wakes at the cost of retesting."
+      }
+    },
+    {
+      "id": "ch31",
+      "position": 30,
+      "href": "chapters/ch31.html",
+      "topic": "Threads: Thread Safety and Per-Thread Storage",
+      "title": "Thread-local storage is not object isolation",
+      "problem": "A supposedly thread-safe helper returns a pointer that changes after a later call.",
+      "explanation": "Thread safety describes allowed concurrent use, not necessarily independent result storage. Reentrancy is another property. Thread-local storage supplies one value per thread, useful for error state and caches, but any pointers stored there may still refer to shared objects.",
+      "contract": "pthread_key_create creates a key shared across threads; pthread_setspecific assigns that thread's value. A destructor can release per-thread heap storage on thread exit subject to destructor iteration rules. C thread-local objects have storage semantics distinct from heap ownership.",
+      "pitfall": "Deleting a pthread key does not automatically free all values stored by existing threads. A thread-local pointer to a global mutable buffer does not remove the underlying race. Static-result functions can invalidate earlier pointers even in a single thread.",
+      "exercise": "Design a formatter whose caller supplies a buffer, then compare it with one returning thread-local storage. State whether two consecutive calls in the same thread can retain both results. Make the lifetime part of the API documentation.",
+      "assessment": {
+        "question": "Does making a pointer thread-local make the shared object it points to thread-local too?",
+        "answer": "No. Pointer storage and pointed-to object ownership are separate.",
+        "distractor": "Yes. The runtime automatically clones the object for each thread."
+      },
+      "sources": [
+        {
+          "label": "pthread_key_create.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_key_create.3.html"
+        },
+        {
+          "label": "pthread_setspecific.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_setspecific.3.html"
+        },
+        {
+          "label": "attributes.7",
+          "url": "https://man7.org/linux/man-pages/man7/attributes.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "One thread stores a pointer to a shared global buffer in thread-local storage.",
+        "before": "A second thread holds another pointer to that same buffer.",
+        "operation": "Both modify the pointed-to bytes without synchronization.",
+        "observation": "Thread-local pointer variables do not remove the shared-data race.",
+        "tradeoff": "Caller-owned buffers make ownership clearer than hidden reusable storage."
+      }
+    },
+    {
+      "id": "ch32",
+      "position": 31,
+      "href": "chapters/ch32.html",
+      "topic": "Threads: Thread Cancellation",
+      "title": "Cancellation is an unwinding protocol",
+      "problem": "A canceled worker leaves a mutex locked and the process hangs.",
+      "explanation": "Cancellation is a request whose delivery depends on state, type, and cancellation points. Deferred cancellation is easier to reason about than asynchronous cancellation, which can strike while almost any invariant is broken. Cooperative stop flags often provide a clearer application lifecycle.",
+      "contract": "pthread_cancel requests cancellation; it does not join the thread or prove completion. Cleanup handlers run on cancellation and can release acquired resources when correctly paired. pthread_cleanup_push/pop may be macros requiring matching lexical scope. Disable cancellation around short critical ownership transitions when necessary.",
+      "pitfall": "Installing cleanup before acquiring a mutex can attempt an invalid unlock on another path. Forgetting that pthread_cond_wait reacquires the mutex before cancellation cleanup can produce a leak. Async cancellation makes most ordinary library operations unsafe.",
+      "exercise": "Draw ownership states for acquire, install cleanup, wait, remove cleanup, release. Choose a disciplined ordering that covers each cancellation point. Prefer a cooperative bounded worker in runnable examples rather than trying to demonstrate undefined behavior.",
+      "assessment": {
+        "question": "Does pthread_cancel returning zero prove the target has exited?",
+        "answer": "No. Join or another explicit completion protocol is still required.",
+        "distractor": "Yes. Cancellation always synchronously destroys the target thread."
+      },
+      "sources": [
+        {
+          "label": "pthread_cancel.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_cancel.3.html"
+        },
+        {
+          "label": "pthread_cleanup_push.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_cleanup_push.3.html"
+        },
+        {
+          "label": "pthread_setcancelstate.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_setcancelstate.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Deferred cancellation; thread is waiting on a condition variable.",
+        "before": "The wait released its mutex.",
+        "operation": "Cancellation occurs and the wait reacquires the mutex before cleanup.",
+        "observation": "An installed cleanup handler can release that owned mutex.",
+        "tradeoff": "Cooperative stop is often clearer; cancellation requires audited cleanup boundaries."
+      }
+    },
+    {
+      "id": "ch33",
+      "position": 32,
+      "href": "chapters/ch33.html",
+      "topic": "Threads: Further Details",
+      "title": "Thread attributes and finite resources",
+      "problem": "A service creates thousands of threads and fails well before exhausting physical RAM.",
+      "explanation": "Each thread needs stack address space and runtime/kernel resources. Default stack size, guard regions, resource limits, and cgroup limits affect capacity. Detaching changes resource reclamation after termination; it does not make a running thread free. Affinity constrains placement but does not grant exclusive CPU access.",
+      "contract": "Initialize pthread attributes, set requested values with error checks, pass them to pthread_create, and destroy the attribute object afterward. A caller-supplied stack has its own lifetime and guard responsibilities. Linux affinity APIs are extensions with dynamically sized CPU sets on large machines.",
+      "pitfall": "Choosing a tiny stack based on one call path can fail with deeper recursion, signals, or library changes. Treat EAGAIN as a capacity outcome requiring backpressure, not an invitation to spin creating more threads.",
+      "exercise": "Inspect default attributes using the available platform interfaces and calculate a bounded pool budget. Include per-task queue memory as well as thread stacks. Explain why a fixed worker pool still needs a bounded admission queue.",
+      "assessment": {
+        "question": "Does detaching a live thread immediately release its stack and execution resources?",
+        "answer": "No. Reclamation happens after that thread terminates.",
+        "distractor": "Yes. Detached execution requires no per-thread resources."
+      },
+      "sources": [
+        {
+          "label": "pthread_attr_init.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_attr_init.3.html"
+        },
+        {
+          "label": "pthread_attr_setstacksize.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_attr_setstacksize.3.html"
+        },
+        {
+          "label": "pthread_detach.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_detach.3.html"
+        },
+        {
+          "label": "sched_setaffinity.2",
+          "url": "https://man7.org/linux/man-pages/man2/sched_setaffinity.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Illustrative pool of 32 threads, each configured with a 1 MiB stack.",
+        "before": "Queue memory has not yet been included.",
+        "operation": "Calculate 32 MiB of stack address space alone.",
+        "observation": "This is not total RSS or total service memory; add queues and runtime overhead.",
+        "tradeoff": "Smaller stacks save address space but increase overflow risk."
+      }
+    },
+    {
+      "id": "ch34",
+      "position": 33,
+      "href": "chapters/ch34.html",
+      "topic": "Process Groups, Sessions, and Job Control",
+      "title": "Job control separates sessions and groups",
+      "problem": "Pressing Ctrl-C terminates a pipeline's workers rather than only the shell's immediate child.",
+      "explanation": "A process group collects related processes for signaling and terminal job control. A session contains process groups and may have a controlling terminal. The terminal's foreground process group receives terminal-generated signals. Parent-child structure and process-group membership are different relationships.",
+      "contract": "setpgid establishes process-group membership subject to session and lifecycle constraints. setsid creates a new session when permitted; a process-group leader cannot simply call it successfully. tcsetpgrp selects a foreground group under terminal rules. kill with a negative group ID targets a group.",
+      "pitfall": "A background process reading its controlling terminal can receive SIGTTIN. Treating process groups as security boundaries is incorrect. Shell launch code often sets group membership in both parent and child to close scheduling races.",
+      "exercise": "Inspect PID, PPID, PGID, SID, and terminal foreground group for a harmless shell pipeline. Draw two separate trees: ancestry and group membership. Do not send group signals to a shell you need to keep running.",
+      "assessment": {
+        "question": "Is a process group necessarily identical to a parent and all of its descendants?",
+        "answer": "No. Membership is explicitly managed within session constraints.",
+        "distractor": "Yes. Fork ancestry permanently determines every process group."
+      },
+      "sources": [
+        {
+          "label": "credentials.7",
+          "url": "https://man7.org/linux/man-pages/man7/credentials.7.html"
+        },
+        {
+          "label": "setpgid.2",
+          "url": "https://man7.org/linux/man-pages/man2/setpgid.2.html"
+        },
+        {
+          "label": "setsid.2",
+          "url": "https://man7.org/linux/man-pages/man2/setsid.2.html"
+        },
+        {
+          "label": "tcsetpgrp.3",
+          "url": "https://man7.org/linux/man-pages/man3/tcsetpgrp.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Foreground terminal group contains both workers of a pipeline.",
+        "before": "Shell is a different process group.",
+        "operation": "Terminal receives its configured interrupt character with ISIG enabled.",
+        "observation": "SIGINT targets the foreground group rather than just one immediate child.",
+        "tradeoff": "Groups simplify job control but are not security isolation."
+      }
+    },
+    {
+      "id": "ch35",
+      "position": 34,
+      "href": "chapters/ch35.html",
+      "topic": "Process Priorities and Scheduling",
+      "title": "Scheduling promises and weighted shares",
+      "problem": "A team expects nice 10 to mean exactly ten percent CPU.",
+      "explanation": "Nice values influence relative weights for ordinary scheduling, not fixed CPU percentages. Under simplified equal-group, one-CPU contention, Linux nice 0 has weight 1024 and nice 5 has weight 335, yielding roughly 75% versus 25% between those two continuously runnable tasks. Cgroups, affinity, sleeping, and load balancing change real outcomes.",
+      "contract": "Linux began replacing CFS task selection with EEVDF in kernel 6.6. EEVDF uses eligibility and virtual deadlines rather than a promise that the smallest raw runtime always runs next. Real-time policies have different rules and can starve ordinary work if misused. getpriority needs errno disambiguation for a valid -1 result.",
+      "pitfall": "A browser weight calculator is not a scheduler emulator. Ratios between nice levels are approximately multiplicative, not a linear subtraction from 100%. Kernel-version-specific details should not be presented as timeless POSIX requirements.",
+      "exercise": "Compute 1024/(1024+335) and identify every assumption needed to interpret it as a share. Compare the historical CFS documentation with current EEVDF documentation. Do not run unbounded real-time loops as a lab.",
+      "assessment": {
+        "question": "Does nice 5 promise five percent less CPU than nice 0?",
+        "answer": "No. Nice changes relative weights; actual shares depend on competing runnable work and policy.",
+        "distractor": "Yes. Nice is defined as a linear percentage allocation."
+      },
+      "sources": [
+        {
+          "label": "sched.7",
+          "url": "https://man7.org/linux/man-pages/man7/sched.7.html"
+        },
+        {
+          "label": "getpriority.2",
+          "url": "https://man7.org/linux/man-pages/man2/getpriority.2.html"
+        },
+        {
+          "label": "Kernel EEVDF design",
+          "url": "https://docs.kernel.org/scheduler/sched-eevdf.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "One CPU, two continuously runnable ordinary tasks, same group, weights 1024 and 335.",
+        "before": "Total weight is 1359.",
+        "operation": "Compute 1024/1359 and 335/1359.",
+        "observation": "Approximate shares are 75.35% and 24.65%; this is not an EEVDF execution trace.",
+        "tradeoff": "Weights express relative preference, not absolute CPU reservations."
+      }
+    },
+    {
+      "id": "ch36",
+      "position": 35,
+      "href": "chapters/ch36.html",
+      "topic": "Process Resources",
+      "title": "Resource limits are failure inputs",
+      "problem": "An accept loop repeatedly fails because the process has no descriptor slots left.",
+      "explanation": "Resource limits cap selected process resources; cgroups impose additional group-level policy. Soft and hard limits differ, and inherited limits shape helper programs. Usage counters describe accumulated work or high-water marks, not necessarily instantaneous utilization.",
+      "contract": "getrlimit/setrlimit inspect and adjust limits under privilege rules. RLIMIT_NOFILE bounds descriptor-number allocation and can produce EMFILE. getrusage reports CPU time and other counters; ru_maxrss is a maximum, with platform-specific units. Linux reports it in kilobytes.",
+      "pitfall": "Retrying accept immediately on EMFILE can create a hot error loop. A reserved descriptor strategy may help reject a pending connection, but admission control and leak diagnosis are still required. Raising limits without memory budgeting moves the failure elsewhere.",
+      "exercise": "In a child only, lower a descriptor limit to a modest bound and open /dev/null until failure, retaining handles for cleanup. Count successful opens rather than assuming the limit equals new capacity; standard and inherited descriptors already occupy slots.",
+      "assessment": {
+        "question": "Does RLIMIT_NOFILE equal the number of additional files a process can always open?",
+        "answer": "No. Existing descriptors and other system constraints affect available capacity.",
+        "distractor": "Yes. It excludes every descriptor already present."
+      },
+      "sources": [
+        {
+          "label": "getrlimit.2",
+          "url": "https://man7.org/linux/man-pages/man2/getrlimit.2.html"
+        },
+        {
+          "label": "getrusage.2",
+          "url": "https://man7.org/linux/man-pages/man2/getrusage.2.html"
+        },
+        {
+          "label": "accept.2",
+          "url": "https://man7.org/linux/man-pages/man2/accept.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Child has a low RLIMIT_NOFILE and already-open standard descriptors.",
+        "before": "The numeric limit is 16.",
+        "operation": "Repeated new opens reach EMFILE before 16 additional successes.",
+        "observation": "Existing slots consume part of the budget.",
+        "tradeoff": "Limits contain damage but require backpressure and error handling."
+      }
+    },
+    {
+      "id": "ch37",
+      "position": 36,
+      "href": "chapters/ch37.html",
+      "topic": "Daemons",
+      "title": "Services need a lifecycle contract",
+      "problem": "A supervisor thinks a daemon exited even though a detached grandchild is still running.",
+      "explanation": "Traditional daemonization detached from a terminal and adjusted working directory, masks, and descriptors. A modern supervisor commonly expects a foreground process whose lifetime it can track directly. Startup, readiness, liveness, shutdown, and restart are separate lifecycle events.",
+      "contract": "setsid detaches session relationships subject to its constraints. umask is process-wide. chdir and descriptor closure must be deliberate, preserving logging and control channels. A shutdown handler should request ordinary control flow to stop accepting work, drain within a deadline, and release resources.",
+      "pitfall": "Blind double-forking under a foreground supervisor obscures process ownership. Closing every descriptor can destroy an intentionally inherited activation socket. A PID file alone is subject to stale contents and PID reuse.",
+      "exercise": "Specify a foreground worker's lifecycle: initialize, bind, declare ready, accept bounded work, stop admission, drain, exit. For each state, define what an external supervisor should observe. Use no background orphan process in the lab.",
+      "assessment": {
+        "question": "Should every supervised service double-fork by default?",
+        "answer": "No. Match the supervisor's foreground and readiness contract.",
+        "distractor": "Yes. Detachment is mandatory for every long-running process."
+      },
+      "sources": [
+        {
+          "label": "daemon.7",
+          "url": "https://man7.org/linux/man-pages/man7/daemon.7.html"
+        },
+        {
+          "label": "daemon.3",
+          "url": "https://man7.org/linux/man-pages/man3/daemon.3.html"
+        },
+        {
+          "label": "setsid.2",
+          "url": "https://man7.org/linux/man-pages/man2/setsid.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Supervisor expects one foreground service process.",
+        "before": "Worker initializes but has not yet bound its socket.",
+        "operation": "Publish readiness only after initialization and binding succeed.",
+        "observation": "Process existence and service readiness are different observations.",
+        "tradeoff": "Foreground supervision simplifies ownership; readiness still needs a protocol."
+      }
+    },
+    {
+      "id": "ch38",
+      "position": 37,
+      "href": "chapters/ch38.html",
+      "topic": "Writing Secure Privileged Programs",
+      "title": "Privileged code narrows its inputs",
+      "problem": "A privileged helper opens a path after checking it, but an attacker swaps a directory entry.",
+      "explanation": "Authority amplifies ordinary bugs. Treat paths, environment variables, inherited descriptors, locale, arguments, and working directory as inputs. Reduce privileged operations to a narrow phase, use handle-based operations where possible, and make ownership explicit before dropping authority.",
+      "contract": "Use atomic creation with O_EXCL or a suitable temporary-file API in a trusted directory. openat2 can constrain Linux path resolution. Never use access followed by open as an authorization transaction. Avoid invoking a shell to interpret untrusted text and check every credential transition.",
+      "pitfall": "Sanitizing only the filename leaves environment-driven loader or program behavior unaddressed. A symlink check can itself race. Logging a secret or privileged file's content during error handling can create a second vulnerability.",
+      "exercise": "Threat-model a helper that replaces one configuration file. Enumerate trusted directory handles, accepted relative names, allowed modes, inherited descriptors, and the point of irreversible privilege drop. Test rejection paths unprivileged.",
+      "assessment": {
+        "question": "Does checking a pathname with access make a later open race-free?",
+        "answer": "No. Resolve and operate on a securely acquired object instead.",
+        "distractor": "Yes. The kernel reserves the checked path for the next call."
+      },
+      "sources": [
+        {
+          "label": "access.2",
+          "url": "https://man7.org/linux/man-pages/man2/access.2.html"
+        },
+        {
+          "label": "openat2.2",
+          "url": "https://man7.org/linux/man-pages/man2/openat2.2.html"
+        },
+        {
+          "label": "secure_getenv.3",
+          "url": "https://man7.org/linux/man-pages/man3/secure_getenv.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "An adversary can replace a pathname between two operations.",
+        "before": "access approves the current object.",
+        "operation": "The entry changes before open.",
+        "observation": "The later operation can address another object; the check was not a reservation.",
+        "tradeoff": "Directory-handle-based operations reduce name races but require explicit policy."
+      }
+    },
+    {
+      "id": "ch39",
+      "position": 38,
+      "href": "chapters/ch39.html",
+      "topic": "Capabilities",
+      "title": "Capabilities divide privilege, imperfectly",
+      "problem": "A service gets CAP_SYS_ADMIN to solve one error and gains far more authority than intended.",
+      "explanation": "Linux capabilities split traditional root powers into sets associated with threads and executable files. Effective, permitted, inheritable, bounding, and ambient sets participate in transitions. A capability is meaningful within user-namespace and target-resource rules; it is not a universally scoped permission token.",
+      "contract": "Inspect capabilities before and after exec and UID changes rather than assuming they survive unchanged. no_new_privs constrains privilege gain across exec. File capabilities require filesystem support and deployment review. Prefer the narrow capability actually needed over broad administrative authority.",
+      "pitfall": "Dropping one effective bit may leave permitted authority that can restore it. Containers and user namespaces alter the scope of apparent privilege. CAP_SYS_ADMIN covers many unrelated operations and is rarely a minimal default.",
+      "exercise": "Read /proc/self/status capability masks and map only the bits you need using capabilities(7). Write a transition table for launch, setup, and steady state. Do not grant capabilities to the lab binaries just to make a demonstration succeed.",
+      "assessment": {
+        "question": "Does clearing only an effective capability always make the privilege permanently unrecoverable?",
+        "answer": "No. Other sets and transition rules can allow it to become effective again.",
+        "distractor": "Yes. Effective and permitted sets are merely two names for the same state."
+      },
+      "sources": [
+        {
+          "label": "capabilities.7",
+          "url": "https://man7.org/linux/man-pages/man7/capabilities.7.html"
+        },
+        {
+          "label": "PR_SET_NO_NEW_PRIVS.2const",
+          "url": "https://man7.org/linux/man-pages/man2/PR_SET_NO_NEW_PRIVS.2const.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A capability remains in a thread's permitted set.",
+        "before": "Its effective bit is cleared.",
+        "operation": "The program later attempts to make it effective again.",
+        "observation": "Clearing only effective authority need not make the reduction permanent.",
+        "tradeoff": "Capabilities narrow authority better than blanket root, but transition rules are complex."
+      }
+    },
+    {
+      "id": "ch40",
+      "position": 39,
+      "href": "chapters/ch40.html",
+      "topic": "Login Accounting",
+      "title": "Login records are accounting, not authority",
+      "problem": "A tool treats a login-record entry as proof that a user is currently authenticated.",
+      "explanation": "utmp-style records describe login and session accounting conventions. They are mutable records maintained by cooperating programs, not a complete authoritative view of every process or authentication event. Containers, remote services, and graphical sessions may not fit a simple terminal-login model.",
+      "contract": "Use documented utmpx interfaces and respect fixed-size fields that may not be NUL-terminated. Record timestamps and terminal names are data requiring validation. Do not edit the system accounting database for an educational experiment; work with a private copy or synthetic record.",
+      "pitfall": "Assuming every active user has a record can omit sessions. Assuming every record is fresh can count stale sessions. Binary layouts and time-field widths can vary by ABI, so raw structs are a poor cross-machine interchange format.",
+      "exercise": "Create a synthetic bounded record decoder that prints fixed-size fields with explicit lengths. Explain how you would distinguish no record, stale record, and a permission failure without presenting any of them as authentication proof.",
+      "assessment": {
+        "question": "Is a utmp entry sufficient evidence to authorize a privileged operation?",
+        "answer": "No. Accounting records are not an authentication or authorization decision.",
+        "distractor": "Yes. A recorded username is a kernel-verified bearer credential."
+      },
+      "sources": [
+        {
+          "label": "utmp.5",
+          "url": "https://man7.org/linux/man-pages/man5/utmp.5.html"
+        },
+        {
+          "label": "getutent.3",
+          "url": "https://man7.org/linux/man-pages/man3/getutent.3.html"
+        },
+        {
+          "label": "getutxent.3",
+          "url": "https://man7.org/linux/man-pages/man3/getutxent.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A synthetic fixed-width username field has no terminating NUL.",
+        "before": "The decoder receives exactly the record's documented field length.",
+        "operation": "Print with an explicit bound rather than scanning as an unlimited C string.",
+        "observation": "No bytes beyond the field are consumed.",
+        "tradeoff": "Binary accounting is compact but ABI-dependent and not proof of authentication."
+      }
+    },
+    {
+      "id": "ch41",
+      "position": 40,
+      "href": "chapters/ch41.html",
+      "topic": "Fundamentals of Shared Libraries",
+      "title": "Shared objects and ABI boundaries",
+      "problem": "A library update links successfully but crashes an old application.",
+      "explanation": "A shared library supplies code and data through an application binary interface: symbol names, calling conventions, object layouts, and lifecycle rules. Source compatibility does not imply binary compatibility. The static linker records dependencies, and the runtime loader resolves them when the process starts or loads more objects.",
+      "contract": "Build position-independent shared objects with the toolchain's supported flags and assign an intentional SONAME for ABI compatibility. Export only the intended interface. The dynamic loader's search rules involve recorded paths, configuration, and environment, with secure-execution restrictions.",
+      "pitfall": "Changing a public structure layout can break callers compiled against the old layout even if function names stay unchanged. Relying on the current working directory for library lookup is fragile and potentially unsafe.",
+      "exercise": "Design a library API around an opaque handle and explicit create/destroy functions. Compare that with exporting the whole structure. Inspect dependency and symbol tables of a local binary using readelf rather than executing an untrusted binary with diagnostic tooling.",
+      "assessment": {
+        "question": "Does preserving exported function names alone guarantee ABI compatibility?",
+        "answer": "No. Calling conventions, layouts, semantics, and ownership also form the ABI.",
+        "distractor": "Yes. Dynamic linking validates all caller and callee type information."
+      },
+      "sources": [
+        {
+          "label": "ld.so.8",
+          "url": "https://man7.org/linux/man-pages/man8/ld.so.8.html"
+        },
+        {
+          "label": "elf.5",
+          "url": "https://man7.org/linux/man-pages/man5/elf.5.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Old caller compiled against a public struct with two fields.",
+        "before": "New library inserts a field before the second one.",
+        "operation": "Caller and library use different offsets for the same member.",
+        "observation": "Symbol lookup can succeed while binary behavior is broken.",
+        "tradeoff": "Opaque handles limit layout coupling at the cost of accessor calls."
+      }
+    },
+    {
+      "id": "ch42",
+      "position": 41,
+      "href": "chapters/ch42.html",
+      "topic": "Advanced Features of Shared Libraries",
+      "title": "Runtime loading needs an ownership protocol",
+      "problem": "A plugin is unloaded while another thread is still calling one of its functions.",
+      "explanation": "dlopen adds an object to a runtime linking environment. dlsym resolves a symbol; dlclose releases a loader reference. Application references to functions and objects are a separate lifetime problem. Loader reference counting does not know whether an arbitrary thread retained a function pointer.",
+      "contract": "Clear dlerror before dlsym and inspect dlerror afterward because a NULL symbol value alone does not universally identify an error. Choose RTLD_NOW versus RTLD_LAZY and symbol visibility deliberately. Establish a versioned plugin entry point and a stop/join/destroy protocol before closing the handle.",
+      "pitfall": "Calling through a saved pointer after unload can jump into unmapped or reused memory. Passing allocator-owned objects across incompatible runtimes can break deallocation. RTLD_GLOBAL can expose symbols to unrelated later loads and create hidden coupling.",
+      "exercise": "Specify a plugin ABI with a version, structure size, function table, and host-provided callbacks. Trace shutdown: reject new calls, finish outstanding calls, free plugin objects through the owning API, then close the loader reference.",
+      "assessment": {
+        "question": "Can a loader reference count prove that no worker still holds a function pointer?",
+        "answer": "No. The application must coordinate outstanding calls and pointer lifetimes.",
+        "distractor": "Yes. dlclose automatically discovers and waits for every saved pointer."
+      },
+      "sources": [
+        {
+          "label": "dlopen.3",
+          "url": "https://man7.org/linux/man-pages/man3/dlopen.3.html"
+        },
+        {
+          "label": "dlsym.3",
+          "url": "https://man7.org/linux/man-pages/man3/dlsym.3.html"
+        },
+        {
+          "label": "dlerror.3",
+          "url": "https://man7.org/linux/man-pages/man3/dlerror.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A worker retains a plugin function pointer.",
+        "before": "Loader reference count is about to drop to zero.",
+        "operation": "Host first blocks new calls, joins outstanding work, and destroys owned plugin objects.",
+        "observation": "Only then can the application safely release its loader reference.",
+        "tradeoff": "Unloading saves resources but greatly complicates pointer lifetimes."
+      }
+    },
+    {
+      "id": "ch43",
+      "position": 42,
+      "href": "chapters/ch43.html",
+      "topic": "Interprocess Communication Overview",
+      "title": "Choose an IPC contract before an API",
+      "problem": "Two processes share a memory region but disagree about whether a job is complete.",
+      "explanation": "Communication needs a data format, an ownership rule, a notification mechanism, and a failure policy. A pipe transports bytes through the kernel; shared memory exposes storage directly but supplies no application protocol. Message queues preserve message boundaries at the cost of bounded queue resources. Locality and lifetime often matter more than raw throughput.",
+      "contract": "Write down maximum payload size, who may produce and consume, whether ordering is required, and what happens when a peer disappears. File descriptors are process-local handles; System V identifiers and POSIX names have different lookup and removal rules. No IPC primitive makes a multi-step business operation exactly once by itself.",
+      "pitfall": "A shared ready flag without synchronization is not a safe publication protocol. A queue that can grow faster than it drains is a memory or availability failure waiting to happen. A successful send can mean accepted locally, not processed remotely.",
+      "exercise": "Compare a 32-byte job sent through a pipe, a message queue, and a shared slot. For each, specify framing, synchronization, capacity, shutdown, and how an abandoned job is detected. Pick the simplest mechanism that meets the contract.",
+      "assessment": {
+        "question": "Does shared storage alone establish that a consumer sees a completely initialized record?",
+        "answer": "No. Publication requires a suitable synchronization protocol.",
+        "distractor": "Yes. Mapping the same pages automatically orders every application access."
+      },
+      "sources": [
+        {
+          "label": "pipe.7",
+          "url": "https://man7.org/linux/man-pages/man7/pipe.7.html"
+        },
+        {
+          "label": "sysvipc.7",
+          "url": "https://man7.org/linux/man-pages/man7/sysvipc.7.html"
+        },
+        {
+          "label": "shm_overview.7",
+          "url": "https://man7.org/linux/man-pages/man7/shm_overview.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A 32-byte job must survive a producer restart without duplicate business effects.",
+        "before": "A local send succeeds.",
+        "operation": "Producer crashes before recording acknowledgement.",
+        "observation": "Transport success alone cannot decide whether retry is safe; use operation identity and reconciliation.",
+        "tradeoff": "A simpler byte channel can suffice if the application supplies the missing protocol."
+      }
+    },
+    {
+      "id": "ch44",
+      "position": 43,
+      "href": "chapters/ch44.html",
+      "topic": "Pipes and FIFOs",
+      "title": "Pipes are byte streams with reference-counted ends",
+      "problem": "A reader waits forever even though its intended producer has exited.",
+      "explanation": "A pipe has a read end, a write end, and a finite kernel buffer. EOF depends on every write-end reference being closed, including accidental copies inherited by other children. Data already buffered is returned before EOF. FIFO names add rendezvous through the filesystem, not message boundaries.",
+      "contract": "For a positive read request, an empty pipe with a live writer blocks or reports EAGAIN in nonblocking mode. Without writers it returns zero. Writes no larger than PIPE_BUF have a noninterleaving guarantee relative to other writers under the documented rules; reads need not return one whole write. With no readers, writing generates SIGPIPE and fails with EPIPE if execution continues.",
+      "pitfall": "Leaving the parent's spare write end open suppresses EOF. Equating pipe capacity with PIPE_BUF confuses buffering with atomicity. Splitting a record over several writes can interleave it even when each individual write is small.",
+      "exercise": "Run pipes.c, which closes the writer before draining a known three-byte payload. Draw which ends each process should close in a two-stage pipeline. Add a length header only in a separate bounded variant and handle split reads.",
+      "assessment": {
+        "question": "The buffer is empty but another process retains a write end. Is this EOF?",
+        "answer": "No. The remaining writer reference keeps the stream open.",
+        "distractor": "Yes. An empty buffer always returns EOF."
+      },
+      "sources": [
+        {
+          "label": "pipe.7",
+          "url": "https://man7.org/linux/man-pages/man7/pipe.7.html"
+        },
+        {
+          "label": "pipe.2",
+          "url": "https://man7.org/linux/man-pages/man2/pipe.2.html"
+        },
+        {
+          "label": "fifo.7",
+          "url": "https://man7.org/linux/man-pages/man7/fifo.7.html"
+        }
+      ],
+      "activity": "pipes",
+      "lab": "pipes",
+      "worked": {
+        "assumptions": "Three bytes buffered; every writer closed; reads request two bytes.",
+        "before": "Pipe contains XYZ.",
+        "operation": "Read twice, then make another positive-size read.",
+        "observation": "Results are XY, Z, then zero; buffered data precedes EOF.",
+        "tradeoff": "Pipes give simple streaming but require framing for records."
+      }
+    },
+    {
+      "id": "ch45",
+      "position": 44,
+      "href": "chapters/ch45.html",
+      "topic": "Introduction to System V IPC",
+      "title": "System V IPC objects outlive ordinary handles",
+      "problem": "A restarted service finds an IPC object left by its previous process.",
+      "explanation": "System V queues, semaphore sets, and shared-memory segments are kernel objects identified by integer IDs. Keys help locate objects; they are not private ownership tokens. Objects can persist after a creator exits. IPC namespaces limit visibility but do not eliminate cleanup design.",
+      "contract": "Use IPC_CREAT with IPC_EXCL when the program must know it created a fresh object. IPC_PRIVATE requests a new object; it does not disable permission checks. ftok can collide, so a derived key is not a unique identity. IPC_RMID removal semantics differ between queues, semaphore sets, and attached shared-memory segments.",
+      "pitfall": "Blindly reinitializing an existing object can corrupt a live peer's state. Blindly deleting everything listed by ipcs can disrupt unrelated applications. Store a protocol version and define one responsible owner.",
+      "exercise": "Sketch a create-or-attach handshake with a creator-only initialization stage. Classify EEXIST, permission failure, and removal during use. If experimenting, use IPC_PRIVATE and remove only the exact object you created.",
+      "assessment": {
+        "question": "Does process exit automatically remove all System V IPC objects it created?",
+        "answer": "No. Object cleanup has its own explicit lifecycle.",
+        "distractor": "Yes. They are all ordinary descriptors closed on exit."
+      },
+      "sources": [
+        {
+          "label": "sysvipc.7",
+          "url": "https://man7.org/linux/man-pages/man7/sysvipc.7.html"
+        },
+        {
+          "label": "ipc.2",
+          "url": "https://man7.org/linux/man-pages/man2/ipc.2.html"
+        },
+        {
+          "label": "ftok.3",
+          "url": "https://man7.org/linux/man-pages/man3/ftok.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Two creators use the same System V key with IPC_CREAT|IPC_EXCL.",
+        "before": "No object exists initially.",
+        "operation": "One creation wins before the other.",
+        "observation": "The loser receives EEXIST rather than authority to initialize the winner's object.",
+        "tradeoff": "Persistent objects survive process restarts but need explicit recovery and removal."
+      }
+    },
+    {
+      "id": "ch46",
+      "position": 45,
+      "href": "chapters/ch46.html",
+      "topic": "System V Message Queues",
+      "title": "System V queues select typed messages",
+      "problem": "A receiver waits while the queue contains messages of another type.",
+      "explanation": "Each System V message starts with a positive long type followed by application bytes. Selection by type makes the queue more than a FIFO stream. A receiver can deliberately skip older messages that do not match its selection. Capacity and selection rules jointly determine whether producers or consumers block.",
+      "contract": "msgsnd and msgrcv take a payload size that excludes the leading long. A zero receive type selects the first message; a positive type normally selects that exact type; a negative type selects the lowest eligible type up to the absolute bound. Without MSG_NOERROR an undersized receive buffer fails with E2BIG and leaves the message queued.",
+      "pitfall": "Using sizeof(struct) as the payload size can include the type or unwanted padding. Retrying an E2BIG receive unchanged makes no progress. Sending raw pointer values cannot transfer pointed-to objects between unrelated address spaces.",
+      "exercise": "Trace a queue containing types 5, 2, 4. Predict receives for selectors 0, 4, and -4 on independent fresh copies. Specify a fixed-width payload encoding and reject malformed lengths before decoding.",
+      "assessment": {
+        "question": "Does the msgsnd payload-size argument include the leading long message type?",
+        "answer": "No. It counts only the message text bytes.",
+        "distractor": "Yes. It must always be sizeof the whole C structure."
+      },
+      "sources": [
+        {
+          "label": "msgop.2",
+          "url": "https://man7.org/linux/man-pages/man2/msgop.2.html"
+        },
+        {
+          "label": "msgget.2",
+          "url": "https://man7.org/linux/man-pages/man2/msgget.2.html"
+        },
+        {
+          "label": "msgctl.2",
+          "url": "https://man7.org/linux/man-pages/man2/msgctl.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Fresh queue contains message types 5, 2, 4 in that order.",
+        "before": "Receiver chooses selector -4.",
+        "operation": "Find the lowest type at most four.",
+        "observation": "Type 2 is received; selection is not oldest-message FIFO in this mode.",
+        "tradeoff": "Typed selection routes work conveniently but can starve unselected types."
+      }
+    },
+    {
+      "id": "ch47",
+      "position": 46,
+      "href": "chapters/ch47.html",
+      "topic": "System V Semaphores",
+      "title": "Semaphore sets can make atomic reservations",
+      "problem": "A worker needs two resource permits and deadlocks by acquiring them separately.",
+      "explanation": "A System V semaphore set stores integer counters. semop can apply a vector of changes atomically, so a caller can request a compound reservation without exposing a half-acquired state. Negative operations consume availability, positive operations release it, and zero operations wait for zero.",
+      "contract": "If a vector cannot complete, its changes are not partly committed. IPC_NOWAIT requests failure instead of waiting. SEM_UNDO tracks selected process adjustments for termination, but it is not a transaction log for application data. Initialization and readiness publication still need a creator protocol.",
+      "pitfall": "An undo adjustment cannot repair a half-written shared record. Holding unrelated resources while blocked can still form a deadlock outside the semaphore set. Do not infer success from a counter sample taken before semop.",
+      "exercise": "Use two counters initially [1,0]. Evaluate the vector [-1,-1] with IPC_NOWAIT, then after adding one to the second counter. Explain why the failed first attempt must leave both counters unchanged.",
+      "assessment": {
+        "question": "One operation in a semop vector cannot proceed. Are earlier operations in that vector committed?",
+        "answer": "No. The vector is applied atomically or waits/fails without that partial update.",
+        "distractor": "Yes. The caller must roll back all earlier operations manually."
+      },
+      "sources": [
+        {
+          "label": "semop.2",
+          "url": "https://man7.org/linux/man-pages/man2/semop.2.html"
+        },
+        {
+          "label": "semget.2",
+          "url": "https://man7.org/linux/man-pages/man2/semget.2.html"
+        },
+        {
+          "label": "semctl.2",
+          "url": "https://man7.org/linux/man-pages/man2/semctl.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Semaphore counters [1,0]; atomic two-decrement vector with IPC_NOWAIT.",
+        "before": "First counter alone could satisfy its decrement.",
+        "operation": "Second decrement cannot proceed.",
+        "observation": "The whole vector fails and counters remain [1,0].",
+        "tradeoff": "Compound reservations prevent partial acquisition within the set, not every external deadlock."
+      }
+    },
+    {
+      "id": "ch48",
+      "position": 47,
+      "href": "chapters/ch48.html",
+      "topic": "System V Shared Memory",
+      "title": "Shared-memory addresses are not portable references",
+      "problem": "A pointer stored by one process crashes a second process attached to the same segment.",
+      "explanation": "shmat attaches a System V shared-memory segment into a process address space. The same shared bytes can appear at different virtual addresses in different processes. Use validated offsets relative to the mapping base for in-segment references, and define a synchronization mechanism for publication and reuse.",
+      "contract": "shmat reports failure as (void *) -1, not NULL. shmdt detaches one mapping. IPC_RMID marks a segment for removal, with destruction delayed until the last attachment is gone. Linux permits some operations on marked segments that should not be assumed portable.",
+      "pitfall": "A mapped struct with a native pointer is not an interprocess format. Even an offset needs bounds and alignment checks. A creator crashing halfway through initialization leaves an application recovery problem, not merely a mapping problem.",
+      "exercise": "Design a 4096-byte segment with a versioned header and a payload offset of 128. Show the address calculation for bases 0x100000 and 0x700000. Reject an offset-plus-length beyond the segment before dereferencing.",
+      "assessment": {
+        "question": "May two processes assume shmat chooses the same virtual base address?",
+        "answer": "No. Store validated relative offsets rather than raw pointers.",
+        "distractor": "Yes. A System V segment has one fixed global virtual address."
+      },
+      "sources": [
+        {
+          "label": "shmget.2",
+          "url": "https://man7.org/linux/man-pages/man2/shmget.2.html"
+        },
+        {
+          "label": "shmop.2",
+          "url": "https://man7.org/linux/man-pages/man2/shmop.2.html"
+        },
+        {
+          "label": "shmctl.2",
+          "url": "https://man7.org/linux/man-pages/man2/shmctl.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Segment bases 0x100000 and 0x700000; valid byte offset 128.",
+        "before": "Both processes read offset 128 from the header.",
+        "operation": "Each adds the offset to its own mapping base.",
+        "observation": "Addresses are 0x100080 and 0x700080, naming the same shared bytes.",
+        "tradeoff": "Offsets support relocation but still need bounds and alignment validation."
+      }
+    },
+    {
+      "id": "ch49",
+      "position": 48,
+      "href": "chapters/ch49.html",
+      "topic": "Memory Mappings",
+      "title": "Mappings separate visibility from durability",
+      "problem": "A mapped file changes in one process, but the update is absent after a crash.",
+      "explanation": "mmap connects a virtual address range to backing storage or anonymous memory. MAP_SHARED permits shared updates; MAP_PRIVATE gives copy-on-write behavior for modifications. Visibility, synchronization between threads or processes, and persistence are three separate questions. Mapping does not make arbitrary struct updates atomic.",
+      "contract": "Check for MAP_FAILED. File offsets must meet page-alignment requirements. Size the backing object before accessing mapped bytes, and do not access beyond the valid file extent: truncation can cause SIGBUS. msync has synchronization semantics for mapped storage but does not replace a complete crash-consistency protocol.",
+      "pitfall": "Closing the descriptor does not unmap an established mapping. Treating MAP_PRIVATE writes as a file update silently loses intended changes. Keeping pointers after munmap is a lifetime bug even if those addresses are later reused.",
+      "exercise": "Run mappings.c to modify a private file-backed mapping and verify that pread still observes the original file byte. In a separate extension, state what changes when MAP_PRIVATE becomes MAP_SHARED and how concurrent truncation is prevented.",
+      "assessment": {
+        "question": "Does closing the original file descriptor automatically invalidate a successful mmap?",
+        "answer": "No. The mapping has a separate lifetime until it is unmapped or the process ends.",
+        "distractor": "Yes. Mappings are aliases for the descriptor integer."
+      },
+      "sources": [
+        {
+          "label": "mmap.2",
+          "url": "https://man7.org/linux/man-pages/man2/mmap.2.html"
+        },
+        {
+          "label": "munmap.2",
+          "url": "https://man7.org/linux/man-pages/man2/munmap.2.html"
+        },
+        {
+          "label": "msync.2",
+          "url": "https://man7.org/linux/man-pages/man2/msync.2.html"
+        }
+      ],
+      "activity": "mappings",
+      "lab": "mappings",
+      "worked": {
+        "assumptions": "File has bytes AB; two mappings exist; writer uses MAP_PRIVATE.",
+        "before": "Reader sees the backing file's A.",
+        "operation": "Writer changes its private first byte to Z.",
+        "observation": "The file is not thereby changed to ZB.",
+        "tradeoff": "Private mappings isolate modifications; shared mappings need synchronization and durability policy."
+      }
+    },
+    {
+      "id": "ch50",
+      "position": 49,
+      "href": "chapters/ch50.html",
+      "topic": "Virtual Memory Operations",
+      "title": "Virtual-memory policy has granularity",
+      "problem": "A program tries to protect half an object and unexpectedly affects adjacent data.",
+      "explanation": "Memory protection and residency policies operate at page granularity. Virtual address space, resident pages, and locked memory are different resources. mprotect changes access permissions; madvise communicates usage advice; mlock attempts to keep pages resident subject to limits and privilege rules.",
+      "contract": "Use the runtime page size and satisfy alignment requirements. Check every mprotect and mlock result. Advice is not generally a guarantee that a page is resident, absent, or durable. Establish memory ownership before changing permissions so another thread does not access a page during an incompatible phase.",
+      "pitfall": "A successful mlock does not prevent all copies of secrets in other buffers or dumps. Protecting an allocator page can break unrelated allocations sharing that page. Use dedicated mappings for protection experiments.",
+      "exercise": "Extend mappings.c locally with a read-only phase using mprotect, then restore write permission before changing the marker. Do not deliberately dereference an inaccessible page in the default lab. Explain which pages a rounded range covers.",
+      "assessment": {
+        "question": "Can mprotect generally isolate one byte in the middle of an ordinary page?",
+        "answer": "No. Protection is applied to page-sized regions.",
+        "distractor": "Yes. Hardware independently protects each C object."
+      },
+      "sources": [
+        {
+          "label": "mprotect.2",
+          "url": "https://man7.org/linux/man-pages/man2/mprotect.2.html"
+        },
+        {
+          "label": "madvise.2",
+          "url": "https://man7.org/linux/man-pages/man2/madvise.2.html"
+        },
+        {
+          "label": "mlock.2",
+          "url": "https://man7.org/linux/man-pages/man2/mlock.2.html"
+        },
+        {
+          "label": "sysconf.3",
+          "url": "https://man7.org/linux/man-pages/man3/sysconf.3.html"
+        }
+      ],
+      "activity": "mappings",
+      "lab": "mappings",
+      "worked": {
+        "assumptions": "4096-byte pages; dedicated mapping begins at an aligned address.",
+        "before": "Two application objects occupy one page.",
+        "operation": "mprotect removes write permission from that page.",
+        "observation": "Both objects are affected because the page is the protection unit.",
+        "tradeoff": "Dedicated mappings allow isolation but increase fragmentation and bookkeeping."
+      }
+    },
+    {
+      "id": "ch51",
+      "position": 50,
+      "href": "chapters/ch51.html",
+      "topic": "Introduction to POSIX IPC",
+      "title": "POSIX IPC names and open references",
+      "problem": "A named object disappears from the namespace while an existing user keeps using it.",
+      "explanation": "POSIX IPC families offer name-based creation with distinct handle types and operations. Removing a name prevents future opens by that name but does not necessarily destroy the object while users retain references. Shared memory, semaphores, and message queues have similar naming ideas but different APIs.",
+      "contract": "Use a leading slash and a simple name for portable named-object conventions. O_CREAT|O_EXCL distinguishes fresh creation from attachment. mq_close, sem_close, and close act on different handle types; mq_unlink, sem_unlink, and shm_unlink remove their respective names. Check deployment support and permissions.",
+      "pitfall": "Casting mqd_t or sem_t * to an integer descriptor because Linux happens to implement some handles that way is not portable. A predictable name without exclusive creation and permission checks can attach to an unexpected object.",
+      "exercise": "Write an ownership table for one named queue, one semaphore, and one shared-memory object: create call, use handle, release call, unlink call. State who removes names after startup failure and after normal shutdown.",
+      "assessment": {
+        "question": "Are all POSIX IPC handles portably usable with read and close?",
+        "answer": "No. Each IPC family defines its own handle and operation contract.",
+        "distractor": "Yes. The POSIX prefix guarantees ordinary integer file descriptors."
+      },
+      "sources": [
+        {
+          "label": "mq_overview.7",
+          "url": "https://man7.org/linux/man-pages/man7/mq_overview.7.html"
+        },
+        {
+          "label": "sem_overview.7",
+          "url": "https://man7.org/linux/man-pages/man7/sem_overview.7.html"
+        },
+        {
+          "label": "shm_overview.7",
+          "url": "https://man7.org/linux/man-pages/man7/shm_overview.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A POSIX shared-memory name exists and one mapping remains open.",
+        "before": "Owner unlinks the name.",
+        "operation": "A new participant tries shm_open without O_CREAT.",
+        "observation": "New lookup fails while the old mapping can remain usable.",
+        "tradeoff": "Early unlink simplifies cleanup but prevents late attachment by name."
+      }
+    },
+    {
+      "id": "ch52",
+      "position": 51,
+      "href": "chapters/ch52.html",
+      "topic": "POSIX Message Queues",
+      "title": "POSIX queues combine priority with capacity",
+      "problem": "Low-priority work starves despite being enqueued first.",
+      "explanation": "POSIX message queues retain message boundaries and return higher-priority messages before lower-priority ones. Equal-priority messages retain FIFO ordering. Priority is a scheduling policy, not a fairness guarantee. A finite maximum count and maximum message size force explicit backpressure decisions.",
+      "contract": "mq_receive requires a buffer at least as large as the queue's configured mq_msgsize, even for a smaller pending message. mq_notify is a one-shot registration, not a persistent subscription; a robust consumer rearms and drains with careful race handling. Timed operations use their documented absolute clock basis.",
+      "pitfall": "Registering once and expecting endless notifications stalls after the first event. A stream of urgent messages can indefinitely delay ordinary work. Oversized queue settings may be rejected by system or per-user limits.",
+      "exercise": "Trace messages A(priority 1), B(3), C(3). Predict B, C, A, then add a continuous high-priority arrival stream and propose aging or separate capacity quotas at the application level.",
+      "assessment": {
+        "question": "What ordering applies to messages with the same priority?",
+        "answer": "FIFO within that priority.",
+        "distractor": "The most recently sent message is always received first."
+      },
+      "sources": [
+        {
+          "label": "mq_overview.7",
+          "url": "https://man7.org/linux/man-pages/man7/mq_overview.7.html"
+        },
+        {
+          "label": "mq_receive.3",
+          "url": "https://man7.org/linux/man-pages/man3/mq_receive.3.html"
+        },
+        {
+          "label": "mq_notify.3",
+          "url": "https://man7.org/linux/man-pages/man3/mq_notify.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Queue has A at priority 1, B at 3, C at 3; no further arrivals.",
+        "before": "Receiver has a correctly sized buffer.",
+        "operation": "Receive three messages.",
+        "observation": "Order is B, C, A: priority first, FIFO within equal priority.",
+        "tradeoff": "Priority improves urgent work latency but can starve low-priority work."
+      }
+    },
+    {
+      "id": "ch53",
+      "position": 52,
+      "href": "chapters/ch53.html",
+      "topic": "POSIX Semaphores",
+      "title": "A semaphore counts permits, not owners",
+      "problem": "A consumer posts a permit twice and another worker enters a region that should be full.",
+      "explanation": "A POSIX semaphore represents an available count. Waiting consumes one permit; posting adds one. Unlike a mutex, it does not require that the posting thread be the thread that waited. This supports producer-consumer coordination but places permit accounting on the application.",
+      "contract": "sem_wait can be interrupted and needs a cancellation or retry policy. sem_trywait fails with EAGAIN when no permit is available. An unnamed process-shared semaphore must be placed in shared storage and initialized with a nonzero pshared on a supporting implementation. sem_getvalue is an observation, not a reservation.",
+      "pitfall": "Checking sem_getvalue and then entering a critical region races other consumers. Destroying a semaphore while waiters still use it is invalid. Initializing a process-shared semaphore on one process's private stack does not create shared storage.",
+      "exercise": "For a ring with four slots, start free=4 and ready=0. Trace reserve-free, write-payload, post-ready, wait-ready, read-payload, post-free. Add a separate index-ownership rule for multiple producers and explain why the counters alone are insufficient.",
+      "assessment": {
+        "question": "Must sem_post be called only by the thread that previously called sem_wait?",
+        "answer": "No. Semaphores do not carry mutex-style ownership.",
+        "distractor": "Yes. The kernel rejects a post by any other thread."
+      },
+      "sources": [
+        {
+          "label": "sem_overview.7",
+          "url": "https://man7.org/linux/man-pages/man7/sem_overview.7.html"
+        },
+        {
+          "label": "sem_wait.3",
+          "url": "https://man7.org/linux/man-pages/man3/sem_wait.3.html"
+        },
+        {
+          "label": "sem_init.3",
+          "url": "https://man7.org/linux/man-pages/man3/sem_init.3.html"
+        },
+        {
+          "label": "sem_post.3",
+          "url": "https://man7.org/linux/man-pages/man3/sem_post.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A ring has four slots and one producer/consumer ownership protocol.",
+        "before": "free=4; ready=0.",
+        "operation": "Producer waits free, writes one slot, then posts ready.",
+        "observation": "free=3; ready=1, with publication ordered by synchronization.",
+        "tradeoff": "Counters bound capacity; multiple producers also need index coordination."
+      }
+    },
+    {
+      "id": "ch54",
+      "position": 53,
+      "href": "chapters/ch54.html",
+      "topic": "POSIX Shared Memory",
+      "title": "Shared storage needs a bootstrap protocol",
+      "problem": "A consumer opens a newly named shared-memory object before the creator has sized it.",
+      "explanation": "shm_open creates or opens an object that can be mapped with mmap. A new object begins with size zero. Naming, sizing, mapping, initialization, and publishing readiness are separate transitions. Shared bytes do not tell a late consumer whether initialization completed successfully.",
+      "contract": "The creator uses ftruncate before accessing the intended mapping extent. MAP_SHARED makes updates shared, but application synchronization is still required. close can release the descriptor after mapping; munmap and shm_unlink address separate lifetimes. Use a versioned layout and reject incompatible attachments.",
+      "pitfall": "Opening a name is not proof that a mutex embedded in the region is initialized. Using ordinary process-private pthread synchronization inside shared storage does not establish process-shared semantics. Never resize underneath readers without a coordinated protocol.",
+      "exercise": "Design states absent, created, sized, initialized, ready, closing. Choose a separate bootstrap channel that publishes readiness only after all shared synchronization objects are usable. Explain how a crashed creator is distinguished from a slow one.",
+      "assessment": {
+        "question": "What is the initial length of a newly created POSIX shared-memory object?",
+        "answer": "Zero; size it before accessing the intended mapping.",
+        "distractor": "One page, already initialized with process-shared locks."
+      },
+      "sources": [
+        {
+          "label": "shm_open.3",
+          "url": "https://man7.org/linux/man-pages/man3/shm_open.3.html"
+        },
+        {
+          "label": "ftruncate.2",
+          "url": "https://man7.org/linux/man-pages/man2/ftruncate.2.html"
+        },
+        {
+          "label": "mmap.2",
+          "url": "https://man7.org/linux/man-pages/man2/mmap.2.html"
+        },
+        {
+          "label": "pthread_mutexattr_setpshared.3",
+          "url": "https://man7.org/linux/man-pages/man3/pthread_mutexattr_setpshared.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "New shm_open with exclusive creation succeeds.",
+        "before": "Object length is zero.",
+        "operation": "Creator sizes, maps, initializes, then publishes readiness on a separate channel.",
+        "observation": "Consumer attaches only after the bootstrap signal and validates layout version.",
+        "tradeoff": "Explicit bootstrap avoids torn initialization but adds recovery states."
+      }
+    },
+    {
+      "id": "ch55",
+      "position": 54,
+      "href": "chapters/ch55.html",
+      "topic": "File Locking",
+      "title": "File locks have different ownership rules",
+      "problem": "Closing an unrelated descriptor unexpectedly drops a process's record locks.",
+      "explanation": "Advisory locks coordinate cooperating applications; they do not force every writer to participate. Traditional fcntl record locks are process-associated and have surprising close semantics. Linux open-file-description locks instead attach to the open file description. flock is another interface with its own semantics and filesystem caveats.",
+      "contract": "With traditional record locks, closing any descriptor for that file in the process releases that process's locks on it. OFD locks survive until the last reference to their open file description closes, and duplicated descriptors share that ownership. F_SETLK requests nonblocking acquisition; F_SETLKW can wait and be interrupted.",
+      "pitfall": "Mixing lock families without understanding their interaction can provide no exclusion. A lock around one write does not create a crash-safe multi-write update. Network filesystems may change locking behavior and failure modes.",
+      "exercise": "Draw two descriptors produced by separate opens and two produced by dup. Place the lock owner on the process for traditional locks and on the description for OFD locks. Predict which closes release each lock.",
+      "assessment": {
+        "question": "Does a traditional fcntl record lock belong only to the descriptor used to acquire it?",
+        "answer": "No. It is process-associated, including the any-close release rule.",
+        "distractor": "Yes. Closing every other descriptor to that file is irrelevant."
+      },
+      "sources": [
+        {
+          "label": "fcntl_locking.2",
+          "url": "https://man7.org/linux/man-pages/man2/fcntl_locking.2.html"
+        },
+        {
+          "label": "F_OFD_SETLK.2const",
+          "url": "https://man7.org/linux/man-pages/man2/F_OFD_SETLK.2const.html"
+        },
+        {
+          "label": "flock.2",
+          "url": "https://man7.org/linux/man-pages/man2/flock.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Traditional process-associated record lock; two descriptors to one file.",
+        "before": "fd 3 acquired the lock; fd 4 was a separate open.",
+        "operation": "The same process closes fd 4.",
+        "observation": "Its traditional record locks on that file are released too.",
+        "tradeoff": "OFD locks offer different lifetime semantics but are Linux-specific."
+      }
+    },
+    {
+      "id": "ch56",
+      "position": 55,
+      "href": "chapters/ch56.html",
+      "topic": "Sockets: Introduction",
+      "title": "Sockets separate endpoints from application messages",
+      "problem": "A receiver gets a header and only half the body in one recv call.",
+      "explanation": "A socket combines an address family, a communication type, and protocol behavior. Stream sockets carry ordered bytes without preserving send boundaries. Datagram sockets preserve datagram boundaries but have different loss, size, and zero-length rules. A listening socket accepts new connected sockets; it is not the connection used for application payload.",
+      "contract": "socket, bind, listen, accept, and connect each establish a different stage. send can accept fewer bytes than requested. recv returning zero for a positive-size stream request indicates an orderly receive-side end after queued bytes are consumed. shutdown changes a direction of the connection; close releases a local descriptor reference.",
+      "pitfall": "Reading one C struct directly from a stream assumes framing, layout, endian, and complete delivery. A zero-length datagram is valid and is not stream EOF. A successful send does not prove the peer application processed the bytes.",
+      "exercise": "Run sockets.c with a local socketpair and a write-side shutdown. Design a length-prefixed frame with a maximum payload of 1024 bytes. Trace a header delivered as two separate reads and reject an excessive advertised length before allocation.",
+      "assessment": {
+        "question": "Does one send on SOCK_STREAM imply one matching recv of the same size?",
+        "answer": "No. The application must reconstruct its own records.",
+        "distractor": "Yes. Stream sockets preserve syscall boundaries."
+      },
+      "sources": [
+        {
+          "label": "socket.2",
+          "url": "https://man7.org/linux/man-pages/man2/socket.2.html"
+        },
+        {
+          "label": "socket.7",
+          "url": "https://man7.org/linux/man-pages/man7/socket.7.html"
+        },
+        {
+          "label": "recv.2",
+          "url": "https://man7.org/linux/man-pages/man2/recv.2.html"
+        },
+        {
+          "label": "shutdown.2",
+          "url": "https://man7.org/linux/man-pages/man2/shutdown.2.html"
+        }
+      ],
+      "activity": "sockets",
+      "lab": "sockets",
+      "worked": {
+        "assumptions": "Stream peer sends six payload bytes and shuts down its write side.",
+        "before": "Receiver has a two-byte buffer.",
+        "operation": "Drain three successful reads, then read again.",
+        "observation": "Zero reports receive-side end after the six bytes; reverse-direction sending can still be possible.",
+        "tradeoff": "Half-close expresses directional completion but needs protocol agreement."
+      }
+    },
+    {
+      "id": "ch57",
+      "position": 56,
+      "href": "chapters/ch57.html",
+      "topic": "Sockets: UNIX Domain",
+      "title": "UNIX sockets can transfer authority",
+      "problem": "A local broker passes a descriptor to a less-privileged worker.",
+      "explanation": "AF_UNIX sockets communicate locally using pathname or Linux abstract addresses, and can carry ancillary data. SCM_RIGHTS passes a reference to an open file description, not a pathname to reopen. The receiver gets its own descriptor number but shares relevant underlying state such as the offset.",
+      "contract": "Use sendmsg/recvmsg with properly sized control buffers and CMSG macros. Check MSG_CTRUNC and close unexpected received descriptors to avoid leaks. Linux MSG_CMSG_CLOEXEC requests close-on-exec on received descriptors. Validate peer credentials and protocol authorization; locality alone is not trust.",
+      "pitfall": "Passing an open writable file bypasses the need for the recipient to resolve its pathname. A small payload can therefore convey substantial authority. Pathname permissions and abstract-socket visibility differ; do not assume filesystem permissions protect abstract addresses.",
+      "exercise": "Specify a broker response containing one read-only descriptor and a versioned status record. Reject responses with extra descriptors or truncated control data. Trace shared offsets after the broker and worker each read one byte.",
+      "assessment": {
+        "question": "Does SCM_RIGHTS guarantee the same descriptor integer in sender and receiver?",
+        "answer": "No. It transfers an open reference, with a receiver-local descriptor number.",
+        "distractor": "Yes. Descriptor integers are global across local processes."
+      },
+      "sources": [
+        {
+          "label": "unix.7",
+          "url": "https://man7.org/linux/man-pages/man7/unix.7.html"
+        },
+        {
+          "label": "sendmsg.2",
+          "url": "https://man7.org/linux/man-pages/man2/sendmsg.2.html"
+        },
+        {
+          "label": "recvmsg.2",
+          "url": "https://man7.org/linux/man-pages/man2/recvmsg.2.html"
+        },
+        {
+          "label": "cmsg.3",
+          "url": "https://man7.org/linux/man-pages/man3/cmsg.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Sender passes one descriptor through SCM_RIGHTS; receiver accepts it safely.",
+        "before": "Sender fd 8 has offset zero.",
+        "operation": "Receiver obtains local fd 5 and reads one byte.",
+        "observation": "The shared description's offset advances for sender fd 8 too.",
+        "tradeoff": "Descriptor passing avoids reopening names but transfers authority and shared state."
+      }
+    },
+    {
+      "id": "ch58",
+      "position": 57,
+      "href": "chapters/ch58.html",
+      "topic": "Sockets: Fundamentals of TCP/IP Networks",
+      "title": "TCP reliability is not application acknowledgement",
+      "problem": "A client times out after sending a payment request and cannot tell whether it was processed.",
+      "explanation": "IP delivers packets with best-effort semantics; TCP builds an ordered reliable byte stream with retransmission, flow control, and congestion control. TCP acknowledgements concern transport bytes, not business completion. An application timeout can occur after a remote side effect, requiring application-level deduplication or reconciliation.",
+      "contract": "TCP close is directional. In an ordinary active/passive close, the endpoint that initiates the active close eventually enters TIME_WAIT, regardless of whether it was client or server. Simultaneous close has additional paths. Sequence numbers and TIME_WAIT help handle delayed traffic and final acknowledgement loss.",
+      "pitfall": "Assigning TIME_WAIT permanently to the client mistakes role for state. SO_REUSEADDR is not a universal bypass for connection lifetime rules. UDP's lack of a stream handshake does not mean delivery, ordering, or congestion handling can be ignored.",
+      "exercise": "Use the close model with each endpoint as active closer. Trace FIN, ACK, peer FIN, final ACK. Then annotate a request/response timeline where a server commits work before the reply is lost: what can a retry safely infer?",
+      "assessment": {
+        "question": "Which endpoint normally reaches TIME_WAIT in an ordinary non-simultaneous close?",
+        "answer": "The active closer, which can be client or server.",
+        "distractor": "Always the client, because servers never retain closed-connection state."
+      },
+      "sources": [
+        {
+          "label": "tcp.7",
+          "url": "https://man7.org/linux/man-pages/man7/tcp.7.html"
+        },
+        {
+          "label": "ip.7",
+          "url": "https://man7.org/linux/man-pages/man7/ip.7.html"
+        },
+        {
+          "label": "udp.7",
+          "url": "https://man7.org/linux/man-pages/man7/udp.7.html"
+        },
+        {
+          "label": "RFC 9293 section 3.6: closing a connection",
+          "url": "https://www.rfc-editor.org/rfc/rfc9293.html#section-3.6"
+        }
+      ],
+      "activity": "tcp",
+      "lab": null,
+      "worked": {
+        "assumptions": "Established TCP connection; server initiates ordinary close; no loss or simultaneous close.",
+        "before": "Server sends FIN; client acknowledges.",
+        "operation": "Client later sends FIN; server acknowledges.",
+        "observation": "Server enters TIME_WAIT, not the client merely because of its role.",
+        "tradeoff": "TIME_WAIT protects protocol reuse at a temporary state/resource cost."
+      }
+    },
+    {
+      "id": "ch59",
+      "position": 58,
+      "href": "chapters/ch59.html",
+      "topic": "Sockets: Internet Domains",
+      "title": "Address resolution returns candidates",
+      "problem": "A program assumes the first DNS result is reachable and fails despite another working address.",
+      "explanation": "Hostnames, numeric addresses, ports, and connected sockets are different layers. getaddrinfo produces candidate socket addresses for requested constraints. Resolution can block and returns its own error codes. IPv4 and IPv6 support, dual-stack defaults, and address selection vary with deployment.",
+      "contract": "Set hints deliberately, iterate candidates, create the matching family/type/protocol socket, and close failed attempts. freeaddrinfo releases the list. Use gai_strerror for getaddrinfo failures rather than blindly reading errno. A nonblocking connect returning EINPROGRESS needs readiness plus SO_ERROR inspection.",
+      "pitfall": "A writable socket after connect is not sufficient evidence of success. Assuming IPv6 listeners always accept IPv4 breaks on different IPV6_V6ONLY policies. Hardcoding sockaddr sizes loses family-specific length information.",
+      "exercise": "Resolve localhost with numeric service 8080 and inspect each candidate without exposing a public listener. Sketch a bounded overall connection deadline across candidates rather than giving every address an unlimited wait.",
+      "assessment": {
+        "question": "After nonblocking connect, does writability alone establish success?",
+        "answer": "No. Inspect the socket's SO_ERROR result.",
+        "distractor": "Yes. Failed connections can never become writable."
+      },
+      "sources": [
+        {
+          "label": "getaddrinfo.3",
+          "url": "https://man7.org/linux/man-pages/man3/getaddrinfo.3.html"
+        },
+        {
+          "label": "connect.2",
+          "url": "https://man7.org/linux/man-pages/man2/connect.2.html"
+        },
+        {
+          "label": "getsockopt.2",
+          "url": "https://man7.org/linux/man-pages/man2/getsockopt.2.html"
+        },
+        {
+          "label": "ipv6.7",
+          "url": "https://man7.org/linux/man-pages/man7/ipv6.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Two resolved address candidates; first connection fails.",
+        "before": "One candidate socket was allocated.",
+        "operation": "Close the failed socket and try the next within an overall deadline.",
+        "observation": "Successful resolution did not guarantee reachability of the first candidate.",
+        "tradeoff": "Multiple candidates improve reachability but need latency budgeting."
+      }
+    },
+    {
+      "id": "ch60",
+      "position": 59,
+      "href": "chapters/ch60.html",
+      "topic": "Sockets: Server Design",
+      "title": "Servers need admission and shutdown policies",
+      "problem": "A server accepts connections faster than workers can drain them and runs out of memory.",
+      "explanation": "A server is a collection of finite queues: connection backlog, accepted descriptors, request buffers, worker tasks, and pending responses. Thread-per-connection, process-per-connection, and event loops move costs between these queues rather than eliminating them. Backpressure needs a place to act before resources are exhausted.",
+      "contract": "A listening descriptor and accepted descriptors have independent lifetimes. On Linux accept4 can set SOCK_NONBLOCK and SOCK_CLOEXEC atomically. Define per-connection input limits, output limits, idle deadlines, and work budgets. During shutdown, stop admission first, drain within a deadline, then terminate remaining work deliberately.",
+      "pitfall": "An unbounded executor queue behind a bounded thread pool remains unbounded admission. A slow peer can retain output buffers indefinitely. Retrying EMFILE in a tight loop consumes CPU while capacity remains unavailable.",
+      "exercise": "Budget a toy server for 64 connections, 4 KiB input and 8 KiB output per connection: 768 KiB of payload buffers before metadata and workers. Specify rejection, idle expiration, and graceful-shutdown rules. Label this as a design calculation, not a benchmark.",
+      "assessment": {
+        "question": "Does a fixed-size worker pool guarantee bounded server memory?",
+        "answer": "No. Queues and per-connection buffers need their own limits.",
+        "distractor": "Yes. Memory use is determined only by the number of worker threads."
+      },
+      "sources": [
+        {
+          "label": "accept.2",
+          "url": "https://man7.org/linux/man-pages/man2/accept.2.html"
+        },
+        {
+          "label": "listen.2",
+          "url": "https://man7.org/linux/man-pages/man2/listen.2.html"
+        },
+        {
+          "label": "epoll.7",
+          "url": "https://man7.org/linux/man-pages/man7/epoll.7.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Illustrative 64-connection budget; 4 KiB input and 8 KiB output each.",
+        "before": "Per-connection payload budget is 12 KiB.",
+        "operation": "Multiply 64 by 12 KiB.",
+        "observation": "768 KiB excludes socket kernel buffers, tasks, stacks, and metadata.",
+        "tradeoff": "Admission limits improve predictability at the cost of rejecting excess demand."
+      }
+    },
+    {
+      "id": "ch61",
+      "position": 60,
+      "href": "chapters/ch61.html",
+      "topic": "Sockets: Advanced Topics",
+      "title": "Advanced socket features preserve partial progress",
+      "problem": "An optimized scatter/gather sender repeats a prefix after a short sendmsg.",
+      "explanation": "Vectored I/O presents several buffers as one logical byte sequence but does not guarantee that every byte is accepted at once. Ancillary data, socket options, and zero-copy techniques add separate lifetime and error rules. Optimization should follow a correct framing and backpressure implementation.",
+      "contract": "Advance iovec entries by the positive returned byte count, consuming complete entries and adjusting the partially consumed entry. For stream sends, use a deliberate SIGPIPE policy such as Linux MSG_NOSIGNAL where appropriate. Datagram truncation must be detected using the receive interface's flags and documented length semantics.",
+      "pitfall": "Retrying the original iovec after a short success duplicates bytes. SO_LINGER can change close behavior but cannot promise business-level delivery. A socket timeout is not automatically an end-to-end deadline across a multi-call exchange.",
+      "exercise": "For vectors of lengths [4,6,2], trace a send returning 7: discard the first vector, advance three bytes into the second, retain the final vector. Then handle EAGAIN without losing the updated cursor.",
+      "assessment": {
+        "question": "sendmsg accepts 7 bytes from vectors [4,6,2]. How many remain?",
+        "answer": "Five bytes: three from the second vector and two from the third.",
+        "distractor": "All twelve, because vectored writes are all-or-nothing."
+      },
+      "sources": [
+        {
+          "label": "sendmsg.2",
+          "url": "https://man7.org/linux/man-pages/man2/sendmsg.2.html"
+        },
+        {
+          "label": "recvmsg.2",
+          "url": "https://man7.org/linux/man-pages/man2/recvmsg.2.html"
+        },
+        {
+          "label": "socket.7",
+          "url": "https://man7.org/linux/man-pages/man7/socket.7.html"
+        },
+        {
+          "label": "writev.2",
+          "url": "https://man7.org/linux/man-pages/man2/writev.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "iovec lengths [4,6,2]; sendmsg returns 7.",
+        "before": "Twelve bytes were pending.",
+        "operation": "Consume the first vector and three bytes of the second.",
+        "observation": "Retry starts at second-buffer + 3 with lengths [3,2].",
+        "tradeoff": "Gathering avoids copying but needs a cursor spanning vector boundaries."
+      }
+    },
+    {
+      "id": "ch62",
+      "position": 61,
+      "href": "chapters/ch62.html",
+      "topic": "Terminals",
+      "title": "Terminal input is a configurable protocol",
+      "problem": "A read waits for a newline even though a user has already typed several characters.",
+      "explanation": "The terminal line discipline can edit input, echo characters, translate bytes, and generate signals. Canonical mode generally assembles lines. Noncanonical mode uses VMIN and VTIME to control availability and timing. A terminal is not just a pipe connected to a keyboard.",
+      "contract": "Read current attributes with tcgetattr, change only intended fields, and use tcsetattr with an explicit timing choice. Preserve the original state for restoration. With noncanonical VMIN=0 and VTIME=0, read can return zero immediately when no input is available; this is not proof of permanent EOF.",
+      "pitfall": "Leaving echo disabled after an error makes the user's shell confusing. Treating every zero terminal read as stream shutdown mishandles configured timing. Ctrl-D in canonical mode is a line-discipline control operation, not a byte that means the terminal device has closed.",
+      "exercise": "Use the PTY model instead of altering your real terminal. Compare canonical input x then newline with noncanonical input x. Explain why ISIG and ECHO are independent flags rather than synonyms for canonical mode.",
+      "assessment": {
+        "question": "Does a zero noncanonical read with VMIN=0 and VTIME=0 necessarily mean the terminal closed?",
+        "answer": "No. It can mean no input was available for this request.",
+        "distractor": "Yes. Every zero read on any descriptor has identical EOF meaning."
+      },
+      "sources": [
+        {
+          "label": "termios.3",
+          "url": "https://man7.org/linux/man-pages/man3/termios.3.html"
+        },
+        {
+          "label": "read.2",
+          "url": "https://man7.org/linux/man-pages/man2/read.2.html"
+        }
+      ],
+      "activity": "pty",
+      "lab": "pty",
+      "worked": {
+        "assumptions": "Noncanonical terminal; VMIN=0, VTIME=0; no queued input.",
+        "before": "Caller requests one byte.",
+        "operation": "read returns zero immediately.",
+        "observation": "This request had no available input; the terminal need not be closed.",
+        "tradeoff": "Polling-style reads avoid waits but require an event or pacing strategy."
+      }
+    },
+    {
+      "id": "ch63",
+      "position": 62,
+      "href": "chapters/ch63.html",
+      "topic": "Alternative I/O Models",
+      "title": "Readiness is permission to try",
+      "problem": "An edge-triggered event loop reads one chunk and never wakes for the remaining buffered data.",
+      "explanation": "select, poll, and epoll report readiness; they do not perform the application's transfer. Readiness can change before the application acts. Nonblocking I/O keeps a stale readiness observation from turning into an unintended wait. Completion APIs such as io_uring use another model with explicit request and buffer lifetimes.",
+      "contract": "For edge-triggered epoll, drain until EAGAIN while enforcing fairness through a ready-work queue if a budget ends early. EOF and errors are outcomes to handle, not just data events. With level triggering, a still-ready descriptor is reported again. select modifies its fd sets and has descriptor-range constraints.",
+      "pitfall": "Doing only one read after an edge can strand data. Registering write readiness permanently can create a hot loop because healthy sockets are often writable. Reusing a descriptor number can invalidate an event's application identity if ownership is not tracked.",
+      "exercise": "Use the readiness model with eight buffered bytes and a three-byte read. Observe the difference between five bytes still available and a new readiness edge. Design an explicit continuation queue before adding a per-event read budget.",
+      "assessment": {
+        "question": "After an edge-triggered notification, what is the usual nonblocking drain boundary?",
+        "answer": "EAGAIN, with explicit continuation handling if a fairness budget interrupts draining.",
+        "distractor": "Exactly one successful read, regardless of remaining bytes."
+      },
+      "sources": [
+        {
+          "label": "epoll.7",
+          "url": "https://man7.org/linux/man-pages/man7/epoll.7.html"
+        },
+        {
+          "label": "poll.2",
+          "url": "https://man7.org/linux/man-pages/man2/poll.2.html"
+        },
+        {
+          "label": "select.2",
+          "url": "https://man7.org/linux/man-pages/man2/select.2.html"
+        },
+        {
+          "label": "io_uring.7",
+          "url": "https://man7.org/linux/man-pages/man7/io_uring.7.html"
+        }
+      ],
+      "activity": "readiness",
+      "lab": "readiness",
+      "worked": {
+        "assumptions": "Simplified edge-trigger model; eight bytes arrive in an empty queue.",
+        "before": "One edge is queued and then consumed by the event loop.",
+        "operation": "Read only three bytes.",
+        "observation": "Five remain without a new edge in this trace; drain or retain continuation work.",
+        "tradeoff": "Edge triggering can reduce repeated reports but demands careful draining."
+      }
+    },
+    {
+      "id": "ch64",
+      "position": 63,
+      "href": "chapters/ch64.html",
+      "topic": "Pseudoterminals",
+      "title": "A PTY includes a terminal line discipline",
+      "problem": "A terminal emulator writes Ctrl-C to its master but the application receives a signal rather than a literal byte.",
+      "explanation": "A pseudoterminal pairs a master with a terminal-like slave. Input written at the master passes through the slave's terminal processing; output written at the slave becomes readable at the master. With ISIG enabled and a foreground process group established, the configured interrupt character generates SIGINT for that group. Canonical buffering and echo can change what each side observes.",
+      "contract": "The UNIX 98 sequence is posix_openpt, grantpt, unlockpt, ptsname, then opening the slave, checking each result. Session creation and controlling-terminal setup are additional work for a shell launcher. A PTY master is not itself a terminal emulator: screen escape sequences still need a user-space interpreter.",
+      "pitfall": "Treating a PTY as a transparent socket ignores echo, CR/LF translation, signal generation, and canonical input. A master read after slave shutdown has platform-specific details; do not teach one observed errno as universal POSIX behavior. Terminal setup belongs to an explicit session/job-control protocol.",
+      "exercise": "Use the PTY model with echo on/off and canonical/noncanonical input. Type a, then newline; inspect delivery versus echo. Send the interrupt character with ISIG enabled and disabled. The model reports a signal event but does not launch or signal any real process.",
+      "assessment": {
+        "question": "Does writing the configured interrupt character to a PTY master always deliver that byte unchanged?",
+        "answer": "No. With ISIG and appropriate terminal setup it can generate a foreground-group signal.",
+        "distractor": "Yes. A PTY is only a bidirectional pipe with different names."
+      },
+      "sources": [
+        {
+          "label": "pty.7",
+          "url": "https://man7.org/linux/man-pages/man7/pty.7.html"
+        },
+        {
+          "label": "posix_openpt.3",
+          "url": "https://man7.org/linux/man-pages/man3/posix_openpt.3.html"
+        },
+        {
+          "label": "grantpt.3",
+          "url": "https://man7.org/linux/man-pages/man3/grantpt.3.html"
+        },
+        {
+          "label": "unlockpt.3",
+          "url": "https://man7.org/linux/man-pages/man3/unlockpt.3.html"
+        },
+        {
+          "label": "termios.3",
+          "url": "https://man7.org/linux/man-pages/man3/termios.3.html"
+        }
+      ],
+      "activity": "pty",
+      "lab": "pty",
+      "worked": {
+        "assumptions": "Canonical PTY; echo enabled; ISIG enabled; foreground group established.",
+        "before": "Master writes a; slave line buffer holds a.",
+        "operation": "Master writes newline.",
+        "observation": "Slave can receive a plus newline; echo is separate output visible at the master.",
+        "tradeoff": "A PTY supports terminal programs but is not a transparent byte transport."
+      }
+    },
+    {
+      "id": "a",
+      "position": 64,
+      "href": "appendices/a.html",
+      "topic": "Tracing System Calls",
+      "title": "Trace evidence without inventing causes",
+      "problem": "A slow read appears in strace, and a report blames the kernel's call stack.",
+      "explanation": "strace observes system-call boundaries and signals using tracing facilities. Duration includes waiting and scheduling effects; it does not directly decompose CPU time inside the kernel. Tracing perturbs execution and can expose sensitive arguments. A useful investigation correlates a bounded trace with an application hypothesis.",
+      "contract": "Use -f to follow children, -tt for timestamps, and -T for syscall duration. Filter the syscall set to the question. strace -k requests user-space stack traces where supported, not kernel stack traces. Kernel stack investigation requires appropriate kernel tracing or profiling tools and permissions.",
+      "pitfall": "Summing syscall elapsed durations across concurrent threads can exceed wall time. A failed open can be an intentional search probe rather than the incident's cause. Truncated arguments and unfinished/resumed lines require careful interpretation.",
+      "exercise": "On Linux run strace -f -e trace=process,read,write ./processes on this companion's own lab. Predict fork/clone-family creation, child termination, and waiting before reading the trace. Record unavailable tracing permissions rather than claiming an absent event never happened.",
+      "assessment": {
+        "question": "What stack does strace -k request?",
+        "answer": "A user-space stack trace, subject to build and unwinding support.",
+        "distractor": "The kernel's internal stack for every system call."
+      },
+      "sources": [
+        {
+          "label": "strace.1",
+          "url": "https://man7.org/linux/man-pages/man1/strace.1.html"
+        },
+        {
+          "label": "ptrace.2",
+          "url": "https://man7.org/linux/man-pages/man2/ptrace.2.html"
+        }
+      ],
+      "activity": "processes",
+      "lab": "processes",
+      "worked": {
+        "assumptions": "Two threads block concurrently for about one second each.",
+        "before": "strace reports one second elapsed for each blocking syscall.",
+        "operation": "Add the syscall durations.",
+        "observation": "Two seconds of summed wait does not imply two seconds of wall time or kernel CPU.",
+        "tradeoff": "Tracing exposes boundaries but perturbs timing and does not establish causality alone."
+      }
+    },
+    {
+      "id": "b",
+      "position": 65,
+      "href": "appendices/b.html",
+      "topic": "Parsing Command-Line Options",
+      "title": "Command-line parsing is input validation",
+      "problem": "A utility accepts --count=-1 and converts it into a huge unsigned allocation.",
+      "explanation": "Option parsing separates grammar from meaning. Recognizing -n is only the first stage; the supplied string still needs range, format, and policy validation. Positional arguments, a literal -- separator, missing operands, and repeated options need documented behavior.",
+      "contract": "getopt returns option characters, -1 at the end, and error indications depending on optstring. optind identifies the remaining arguments. For integers use strtol with errno cleared, an end pointer, and explicit bounds before converting to a narrower or unsigned type. GNU getopt_long and argument permutation are not universal POSIX behavior.",
+      "pitfall": "atoi cannot distinguish malformed input from a valid zero. Accepting a numeric prefix such as 12junk silently changes the user's request. A command parser should reject unreasonable resource sizes even if the number fits the machine type.",
+      "exercise": "Specify a --count option restricted to 1 through 100. Evaluate empty input, -1, 0, 1, 100, 101, 12x, and an overflowing decimal string. Keep the conversion independent from allocation so every failure can be tested without large resource use.",
+      "assessment": {
+        "question": "Is a successful strtol numeric prefix enough to accept 12junk as a count?",
+        "answer": "No. Require the end pointer to reach the end and enforce range policy.",
+        "distractor": "Yes. Trailing characters are always harmless comments."
+      },
+      "sources": [
+        {
+          "label": "getopt.3",
+          "url": "https://man7.org/linux/man-pages/man3/getopt.3.html"
+        },
+        {
+          "label": "strtol.3",
+          "url": "https://man7.org/linux/man-pages/man3/strtol.3.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "Count policy is decimal 1 through 100 with no suffix.",
+        "before": "Input is 12x.",
+        "operation": "strtol parses 12 and leaves end pointing at x.",
+        "observation": "Reject the argument despite the numeric prefix fitting in range.",
+        "tradeoff": "Strict parsing avoids ambiguity but accepts fewer convenient informal inputs."
+      }
+    },
+    {
+      "id": "c",
+      "position": 66,
+      "href": "appendices/c.html",
+      "topic": "Casting the NULL Pointer",
+      "title": "Pointer types still matter at variadic boundaries",
+      "problem": "A variadic API expects a pointer sentinel but receives an integer zero of the wrong representation.",
+      "explanation": "A null pointer constant converts appropriately in a context with a known pointer parameter type. Variadic arguments lack that target-type conversion. An integer zero and a null pointer need not have the same size or representation. Teach the call boundary, not a blanket rule to cast every NULL everywhere.",
+      "contract": "For an execl-style argument list, terminate with a correctly typed null pointer such as (char *) NULL as required by the interface. In ordinary prototyped C pointer parameters the conversion is already defined. Function pointers and object pointers have distinct portability rules; do not treat arbitrary casts as ABI repair.",
+      "pitfall": "A cast can silence a diagnostic without making the underlying object or calling convention valid. Assuming LP64, ILP32, and all platforms pass variadic values identically makes latent bugs architecture-dependent.",
+      "exercise": "Compare a prototyped takes_pointer(char *) call with a variadic sentinel call. Annotate which argument positions have a target type at the call site. Compile declaration probes with strict warnings, but explain why absence of a warning is not a proof of portable ABI correctness.",
+      "assessment": {
+        "question": "Why can a variadic null sentinel need an explicit pointer type?",
+        "answer": "The ellipsis supplies no target pointer type for the usual conversion.",
+        "distractor": "Every use of NULL in C is invalid without a cast."
+      },
+      "sources": [
+        {
+          "label": "stdarg.3",
+          "url": "https://man7.org/linux/man-pages/man3/stdarg.3.html"
+        },
+        {
+          "label": "exec.3",
+          "url": "https://man7.org/linux/man-pages/man3/exec.3.html"
+        },
+        {
+          "label": "NULL.3const",
+          "url": "https://man7.org/linux/man-pages/man3/NULL.3const.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "An execl-style variadic list ends after argv entries.",
+        "before": "The sentinel position has no declared pointer parameter type.",
+        "operation": "Pass (char *) NULL as the sentinel.",
+        "observation": "The call supplies the expected pointer type rather than relying on integer-zero representation.",
+        "tradeoff": "Explicit types at variadic boundaries improve portability; blanket casts can hide other errors."
+      }
+    },
+    {
+      "id": "d",
+      "position": 67,
+      "href": "appendices/d.html",
+      "topic": "Kernel Configuration",
+      "title": "Kernel configuration is part of the environment",
+      "problem": "An API header exists but the running environment rejects the operation.",
+      "explanation": "Kernel release, build configuration, enabled modules, namespaces, security policy, and runtime limits all affect interface availability. A header describes what the toolchain can express; it does not prove the running kernel supports or permits the operation. Containers normally share a host kernel rather than shipping an independent one.",
+      "contract": "Record uname output and distribution information, then inspect configuration only where exposed, such as /proc/config.gz or distribution-provided boot config files. Absence of a readable config is not proof that a feature is disabled. Test actual operations with explicit error handling and distinguish ENOSYS, EOPNOTSUPP, and permission failures.",
+      "pitfall": "Changing kernel parameters on a shared machine to make a tutorial pass invalidates a safe default lab. A seccomp filter can alter the observed failure, so errno alone may not identify the kernel's compile-time configuration.",
+      "exercise": "Build an environment report containing kernel release, architecture, libc version, namespace context, and the result of one harmless feature probe. Do not rebuild or reboot the kernel for this companion. List what remains unknown when configuration files are inaccessible.",
+      "assessment": {
+        "question": "Does a missing /proc/config.gz prove the kernel lacks the feature under investigation?",
+        "answer": "No. Configuration exposure itself is optional.",
+        "distractor": "Yes. Every Linux kernel must publish all options there."
+      },
+      "sources": [
+        {
+          "label": "uname.2",
+          "url": "https://man7.org/linux/man-pages/man2/uname.2.html"
+        },
+        {
+          "label": "proc.5",
+          "url": "https://man7.org/linux/man-pages/man5/proc.5.html"
+        },
+        {
+          "label": "seccomp.2",
+          "url": "https://man7.org/linux/man-pages/man2/seccomp.2.html"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A container sees a host kernel and a restrictive syscall policy.",
+        "before": "An operation is rejected.",
+        "operation": "Record kernel release, policy context, and the actual errno.",
+        "observation": "A missing header or disabled kernel option is not the only possible explanation.",
+        "tradeoff": "Feature probes reflect deployment but must not mutate global configuration."
+      }
+    },
+    {
+      "id": "e",
+      "position": 68,
+      "href": "appendices/e.html",
+      "topic": "Further Sources of Information",
+      "title": "Read sources by authority and version",
+      "problem": "Two accurate-looking references disagree because they describe different standards and kernels.",
+      "explanation": "Start with the interface contract for observable behavior, then use implementation documentation to explain mechanisms. Linux man-pages distinguish standards, history, notes, and bugs. POSIX Issue 8 describes the 2024 contract. Kernel documentation and glibc manuals answer different layers of a system question.",
+      "contract": "Record the exact API, platform, version, and claim under review. For a Linux extension, avoid presenting a Linux-specific implementation detail as a portable guarantee. For a networking protocol, read the relevant RFC state and requirement language rather than inferring behavior from a browser diagram.",
+      "pitfall": "A reachable URL is not evidence that every sentence derived from it is correct. An old example can remain compilable while relying on obsolete assumptions. A benchmark on one machine is not an API guarantee.",
+      "exercise": "Compare dup3 in current man-pages with POSIX.1-2024. Separate its Linux introduction, glibc declaration requirements, and later standardization. Use the source ledger to distinguish directly reviewed critical references from further reading and reachability checks.",
+      "assessment": {
+        "question": "Can a successful HTTP check certify a lesson's technical correctness?",
+        "answer": "No. Reachability and claim review are separate evidence.",
+        "distractor": "Yes. An official hostname makes every interpretation correct."
+      },
+      "sources": [
+        {
+          "label": "standards.7",
+          "url": "https://man7.org/linux/man-pages/man7/standards.7.html"
+        },
+        {
+          "label": "feature_test_macros.7",
+          "url": "https://man7.org/linux/man-pages/man7/feature_test_macros.7.html"
+        },
+        {
+          "label": "POSIX.1-2024",
+          "url": "https://pubs.opengroup.org/onlinepubs/9799919799/"
+        },
+        {
+          "label": "Linux kernel documentation",
+          "url": "https://docs.kernel.org/"
+        }
+      ],
+      "activity": null,
+      "lab": null,
+      "worked": {
+        "assumptions": "A current source says dup3 is POSIX.1-2024; deployment targets an older standard.",
+        "before": "Source availability and deployment availability differ.",
+        "operation": "Record Linux introduction, libc declaration, and standards edition separately.",
+        "observation": "Do not infer that every older POSIX system acquired dup3 retroactively.",
+        "tradeoff": "Versioned evidence is more work but prevents timeless claims from drifting."
+      }
+    },
+    {
+      "id": "f",
+      "position": 69,
+      "href": "appendices/f.html",
+      "topic": "Answers to this companion's original problems",
+      "title": "Worked answers to this companion's problems",
+      "problem": "An answer gives a final value but hides the assumptions that make it true.",
+      "explanation": "A useful solution states the starting state, legal transitions, and observation point. For this companion's descriptor problem, ordinary dup shares the offset but clears the new descriptor's close-on-exec bit. Serialized writes AB then CD through those aliases produce ABCD. A fresh open instead starts with its own offset and can overwrite.",
+      "contract": "For this companion's signal problem, block SIGUSR1, generate it three times while it remains pending, then synchronously accept it: one standard pending instance is consumed. For the queue problem, priorities 1,3,3 produce the two priority-3 messages in FIFO order before the priority-1 message. These are independently authored exercises, not solutions to a book's exercises.",
+      "pitfall": "For the close problem, replacing client-active-close with server-active-close moves the ordinary TIME_WAIT endpoint to the server. For the pipe problem, an empty buffer plus a retained writer is not EOF. For the edge-trigger problem, reading three of eight bytes leaves five bytes without necessarily producing another edge.",
+      "exercise": "Before revealing each lesson's explanation, write an ownership table and one counterexample to the wrong answer. Run the descriptor and pipe labs to compare predictions with actual interfaces. Extend the reasoning to failure returns rather than assuming every call succeeds.",
+      "assessment": {
+        "question": "What makes the ABCD descriptor result valid?",
+        "answer": "Shared description, serialized successful writes, and an initial offset of zero.",
+        "distractor": "Every pair of opens of the same path always shares one offset."
+      },
+      "sources": [
+        {
+          "label": "dup.2",
+          "url": "https://man7.org/linux/man-pages/man2/dup.2.html"
+        },
+        {
+          "label": "signal.7",
+          "url": "https://man7.org/linux/man-pages/man7/signal.7.html"
+        },
+        {
+          "label": "pipe.7",
+          "url": "https://man7.org/linux/man-pages/man7/pipe.7.html"
+        },
+        {
+          "label": "epoll.7",
+          "url": "https://man7.org/linux/man-pages/man7/epoll.7.html"
+        }
+      ],
+      "activity": "descriptors",
+      "lab": "descriptors",
+      "worked": {
+        "assumptions": "Two independent opens of an empty file, neither using O_APPEND.",
+        "before": "Both open file descriptions start at offset zero.",
+        "operation": "First writes AB; second writes CD.",
+        "observation": "The second can overwrite AB with CD; this differs from the dup example.",
+        "tradeoff": "Counterexamples expose hidden ownership assumptions better than memorizing one output."
+      }
+    }
+  ]
+}

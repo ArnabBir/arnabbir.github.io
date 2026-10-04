@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "chapters": 64,
+  "appendices": 6,
+  "assessments": 70,
+  "workedTraces": 70,
+  "labs": 10,
+  "models": 7,
+  "units": [
+    {
+      "id": "ch01",
+      "legacyQueryPosition": 1,
+      "href": "chapters/ch01.html",
+      "title": "Portability is a contract",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch02",
+      "legacyQueryPosition": 2,
+      "href": "chapters/ch02.html",
+      "title": "Names, handles, and kernel objects",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch03",
+      "legacyQueryPosition": 3,
+      "href": "chapters/ch03.html",
+      "title": "Reading an API like a protocol",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch04",
+      "legacyQueryPosition": 4,
+      "href": "chapters/ch04.html",
+      "title": "Byte transfer without wishful thinking",
+      "sources": 4,
+      "lab": "descriptors"
+    },
+    {
+      "id": "ch05",
+      "legacyQueryPosition": 5,
+      "href": "chapters/ch05.html",
+      "title": "Descriptor flags and shared offsets",
+      "sources": 3,
+      "lab": "descriptors"
+    },
+    {
+      "id": "ch06",
+      "legacyQueryPosition": 6,
+      "href": "chapters/ch06.html",
+      "title": "A process is more than a PID",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch07",
+      "legacyQueryPosition": 7,
+      "href": "chapters/ch07.html",
+      "title": "Allocation, ownership, and address space",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch08",
+      "legacyQueryPosition": 8,
+      "href": "chapters/ch08.html",
+      "title": "Identity databases are services",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch09",
+      "legacyQueryPosition": 9,
+      "href": "chapters/ch09.html",
+      "title": "Credentials are authority, not labels",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch10",
+      "legacyQueryPosition": 10,
+      "href": "chapters/ch10.html",
+      "title": "Choose the clock before the timestamp",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch11",
+      "legacyQueryPosition": 11,
+      "href": "chapters/ch11.html",
+      "title": "Limits must be interpreted",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch12",
+      "legacyQueryPosition": 12,
+      "href": "chapters/ch12.html",
+      "title": "Observing a moving process",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch13",
+      "legacyQueryPosition": 13,
+      "href": "chapters/ch13.html",
+      "title": "Three stages of a write",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch14",
+      "legacyQueryPosition": 14,
+      "href": "chapters/ch14.html",
+      "title": "Filesystems as namespaces and storage",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch15",
+      "legacyQueryPosition": 15,
+      "href": "chapters/ch15.html",
+      "title": "Metadata is a snapshot",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch16",
+      "legacyQueryPosition": 16,
+      "href": "chapters/ch16.html",
+      "title": "Extended attributes are separate data",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch17",
+      "legacyQueryPosition": 17,
+      "href": "chapters/ch17.html",
+      "title": "ACLs and the effective permission mask",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch18",
+      "legacyQueryPosition": 18,
+      "href": "chapters/ch18.html",
+      "title": "Directory traversal without name races",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch19",
+      "legacyQueryPosition": 19,
+      "href": "chapters/ch19.html",
+      "title": "File events are hints to reconcile",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch20",
+      "legacyQueryPosition": 20,
+      "href": "chapters/ch20.html",
+      "title": "Signals: pending is not a message count",
+      "sources": 3,
+      "lab": "signals"
+    },
+    {
+      "id": "ch21",
+      "legacyQueryPosition": 21,
+      "href": "chapters/ch21.html",
+      "title": "A signal handler interrupts invariants",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch22",
+      "legacyQueryPosition": 22,
+      "href": "chapters/ch22.html",
+      "title": "Accepting signals synchronously",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch23",
+      "legacyQueryPosition": 23,
+      "href": "chapters/ch23.html",
+      "title": "Timers schedule eligibility, not precision",
+      "sources": 2,
+      "lab": "timers"
+    },
+    {
+      "id": "ch24",
+      "legacyQueryPosition": 24,
+      "href": "chapters/ch24.html",
+      "title": "Fork: copied state, shared references",
+      "sources": 2,
+      "lab": "processes"
+    },
+    {
+      "id": "ch25",
+      "legacyQueryPosition": 25,
+      "href": "chapters/ch25.html",
+      "title": "Exit has user-space and kernel phases",
+      "sources": 3,
+      "lab": "processes"
+    },
+    {
+      "id": "ch26",
+      "legacyQueryPosition": 26,
+      "href": "chapters/ch26.html",
+      "title": "Reaping is resource accounting",
+      "sources": 2,
+      "lab": "processes"
+    },
+    {
+      "id": "ch27",
+      "legacyQueryPosition": 27,
+      "href": "chapters/ch27.html",
+      "title": "Exec is an image replacement boundary",
+      "sources": 3,
+      "lab": "descriptors"
+    },
+    {
+      "id": "ch28",
+      "legacyQueryPosition": 28,
+      "href": "chapters/ch28.html",
+      "title": "Launching safely from a larger process",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch29",
+      "legacyQueryPosition": 29,
+      "href": "chapters/ch29.html",
+      "title": "Threads share ownership problems",
+      "sources": 3,
+      "lab": "threads"
+    },
+    {
+      "id": "ch30",
+      "legacyQueryPosition": 30,
+      "href": "chapters/ch30.html",
+      "title": "Synchronization protects a predicate",
+      "sources": 2,
+      "lab": "threads"
+    },
+    {
+      "id": "ch31",
+      "legacyQueryPosition": 31,
+      "href": "chapters/ch31.html",
+      "title": "Thread-local storage is not object isolation",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch32",
+      "legacyQueryPosition": 32,
+      "href": "chapters/ch32.html",
+      "title": "Cancellation is an unwinding protocol",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch33",
+      "legacyQueryPosition": 33,
+      "href": "chapters/ch33.html",
+      "title": "Thread attributes and finite resources",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch34",
+      "legacyQueryPosition": 34,
+      "href": "chapters/ch34.html",
+      "title": "Job control separates sessions and groups",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch35",
+      "legacyQueryPosition": 35,
+      "href": "chapters/ch35.html",
+      "title": "Scheduling promises and weighted shares",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch36",
+      "legacyQueryPosition": 36,
+      "href": "chapters/ch36.html",
+      "title": "Resource limits are failure inputs",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch37",
+      "legacyQueryPosition": 37,
+      "href": "chapters/ch37.html",
+      "title": "Services need a lifecycle contract",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch38",
+      "legacyQueryPosition": 38,
+      "href": "chapters/ch38.html",
+      "title": "Privileged code narrows its inputs",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch39",
+      "legacyQueryPosition": 39,
+      "href": "chapters/ch39.html",
+      "title": "Capabilities divide privilege, imperfectly",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch40",
+      "legacyQueryPosition": 40,
+      "href": "chapters/ch40.html",
+      "title": "Login records are accounting, not authority",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch41",
+      "legacyQueryPosition": 41,
+      "href": "chapters/ch41.html",
+      "title": "Shared objects and ABI boundaries",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "ch42",
+      "legacyQueryPosition": 42,
+      "href": "chapters/ch42.html",
+      "title": "Runtime loading needs an ownership protocol",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch43",
+      "legacyQueryPosition": 43,
+      "href": "chapters/ch43.html",
+      "title": "Choose an IPC contract before an API",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch44",
+      "legacyQueryPosition": 44,
+      "href": "chapters/ch44.html",
+      "title": "Pipes are byte streams with reference-counted ends",
+      "sources": 3,
+      "lab": "pipes"
+    },
+    {
+      "id": "ch45",
+      "legacyQueryPosition": 45,
+      "href": "chapters/ch45.html",
+      "title": "System V IPC objects outlive ordinary handles",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch46",
+      "legacyQueryPosition": 46,
+      "href": "chapters/ch46.html",
+      "title": "System V queues select typed messages",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch47",
+      "legacyQueryPosition": 47,
+      "href": "chapters/ch47.html",
+      "title": "Semaphore sets can make atomic reservations",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch48",
+      "legacyQueryPosition": 48,
+      "href": "chapters/ch48.html",
+      "title": "Shared-memory addresses are not portable references",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch49",
+      "legacyQueryPosition": 49,
+      "href": "chapters/ch49.html",
+      "title": "Mappings separate visibility from durability",
+      "sources": 3,
+      "lab": "mappings"
+    },
+    {
+      "id": "ch50",
+      "legacyQueryPosition": 50,
+      "href": "chapters/ch50.html",
+      "title": "Virtual-memory policy has granularity",
+      "sources": 4,
+      "lab": "mappings"
+    },
+    {
+      "id": "ch51",
+      "legacyQueryPosition": 51,
+      "href": "chapters/ch51.html",
+      "title": "POSIX IPC names and open references",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch52",
+      "legacyQueryPosition": 52,
+      "href": "chapters/ch52.html",
+      "title": "POSIX queues combine priority with capacity",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch53",
+      "legacyQueryPosition": 53,
+      "href": "chapters/ch53.html",
+      "title": "A semaphore counts permits, not owners",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch54",
+      "legacyQueryPosition": 54,
+      "href": "chapters/ch54.html",
+      "title": "Shared storage needs a bootstrap protocol",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch55",
+      "legacyQueryPosition": 55,
+      "href": "chapters/ch55.html",
+      "title": "File locks have different ownership rules",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch56",
+      "legacyQueryPosition": 56,
+      "href": "chapters/ch56.html",
+      "title": "Sockets separate endpoints from application messages",
+      "sources": 4,
+      "lab": "sockets"
+    },
+    {
+      "id": "ch57",
+      "legacyQueryPosition": 57,
+      "href": "chapters/ch57.html",
+      "title": "UNIX sockets can transfer authority",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch58",
+      "legacyQueryPosition": 58,
+      "href": "chapters/ch58.html",
+      "title": "TCP reliability is not application acknowledgement",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch59",
+      "legacyQueryPosition": 59,
+      "href": "chapters/ch59.html",
+      "title": "Address resolution returns candidates",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch60",
+      "legacyQueryPosition": 60,
+      "href": "chapters/ch60.html",
+      "title": "Servers need admission and shutdown policies",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "ch61",
+      "legacyQueryPosition": 61,
+      "href": "chapters/ch61.html",
+      "title": "Advanced socket features preserve partial progress",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "ch62",
+      "legacyQueryPosition": 62,
+      "href": "chapters/ch62.html",
+      "title": "Terminal input is a configurable protocol",
+      "sources": 2,
+      "lab": "pty"
+    },
+    {
+      "id": "ch63",
+      "legacyQueryPosition": 63,
+      "href": "chapters/ch63.html",
+      "title": "Readiness is permission to try",
+      "sources": 4,
+      "lab": "readiness"
+    },
+    {
+      "id": "ch64",
+      "legacyQueryPosition": 64,
+      "href": "chapters/ch64.html",
+      "title": "A PTY includes a terminal line discipline",
+      "sources": 5,
+      "lab": "pty"
+    },
+    {
+      "id": "a",
+      "legacyQueryPosition": 65,
+      "href": "appendices/a.html",
+      "title": "Trace evidence without inventing causes",
+      "sources": 2,
+      "lab": "processes"
+    },
+    {
+      "id": "b",
+      "legacyQueryPosition": 66,
+      "href": "appendices/b.html",
+      "title": "Command-line parsing is input validation",
+      "sources": 2,
+      "lab": null
+    },
+    {
+      "id": "c",
+      "legacyQueryPosition": 67,
+      "href": "appendices/c.html",
+      "title": "Pointer types still matter at variadic boundaries",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "d",
+      "legacyQueryPosition": 68,
+      "href": "appendices/d.html",
+      "title": "Kernel configuration is part of the environment",
+      "sources": 3,
+      "lab": null
+    },
+    {
+      "id": "e",
+      "legacyQueryPosition": 69,
+      "href": "appendices/e.html",
+      "title": "Read sources by authority and version",
+      "sources": 4,
+      "lab": null
+    },
+    {
+      "id": "f",
+      "legacyQueryPosition": 70,
+      "href": "appendices/f.html",
+      "title": "Worked answers to this companion's problems",
+      "sources": 4,
+      "lab": "descriptors"
+    }
+  ]
+}

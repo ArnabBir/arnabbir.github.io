@@ -15,22 +15,23 @@ export default [
   ...systemDesign,
   {
     id: "tlpi",
-    title: "The Linux Programming Interface - Interactive Companion",
-    description: "Interactive chapter-by-chapter companion to TLPI with kernel mental models, syscall maps, labs, and production notes.",
+    title: "Linux Systems Programming - An Original TLPI Companion",
+    description: "An independent Linux systems programming companion: 64 topic lessons, six appendices, API contracts, original problems, and bounded C labs.",
     category: "Systems Programming",
     tags: ["Linux", "OS", "Syscalls", "Kernel", "TLPI"],
     contentPath: "/library/index.html",
+    supportsThemeMessaging: true,
     date: "2026-02-06",
     featured: true,
     highlights: [
-      "64 interactive chapters plus appendices",
-      "Kernel mental model maps and syscall layers",
+      "64 original topic lessons and six appendices",
+      "Primary-source API contracts and failure analysis",
       "Hands-on labs: processes, files, signals, sockets",
       "Production debugging checklists and pitfalls"
     ],
     chapters: [...tlpiChapters, ...tlpiAppendices],
     difficulty: "Advanced",
-    readingTime: `${tlpiMeta.chapterCount} chapters`,
+    readingTime: `${tlpiMeta.chapterCount} chapters + ${tlpiMeta.appendixCount} appendices`,
   },
   {
     id: "whitepapers",

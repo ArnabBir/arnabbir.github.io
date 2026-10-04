@@ -6,7 +6,7 @@ const toChapter = (item) => ({
 });
 
 const toAppendix = (item) => ({
-  title: `Appendix ${item.letter} - ${item.title}`,
+  title: `Appendix ${item.letter} - ${item.letter === 'F' ? "Answers to this companion's original problems" : item.title}`,
   contentPath: `/library/${item.href}`,
 });
 

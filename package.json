@@ -5,7 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/check-build.mjs",
+    "build": "node scripts/build-linux.mjs --check && vite build && node scripts/check-build.mjs",
+    "linux:generate": "node scripts/build-linux.mjs",
+    "linux:check": "node scripts/build-linux.mjs --check && node --test scripts/tests/linux-companion.test.mjs",
+    "linux:test-browser": "node scripts/check-linux-browser.mjs",
+    "linux:test-labs": "node scripts/check-linux-labs.mjs",
+    "linux:check-sources": "node scripts/check-linux-sources.mjs",
     "test": "node --test scripts/tests/*.test.mjs src/pages/simulations/labs/models.test.js && node scripts/check-playbooks.mjs && node scripts/check-frontend-atlas.mjs && node scripts/check-system-design.mjs && node scripts/normalize-text.mjs --check",
     "papers:check-sources": "node scripts/paper-sources.mjs",
     "papers:discover": "node scripts/paper-sources.mjs --discover",

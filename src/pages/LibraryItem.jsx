@@ -64,7 +64,7 @@ export default function LibraryItem() {
     if (iframeRef.current && libraryItem && libraryItem.supportsThemeMessaging !== false) {
       const currentTheme = resolvedTheme || theme || "light";
       try {
-        if (!Array.from(iframeRef.current.contentDocument?.scripts || []).some(script => script.textContent.includes("THEME_CHANGE"))) return;
+        if (libraryItem.supportsThemeMessaging !== true && !Array.from(iframeRef.current.contentDocument?.scripts || []).some(script => script.textContent.includes("THEME_CHANGE"))) return;
         iframeRef.current.contentWindow?.postMessage(
           { type: "THEME_CHANGE", theme: currentTheme },
           window.location.origin
@@ -296,7 +296,7 @@ export default function LibraryItem() {
                   // Send initial theme to iframe
                   const currentTheme = resolvedTheme || theme || "light";
                   try {
-                    if (libraryItem.supportsThemeMessaging !== false && Array.from(iframeRef.current.contentDocument?.scripts || []).some(script => script.textContent.includes("THEME_CHANGE"))) iframeRef.current.contentWindow?.postMessage(
+                    if (libraryItem.supportsThemeMessaging !== false && (libraryItem.supportsThemeMessaging === true || Array.from(iframeRef.current.contentDocument?.scripts || []).some(script => script.textContent.includes("THEME_CHANGE")))) iframeRef.current.contentWindow?.postMessage(
                       { type: "THEME_CHANGE", theme: currentTheme },
                       window.location.origin
                     );

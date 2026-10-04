@@ -22,12 +22,7 @@ const gradients = [
   "from-violet-500 via-purple-500 to-fuchsia-500",
 ];
 
-const slugify = (value) =>
-  value
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+import { categorySlug as slugify } from '@/content/libraryCategories';
 
 function useCategoryRacks(items) {
   return useMemo(() => {

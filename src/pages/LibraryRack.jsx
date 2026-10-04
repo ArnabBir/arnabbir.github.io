@@ -16,12 +16,7 @@ import { libraryContent } from "@/content";
 import WhitepaperRack from './WhitepaperRack';
 import { DiscoveryFilters, ExperienceCard, matchesLibraryItem } from "@/components/library/Discovery";
 
-const slugify = (value) =>
-  value
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+import { categorySlug as slugify } from '@/content/libraryCategories';
 
 function useRackData() {
   return useMemo(() => {
