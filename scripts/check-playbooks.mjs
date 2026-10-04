@@ -49,7 +49,12 @@ for (const item of playbooks) {
 }
 assert.deepEqual(actualCounts, expectedCounts);
 for (const path of playbookPaths) for (const id of path.ids) assert.ok(playbooks.some(item => item.id === id));
-const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+// This checker only loads SSR modules; do not start a browser dependency scan.
+const server = await createServer({
+  server: { middlewareMode: true },
+  appType: 'custom',
+  optimizeDeps: { noDiscovery: true, include: [] },
+});
 try {
   const { default: library } = await server.ssrLoadModule('/src/content/library.js');
   assert.equal(new Set(library.map(item => item.id)).size, library.length);

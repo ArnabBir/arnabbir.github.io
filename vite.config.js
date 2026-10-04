@@ -32,7 +32,6 @@ export default defineConfig({
           "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
           "vendor-charts": ["recharts"],
           "vendor-query": ["@tanstack/react-query"],
-          "vendor-export": ["jspdf", "xlsx"],
         },
       },
     },
