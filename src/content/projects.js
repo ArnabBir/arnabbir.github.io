@@ -221,6 +221,7 @@ export default [
     name: "AI Engineering Explained",
     description:
       "A visual study companion for building AI applications with foundation models, covering evaluation, prompt engineering, RAG, agents, finetuning, and production architecture.",
+    image: "/images/ai-engineering-explained-cover.jpg",
     tags: ["AI Engineering", "LLMs", "RAG", "Agents"],
     highlights: [
       "Ten chapters with architecture diagrams and practitioner checklists.",
